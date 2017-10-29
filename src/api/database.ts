@@ -1,9 +1,13 @@
-export class Error {
+export class DatabaseError {
   static chain_connection_failed = 'chain_connection_failed'
+  static database_execution_failed = 'database_execution_failed'
 }
 
 export class DatabaseOperation {
-  static search_content = 'search_content'
+  static searchContent = 'search_content'
+  static getAccountByName = 'get_account_by_name'
+  static getAccounts = 'get_accounts'
+  static searchAccountHistory = 'search_account_history'
 }
 
 export interface DatabaseConfig {
@@ -18,7 +22,18 @@ export class DatabaseApi {
     return new DatabaseApi(config, api)
   }
 
+  private dbApi(): any {
+    return this._api.instance().db_api()
+  }
+
+  private constructor(config: DatabaseConfig, api: any) {
+    this._config = config
+    this._api = api
+    this.initApi(this._config.decent_network_wspaths, this._api)
+  }
+
   private initApi(addresses: string[], forApi: any): Promise<any> {
+    // TODO: when not connected yet, calls throws errors
     return new Promise((resolve, reject) => {
       this.connectDaemon(
         forApi,
@@ -41,7 +56,7 @@ export class DatabaseApi {
     addressIndex: number = 0
   ) {
     if (addresses.length <= addressIndex) {
-      onError(Error.chain_connection_failed)
+      onError(DatabaseError.chain_connection_failed)
       return
     }
     const address = addresses[addressIndex]
@@ -52,7 +67,6 @@ export class DatabaseApi {
         onSuccess()
       })
       .catch((reason: any) => {
-        console.log(``)
         this.connectDaemon(
           toApi,
           addresses,
@@ -63,24 +77,17 @@ export class DatabaseApi {
       })
   }
 
-  private constructor(config: DatabaseConfig, api: any) {
-    this._config = config
-    this._api = api
-    this.initApi(this._config.decent_network_wspaths, this._api)
-  }
-
-  private dbApi(): any {
-    return this._api.db_api()
-  }
-
-  public execute(command: DatabaseOperation, parameters: any[]): Promise<any> {
+  public execute(
+    operation: DatabaseOperation,
+    parameters: any[]
+  ): Promise<any> {
     return new Promise((resolve, reject) => {
       this.dbApi()
-        .exec(command, parameters)
+        .exec(operation, parameters)
         .then((content: any) => resolve(content))
         .catch((err: any) => {
           // TODO: handle errors to DBApi errors
-          reject(err)
+          reject(DatabaseError.database_execution_failed)
         })
     })
   }

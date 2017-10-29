@@ -1,6 +1,7 @@
 import { ContentApi } from './content'
 import { DatabaseApi } from './api/database'
 import { ChainApi } from './api/chain'
+import { AccountApi } from './account'
 
 const { Apis, ChainConfig } = require('decentjs-lib/lib/ws/cjs')
 
@@ -11,10 +12,16 @@ export interface CoreConfig {
 
 export class Core {
   private _content: ContentApi
+  private _user: AccountApi
   private _config: CoreConfig
   private _database: DatabaseApi
+
   get content(): ContentApi {
     return this._content
+  }
+
+  get user(): AccountApi {
+    return this._user
   }
 
   public static create(
@@ -26,6 +33,7 @@ export class Core {
     core.initChain(config.chain_id, chainConfigApi)
     core._database = DatabaseApi.create(config, api)
     core._content = new ContentApi(core._database)
+    core._user = new AccountApi(core._database)
     return core
   }
 
