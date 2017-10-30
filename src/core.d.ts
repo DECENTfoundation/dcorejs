@@ -1,1 +1,2 @@
-export declare class Core {}
+export declare class Core {
+}

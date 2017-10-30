@@ -1,14 +1,15 @@
-import DummyClass from "../src/decent-js"
+import DummyClass from '../src/decent-js';
+import {ApisMock} from '../src/mocks/ApisMock';
 
 /**
  * Dummy test
  */
-describe("Dummy test", () => {
-  it("works if true is truthy", () => {
-    expect(true).toBeTruthy()
-  })
+describe('Dummy test', () => {
+    it('works if true is truthy', () => {
+        expect(true).toBeTruthy();
+    });
 
-  it("DummyClass is instantiable", () => {
-    expect(new DummyClass()).toBeInstanceOf(DummyClass)
-  })
-})
+    it('DummyClass is instantiable', () => {
+        expect(new DummyClass()).toBeInstanceOf(DummyClass);
+    });
+});
