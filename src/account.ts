@@ -116,7 +116,6 @@ export class AccountError {
  * API class provides wrapper for account information.
  */
 export class AccountApi {
-    private static asset = 'DCT';
     private _dbApi: DatabaseApi;
 
     constructor(dbApi: Database) {
@@ -232,7 +231,7 @@ export class AccountApi {
             const operations = new ChainMethods();
             operations.add(ChainMethods.getAccount, fromAccount);
             operations.add(ChainMethods.getAccount, toAccount);
-            operations.add(ChainMethods.getAsset, AccountApi.asset);
+            operations.add(ChainMethods.getAsset, ChainApi.asset);
 
             ChainApi.fetch(operations).then(result => {
                 const [senderAccount, receiverAccount, asset] = result;
@@ -267,7 +266,7 @@ export class AccountApi {
                     )
                 };
 
-                const tr = TransactionOperator.createTransactionBuilder();
+                const tr = TransactionOperator.createTransaction();
                 const transfer: TransferOperation = {
                     from: senderAccount.get('id'),
                     to: receiverAccount.get('id'),
@@ -277,7 +276,7 @@ export class AccountApi {
 
                 console.log(transfer);
                 TransactionOperator.addOperation(
-                    {name: TransactionOperationName.transfer, data: transfer},
+                    {name: TransactionOperationName.transfer, operation: transfer},
                     tr
                 );
                 TransactionOperator.broadcastTransaction(tr, privateKey, fromPublicKey)

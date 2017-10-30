@@ -25,6 +25,7 @@ export class ChainMethods {
 }
 
 export class ChainApi {
+    static asset = 'DCT';
     public static initChain(chainId: string, chainConfig: any) {
         chainConfig.networks.decent = {
             chain_id: chainId

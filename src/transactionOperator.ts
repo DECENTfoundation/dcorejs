@@ -6,7 +6,7 @@ const {TransactionBuilder, ops} = require('decentjs-lib/lib');
  */
 export interface TransactionOperation {
     name: string
-    data: Transaction
+    operation: Transaction
 }
 
 /**
@@ -14,6 +14,7 @@ export interface TransactionOperation {
  */
 export class TransactionOperationName {
     static transfer = 'transfer';
+    static content_cancellation = 'content_cancellation';
 }
 
 /**
@@ -54,14 +55,20 @@ export interface TransferOperation extends Transaction {
     memo: Memo
 }
 
+export interface ContentCancelOperation extends Transaction {
+    author: string
+    URI: string
+}
+
 /**
+ * // TODO: Create wrapper class for TransactionBuilder for stronger typing
  * Provides methods to manipulate and broadcast transactions to
  * network.
  */
 export class TransactionOperator {
     static DCTPower = Math.pow(10, 8);
 
-    public static createTransactionBuilder(): any {
+    public static createTransaction(): any {
         return new TransactionBuilder();
     }
 
@@ -89,11 +96,11 @@ export class TransactionOperator {
             return false;
         }
         ops[operation.name].keys.forEach((key: string) => {
-            if (!operation.data.hasOwnProperty(key)) {
+            if (!operation.operation.hasOwnProperty(key)) {
                 return false;
             }
         });
-        transaction.add_type_operation(operation.name, operation.data);
+        transaction.add_type_operation(operation.name, operation.operation);
         return true;
     }
 

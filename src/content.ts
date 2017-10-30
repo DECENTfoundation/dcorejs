@@ -1,5 +1,6 @@
 import {DatabaseApi, DatabaseOperation} from './api/database';
 import {ChainApi, ChainMethods} from './api/chain';
+import {ContentCancelOperation, TransactionOperationName, TransactionOperator} from './transactionOperator';
 
 export interface Content {
     id: string
@@ -120,6 +121,42 @@ export class ContentApi {
                 })
                 .catch(err => {
                     reject(err);
+                });
+        });
+    }
+
+    /**
+     * Cancel submitted content record from blockchain.
+     *
+     * @param {string} id example: '1.2.435'
+     * @param {string} authorId example: '1.2.532'
+     * @return {Promise<any>}
+     */
+    public removeContent(id: string, authorId: string, privateKey: string): Promise<any> {
+        return new Promise((resolve, reject) => {
+            const methods = new ChainMethods();
+            methods.add(ChainMethods.getAccount, authorId);
+
+            ChainApi.fetch(methods)
+                .then(result => {
+                    const [account] = result;
+                    const publicKey = account.get('owner').get('key_auths').get(0).get(0);
+                    const transaction = TransactionOperator.createTransaction();
+                    const cancellation: ContentCancelOperation = {
+                        author: authorId,
+                        URI: id
+                    };
+                    TransactionOperator.addOperation({
+                        name: TransactionOperationName.content_cancellation,
+                        operation: cancellation
+                    }, transaction);
+                    TransactionOperator.broadcastTransaction(transaction, privateKey, publicKey)
+                        .then(() => {
+                           resolve();
+                        })
+                        .catch(() => {
+                            reject();
+                        });
                 });
         });
     }
