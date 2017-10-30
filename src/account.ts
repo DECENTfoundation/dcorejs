@@ -117,9 +117,11 @@ export class AccountError {
  */
 export class AccountApi {
     private _dbApi: DatabaseApi;
+    private _chainApi: ChainApi;
 
-    constructor(dbApi: Database) {
+    constructor(dbApi: Database, chainApi: ChainApi) {
         this._dbApi = dbApi as DatabaseApi;
+        this._chainApi = chainApi;
     }
 
     /**
@@ -233,7 +235,7 @@ export class AccountApi {
             operations.add(ChainMethods.getAccount, toAccount);
             operations.add(ChainMethods.getAsset, ChainApi.asset);
 
-            ChainApi.fetch(operations).then(result => {
+            this._chainApi.fetch(operations).then(result => {
                 const [senderAccount, receiverAccount, asset] = result;
                 if (!senderAccount) {
                     reject(AccountError.transfer_sender_account_not_found);
@@ -301,7 +303,7 @@ export class AccountApi {
             const methods = new ChainMethods();
             methods.add(ChainMethods.getAccount, account);
 
-            ChainApi.fetch(methods)
+            this._chainApi.fetch(methods)
                 .then(result => {
                     const [account] = result;
                     const accId = account.get('id');

@@ -15,6 +15,7 @@ export interface TransactionOperation {
 export class TransactionOperationName {
     static transfer = 'transfer';
     static content_cancellation = 'content_cancellation';
+    static requestToBuy = 'request_to_buy';
 }
 
 /**
@@ -58,6 +59,18 @@ export interface TransferOperation extends Transaction {
 export interface ContentCancelOperation extends Transaction {
     author: string
     URI: string
+}
+
+export interface PubKey {
+    s: string
+}
+
+export interface BuyContentOperation extends Transaction {
+    URI: string
+    consumer: string
+    price: Asset
+    region_code_from: number
+    pubKey: PubKey
 }
 
 /**
@@ -123,7 +136,9 @@ export class TransactionOperator {
                     transaction.add_signer(privateKey, publicKey);
                     transaction.broadcast(() => {
                         resolve();
-                    });
+                    })
+                        .then(() => resolve())
+                        .catch((err: any) => reject(err));
                 })
                 .catch(() => {
                     reject();

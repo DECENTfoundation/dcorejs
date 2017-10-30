@@ -4,6 +4,7 @@ import {ChainApi} from './api/chain';
 import {AccountApi} from './account';
 
 const {Apis, ChainConfig} = require('decentjs-lib/lib/ws/cjs');
+const {ChainStore} = require('decentjs-lib/lib');
 
 export interface CoreConfig {
     decent_network_wspaths: string[]
@@ -15,6 +16,7 @@ export class Core {
     private _user: AccountApi;
     private _config: CoreConfig;
     private _database: DatabaseApi;
+    private _chain: ChainApi;
 
     get content(): ContentApi {
         return this._content;
@@ -28,15 +30,17 @@ export class Core {
                          api: any = Apis,
                          chainConfigApi: any = ChainConfig): Core {
         const core = new Core(config);
-        core.initChain(config.chain_id, chainConfigApi);
-        core._database = DatabaseApi.create(config, api);
-        core._content = new ContentApi(core._database);
-        core._user = new AccountApi(core._database);
+        core.setupChain(config.chain_id, chainConfigApi);
+        core._database = DatabaseApi.create(config, api, ChainStore);
+        const apiConnectionPromise = core._database.initApi(config.decent_network_wspaths, api);
+        core._chain = new ChainApi(apiConnectionPromise);
+        core._content = new ContentApi(core._database, core._chain);
+        core._user = new AccountApi(core._database, core._chain);
         return core;
     }
 
-    private initChain(chainId: string, chainConfig: any) {
-        ChainApi.initChain(chainId, chainConfig);
+    private setupChain(chainId: string, chainConfig: any) {
+        ChainApi.setupChain(chainId, chainConfig);
     }
 
     private constructor(config: CoreConfig) {

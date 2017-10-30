@@ -1,4 +1,5 @@
-const {FetchChain, TransactionHelper} = require('decentjs-lib/lib');
+const {FetchChain, TransactionHelper, ChainStore, types} = require('decentjs-lib/lib');
+const {map} = types;
 
 export interface ChainMethod {
     name: string
@@ -26,11 +27,24 @@ export class ChainMethods {
 
 export class ChainApi {
     static asset = 'DCT';
-    static asset_id = '1.3.0'
-    public static initChain(chainId: string, chainConfig: any) {
+    static asset_id = '1.3.0';
+    private _apiConnector: Promise<any>;
+
+    /**
+     * Generates random sequence of bytes
+     */
+    public static generateNonce(): string {
+        return TransactionHelper.unique_nonce_uint64();
+    }
+
+    public static setupChain(chainId: string, chainConfig: any) {
         chainConfig.networks.decent = {
             chain_id: chainId
         };
+    }
+
+    constructor(apiConnector: Promise<any>) {
+        this._apiConnector = apiConnector;
     }
 
     /**
@@ -42,15 +56,16 @@ export class ChainApi {
      * @param {ChainMethods} methods
      * @return {Promise<any[]>}
      */
-    public static fetch(methods: ChainMethods): Promise<any[]> {
-        const commands = methods.commands.map(op => FetchChain(op.name, op.param));
-        return Promise.all(commands);
-    }
-
-    /**
-     * Generates random sequence of bytes
-     */
-    public static generateNonce(): string {
-        return TransactionHelper.unique_nonce_uint64();
+    public fetch(methods: ChainMethods): Promise<any[]> {
+        return new Promise((resolve, reject) => {
+            this._apiConnector.then(() => {
+                ChainStore.init().then(() => {
+                    const commands = methods.commands.map(op => FetchChain(op.name, op.param));
+                    Promise.all(commands)
+                        .then((result) => resolve(result))
+                        .catch(err => reject(err));
+                });
+            });
+        });
     }
 }
