@@ -1,5 +1,10 @@
+export class ConnectionStatus {
+  static open = 'open'
+}
+
 export class DatabaseError {
   static chain_connection_failed = 'chain_connection_failed'
+  static chain_connecting = 'chain_connecting'
   static database_execution_failed = 'database_execution_failed'
 }
 
@@ -14,9 +19,14 @@ export interface DatabaseConfig {
   decent_network_wspaths: string[]
 }
 
-export class DatabaseApi {
+export class Database {
+  protected _api: any
+}
+
+export class DatabaseApi extends Database {
   private _config: DatabaseConfig
-  private _api: any
+  protected _api: any
+  private _connectionStatus: string
 
   public static create(config: DatabaseConfig, api: any): DatabaseApi {
     return new DatabaseApi(config, api)
@@ -26,7 +36,8 @@ export class DatabaseApi {
     return this._api.instance().db_api()
   }
 
-  private constructor(config: DatabaseConfig, api: any) {
+  constructor(config: DatabaseConfig, api: any) {
+    super()
     this._config = config
     this._api = api
     this.initApi(this._config.decent_network_wspaths, this._api)
@@ -34,6 +45,10 @@ export class DatabaseApi {
 
   private initApi(addresses: string[], forApi: any): Promise<any> {
     // TODO: when not connected yet, calls throws errors
+    forApi.setRpcConnectionStatusCallback((status: any) => {
+      this._connectionStatus = status
+      console.log(`APIs status: ${status}, ${typeof status}`)
+    })
     return new Promise((resolve, reject) => {
       this.connectDaemon(
         forApi,
@@ -82,6 +97,10 @@ export class DatabaseApi {
     parameters: any[]
   ): Promise<any> {
     return new Promise((resolve, reject) => {
+      if (!(this._connectionStatus === ConnectionStatus.open)) {
+        console.log(this._connectionStatus)
+        reject(DatabaseError.chain_connecting)
+      }
       this.dbApi()
         .exec(operation, parameters)
         .then((content: any) => resolve(content))

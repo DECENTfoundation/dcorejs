@@ -1,4 +1,5 @@
 import { DatabaseApi, DatabaseOperation } from './api/database'
+import { ChainApi, ChainMethods } from './api/chain'
 
 export interface Content {
   id: string
@@ -106,6 +107,20 @@ export class ContentApi {
           resolve(content)
         })
         .catch((err: any) => {
+          reject(err)
+        })
+    })
+  }
+
+  public getContent(id: string): Promise<Content> {
+    return new Promise((resolve, reject) => {
+      const chainOps = new ChainMethods()
+      chainOps.add(ChainMethods.getObject, id)
+      ChainApi.fetch(chainOps)
+        .then((content: any) => {
+          resolve(content)
+        })
+        .catch(err => {
           reject(err)
         })
     })

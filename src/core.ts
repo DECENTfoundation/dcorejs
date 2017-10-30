@@ -37,7 +37,7 @@ export class Core {
     return core
   }
 
-  private initChain(chainId: string, chainConfig: any = ChainConfig) {
+  private initChain(chainId: string, chainConfig: any) {
     ChainApi.initChain(chainId, chainConfig)
   }
 

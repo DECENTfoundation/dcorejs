@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs/Observable'
-import { DatabaseApi, DatabaseOperation } from './api/database'
+import { Database, DatabaseApi, DatabaseOperation } from './api/database'
 import { ChainApi, ChainMethods } from './api/chain'
 import { CryptoUtils } from './crypt'
 import {
@@ -124,8 +124,8 @@ export class AccountApi {
   private static asset = 'DCT'
   private _dbApi: DatabaseApi
 
-  constructor(dbApi: DatabaseApi) {
-    this._dbApi = dbApi
+  constructor(dbApi: Database) {
+    this._dbApi = dbApi as DatabaseApi
   }
 
   /**

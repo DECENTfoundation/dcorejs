@@ -5,9 +5,14 @@ export interface ChainMethod {
   param: any
 }
 
+/**
+ * Listing of methods available to be called
+ * in blockchain.
+ */
 export class ChainMethods {
   static getAccount = 'getAccount'
   static getAsset = 'getAsset'
+  static getObject = 'getObject'
 
   private _commands: ChainMethod[] = []
   get commands(): ChainMethod[] {
@@ -27,13 +32,16 @@ export class ChainApi {
   }
 
   /**
-     * Fetches data from blockchain.
+     * Fetches data from blockchain with given chain methods.
      *
-     * @param {ChainOperation} operation
+     * Returns Promise.all with resolve result as array of results
+     * in order of adding into ChainMethod
+     *
+     * @param {ChainMethods} methods
      * @return {Promise<any[]>}
      */
-  public static fetch(operation: ChainMethods): Promise<any[]> {
-    const commands = operation.commands.map(op => FetchChain(op.name, op.param))
+  public static fetch(methods: ChainMethods): Promise<any[]> {
+    const commands = methods.commands.map(op => FetchChain(op.name, op.param))
     return Promise.all(commands)
   }
 
