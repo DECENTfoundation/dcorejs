@@ -289,4 +289,35 @@ export class AccountApi {
             });
         });
     }
+
+    /**
+     * Current account balance of DCT asset on given account
+     *
+     * @param {string} account Account name or id
+     * @return {Promise<number>}
+     */
+    public getBalance(account: string): Promise<number> {
+        return new Promise((resolve, reject) => {
+            const methods = new ChainMethods();
+            methods.add(ChainMethods.getAccount, account);
+
+            ChainApi.fetch(methods)
+                .then(result => {
+                    const [account] = result;
+                    const accId = account.get('id');
+                    this._dbApi.execute(
+                        DatabaseOperation.getAccountBalances,
+                        [accId, ChainApi.asset_id])
+                        .then(res => {
+                            resolve(result[0].amount);
+                        })
+                        .catch(err => {
+                            reject(err);
+                        });
+                })
+                .catch(() => {
+                    reject();
+                });
+        });
+    }
 }
