@@ -32,7 +32,7 @@ export interface Content {
     price: Price
     synopsis: Synopsis
     status: Status
-    URI: IpfsUrl
+    URI: string
     _hash: string
     AVG_rating: number
     size: number
@@ -65,19 +65,7 @@ export class Status {
     static Expired = 'Expired';
 }
 
-export class IpfsUrl {
-    private _filename: string;
-    get filename(): string {
-        return this._filename;
-    }
 
-    constructor(filename: string) {
-        this._filename = filename;
-    }
-
-    public getURI(): string {
-        return `ipfs:${this._filename}`;
-    }
 }
 
 export class SearchParams {
@@ -138,15 +126,16 @@ export class ContentApi {
         });
     }
 
-    public getContent(id: string): Promise<any> {
+    public getContent(id: string): Promise<Content> {
         return new Promise((resolve, reject) => {
             const chainOps = new ChainMethods();
             chainOps.add(ChainMethods.getObject, id);
             this._chainApi.fetch(chainOps)
                 .then((response: any[]) => {
                     const [content] = response;
-                    console.log(content);
-                    resolve(content.toObject());
+                    const stringidied = JSON.stringify(content);
+                    const objectified = JSON.parse(stringidied);
+                    resolve(objectified as Content);
                 })
                 .catch(err => {
                     reject(err);
@@ -281,13 +270,13 @@ export class ContentApi {
     public buyContent(contentId: string, buyerId: string, elGammalPub: string, privateKey: string, pubKey: string): Promise<any> {
         return new Promise((resolve, reject) => {
             this.getContent(contentId)
-                .then(content => {
+                .then((content: Content) => {
                     console.log(content);
                     const transaction = TransactionOperator.createTransaction();
                     const buyOperation: BuyContentOperation = {
-                        URI: content['URI'],
+                        URI: content.URI,
                         consumer: buyerId,
-                        price: this.fromWalletFormat(content.price),
+                        price: content.price,
                         region_code_from: 1,
                         pubKey: {s: elGammalPub}
                     };
