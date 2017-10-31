@@ -1,11 +1,5 @@
 import { CryptoUtils } from './crypt'
 
-const {
-  key,
-  PrivateKey,
-  PublicKey
-} = require('./../node_modules/decentjs-lib/lib/ecc')
-
 export class Utils {
   public static ripemdHash(fromBuffer: Buffer): string {
     return CryptoUtils.ripemdHash(fromBuffer)
