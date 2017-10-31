@@ -66,8 +66,26 @@ export class Status {
 }
 
 
+export class SearchParamsOrder {
+    static authorAsc = '+author';
+    static ratingAsc = '+rating';
+    static sizeAsc = '+size';
+    static priceAsc = '+price';
+    static createdAsc = '+created';
+    static expirationAsc = '+expiration';
+    static authorDesc = '-author';
+    static ratingDesc = '-rating';
+    static sizeDesc = '-size';
+    static priceDesc = '-price';
+    static createdDesc = '-created';
+    static expirationDesc = '-expiration';
 }
 
+/**
+ * Parameters for content search.
+ * Order parameter options can be found in SearchParamsOrder class
+ * Region code is ISO 3166-1 alpha-2 two-letter region code.
+ */
 export class SearchParams {
     term = '';
     order = '';
@@ -103,6 +121,10 @@ export class SearchParams {
     }
 }
 
+/**
+ * ContentApi provide methods to communication
+ * with content stored in decent network.
+ */
 export class ContentApi {
     private _dbApi: DatabaseApi;
     private _chainApi: ChainApi;
@@ -136,6 +158,7 @@ export class ContentApi {
                     const stringidied = JSON.stringify(content);
                     const objectified = JSON.parse(stringidied);
                     resolve(objectified as Content);
+
                 })
                 .catch(err => {
                     reject(err);
@@ -151,7 +174,6 @@ export class ContentApi {
      * @param {string} privateKey
      * @return {Promise<any>}
      */
-    // TODO: its NOT id
     public removeContent(URI: string,
                          authorId: string,
                          privateKey: string): Promise<any> {
@@ -298,9 +320,5 @@ export class ContentApi {
                     reject(err);
                 });
         });
-    }
-
-    private fromWalletFormat(price: any): Asset {
-        return price.toObject().map_price.toObject()[0].toObject()[1].toObject();
     }
 }
