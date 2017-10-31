@@ -13,7 +13,7 @@ export interface CoreConfig {
 
 export class Core {
     private _content: ContentApi;
-    private _user: AccountApi;
+    private _account: AccountApi;
     private _config: CoreConfig;
     private _database: DatabaseApi;
     private _chain: ChainApi;
@@ -22,8 +22,8 @@ export class Core {
         return this._content;
     }
 
-    get user(): AccountApi {
-        return this._user;
+    get account(): AccountApi {
+        return this._account;
     }
 
     public static create(config: CoreConfig,
@@ -35,7 +35,7 @@ export class Core {
         const apiConnectionPromise = core._database.initApi(config.decent_network_wspaths, api);
         core._chain = new ChainApi(apiConnectionPromise);
         core._content = new ContentApi(core._database, core._chain);
-        core._user = new AccountApi(core._database, core._chain);
+        core._account = new AccountApi(core._database, core._chain);
         return core;
     }
 
