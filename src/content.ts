@@ -86,7 +86,7 @@ export class SearchParams {
     user = '';
     region_code = '';
     itemId = '';
-    category: number;
+    category = '';
     count: number;
 
     constructor(term = '',
@@ -94,14 +94,14 @@ export class SearchParams {
                 user = '',
                 region_code = '',
                 itemId = '',
-                category: number = 1,
+                category: string,
                 count: number = 6) {
         this.term = term || '';
         this.order = order || '';
         this.user = user || '';
         this.region_code = region_code || '';
-        this.itemId = itemId || '';
-        this.category = category || 1;
+        this.itemId = itemId || '0.0.0';
+        this.category = category || '1';
         this.count = count || 6;
     }
 
@@ -126,6 +126,7 @@ export class ContentApi {
 
     public searchContent(searchParams: SearchParams): Promise<Content[]> {
         return new Promise((resolve, reject) => {
+            console.log(searchParams.params);
             this._dbApi
                 .execute(DatabaseOperation.searchContent, searchParams.params)
                 .then((content: any) => {
@@ -156,13 +157,13 @@ export class ContentApi {
     /**
      * Cancel submitted content record from blockchain.
      *
-     * @param {string} id example: '1.2.435'
+     * @param {string} URI example: 'ipfs:abc78b7a9b7a98b7c98cb798c7b9a8bc9a87bc98a9bc'
      * @param {string} authorId example: '1.2.532'
      * @param {string} privateKey
      * @return {Promise<any>}
      */
     // TODO: its NOT id
-    public removeContent(id: string,
+    public removeContent(URI: string,
                          authorId: string,
                          privateKey: string): Promise<any> {
         return new Promise((resolve, reject) => {
@@ -179,7 +180,7 @@ export class ContentApi {
                 const transaction = TransactionOperator.createTransaction();
                 const cancellation: ContentCancelOperation = {
                     author: authorId,
-                    URI: id
+                    URI: URI
                 };
                 TransactionOperator.addOperation(
                     {
