@@ -1924,7 +1924,6 @@ var Decent = /** @class */ (function () {
     return Decent;
 }());
 
-var _a$3 = require('./../node_modules/decentjs-lib/lib/ecc');
 var Utils = /** @class */ (function () {
     function Utils() {
     }
