@@ -307,11 +307,12 @@ export class AccountApi {
                 .then(result => {
                     const [account] = result;
                     const accId = account.get('id');
+                    console.log(accId);
                     this._dbApi.execute(
                         DatabaseOperation.getAccountBalances,
-                        [accId, ChainApi.asset_id])
+                        [accId, [ChainApi.asset_id]])
                         .then(res => {
-                            resolve(result[0].amount);
+                            resolve(res[0].amount);
                         })
                         .catch(err => {
                             reject(err);

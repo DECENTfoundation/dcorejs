@@ -97,10 +97,6 @@ export class DatabaseApi extends Database {
     public execute(operation: DatabaseOperation,
                    parameters: any[]): Promise<any> {
         return new Promise((resolve, reject) => {
-            if (!(this._connectionStatus === ConnectionStatus.open)) {
-                console.log(this._connectionStatus);
-                reject(DatabaseError.chain_connecting);
-            }
             this._apiConnector.then(() => {
                 this.dbApi()
                     .exec(operation, parameters)
