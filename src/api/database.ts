@@ -30,6 +30,7 @@ export class DatabaseApi extends Database {
     private _config: DatabaseConfig;
     protected _api: any;
     private _connectionStatus: string;
+    private _apiConnector: Promise<any>;
 
     public static create(config: DatabaseConfig, api: any, chainStore: any): DatabaseApi {
         return new DatabaseApi(config, api, chainStore);
@@ -43,10 +44,6 @@ export class DatabaseApi extends Database {
         super();
         this._config = config;
         this._api = api;
-        // this.initApi(this._config.decent_network_wspaths, this._api)
-        //     .then(() => {
-        //         chainStore.init();
-        //     });
     }
 
     public initApi(addresses: string[], forApi: any): Promise<any> {
@@ -55,7 +52,7 @@ export class DatabaseApi extends Database {
             this._connectionStatus = status;
             console.log(`APIs status: ${status}, ${typeof status}`);
         });
-        return new Promise((resolve, reject) => {
+        this._apiConnector = new Promise((resolve, reject) => {
             this.connectDaemon(
                 forApi,
                 addresses,
@@ -67,6 +64,7 @@ export class DatabaseApi extends Database {
                 }
             );
         });
+        return this._apiConnector;
     }
 
     private connectDaemon(toApi: any,
@@ -83,8 +81,8 @@ export class DatabaseApi extends Database {
         return toApi
             .instance(address, true)
             .init_promise.then(() => {
-            onSuccess();
-        })
+                onSuccess();
+            })
             .catch((reason: any) => {
                 this.connectDaemon(
                     toApi,
@@ -103,13 +101,15 @@ export class DatabaseApi extends Database {
                 console.log(this._connectionStatus);
                 reject(DatabaseError.chain_connecting);
             }
-            this.dbApi()
-                .exec(operation, parameters)
-                .then((content: any) => resolve(content))
-                .catch((err: any) => {
-                    // TODO: handle errors to DBApi errors
-                    reject(DatabaseError.database_execution_failed);
-                });
+            this._apiConnector.then(() => {
+                this.dbApi()
+                    .exec(operation, parameters)
+                    .then((content: any) => resolve(content))
+                    .catch((err: any) => {
+                        // TODO: handle errors to DBApi errors
+                        reject(DatabaseError.database_execution_failed);
+                    });
+            });
         });
     }
 }
