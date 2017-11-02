@@ -47,8 +47,8 @@ Javascript library to work with Decent blockchain network.
     
     Decent.initialize(config);
     
-Replace `decent_network_wspaths` with active decent daemon instance and `chain_id` with blockchain id 
-you about to work on.
+Replace `decent_network_wspaths` with active decent daemon instance and `chain_id` with blockchain id which
+you are about to work on.
 [Init example](https://github.com/DECENTfoundation/decent-js/tree/master/examples/Init)
 
 ## Usage
