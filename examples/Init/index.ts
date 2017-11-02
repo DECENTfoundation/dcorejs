@@ -6,5 +6,4 @@ const config = {
     chain_id: 'your-decent-chain-id'
 };
 
-const decent = Decent.instance();
-decent.initialize(config);
+Decent.initialize(config);
