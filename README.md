@@ -31,7 +31,7 @@ Javascript library to work with Decent blockchain network.
 
 ### Installation
 
- 1. Install `Node.js >6` and `npm >3` globaly
+ 1. Install `Node.js >6` and `npm >3` globally
  
  2. Change directory to project root dir
  
