@@ -55,7 +55,7 @@ you are about to work on.
 
 Once Decent lib is initialized, you can access methods using `Decent.instance().core`
 
-## Search content
+## Search content method
     
     const term = 'some phrase';
     const order = SearchParamsOrder.createdDesc;
@@ -80,7 +80,7 @@ Replace all variables with your values to get requested content.
 [Search example](https://github.com/DECENTfoundation/decent-js/tree/master/examples/SearchContent)
 
 
-## Buy content
+## Buy content method
 
     const contentId = '1.2.3';
     const accountId = '1.3.45';
@@ -105,7 +105,7 @@ Replace variables with keys from your decent account to buy content. Otherwise y
 able to buy content. Private key must be in WIF(Wallet Import Format).
 [Buy example](https://github.com/DECENTfoundation/decent-js/tree/master/examples/BuyContent)
 
-## Download/Restore content 
+## Download/Restore content method
 Method `restoreContentKeys` will restore your key generated during content submission, used to encrypt content. 
 
     const elGammalPrivate = '32983749287349872934792739472387492387492834';
@@ -127,18 +127,22 @@ Method `restoreContentKeys` will restore your key generated during content submi
 
 ### Content
 
-    searchContent(searchParams: SearchParams): Promise<Content[]> 
-    getContent(id: string): Promise<Content> 
-    removeContent(URI: string, authorId: string, privateKey: string): Promise<any> 
-    restoreContentKeys(contentId: String, elGammalPrivate: string): Promise<string> 
-    generateContentKeys(seeders: string[]): Promise<any> 
-    addContent(content: SubmitObject, privateKey: string, publicKey: string): Promise<any> 
-    buyContent(contentId: string, buyerId: string, elGammalPub: string, privateKey: string, pubKey: string): Promise<any> 
+```
+searchContent(searchParams: SearchParams): Promise<Content[]> 
+getContent(id: string): Promise<Content> 
+removeContent(URI: string, authorId: string, privateKey: string): Promise<any> 
+restoreContentKeys(contentId: String, elGammalPrivate: string): Promise<string> 
+generateContentKeys(seeders: string[]): Promise<any> 
+addContent(content: SubmitObject, privateKey: string, publicKey: string): Promise<any> 
+buyContent(contentId: string, buyerId: string, elGammalPub: string, privateKey: string, pubKey: string): Promise<any> 
+```
     
 ### Account
 
-    getAccountByName(name: string): Promise<Account> 
-    getAccountById(id: string): Promise<Account> 
-    getTransactionHistory(accountName: string): Promise<Transaction[]> 
-    transfer(amount: number, fromAccount: string, toAccount: string, memo: string, privateKey: string): Promise<any> 
-    getBalance(account: string): Promise<number> 
+```
+getAccountByName(name: string): Promise<Account> 
+getAccountById(id: string): Promise<Account> 
+getTransactionHistory(accountName: string): Promise<Transaction[]> 
+transfer(amount: number, fromAccount: string, toAccount: string, memo: string, privateKey: string): Promise<any> 
+getBalance(account: string): Promise<number> 
+```
