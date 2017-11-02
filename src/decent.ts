@@ -1,33 +1,39 @@
-import { Core } from './api/core'
+import {Core} from './api/core';
+
+export class DecentError {
+    static app_not_initialized = 'app_not_initialized';
+    static app_missing_config = 'app_missing_config';
+}
 
 export interface DecentConfig {
-  decent_network_wspaths: string[]
-  chain_id: string
-  ipfs_server: string
-  ipfs_port: number
+    decent_network_wspaths: string[]
+    chain_id: string
+    ipfs_server: string
+    ipfs_port: number
 }
 
 export class Decent {
-  private static _instance: Decent
-  private _config: DecentConfig
-  private _core: Core
+    private static _config: DecentConfig;
+    private static _core: Core;
 
-  get core(): Core {
-    return this._core
-  }
+    public static get core(): Core | null {
+        if (!Decent._core) {
+            throw new Error(DecentError.app_not_initialized);
+        }
+        return Decent._core;
+    }
 
-  public static instance(): Decent {
-    return this._instance || (this._instance = new Decent())
-  }
+    public static initialize(config: DecentConfig) {
+        if (config.decent_network_wspaths[0] === '' || config.chain_id === '') {
+            throw new Error(DecentError.app_missing_config);
+        }
+        Decent._config = config;
+        Decent._core = Core.create({
+            decent_network_wspaths: config.decent_network_wspaths,
+            chain_id: config.chain_id
+        });
+    }
 
-  private constructor() {}
-
-  initialize(config: DecentConfig) {
-    // TODO: check validity of config
-    this._config = config
-    this._core = Core.create({
-      decent_network_wspaths: config.decent_network_wspaths,
-      chain_id: config.chain_id
-    })
-  }
+    private constructor() {
+    }
 }
