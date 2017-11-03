@@ -1,24 +1,24 @@
-import { Synopsis } from './content'
+import { Synopsis } from './content';
 
-const { TransactionBuilder, ops } = require('decentjs-lib/lib')
+const { TransactionBuilder, ops } = require('decentjs-lib/lib');
 
 /**
  * Operation to be broadcasted to blockchain
  * internal representation
  */
 export interface TransactionOperation {
-  name: string
-  operation: Transaction
+  name: string;
+  operation: Transaction;
 }
 
 /**
  * Class contains available transaction operation names constants
  */
 export class TransactionOperationName {
-  static transfer = 'transfer'
-  static content_cancellation = 'content_cancellation'
-  static requestToBuy = 'request_to_buy'
-  static content_submit = 'content_submit'
+  static transfer = 'transfer';
+  static content_cancellation = 'content_cancellation';
+  static requestToBuy = 'request_to_buy';
+  static content_submit = 'content_submit';
 }
 
 /**
@@ -26,18 +26,18 @@ export class TransactionOperationName {
  * asset.
  */
 export interface Asset {
-  amount: number
-  asset_id: string
+  amount: number;
+  asset_id: string;
 }
 
 /**
  * Memo message object representation
  */
 export interface Memo {
-  from: string
-  to: string
-  nonce: string
-  message: Buffer
+  from: string;
+  to: string;
+  nonce: string;
+  message: Buffer;
 }
 
 /**
@@ -52,54 +52,54 @@ export interface Transaction {}
  * !Important: asset need to be calculated to specific asset
  */
 export interface TransferOperation extends Transaction {
-  from: string
-  to: string
-  amount: Asset
-  memo: Memo
+  from: string;
+  to: string;
+  amount: Asset;
+  memo: Memo;
 }
 
 export interface ContentCancelOperation extends Transaction {
-  author: string
-  URI: string
+  author: string;
+  URI: string;
 }
 
 export interface BuyContentOperation extends Transaction {
-  URI: string
-  consumer: string
-  price: Asset
-  region_code_from: number
-  pubKey: Key
+  URI: string;
+  consumer: string;
+  price: Asset;
+  region_code_from: number;
+  pubKey: Key;
 }
 
 export interface SubmitContentOperation extends Transaction {
-  size: number
-  author: string
-  co_authors: any[]
-  URI: string
-  quorum: number
-  price: RegionalPrice[]
-  hash: string
-  seeders: string[]
-  key_parts: KeyParts[]
-  expiration: string
-  publishing_fee: Asset
-  synopsis: string
+  size: number;
+  author: string;
+  co_authors: any[];
+  URI: string;
+  quorum: number;
+  price: RegionalPrice[];
+  hash: string;
+  seeders: string[];
+  key_parts: KeyParts[];
+  expiration: string;
+  publishing_fee: Asset;
+  synopsis: string;
 }
 
 // userRights: content.userRights,
 
 export interface Key {
-  s: string
+  s: string;
 }
 
 export interface KeyParts {
-  C1: Key
-  D1: Key
+  C1: Key;
+  D1: Key;
 }
 
 export interface RegionalPrice {
-  region: number
-  price: Asset
+  region: number;
+  price: Asset;
 }
 
 /**
@@ -108,17 +108,17 @@ export interface RegionalPrice {
  * network.
  */
 export class TransactionOperator {
-  static DCTPower = Math.pow(10, 8)
+  static DCTPower = Math.pow(10, 8);
 
   public static createTransaction(): any {
-    return new TransactionBuilder()
+    return new TransactionBuilder();
   }
 
   public static createAsset(amount: number, assetId: string): Asset {
     return {
       amount: Math.floor(amount * TransactionOperator.DCTPower),
       asset_id: assetId
-    }
+    };
   }
 
   /**
@@ -137,15 +137,15 @@ export class TransactionOperator {
     transaction: any
   ): boolean {
     if (!ops.hasOwnProperty(operation.name)) {
-      return false
+      return false;
     }
     ops[operation.name].keys.forEach((key: string) => {
       if (!operation.operation.hasOwnProperty(key)) {
-        return false
+        return false;
       }
-    })
-    transaction.add_type_operation(operation.name, operation.operation)
-    return true
+    });
+    transaction.add_type_operation(operation.name, operation.operation);
+    return true;
   }
 
   /**
@@ -166,20 +166,20 @@ export class TransactionOperator {
     return new Promise((resolve, reject) => {
       this.setTransactionFees(transaction)
         .then(() => {
-          transaction.add_signer(privateKey, publicKey)
+          transaction.add_signer(privateKey, publicKey);
           transaction
             .broadcast()
             .then(() => {
-              resolve()
+              resolve();
             })
             .catch((err: any) => {
-              reject(err)
-            })
+              reject(err);
+            });
         })
         .catch(err => {
-          reject(err)
-        })
-    })
+          reject(err);
+        });
+    });
   }
 
   /**
@@ -192,12 +192,12 @@ export class TransactionOperator {
       transaction
         .set_required_fees()
         .then(() => {
-          resolve()
+          resolve();
         })
         .catch(() => {
           // TODO: error handling
-          reject()
-        })
-    })
+          reject();
+        });
+    });
   }
 }

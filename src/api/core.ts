@@ -1,29 +1,29 @@
-import { ContentApi } from '../content'
-import { DatabaseApi } from './database'
-import { ChainApi } from './chain'
-import { AccountApi } from '../account'
+import { ContentApi } from '../content';
+import { DatabaseApi } from './database';
+import { ChainApi } from './chain';
+import { AccountApi } from '../account';
 
-const { Apis, ChainConfig } = require('decentjs-lib/lib/ws/cjs')
-const { ChainStore } = require('decentjs-lib/lib')
+const { Apis, ChainConfig } = require('decentjs-lib/lib/ws/cjs');
+const { ChainStore } = require('decentjs-lib/lib');
 
 export interface CoreConfig {
-  decent_network_wspaths: string[]
-  chain_id: string
+  decent_network_wspaths: string[];
+  chain_id: string;
 }
 
 export class Core {
-  private _content: ContentApi
-  private _account: AccountApi
-  private _config: CoreConfig
-  private _database: DatabaseApi
-  private _chain: ChainApi
+  private _content: ContentApi;
+  private _account: AccountApi;
+  private _config: CoreConfig;
+  private _database: DatabaseApi;
+  private _chain: ChainApi;
 
   get content(): ContentApi {
-    return this._content
+    return this._content;
   }
 
   get account(): AccountApi {
-    return this._account
+    return this._account;
   }
 
   public static create(
@@ -31,24 +31,24 @@ export class Core {
     api: any = Apis,
     chainConfigApi: any = ChainConfig
   ): Core {
-    const core = new Core(config)
-    core.setupChain(config.chain_id, chainConfigApi)
-    core._database = DatabaseApi.create(config, api, ChainStore)
+    const core = new Core(config);
+    core.setupChain(config.chain_id, chainConfigApi);
+    core._database = DatabaseApi.create(config, api, ChainStore);
     const apiConnectionPromise = core._database.initApi(
       config.decent_network_wspaths,
       api
-    )
-    core._chain = new ChainApi(apiConnectionPromise)
-    core._content = new ContentApi(core._database, core._chain)
-    core._account = new AccountApi(core._database, core._chain)
-    return core
+    );
+    core._chain = new ChainApi(apiConnectionPromise);
+    core._content = new ContentApi(core._database, core._chain);
+    core._account = new AccountApi(core._database, core._chain);
+    return core;
   }
 
   private setupChain(chainId: string, chainConfig: any) {
-    ChainApi.setupChain(chainId, chainConfig)
+    ChainApi.setupChain(chainId, chainConfig);
   }
 
   private constructor(config: CoreConfig) {
-    this._config = config
+    this._config = config;
   }
 }

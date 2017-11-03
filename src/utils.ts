@@ -1,8 +1,8 @@
-import { CryptoUtils } from './crypt'
+import { CryptoUtils } from './crypt';
 
 export class Utils {
   public static ripemdHash(fromBuffer: Buffer): string {
-    return CryptoUtils.ripemdHash(fromBuffer)
+    return CryptoUtils.ripemdHash(fromBuffer);
   }
 
   // public static generateKeys(fromBrainKey: string) {

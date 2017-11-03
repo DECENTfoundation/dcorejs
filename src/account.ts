@@ -1,132 +1,131 @@
-import { Observable } from 'rxjs/Observable'
-import { Database, DatabaseApi, DatabaseOperation } from './api/database'
-import { ChainApi, ChainMethods } from './api/chain'
-import { CryptoUtils } from './crypt'
+import { Observable } from 'rxjs/Observable';
+import { Database, DatabaseApi, DatabaseOperation } from './api/database';
+import { ChainApi, ChainMethods } from './api/chain';
+import { CryptoUtils } from './crypt';
 import {
   Memo,
   TransactionOperationName,
   TransactionOperator,
   TransferOperation
-} from './transactionOperator'
+} from './transactionOperator';
 
 export interface Account {
-  id: string
-  registrar: string
-  name: string
-  owner: Authority
-  active: Authority
-  options: Options
-  rights_to_publish: PublishRights
-  statistics: string
-  top_n_control_flags: number
+  id: string;
+  registrar: string;
+  name: string;
+  owner: Authority;
+  active: Authority;
+  options: Options;
+  rights_to_publish: PublishRights;
+  statistics: string;
+  top_n_control_flags: number;
 }
 
 export interface PublishRights {
-  is_publishing_manager: boolean
-  publishing_rights_received: any[]
-  publishing_rights_forwarded: any[]
+  is_publishing_manager: boolean;
+  publishing_rights_received: any[];
+  publishing_rights_forwarded: any[];
 }
 
 export interface Asset {
-  amount: number
-  asset_id: string
+  amount: number;
+  asset_id: string;
 }
 
 export interface Authority {
-  weight_threshold: number
-  account_auths: any[]
-  key_auths: KeyAuth[]
+  weight_threshold: number;
+  account_auths: any[];
+  key_auths: KeyAuth[];
 }
 
 export class KeyAuth {
-  private _key: string
-  private _value: number
-
+  private _key: string;
+  private _value: number;
   constructor(key: string, value: number = 1) {
-    this._key = key
-    this._value = value
+    this._key = key;
+    this._value = value;
   }
 
   public keyAuthFormat(): any[] {
-    return [this._key, this._value]
+    return [this._key, this._value];
   }
 }
 
 export interface Options {
-  memo_key: string
-  voting_account: string
-  num_miner: number
-  votes: any[]
-  extensions: any[]
-  allow_subscription: boolean
-  price_per_subscribe: Asset
-  subscription_period: number
+  memo_key: string;
+  voting_account: string;
+  num_miner: number;
+  votes: any[];
+  extensions: any[];
+  allow_subscription: boolean;
+  price_per_subscribe: Asset;
+  subscription_period: number;
 }
 
 export class Transaction {
-  m_from_account_name: Observable<string>
-  m_to_account_name: Observable<string>
-  m_from_account: string
-  m_to_account: string
-  m_operation_type: number
-  m_transaction_amount: number
-  m_transaction_fee: number
-  m_str_description: string
-  m_timestamp: string
-  m_memo: TransactionMemo
-  m_memo_string: string
+  m_from_account_name: Observable<string>;
+  m_to_account_name: Observable<string>;
+  m_from_account: string;
+  m_to_account: string;
+  m_operation_type: number;
+  m_transaction_amount: number;
+  m_transaction_fee: number;
+  m_str_description: string;
+  m_timestamp: string;
+  m_memo: TransactionMemo;
+  m_memo_string: string;
 
   constructor(transaction: any) {
-    this.m_from_account = transaction.m_from_account
-    this.m_to_account = transaction.m_to_account
-    this.m_operation_type = transaction.m_operation_type
-    this.m_transaction_amount = transaction.m_transaction_amount
-    this.m_transaction_fee = transaction.m_transaction_fee
-    this.m_str_description = transaction.m_str_description
-    this.m_timestamp = transaction.m_timestamp
-    this.m_memo = new TransactionMemo(transaction)
+    this.m_from_account = transaction.m_from_account;
+    this.m_to_account = transaction.m_to_account;
+    this.m_operation_type = transaction.m_operation_type;
+    this.m_transaction_amount = transaction.m_transaction_amount;
+    this.m_transaction_fee = transaction.m_transaction_fee;
+    this.m_str_description = transaction.m_str_description;
+    this.m_timestamp = transaction.m_timestamp;
+    this.m_memo = new TransactionMemo(transaction);
   }
 }
 
 export class TransactionMemo {
-  valid: boolean
-  from: string
-  message: string
-  nonce: string
-  to: string
+  valid: boolean;
+  from: string;
+  message: string;
+  nonce: string;
+  to: string;
 
   constructor(transaction: any) {
     if (!transaction.m_transaction_encrypted_memo) {
-      this.valid = false
+      this.valid = false;
     } else {
-      this.valid = true
-      this.from = transaction.m_transaction_encrypted_memo.from
-      this.message = transaction.m_transaction_encrypted_memo.message
-      this.nonce = transaction.m_transaction_encrypted_memo.nonce
-      this.to = transaction.m_transaction_encrypted_memo.to
+      this.valid = true;
+      this.from = transaction.m_transaction_encrypted_memo.from;
+      this.message = transaction.m_transaction_encrypted_memo.message;
+      this.nonce = transaction.m_transaction_encrypted_memo.nonce;
+      this.to = transaction.m_transaction_encrypted_memo.to;
     }
   }
 }
 
 export class AccountError {
-  static account_does_not_exist = 'account_does_not_exist'
-  static account_fetch_failed = 'account_fetch_failed'
-  static transaction_history_fetch_failed = 'transaction_history_fetch_failed'
-  static transfer_missing_pkey = 'transfer_missing_pkey'
-  static transfer_sender_account_not_found = 'transfer_sender_account_not_found'
-  static transfer_receiver_account_not_found = 'transfer_receiver_account_not_found'
+  static account_does_not_exist = 'account_does_not_exist';
+  static account_fetch_failed = 'account_fetch_failed';
+  static transaction_history_fetch_failed = 'transaction_history_fetch_failed';
+  static transfer_missing_pkey = 'transfer_missing_pkey';
+  static transfer_sender_account_not_found = 'transfer_sender_account_not_found';
+  static transfer_receiver_account_not_found = 'transfer_receiver_account_not_found';
 }
 
 /**
  * API class provides wrapper for account information.
  */
 export class AccountApi {
-  private _dbApi: DatabaseApi
-  private _chainApi: ChainApi
+  private _dbApi: DatabaseApi;
+  private _chainApi: ChainApi;
 
   constructor(dbApi: Database, chainApi: ChainApi) {
-    this._dbApi = dbApi as DatabaseApi
-    this._chainApi = chainApi
+    this._dbApi = dbApi as DatabaseApi;
+    this._chainApi = chainApi;
   }
 
   /**
@@ -140,12 +139,12 @@ export class AccountApi {
       this._dbApi
         .execute(DatabaseOperation.getAccountByName, [name])
         .then((account: Account) => {
-          resolve(account as Account)
+          resolve(account as Account);
         })
         .catch(err => {
-          reject(AccountError.account_fetch_failed)
-        })
-    })
+          reject(AccountError.account_fetch_failed);
+        });
+    });
   }
 
   /**
@@ -160,15 +159,15 @@ export class AccountApi {
         .execute(DatabaseOperation.getAccounts, [[id]])
         .then((accounts: Account[]) => {
           if (accounts.length === 0) {
-            reject(AccountError.account_does_not_exist)
+            reject(AccountError.account_does_not_exist);
           }
-          const [account] = accounts
-          resolve(account as Account)
+          const [account] = accounts;
+          resolve(account as Account);
         })
         .catch(err => {
-          reject(AccountError.account_fetch_failed)
-        })
-    })
+          reject(AccountError.account_fetch_failed);
+        });
+    });
   }
 
   /**
@@ -190,30 +189,30 @@ export class AccountApi {
             ])
             .then(transactions => {
               const res = transactions.map((tr: any) => {
-                const transaction = new Transaction(tr)
+                const transaction = new Transaction(tr);
                 // TODO: memo decrypt
                 transaction.m_from_account_name = new Observable(observable => {
                   this.getAccountById(transaction.m_from_account)
                     .then(account => observable.next(account.name))
-                    .catch(err => observable.next(''))
-                })
+                    .catch(err => observable.next(''));
+                });
                 transaction.m_to_account_name = new Observable(observable => {
                   this.getAccountById(transaction.m_to_account)
                     .then(account => observable.next(account.name))
-                    .catch(err => observable.next(''))
-                })
-                return transaction
-              })
-              resolve(res)
+                    .catch(err => observable.next(''));
+                });
+                return transaction;
+              });
+              resolve(res);
             })
             .catch(err => {
-              reject(AccountError.transaction_history_fetch_failed)
-            })
+              reject(AccountError.transaction_history_fetch_failed);
+            });
         })
         .catch(err => {
-          reject(AccountError.transaction_history_fetch_failed)
-        })
-    })
+          reject(AccountError.transaction_history_fetch_failed);
+        });
+    });
   }
 
   /**
@@ -235,33 +234,33 @@ export class AccountApi {
   ): Promise<any> {
     return new Promise((resolve, reject) => {
       if (memo && !privateKey) {
-        reject(AccountError.transfer_missing_pkey)
+        reject(AccountError.transfer_missing_pkey);
       }
-      const operations = new ChainMethods()
-      operations.add(ChainMethods.getAccount, fromAccount)
-      operations.add(ChainMethods.getAccount, toAccount)
-      operations.add(ChainMethods.getAsset, ChainApi.asset)
+      const operations = new ChainMethods();
+      operations.add(ChainMethods.getAccount, fromAccount);
+      operations.add(ChainMethods.getAccount, toAccount);
+      operations.add(ChainMethods.getAsset, ChainApi.asset);
 
       this._chainApi.fetch(operations).then(result => {
-        const [senderAccount, receiverAccount, asset] = result
+        const [senderAccount, receiverAccount, asset] = result;
         if (!senderAccount) {
-          reject(AccountError.transfer_sender_account_not_found)
+          reject(AccountError.transfer_sender_account_not_found);
         }
         if (!receiverAccount) {
-          reject(AccountError.transfer_receiver_account_not_found)
+          reject(AccountError.transfer_receiver_account_not_found);
         }
 
-        const nonce: string = ChainApi.generateNonce()
+        const nonce: string = ChainApi.generateNonce();
         const fromPublicKey = senderAccount
           .get('owner')
           .get('key_auths')
           .get(0)
-          .get(0)
+          .get(0);
         const toPublicKey = receiverAccount
           .get('owner')
           .get('key_auths')
           .get(0)
-          .get(0)
+          .get(0);
 
         const memo_object: Memo = {
           from: fromPublicKey,
@@ -273,29 +272,29 @@ export class AccountApi {
             toPublicKey,
             nonce
           )
-        }
+        };
 
-        const tr = TransactionOperator.createTransaction()
+        const tr = TransactionOperator.createTransaction();
         const transfer: TransferOperation = {
           from: senderAccount.get('id'),
           to: receiverAccount.get('id'),
           amount: TransactionOperator.createAsset(amount, asset.get('id')),
           memo: memo_object
-        }
+        };
 
         TransactionOperator.addOperation(
           { name: TransactionOperationName.transfer, operation: transfer },
           tr
-        )
+        );
         TransactionOperator.broadcastTransaction(tr, privateKey, fromPublicKey)
           .then(() => {
-            resolve()
+            resolve();
           })
           .catch(() => {
-            reject()
-          })
-      })
-    })
+            reject();
+          });
+      });
+    });
   }
 
   /**
@@ -306,29 +305,29 @@ export class AccountApi {
      */
   public getBalance(account: string): Promise<number> {
     return new Promise((resolve, reject) => {
-      const methods = new ChainMethods()
-      methods.add(ChainMethods.getAccount, account)
+      const methods = new ChainMethods();
+      methods.add(ChainMethods.getAccount, account);
 
       this._chainApi
         .fetch(methods)
         .then(result => {
-          const [account] = result
-          const accId = account.get('id')
+          const [account] = result;
+          const accId = account.get('id');
           this._dbApi
             .execute(DatabaseOperation.getAccountBalances, [
               accId,
               [ChainApi.asset_id]
             ])
             .then(res => {
-              resolve(res[0].amount)
+              resolve(res[0].amount);
             })
             .catch(err => {
-              reject(err)
-            })
+              reject(err);
+            });
         })
         .catch(() => {
-          reject()
-        })
-    })
+          reject();
+        });
+    });
   }
 }
