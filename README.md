@@ -127,7 +127,7 @@ Method `restoreContentKeys` will restore your key generated during content submi
 
 ### Content
 
-```
+    ```
     searchContent(searchParams: SearchParams): Promise<Content[]> 
     getContent(id: string): Promise<Content> 
     removeContent(URI: string, authorId: string, privateKey: string): Promise<any> 
@@ -135,14 +135,14 @@ Method `restoreContentKeys` will restore your key generated during content submi
     generateContentKeys(seeders: string[]): Promise<any> 
     addContent(content: SubmitObject, privateKey: string, publicKey: string): Promise<any> 
     buyContent(contentId: string, buyerId: string, elGammalPub: string, privateKey: string, pubKey: string): Promise<any> 
-```
+    ```
     
 ### Account
 
-```
+    ```
     getAccountByName(name: string): Promise<Account> 
     getAccountById(id: string): Promise<Account> 
     getTransactionHistory(accountName: string): Promise<Transaction[]> 
     transfer(amount: number, fromAccount: string, toAccount: string, memo: string, privateKey: string): Promise<any> 
     getBalance(account: string): Promise<number> 
-```
+    ```
