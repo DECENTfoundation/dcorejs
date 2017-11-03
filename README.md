@@ -128,13 +128,13 @@ Method `restoreContentKeys` will restore your key generated during content submi
 ### Content
 
     ```
-    searchContent(searchParams: SearchParams): Promise<Content[]> 
-    getContent(id: string): Promise<Content> 
-    removeContent(URI: string, authorId: string, privateKey: string): Promise<any> 
-    restoreContentKeys(contentId: String, elGammalPrivate: string): Promise<string> 
-    generateContentKeys(seeders: string[]): Promise<any> 
-    addContent(content: SubmitObject, privateKey: string, publicKey: string): Promise<any> 
-    buyContent(contentId: string, buyerId: string, elGammalPub: string, privateKey: string, pubKey: string): Promise<any> 
+        searchContent(searchParams: SearchParams): Promise<Content[]> 
+        getContent(id: string): Promise<Content> 
+        removeContent(URI: string, authorId: string, privateKey: string): Promise<any> 
+        restoreContentKeys(contentId: String, elGammalPrivate: string): Promise<string> 
+        generateContentKeys(seeders: string[]): Promise<any> 
+        addContent(content: SubmitObject, privateKey: string, publicKey: string): Promise<any> 
+        buyContent(contentId: string, buyerId: string, elGammalPub: string, privateKey: string, pubKey: string): Promise<any> 
     ```
     
 ### Account
