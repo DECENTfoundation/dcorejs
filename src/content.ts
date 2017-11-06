@@ -207,39 +207,44 @@ export class ContentApi {
     /**
      * Cancel submitted content record from blockchain.
      *
-     * @param {string} URI example: 'ipfs:abc78b7a9b7a98b7c98cb798c7b9a8bc9a87bc98a9bc'
+     * @param {string} contentId example: '2.13.1234'
      * @param {string} authorId example: '1.2.532'
      * @param {string} privateKey
      * @return {Promise<any>}
      */
-    public removeContent(URI: string,
+    public removeContent(contentId: string,
                          authorId: string,
                          privateKey: string): Promise<any> {
         return new Promise((resolve, reject) => {
-            const methods = new ChainMethods();
-            methods.add(ChainMethods.getAccount, authorId);
+            this.getContent(contentId)
+                .then((content: Content) => {
+                    const URI = content.URI;
+                    const methods = new ChainMethods();
+                    methods.add(ChainMethods.getAccount, authorId);
 
-            this._chainApi.fetch(methods).then(result => {
-                const [account] = result;
-                const publicKey = account
-                    .get('owner')
-                    .get('key_auths')
-                    .get(0)
-                    .get(0);
-                const cancellation: ContentCancelOperation = {
-                    author: authorId,
-                    URI: URI
-                };
-                const transaction = new Transaction();
-                transaction.addOperation({name: OperationName.content_cancellation, operation: cancellation});
-                transaction.broadcast(privateKey)
-                    .then(() => {
-                        resolve();
-                    })
-                    .catch(() => {
-                        reject();
-                    });
-            });
+                    this._chainApi.fetch(methods)
+                        .then(result => {
+                            const [account] = result;
+                            const publicKey = account
+                                .get('owner')
+                                .get('key_auths')
+                                .get(0)
+                                .get(0);
+                            const cancellation: ContentCancelOperation = {
+                                author: authorId,
+                                URI: URI
+                            };
+                            const transaction = new Transaction();
+                            transaction.addOperation({name: OperationName.content_cancellation, operation: cancellation});
+                            transaction.broadcast(privateKey)
+                                .then(() => {
+                                    resolve();
+                                })
+                                .catch(() => {
+                                    reject();
+                                });
+                        });
+                });
         });
     }
 
