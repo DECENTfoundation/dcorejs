@@ -188,6 +188,12 @@ export class ContentApi {
         });
     }
 
+    /**
+     * Fetch content object from blockchain for given content id
+     *
+     * @param {string} id example: '1.2.345'
+     * @return {Promise<Content>}
+     */
     public getContent(id: string): Promise<Content> {
         return new Promise((resolve, reject) => {
             const chainOps = new ChainMethods();
@@ -425,6 +431,13 @@ export class ContentApi {
         });
     }
 
+    /**
+     * Return all purchased content for account id.
+     *
+     * @param {string} accountId example: '1.2.345'
+     * @param {number} resultSize Number of results default = 100
+     * @return {Promise<Content[]>}
+     */
     public getPurchasedContent(accountId: string, resultSize: number = 100): Promise<Content[]> {
         return new Promise((resolve, reject) => {
             if (!accountId) {
