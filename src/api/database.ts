@@ -16,6 +16,8 @@ export class DatabaseOperation {
   static getAccountBalances = 'get_account_balances';
   static generateContentKeys = 'generate_content_keys';
   static restoreEncryptionKey = 'restore_encryption_key';
+  static getBuyingObjectsByConsumer = 'get_buying_objects_by_consumer';
+  static listPublishers = 'list_seeders_by_price';
 }
 
 export interface DatabaseConfig {

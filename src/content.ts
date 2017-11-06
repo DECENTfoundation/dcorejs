@@ -2,7 +2,8 @@ import {DatabaseApi, DatabaseOperation} from './api/database';
 import {ChainApi, ChainMethods} from './api/chain';
 import {
     BuyContentOperation,
-    ContentCancelOperation, Key,
+    ContentCancelOperation,
+    Key,
     KeyParts,
     SubmitContentOperation,
     TransactionOperationName,
@@ -124,7 +125,7 @@ export class SearchParams {
                 user = '',
                 region_code = '',
                 itemId = '',
-                category: string,
+                category: string = '',
                 count: number = 6) {
         this.term = term || '';
         this.order = order || '';
@@ -439,7 +440,37 @@ export class ContentApi {
                     resolve(result as Seeder[]);
                 })
                 .catch(err => {
+                    console.log(err);
                     reject();
+                });
+        });
+    }
+
+    public getPurchasedContent(accountId: string, resultSize: number = 100): Promise<any[]> {
+        return new Promise((resolve, reject) => {
+            if (!accountId) {
+                reject('missing_parameter');
+                return;
+            }
+            const searchParams = new SearchParams();
+            searchParams.count = resultSize;
+            this.searchContent(searchParams)
+                .then(allContent => {
+                    this._dbApi.execute(DatabaseOperation.getBuyingObjectsByConsumer, [accountId, '', '0.0.0', '', resultSize])
+                        .then(boughtContent => {
+                            boughtContent.forEach((bought: any) => {
+                                allContent.forEach(content => {
+                                    if (bought.URI === content.URI) {
+                                        bought.contentObject = content;
+                                    }
+                                });
+                            });
+                            const bc = boughtContent.filter((bought: any) => bought.contentObject !== undefined);
+                            resolve(bc);
+                        })
+                        .catch(err => {
+                            reject();
+                        });
                 });
         });
     }
