@@ -8,8 +8,6 @@ export class DecentError {
 export interface DecentConfig {
     decent_network_wspaths: string[]
     chain_id: string
-    ipfs_server: string
-    ipfs_port: number
 }
 
 export class Decent {
