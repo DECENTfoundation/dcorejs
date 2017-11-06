@@ -24,6 +24,12 @@ export class Utils {
         return [pkey, pubKey];
     }
 
+    /**
+     * Calculate public key from given private key.
+     *
+     * @param {KeyPrivate} privkey
+     * @return {KeyPublic}
+     */
     public static getPublicKey(privkey: KeyPrivate): KeyPublic {
         const publicKey: any = privkey.key.toPublicKey();
         return new KeyPublic(publicKey);
@@ -40,13 +46,25 @@ export class Utils {
     }
 }
 
+/**
+ * PKI private key
+ */
 export class KeyPrivate {
     private _privateKey: any;
 
+    /**
+     * Raw representation of key for decent-js
+     * library purposes.
+     * @return {any}
+     */
     get key(): any {
         return this._privateKey;
     }
 
+    /**
+     * WIF format string representation of key
+     * @return {string}
+     */
     get stringKey(): string {
         return this._privateKey.toWif();
     }
@@ -56,13 +74,25 @@ export class KeyPrivate {
     }
 }
 
+/**
+ * PKI public key
+ */
 export class KeyPublic {
     private _publicKey: any;
 
+    /**
+     * Raw representation of key for decent-js
+     * library purposes.
+     * @return {any}
+     */
     get key(): any {
         return this._publicKey;
     }
 
+    /**
+     * String representation of key
+     * @return {string}
+     */
     get stringKey(): string {
         return this._publicKey.toString();
     }
