@@ -177,6 +177,9 @@ export class ContentApi {
             this._dbApi
                 .execute(DatabaseOperation.searchContent, searchParams.params)
                 .then((content: any) => {
+                    content.forEach((c: any) => {
+                       c.synopsis = JSON.parse(c.synopsis);
+                    });
                     resolve(content);
                 })
                 .catch((err: any) => {
@@ -422,7 +425,7 @@ export class ContentApi {
         });
     }
 
-    public getPurchasedContent(accountId: string, resultSize: number = 100): Promise<any[]> {
+    public getPurchasedContent(accountId: string, resultSize: number = 100): Promise<Content[]> {
         return new Promise((resolve, reject) => {
             if (!accountId) {
                 reject('missing_parameter');
@@ -434,15 +437,15 @@ export class ContentApi {
                 .then(allContent => {
                     this._dbApi.execute(DatabaseOperation.getBuyingObjectsByConsumer, [accountId, '', '0.0.0', '', resultSize])
                         .then(boughtContent => {
+                            const result: Content[] = [];
                             boughtContent.forEach((bought: any) => {
                                 allContent.forEach(content => {
                                     if (bought.URI === content.URI) {
-                                        bought.contentObject = content;
+                                        result.push(content as Content);
                                     }
                                 });
                             });
-                            const bc = boughtContent.filter((bought: any) => bought.contentObject !== undefined);
-                            resolve(bc);
+                            resolve(result);
                         })
                         .catch(err => {
                             reject();
