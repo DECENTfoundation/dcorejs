@@ -5,10 +5,10 @@ import {
     ContentCancelOperation,
     Key,
     KeyParts,
+    OperationName,
     SubmitContentOperation,
-    TransactionOperationName,
-    TransactionOperator
-} from './transactionOperator';
+    Transaction
+} from './transaction';
 import {Asset} from './account';
 
 const moment = require('moment');
@@ -195,6 +195,7 @@ export class ContentApi {
                     const [content] = response;
                     const stringidied = JSON.stringify(content);
                     const objectified = JSON.parse(stringidied);
+                    objectified.price = objectified.price.map_price[0][1];
                     resolve(objectified as Content);
                 })
                 .catch(err => {
@@ -225,23 +226,13 @@ export class ContentApi {
                     .get('key_auths')
                     .get(0)
                     .get(0);
-                const transaction = TransactionOperator.createTransaction();
                 const cancellation: ContentCancelOperation = {
                     author: authorId,
                     URI: URI
                 };
-                TransactionOperator.addOperation(
-                    {
-                        name: TransactionOperationName.content_cancellation,
-                        operation: cancellation
-                    },
-                    transaction
-                );
-                TransactionOperator.broadcastTransaction(
-                    transaction,
-                    privateKey,
-                    publicKey
-                )
+                const transaction = new Transaction();
+                transaction.addOperation({name: OperationName.content_cancellation, operation: cancellation});
+                transaction.broadcast(privateKey)
                     .then(() => {
                         resolve();
                     })
@@ -309,8 +300,7 @@ export class ContentApi {
      * @return {Promise<any>}
      */
     public addContent(content: SubmitObject,
-                      privateKey: string,
-                      publicKey: string): Promise<any> {
+                      privateKey: string): Promise<any> {
         return new Promise((resolve, reject) => {
             content.size = this.getFileSize(content.size);
             const submitOperation: SubmitContentOperation = {
@@ -338,20 +328,9 @@ export class ContentApi {
                 },
                 synopsis: JSON.stringify(content.synopsis)
             };
-            const transaction = TransactionOperator.createTransaction();
-            TransactionOperator.addOperation(
-                {
-                    name: TransactionOperationName.content_submit,
-                    operation: submitOperation
-                },
-                transaction
-            );
-
-            TransactionOperator.broadcastTransaction(
-                transaction,
-                privateKey,
-                publicKey
-            )
+            const transaction = new Transaction();
+            transaction.addOperation({name: OperationName.content_submit, operation: submitOperation});
+            transaction.broadcast(privateKey)
                 .then(() => {
                     resolve();
                 })
@@ -383,18 +362,17 @@ export class ContentApi {
      * @param {string} buyerId Account id of user buying content, example: '1.2.123'
      * @param {string} elGammalPub ElGammal public key which will be used to identify users bought content
      * @param {string} privateKey
-     * @param {string} pubKey
      * @return {Promise<any>}
      */
     public buyContent(contentId: string,
                       buyerId: string,
                       elGammalPub: string,
-                      privateKey: string,
-                      pubKey: string): Promise<any> {
+                      privateKey: string): Promise<any> {
         return new Promise((resolve, reject) => {
             this.getContent(contentId)
                 .then((content: Content) => {
-                    const transaction = TransactionOperator.createTransaction();
+                    // const transaction = TransactionOperator.createTransaction();
+                    console.log(content);
                     const buyOperation: BuyContentOperation = {
                         URI: content.URI,
                         consumer: buyerId,
@@ -402,26 +380,19 @@ export class ContentApi {
                         region_code_from: 1,
                         pubKey: {s: elGammalPub}
                     };
-                    TransactionOperator.addOperation(
-                        {
-                            name: TransactionOperationName.requestToBuy,
-                            operation: buyOperation
-                        },
-                        transaction
-                    );
-                    TransactionOperator.broadcastTransaction(
-                        transaction,
-                        privateKey,
-                        pubKey
-                    )
+                    const transaction = new Transaction();
+                    transaction.addOperation({name: OperationName.requestToBuy, operation: buyOperation});
+                    transaction.broadcast(privateKey)
                         .then(() => {
                             resolve();
                         })
-                        .catch(err => {
+                        .catch((err: any) => {
+                            console.log(err);
                             reject();
                         });
                 })
                 .catch(err => {
+                    console.log(err);
                     reject(err);
                 });
         });

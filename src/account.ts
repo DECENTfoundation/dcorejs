@@ -2,7 +2,8 @@ import {Observable} from 'rxjs/Observable';
 import {Database, DatabaseApi, DatabaseOperation} from './api/database';
 import {ChainApi, ChainMethods} from './api/chain';
 import {CryptoUtils} from './crypt';
-import {Memo, TransactionOperationName, TransactionOperator, TransferOperation} from './transactionOperator';
+import {Memo, OperationName, Transaction, TransferOperation} from './transaction';
+import {Utils} from './utils';
 
 export interface Account {
     id: string
@@ -22,9 +23,16 @@ export interface PublishRights {
     publishing_rights_forwarded: any[]
 }
 
-export interface Asset {
-    amount: number
-    asset_id: string
+export class Asset {
+    amount: number;
+    asset_id: string;
+
+    public static createAsset(amount: number, assetId: string): Asset {
+        return {
+            amount: Math.floor(amount * ChainApi.DCTPower),
+            asset_id: assetId
+        };
+    }
 }
 
 export interface Authority {
@@ -58,7 +66,7 @@ export interface Options {
     subscription_period: number
 }
 
-export class Transaction {
+export class TransactionRecord {
     m_from_account_name: Observable<string>;
     m_to_account_name: Observable<string>;
     m_from_account: string;
@@ -170,9 +178,9 @@ export class AccountApi {
      * Gets transaction history for given Account name.
      *
      * @param {string} accountName example: "1.2.345"
-     * @return {Promise<Transaction[]>}
+     * @return {Promise<TransactionRecord[]>}
      */
-    public getTransactionHistory(accountName: string): Promise<Transaction[]> {
+    public getTransactionHistory(accountName: string): Promise<TransactionRecord[]> {
         return new Promise((resolve, reject) => {
             this.getAccountByName(accountName)
                 .then(acc => {
@@ -185,7 +193,7 @@ export class AccountApi {
                         ])
                         .then(transactions => {
                             const res = transactions.map((tr: any) => {
-                                const transaction = new Transaction(tr);
+                                const transaction = new TransactionRecord(tr);
                                 // TODO: memo decrypt
                                 transaction.m_from_account_name = new Observable(observable => {
                                     this.getAccountById(transaction.m_from_account)
@@ -226,6 +234,9 @@ export class AccountApi {
                     toAccount: string,
                     memo: string,
                     privateKey: string): Promise<any> {
+        const pKey = Utils.privateKeyFromWif(privateKey);
+        const pubKey = Utils.getPublicKey(pKey);
+
         return new Promise((resolve, reject) => {
             if (memo && !privateKey) {
                 reject(AccountError.transfer_missing_pkey);
@@ -262,26 +273,23 @@ export class AccountApi {
                     nonce: nonce,
                     message: CryptoUtils.encryptWithChecksum(
                         memo,
-                        privateKey,
-                        toPublicKey,
+                        pKey.key,
+                        pubKey.key,
                         nonce
                     )
                 };
 
-                const tr = TransactionOperator.createTransaction();
                 const transfer: TransferOperation = {
                     from: senderAccount.get('id'),
                     to: receiverAccount.get('id'),
-                    amount: TransactionOperator.createAsset(amount, asset.get('id')),
+                    amount: Asset.createAsset(amount, asset.get('id')),
                     memo: memo_object
                 };
 
-                TransactionOperator.addOperation(
-                    {name: TransactionOperationName.transfer, operation: transfer},
-                    tr
-                );
-                TransactionOperator.broadcastTransaction(tr, privateKey, fromPublicKey)
-                    .then(() => {
+                const transaction = new Transaction();
+                transaction.addOperation({name: OperationName.transfer, operation: transfer});
+                transaction.broadcast(privateKey)
+                    .then(res => {
                         resolve();
                     })
                     .catch(() => {

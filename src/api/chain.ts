@@ -28,6 +28,7 @@ export class ChainMethods {
 export class ChainApi {
     static asset = 'DCT';
     static asset_id = '1.3.0';
+    static DCTPower = Math.pow(10, 8);
     private _apiConnector: Promise<any>;
 
     /**

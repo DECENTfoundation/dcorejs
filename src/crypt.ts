@@ -6,17 +6,18 @@ export class CryptoUtils {
      * Encrypts message with given private-pubic key pair
      *
      * @param {string} message
-     * @param {string} privateKey
-     * @param {string} publicKey
+     * @param {any} privateKey
+     * @param {any} publicKey
      * @param {string} [nonce]
      * @return {Buffer}
      */
   public static encryptWithChecksum(
     message: string,
-    privateKey: string,
-    publicKey: string,
+    privateKey: any,
+    publicKey: any,
     nonce: string = ''
   ): Buffer {
+      console.log();
     return Aes.encrypt_with_checksum(privateKey, publicKey, nonce, message);
   }
 
