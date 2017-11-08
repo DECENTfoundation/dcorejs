@@ -1,4 +1,4 @@
-import {DatabaseApi, DatabaseOperation} from './api/database';
+import {DatabaseApi, DatabaseOperations, SearchParams, SearchParamsOrder} from './api/database';
 import {ChainApi, ChainMethods} from './api/chain';
 import {
     BuyContentOperation,
@@ -91,61 +91,6 @@ export class Status {
     static Expired = 'Expired';
 }
 
-export class SearchParamsOrder {
-    static authorAsc = '+author';
-    static ratingAsc = '+rating';
-    static sizeAsc = '+size';
-    static priceAsc = '+price';
-    static createdAsc = '+created';
-    static expirationAsc = '+expiration';
-    static authorDesc = '-author';
-    static ratingDesc = '-rating';
-    static sizeDesc = '-size';
-    static priceDesc = '-price';
-    static createdDesc = '-created';
-    static expirationDesc = '-expiration';
-}
-
-/**
- * Parameters for content search.
- * Order parameter options can be found in SearchParamsOrder class
- * Region code is ISO 3166-1 alpha-2 two-letter region code.
- */
-export class SearchParams {
-    term = '';
-    order = '';
-    user = '';
-    region_code = '';
-    itemId = '';
-    category = '';
-    count: number;
-
-    constructor(term = '',
-                order = '',
-                user = '',
-                region_code = '',
-                itemId = '',
-                category: string = '',
-                count: number = 6) {
-        this.term = term || '';
-        this.order = order || '';
-        this.user = user || '';
-        this.region_code = region_code || '';
-        this.itemId = itemId || '0.0.0';
-        this.category = category || '1';
-        this.count = count || 6;
-    }
-
-    get params(): any[] {
-        let params: any[] = [];
-        params = Object.values(this).reduce((previousValue, currentValue) => {
-            previousValue.push(currentValue);
-            return previousValue;
-        }, params);
-        return params;
-    }
-}
-
 export interface Seeder {
     id: string
     seeder: string
@@ -173,12 +118,13 @@ export class ContentApi {
     }
 
     public searchContent(searchParams: SearchParams): Promise<Content[]> {
+        const dbOperation = new DatabaseOperations.SearchContent(searchParams);
         return new Promise((resolve, reject) => {
             this._dbApi
-                .execute(DatabaseOperation.searchContent, searchParams.params)
+                .execute(dbOperation)
                 .then((content: any) => {
                     content.forEach((c: any) => {
-                       c.synopsis = JSON.parse(c.synopsis);
+                        c.synopsis = JSON.parse(c.synopsis);
                     });
                     resolve(content);
                 })
@@ -266,14 +212,12 @@ export class ContentApi {
      * @param {string} elGammalPrivate
      * @return {Promise<string>} Key to decrypt content
      */
-    public restoreContentKeys(contentId: String,
+    public restoreContentKeys(contentId: string,
                               elGammalPrivate: string): Promise<string> {
+        const dbOperation = new DatabaseOperations.RestoreEncryptionKey(contentId, elGammalPrivate);
         return new Promise((resolve, reject) => {
             this._dbApi
-                .execute(DatabaseOperation.restoreEncryptionKey, [
-                    {s: elGammalPrivate},
-                    contentId
-                ])
+                .execute(dbOperation)
                 .then(key => {
                     resolve(key);
                 })
@@ -291,9 +235,10 @@ export class ContentApi {
      * @return {Promise<any>}
      */
     public generateContentKeys(seeders: string[]): Promise<any> {
+        const dbOperation = new DatabaseOperations.GenerateContentKeys(seeders);
         return new Promise((resolve, reject) => {
             this._dbApi
-                .execute(DatabaseOperation.generateContentKeys, [seeders])
+                .execute(dbOperation)
                 .then(keys => {
                     resolve(keys);
                 })
@@ -385,8 +330,6 @@ export class ContentApi {
         return new Promise((resolve, reject) => {
             this.getContent(contentId)
                 .then((content: Content) => {
-                    // const transaction = TransactionOperator.createTransaction();
-                    console.log(content);
                     const buyOperation: BuyContentOperation = {
                         URI: content.URI,
                         consumer: buyerId,
@@ -415,12 +358,13 @@ export class ContentApi {
     /**
      * List available seeders ordered by price.
      *
-     * @param {number} resultSize Number of results per request
+     * @param {number} resultSize   Number of results per request. Default 100(max)
      * @return {Promise<Seeder[]>}
      */
-    public getSeeders(resultSize: number): Promise<Seeder[]> {
+    public getSeeders(resultSize: number = 100): Promise<Seeder[]> {
+        const dbOperation = new DatabaseOperations.ListSeeders(resultSize);
         return new Promise((resolve, reject) => {
-            this._dbApi.execute(DatabaseOperation.listPublishers, [resultSize])
+            this._dbApi.execute(dbOperation)
                 .then(result => {
                     resolve(result as Seeder[]);
                 })
@@ -435,10 +379,17 @@ export class ContentApi {
      * Return all purchased content for account id.
      *
      * @param {string} accountId example: '1.2.345'
+     * @param {string} order example: '1.2.345'
+     * @param {string} startObjectId example: '1.2.345'
+     * @param {string} term example: '1.2.345'
      * @param {number} resultSize Number of results default = 100
      * @return {Promise<Content[]>}
      */
-    public getPurchasedContent(accountId: string, resultSize: number = 100): Promise<Content[]> {
+    public getPurchasedContent(accountId: string,
+                               order: string = SearchParamsOrder.createdDesc,
+                               startObjectId: string = '0.0.0',
+                               term: string = '',
+                               resultSize: number = 100): Promise<Content[]> {
         return new Promise((resolve, reject) => {
             if (!accountId) {
                 reject('missing_parameter');
@@ -448,12 +399,19 @@ export class ContentApi {
             searchParams.count = resultSize;
             this.searchContent(searchParams)
                 .then(allContent => {
-                    this._dbApi.execute(DatabaseOperation.getBuyingObjectsByConsumer, [accountId, '', '0.0.0', '', resultSize])
+                    const dbOperation = new DatabaseOperations.GetBoughtObjectsByCustomer(
+                        accountId,
+                        order,
+                        startObjectId,
+                        term,
+                        resultSize);
+                    this._dbApi.execute(dbOperation)
                         .then(boughtContent => {
                             const result: Content[] = [];
                             boughtContent.forEach((bought: any) => {
                                 allContent.forEach(content => {
                                     if (bought.URI === content.URI) {
+                                        bought.synopsis = JSON.parse(bought.synopsis);
                                         result.push(content as Content);
                                     }
                                 });

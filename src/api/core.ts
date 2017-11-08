@@ -33,7 +33,7 @@ export class Core {
   ): Core {
     const core = new Core(config);
     core.setupChain(config.chain_id, chainConfigApi);
-    core._database = DatabaseApi.create(config, api, ChainStore);
+    core._database = DatabaseApi.create(config, api);
     const apiConnectionPromise = core._database.initApi(
       config.decent_network_wspaths,
       api

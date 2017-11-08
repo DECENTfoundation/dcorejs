@@ -1,5 +1,5 @@
 import {Observable} from 'rxjs/Observable';
-import {Database, DatabaseApi, DatabaseOperation} from './api/database';
+import {Database, DatabaseApi, DatabaseOperations, SearchAccountHistoryOrder} from './api/database';
 import {ChainApi, ChainMethods} from './api/chain';
 import {CryptoUtils} from './crypt';
 import {Memo, OperationName, Transaction, TransferOperation} from './transaction';
@@ -135,13 +135,14 @@ export class AccountApi {
     /**
      * Gets chain account for given Account name.
      *
-     * @param {string} name example: "u123456789abcdef123456789"
+     * @param {string} name         example: "u123456789abcdef123456789"
      * @return {Promise<Account>}
      */
     public getAccountByName(name: string): Promise<Account> {
+        const dbOperation = new DatabaseOperations.GetAccountByName(name);
         return new Promise((resolve, reject) => {
             this._dbApi
-                .execute(DatabaseOperation.getAccountByName, [name])
+                .execute(dbOperation)
                 .then((account: Account) => {
                     resolve(account as Account);
                 })
@@ -154,13 +155,14 @@ export class AccountApi {
     /**
      * Gets chain account for given Account id.
      *
-     * @param {string} id example: "1.2.345"
+     * @param {string} id           example: "1.2.345"
      * @return {Promise<Account>}
      */
     public getAccountById(id: string): Promise<Account> {
+        const dbOperation = new DatabaseOperations.GetAccounts([id]);
         return new Promise((resolve, reject) => {
             this._dbApi
-                .execute(DatabaseOperation.getAccounts, [[id]])
+                .execute(dbOperation)
                 .then((accounts: Account[]) => {
                     if (accounts.length === 0) {
                         reject(AccountError.account_does_not_exist);
@@ -177,41 +179,38 @@ export class AccountApi {
     /**
      * Gets transaction history for given Account name.
      *
-     * @param {string} accountName example: "1.2.345"
+     * @param {string} accountId                example: "1.2.345"
+     * @param {string} order                    SearchAccountHistoryOrder class holds all available options.
+     *                                          Default SearchParamsOrder.createdDesc
+     * @param {string} startObjectId            Id of object to start search from for paging purposes. Default 0.0.0
+     * @param {number} resultLimit              Number of returned transaction history records for paging. Default 100(max)
      * @return {Promise<TransactionRecord[]>}
      */
-    public getTransactionHistory(accountName: string): Promise<TransactionRecord[]> {
+    public getTransactionHistory(accountId: string,
+                                 order: string = SearchAccountHistoryOrder.timeDesc,
+                                 startObjectId: string = '0.0.0',
+                                 resultLimit: number = 100): Promise<TransactionRecord[]> {
         return new Promise((resolve, reject) => {
-            this.getAccountByName(accountName)
-                .then(acc => {
-                    this._dbApi
-                        .execute(DatabaseOperation.searchAccountHistory, [
-                            acc.id,
-                            '-time',
-                            '0.0.0',
-                            100
-                        ])
-                        .then(transactions => {
-                            const res = transactions.map((tr: any) => {
-                                const transaction = new TransactionRecord(tr);
-                                // TODO: memo decrypt
-                                transaction.m_from_account_name = new Observable(observable => {
-                                    this.getAccountById(transaction.m_from_account)
-                                        .then(account => observable.next(account.name))
-                                        .catch(err => observable.next(''));
-                                });
-                                transaction.m_to_account_name = new Observable(observable => {
-                                    this.getAccountById(transaction.m_to_account)
-                                        .then(account => observable.next(account.name))
-                                        .catch(err => observable.next(''));
-                                });
-                                return transaction;
-                            });
-                            resolve(res);
-                        })
-                        .catch(err => {
-                            reject(AccountError.transaction_history_fetch_failed);
+            const dbOperation = new DatabaseOperations.SearchAccountHistory(accountId, order, startObjectId, resultLimit);
+            this._dbApi
+                .execute(dbOperation)
+                .then(transactions => {
+                    const res = transactions.map((tr: any) => {
+                        const transaction = new TransactionRecord(tr);
+                        // TODO: memo decrypt
+                        transaction.m_from_account_name = new Observable(observable => {
+                            this.getAccountById(transaction.m_from_account)
+                                .then(account => observable.next(account.name))
+                                .catch(err => observable.next(''));
                         });
+                        transaction.m_to_account_name = new Observable(observable => {
+                            this.getAccountById(transaction.m_to_account)
+                                .then(account => observable.next(account.name))
+                                .catch(err => observable.next(''));
+                        });
+                        return transaction;
+                    });
+                    resolve(res);
                 })
                 .catch(err => {
                     reject(AccountError.transaction_history_fetch_failed);
@@ -224,10 +223,10 @@ export class AccountApi {
      * message for recipient
      *
      * @param {number} amount
-     * @param {string} fromAccount Name or id of account
-     * @param {string} toAccount Name or id of account
-     * @param {string} [memo] Optional memo message for recipient, need to supply pKey to encrypt
-     * @param {string} [privateKey] Optional private key, Mandatory if memo is set. Used to encrypt memo
+     * @param {string} fromAccount      Name or id of account
+     * @param {string} toAccount        Name or id of account
+     * @param {string} memo             Message for recipient
+     * @param {string} privateKey       Private key used to encrypt memo and sign transaction
      */
     public transfer(amount: number,
                     fromAccount: string,
@@ -302,7 +301,7 @@ export class AccountApi {
     /**
      * Current account balance of DCT asset on given account
      *
-     * @param {string} accountId Account id
+     * @param {string} accountId    Account id, example: '1.2.345'
      * @return {Promise<number>}
      */
     public getBalance(accountId: string): Promise<number> {
@@ -311,11 +310,9 @@ export class AccountApi {
                 reject('missing_parameter');
                 return;
             }
+            const dbOperation = new DatabaseOperations.GetAccountBalances(accountId, [ChainApi.asset_id]);
             this._dbApi
-                .execute(DatabaseOperation.getAccountBalances, [
-                    accountId,
-                    [ChainApi.asset_id]
-                ])
+                .execute(dbOperation)
                 .then(res => {
                     resolve(res[0].amount);
                 })
