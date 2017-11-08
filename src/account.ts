@@ -118,6 +118,8 @@ export class AccountError {
     static transfer_missing_pkey = 'transfer_missing_pkey';
     static transfer_sender_account_not_found = 'transfer_sender_account_not_found';
     static transfer_receiver_account_not_found = 'transfer_receiver_account_not_found';
+    static database_operation_failed = 'database_operation_failed';
+    static transaction_broadcast_failed = '';
 }
 
 /**
@@ -147,7 +149,7 @@ export class AccountApi {
                     resolve(account as Account);
                 })
                 .catch(err => {
-                    reject(AccountError.account_fetch_failed);
+                    reject(this.handleError(AccountError.account_fetch_failed, err));
                 });
         });
     }
@@ -165,13 +167,13 @@ export class AccountApi {
                 .execute(dbOperation)
                 .then((accounts: Account[]) => {
                     if (accounts.length === 0) {
-                        reject(AccountError.account_does_not_exist);
+                        reject(this.handleError(AccountError.account_does_not_exist, `${id}`));
                     }
                     const [account] = accounts;
                     resolve(account as Account);
                 })
                 .catch(err => {
-                    reject(AccountError.account_fetch_failed);
+                    reject(this.handleError(AccountError.account_fetch_failed, err));
                 });
         });
     }
@@ -213,7 +215,7 @@ export class AccountApi {
                     resolve(res);
                 })
                 .catch(err => {
-                    reject(AccountError.transaction_history_fetch_failed);
+                    reject(this.handleError(AccountError.transaction_history_fetch_failed, err));
                 });
         });
     }
@@ -248,10 +250,10 @@ export class AccountApi {
             this._chainApi.fetch(operations).then(result => {
                 const [senderAccount, receiverAccount, asset] = result;
                 if (!senderAccount) {
-                    reject(AccountError.transfer_sender_account_not_found);
+                    reject(this.handleError(AccountError.transfer_sender_account_not_found, `${fromAccount}`));
                 }
                 if (!receiverAccount) {
-                    reject(AccountError.transfer_receiver_account_not_found);
+                    reject(this.handleError(AccountError.transfer_receiver_account_not_found, `${toAccount}`));
                 }
 
                 const nonce: string = ChainApi.generateNonce();
@@ -291,8 +293,8 @@ export class AccountApi {
                     .then(res => {
                         resolve();
                     })
-                    .catch(() => {
-                        reject();
+                    .catch(err => {
+                        reject(this.handleError(AccountError.transaction_broadcast_failed, err));
                     });
             });
         });
@@ -317,8 +319,14 @@ export class AccountApi {
                     resolve(res[0].amount);
                 })
                 .catch(err => {
-                    reject(err);
+                    reject(this.handleError(AccountError.database_operation_failed, err));
                 });
         });
+    }
+
+    private handleError(message: string, err: any): Error {
+        const error = new Error(message);
+        error.stack = err;
+        return error;
     }
 }

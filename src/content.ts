@@ -13,6 +13,12 @@ import {Asset} from './account';
 
 const moment = require('moment');
 
+export class ContentError {
+    static database_operation_failed = 'operation_failed';
+    static fetch_content_failed = 'fetch_content_failed';
+    static transaction_broadcast_failed = 'transaction_broadcast_failed';
+}
+
 export interface SubmitObject {
     authorId: string
     seeders: Array<any>
@@ -129,7 +135,7 @@ export class ContentApi {
                     resolve(content);
                 })
                 .catch((err: any) => {
-                    reject(err);
+                    reject(this.handleError(ContentError.database_operation_failed, err));
                 });
         });
     }
@@ -154,7 +160,7 @@ export class ContentApi {
                     resolve(objectified as Content);
                 })
                 .catch(err => {
-                    reject(err);
+                    reject(this.handleError(ContentError.fetch_content_failed, err));
                 });
         });
     }
@@ -177,28 +183,22 @@ export class ContentApi {
                     const methods = new ChainMethods();
                     methods.add(ChainMethods.getAccount, authorId);
 
-                    this._chainApi.fetch(methods)
-                        .then(result => {
-                            const [account] = result;
-                            const publicKey = account
-                                .get('owner')
-                                .get('key_auths')
-                                .get(0)
-                                .get(0);
-                            const cancellation: ContentCancelOperation = {
-                                author: authorId,
-                                URI: URI
-                            };
-                            const transaction = new Transaction();
-                            transaction.addOperation({name: OperationName.content_cancellation, operation: cancellation});
-                            transaction.broadcast(privateKey)
-                                .then(() => {
-                                    resolve();
-                                })
-                                .catch(() => {
-                                    reject();
-                                });
+                    const cancellation: ContentCancelOperation = {
+                        author: authorId,
+                        URI: URI
+                    };
+                    const transaction = new Transaction();
+                    transaction.addOperation({name: OperationName.content_cancellation, operation: cancellation});
+                    transaction.broadcast(privateKey)
+                        .then(() => {
+                            resolve();
+                        })
+                        .catch(err => {
+                            reject(this.handleError(ContentError.transaction_broadcast_failed, err));
                         });
+                })
+                .catch(err => {
+                    reject(this.handleError(ContentError.fetch_content_failed, err));
                 });
         });
     }
@@ -222,7 +222,7 @@ export class ContentApi {
                     resolve(key);
                 })
                 .catch(err => {
-                    reject(err);
+                    reject(this.handleError(ContentError.database_operation_failed, err));
                 });
         });
     }
@@ -243,7 +243,7 @@ export class ContentApi {
                     resolve(keys);
                 })
                 .catch(err => {
-                    reject(err);
+                    reject(this.handleError(ContentError.database_operation_failed, err));
                 });
         });
     }
@@ -294,7 +294,7 @@ export class ContentApi {
                     resolve();
                 })
                 .catch(err => {
-                    reject(err);
+                    reject(this.handleError(ContentError.transaction_broadcast_failed, err));
                 });
         });
     }
@@ -344,13 +344,11 @@ export class ContentApi {
                             resolve();
                         })
                         .catch((err: any) => {
-                            console.log(err);
-                            reject();
+                            reject(this.handleError(ContentError.transaction_broadcast_failed, err));
                         });
                 })
                 .catch(err => {
-                    console.log(err);
-                    reject(err);
+                    reject(this.handleError(ContentError.fetch_content_failed, err));
                 });
         });
     }
@@ -369,8 +367,7 @@ export class ContentApi {
                     resolve(result as Seeder[]);
                 })
                 .catch(err => {
-                    console.log(err);
-                    reject();
+                    reject(this.handleError(ContentError.database_operation_failed, err));
                 });
         });
     }
@@ -419,9 +416,18 @@ export class ContentApi {
                             resolve(result);
                         })
                         .catch(err => {
-                            reject();
+                            reject(this.handleError(ContentError.database_operation_failed, err));
                         });
+                })
+                .catch(err => {
+                    reject(this.handleError(ContentError.fetch_content_failed, err));
                 });
         });
+    }
+
+    private handleError(message: string, err: any): Error {
+        const error = new Error(message);
+        error.stack = err;
+        return error;
     }
 }

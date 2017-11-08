@@ -214,7 +214,7 @@ export class DatabaseApi extends Database {
                 () => {
                     resolve();
                 },
-                (error: string) => {
+                (error: Error) => {
                     reject(error);
                 }
             );
@@ -225,10 +225,10 @@ export class DatabaseApi extends Database {
     private connectDaemon(toApi: any,
                           addresses: string[],
                           onSuccess: () => void,
-                          onError: (error: string) => void,
+                          onError: (error: Error) => void,
                           addressIndex: number = 0): Promise<any> | boolean {
-        if (addresses.length <= addressIndex) {
-            onError(DatabaseError.chain_connection_failed);
+        if (addresses.length === addressIndex) {
+            onError(this.handleError(DatabaseError.chain_connection_failed, ''));
             return false;
         }
         const address = addresses[addressIndex];
@@ -259,8 +259,7 @@ export class DatabaseApi extends Database {
                     .exec(operation.name, operation.parameters)
                     .then((content: any) => resolve(content))
                     .catch((err: any) => {
-                        // TODO: handle errors to DBApi errors
-                        reject(DatabaseError.database_execution_failed);
+                        reject(this.handleError(DatabaseError.chain_connection_failed, err));
                     });
             });
         });
@@ -273,10 +272,15 @@ export class DatabaseApi extends Database {
                     .exec(operation.name, operation.parameters)
                     .then((content: any) => resolve(content))
                     .catch((err: any) => {
-                        // TODO: handle errors to DBApi errors
-                        reject(DatabaseError.database_execution_failed);
+                        reject(this.handleError(DatabaseError.database_execution_failed, err));
                     });
             });
         });
+    }
+
+    private handleError(message: string, err: any): Error {
+        const error = new Error(message);
+        error.stack = err;
+        return error;
     }
 }

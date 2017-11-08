@@ -1,6 +1,10 @@
 const {FetchChain, TransactionHelper, ChainStore, types} = require('decentjs-lib/lib');
 const {map} = types;
 
+export class ChainError {
+    static command_execution_failed = 'command_execution_failed';
+}
+
 export interface ChainMethod {
     name: string
     param: any
@@ -64,7 +68,11 @@ export class ChainApi {
                     const commands = methods.commands.map(op => FetchChain(op.name, op.param));
                     Promise.all(commands)
                         .then((result) => resolve(result))
-                        .catch(err => reject(err));
+                        .catch(err => {
+                            const e = new Error(ChainError.command_execution_failed);
+                            e.stack = err;
+                            reject(e);
+                        });
                 });
             });
         });
