@@ -85,6 +85,7 @@
         "decentjs-lib": "git+ssh://git@github.com/DECENTfoundation/decentjs-lib.git",
         "moment": "2.19.1",
         "ripemd160": "2.0.1",
-        "rxjs": "5.5.2"
+        "rxjs": "5.5.2",
+        "ipfs-api": "15.0.1"
     }
 }
