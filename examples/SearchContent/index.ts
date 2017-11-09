@@ -6,7 +6,7 @@ const config = {
     chain_id: 'your-decent-chain-id'
 };
 
-const decent = Decent.instance();
+Decent.initialize(config);
 
 // Content searching
 const term = 'some phrase';
@@ -20,7 +20,7 @@ const count = 4;
 const searchParams: SearchParams = new SearchParams(
     term, order, user, region_code, itemId, category, count
 );
-decent.core.content.searchContent(searchParams)
+Decent.core.content.searchContent(searchParams)
     .then((contents: Content[]) => {
         console.log(contents);
     })
