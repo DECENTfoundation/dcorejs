@@ -1,4 +1,4 @@
-const mockUser = {
+const mockUser: any = {
     id: '1.2.473',
     registrar: '1.2.15',
     name: 'u6bbca9e1c60e1a132e3dc6fb2ba2ebe3',
@@ -49,7 +49,7 @@ export class ApisMock {
         });
     }
 
-    private static getAccountByName(name: string) {
+    public static getAccountByName(name: string) {
         return mockUser.name === name ? mockUser.name : null;
     }
 

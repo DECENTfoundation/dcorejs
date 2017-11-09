@@ -132,9 +132,7 @@ export class Transaction {
             return false;
         }
         ops[operation.name].keys.forEach((key: string) => {
-            if (!operation.operation.hasOwnProperty(key)) {
-                return false;
-            }
+            return operation.operation.hasOwnProperty(key);
         });
         this._transaction.add_type_operation(operation.name, operation.operation);
         this._operations.push(operation);

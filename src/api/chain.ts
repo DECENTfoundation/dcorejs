@@ -1,10 +1,8 @@
 const {
     FetchChain,
     TransactionHelper,
-    ChainStore,
-    types
+    ChainStore
 } = require('decentjs-lib/lib');
-const { map } = types;
 
 export class ChainError {
     static command_execution_failed = 'command_execution_failed';

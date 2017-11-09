@@ -4,7 +4,6 @@ import { ChainApi } from './api/chain';
 import { AccountApi } from './account';
 
 const { Apis, ChainConfig } = require('decentjs-lib/lib/ws/cjs');
-const { ChainStore } = require('decentjs-lib/lib');
 
 export interface CoreConfig {
     decent_network_wspaths: string[];
