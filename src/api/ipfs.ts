@@ -1,4 +1,4 @@
-import {Observable} from 'rxjs/Observable';
+import { Observable } from 'rxjs/Observable';
 const concat = require('concat-stream');
 const through = require('through2');
 

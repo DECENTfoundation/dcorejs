@@ -294,7 +294,6 @@ export class DatabaseApi extends Database {
         const a = new DatabaseOperations.SearchContent(
             new SearchParams('', '', '', '', '', '')
         ).name;
-        console.log(a);
         return new Promise((resolve, reject) => {
             this._apiConnector.then(() => {
                 this.dbApi()

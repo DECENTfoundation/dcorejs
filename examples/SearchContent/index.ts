@@ -17,9 +17,9 @@ const itemId = '0.0.0';
 const category = '1';
 const count = 4;
 
-const searchParams: SearchParams = new SearchParams(
-    term, order, user, region_code, itemId, category, count
-);
+const searchParams = new SearchParams(
+    term, order, user, region_code, itemId, category, count);
+
 Decent.core.content.searchContent(searchParams)
     .then((contents: Content[]) => {
         console.log(contents);

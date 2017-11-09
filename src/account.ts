@@ -1,196 +1,194 @@
 import { Observable } from 'rxjs/Observable';
 import {
-  Database,
-  DatabaseApi,
-  DatabaseOperations,
-  SearchAccountHistoryOrder
+    Database,
+    DatabaseApi,
+    DatabaseOperations,
+    SearchAccountHistoryOrder
 } from './api/database';
 import { ChainApi, ChainMethods } from './api/chain';
 import { CryptoUtils } from './crypt';
 import {
-  Memo,
-  OperationName,
-  Transaction,
-  TransferOperation
+    Memo,
+    OperationName,
+    Transaction,
+    TransferOperation
 } from './transaction';
 import { Utils } from './utils';
 
 export interface Account {
-  id: string;
-  registrar: string;
-  name: string;
-  owner: Authority;
-  active: Authority;
-  options: Options;
-  rights_to_publish: PublishRights;
-  statistics: string;
-  top_n_control_flags: number;
+    id: string;
+    registrar: string;
+    name: string;
+    owner: Authority;
+    active: Authority;
+    options: Options;
+    rights_to_publish: PublishRights;
+    statistics: string;
+    top_n_control_flags: number;
 }
 
 export interface PublishRights {
-  is_publishing_manager: boolean;
-  publishing_rights_received: any[];
-  publishing_rights_forwarded: any[];
+    is_publishing_manager: boolean;
+    publishing_rights_received: any[];
+    publishing_rights_forwarded: any[];
 }
 
 export class Asset {
-  amount: number;
-  asset_id: string;
+    amount: number;
+    asset_id: string;
 
-  public static createAsset(amount: number, assetId: string): Asset {
-    return {
-      amount: Math.floor(amount * ChainApi.DCTPower),
-      asset_id: assetId
-    };
-  }
+    public static createAsset(amount: number, assetId: string): Asset {
+        return {
+            amount: Math.floor(amount * ChainApi.DCTPower),
+            asset_id: assetId
+        };
+    }
 }
 
 export interface Authority {
-  weight_threshold: number;
-  account_auths: any[];
-  key_auths: KeyAuth[];
+    weight_threshold: number;
+    account_auths: any[];
+    key_auths: KeyAuth[];
 }
 
 export class KeyAuth {
-  private _key: string;
-  private _value: number;
+    private _key: string;
+    private _value: number;
 
-  constructor(key: string, value: number = 1) {
-    this._key = key;
-    this._value = value;
-  }
+    constructor(key: string, value: number = 1) {
+        this._key = key;
+        this._value = value;
+    }
 
-  public keyAuthFormat(): any[] {
-    return [this._key, this._value];
-  }
+    public keyAuthFormat(): any[] {
+        return [this._key, this._value];
+    }
 }
 
 export interface Options {
-  memo_key: string;
-  voting_account: string;
-  num_miner: number;
-  votes: any[];
-  extensions: any[];
-  allow_subscription: boolean;
-  price_per_subscribe: Asset;
-  subscription_period: number;
+    memo_key: string;
+    voting_account: string;
+    num_miner: number;
+    votes: any[];
+    extensions: any[];
+    allow_subscription: boolean;
+    price_per_subscribe: Asset;
+    subscription_period: number;
 }
 
 export class TransactionRecord {
-  m_from_account_name: Observable<string>;
-  m_to_account_name: Observable<string>;
-  m_from_account: string;
-  m_to_account: string;
-  m_operation_type: number;
-  m_transaction_amount: number;
-  m_transaction_fee: number;
-  m_str_description: string;
-  m_timestamp: string;
-  m_memo: TransactionMemo;
-  m_memo_string: string;
+    m_from_account_name: Observable<string>;
+    m_to_account_name: Observable<string>;
+    m_from_account: string;
+    m_to_account: string;
+    m_operation_type: number;
+    m_transaction_amount: number;
+    m_transaction_fee: number;
+    m_str_description: string;
+    m_timestamp: string;
+    m_memo: TransactionMemo;
+    m_memo_string: string;
 
-  constructor(transaction: any) {
-    this.m_from_account = transaction.m_from_account;
-    this.m_to_account = transaction.m_to_account;
-    this.m_operation_type = transaction.m_operation_type;
-    this.m_transaction_amount = transaction.m_transaction_amount;
-    this.m_transaction_fee = transaction.m_transaction_fee;
-    this.m_str_description = transaction.m_str_description;
-    this.m_timestamp = transaction.m_timestamp;
-    this.m_memo = new TransactionMemo(transaction);
-  }
+    constructor(transaction: any) {
+        this.m_from_account = transaction.m_from_account;
+        this.m_to_account = transaction.m_to_account;
+        this.m_operation_type = transaction.m_operation_type;
+        this.m_transaction_amount = transaction.m_transaction_amount;
+        this.m_transaction_fee = transaction.m_transaction_fee;
+        this.m_str_description = transaction.m_str_description;
+        this.m_timestamp = transaction.m_timestamp;
+        this.m_memo = new TransactionMemo(transaction);
+    }
 }
 
 export class TransactionMemo {
-  valid: boolean;
-  from: string;
-  message: string;
-  nonce: string;
-  to: string;
+    valid: boolean;
+    from: string;
+    message: string;
+    nonce: string;
+    to: string;
 
-  constructor(transaction: any) {
-    if (!transaction.m_transaction_encrypted_memo) {
-      this.valid = false;
-    } else {
-      this.valid = true;
-      this.from = transaction.m_transaction_encrypted_memo.from;
-      this.message = transaction.m_transaction_encrypted_memo.message;
-      this.nonce = transaction.m_transaction_encrypted_memo.nonce;
-      this.to = transaction.m_transaction_encrypted_memo.to;
+    constructor(transaction: any) {
+        if (!transaction.m_transaction_encrypted_memo) {
+            this.valid = false;
+        } else {
+            this.valid = true;
+            this.from = transaction.m_transaction_encrypted_memo.from;
+            this.message = transaction.m_transaction_encrypted_memo.message;
+            this.nonce = transaction.m_transaction_encrypted_memo.nonce;
+            this.to = transaction.m_transaction_encrypted_memo.to;
+        }
     }
-  }
 }
 
 export class AccountError {
-  static account_does_not_exist = 'account_does_not_exist';
-  static account_fetch_failed = 'account_fetch_failed';
-  static transaction_history_fetch_failed = 'transaction_history_fetch_failed';
-  static transfer_missing_pkey = 'transfer_missing_pkey';
-  static transfer_sender_account_not_found = 'transfer_sender_account_not_found';
-  static transfer_receiver_account_not_found = 'transfer_receiver_account_not_found';
-  static database_operation_failed = 'database_operation_failed';
-  static transaction_broadcast_failed = '';
+    static account_does_not_exist = 'account_does_not_exist';
+    static account_fetch_failed = 'account_fetch_failed';
+    static transaction_history_fetch_failed = 'transaction_history_fetch_failed';
+    static transfer_missing_pkey = 'transfer_missing_pkey';
+    static transfer_sender_account_not_found = 'transfer_sender_account_not_found';
+    static transfer_receiver_account_not_found = 'transfer_receiver_account_not_found';
+    static database_operation_failed = 'database_operation_failed';
+    static transaction_broadcast_failed = '';
 }
 
 /**
  * API class provides wrapper for account information.
  */
 export class AccountApi {
-  private _dbApi: DatabaseApi;
-  private _chainApi: ChainApi;
+    private _dbApi: DatabaseApi;
+    private _chainApi: ChainApi;
 
-  constructor(dbApi: Database, chainApi: ChainApi) {
-    this._dbApi = dbApi as DatabaseApi;
-    this._chainApi = chainApi;
-  }
+    constructor(dbApi: Database, chainApi: ChainApi) {
+        this._dbApi = dbApi as DatabaseApi;
+        this._chainApi = chainApi;
+    }
 
-  /**
+    /**
      * Gets chain account for given Account name.
      *
      * @param {string} name         example: "u123456789abcdef123456789"
      * @return {Promise<Account>}
      */
-  public getAccountByName(name: string): Promise<Account> {
-    const dbOperation = new DatabaseOperations.GetAccountByName(name);
-    return new Promise((resolve, reject) => {
-      this._dbApi
-        .execute(dbOperation)
-        .then((account: Account) => {
-          resolve(account as Account);
-        })
-        .catch(err => {
-          reject(this.handleError(AccountError.account_fetch_failed, err));
+    public getAccountByName(name: string): Promise<Account> {
+        const dbOperation = new DatabaseOperations.GetAccountByName(name);
+        return new Promise((resolve, reject) => {
+        this._dbApi.execute(dbOperation)
+            .then((account: Account) => {
+                resolve(account as Account);
+            })
+            .catch(err => {
+                reject(this.handleError(AccountError.account_fetch_failed, err));
+            });
         });
-    });
-  }
+    }
 
-  /**
+    /**
      * Gets chain account for given Account id.
      *
      * @param {string} id           example: "1.2.345"
      * @return {Promise<Account>}
      */
-  public getAccountById(id: string): Promise<Account> {
-    const dbOperation = new DatabaseOperations.GetAccounts([id]);
-    return new Promise((resolve, reject) => {
-      this._dbApi
-        .execute(dbOperation)
-        .then((accounts: Account[]) => {
-          if (accounts.length === 0) {
-            reject(
-              this.handleError(AccountError.account_does_not_exist, `${id}`)
-            );
-          }
-          const [account] = accounts;
-          resolve(account as Account);
-        })
-        .catch(err => {
-          reject(this.handleError(AccountError.account_fetch_failed, err));
+    public getAccountById(id: string): Promise<Account> {
+        const dbOperation = new DatabaseOperations.GetAccounts([id]);
+        return new Promise((resolve, reject) => {
+        this._dbApi.execute(dbOperation)
+            .then((accounts: Account[]) => {
+                if (accounts.length === 0) {
+                    reject(
+                        this.handleError(AccountError.account_does_not_exist, `${id}`)
+                    );
+                }
+                const [account] = accounts;
+                resolve(account as Account);
+            })
+            .catch(err => {
+                reject(this.handleError(AccountError.account_fetch_failed, err));
+            });
         });
-    });
-  }
+    }
 
-  /**
+    /**
      * Gets transaction history for given Account name.
      *
      * @param {string} accountId                example: "1.2.345"
@@ -200,48 +198,45 @@ export class AccountApi {
      * @param {number} resultLimit              Number of returned transaction history records for paging. Default 100(max)
      * @return {Promise<TransactionRecord[]>}
      */
-  public getTransactionHistory(
-    accountId: string,
-    order: string = SearchAccountHistoryOrder.timeDesc,
-    startObjectId: string = '0.0.0',
-    resultLimit: number = 100
-  ): Promise<TransactionRecord[]> {
-    return new Promise((resolve, reject) => {
-      const dbOperation = new DatabaseOperations.SearchAccountHistory(
-        accountId,
-        order,
-        startObjectId,
-        resultLimit
-      );
-      this._dbApi
-        .execute(dbOperation)
-        .then(transactions => {
-          const res = transactions.map((tr: any) => {
-            const transaction = new TransactionRecord(tr);
-            // TODO: memo decrypt
-            transaction.m_from_account_name = new Observable(observable => {
-              this.getAccountById(transaction.m_from_account)
-                .then(account => observable.next(account.name))
-                .catch(err => observable.next(''));
+    public getTransactionHistory(accountId: string,
+                                 order: string = SearchAccountHistoryOrder.timeDesc,
+                                 startObjectId: string = '0.0.0',
+                                 resultLimit: number = 100): Promise<TransactionRecord[]> {
+        return new Promise((resolve, reject) => {
+            const dbOperation = new DatabaseOperations.SearchAccountHistory(
+                accountId,
+                order,
+                startObjectId,
+                resultLimit
+            );
+            this._dbApi.execute(dbOperation)
+                .then(transactions => {
+                    const res = transactions.map((tr: any) => {
+                        const transaction = new TransactionRecord(tr);
+                        // TODO: memo decrypt
+                        transaction.m_from_account_name = new Observable((observable: any) => {
+                        this.getAccountById(transaction.m_from_account)
+                            .then(account => observable.next(account.name))
+                            .catch(err => observable.next(''));
+                        });
+                        transaction.m_to_account_name = new Observable((observable: any) => {
+                        this.getAccountById(transaction.m_to_account)
+                            .then(account => observable.next(account.name))
+                            .catch(err => observable.next(''));
+                        });
+                        return transaction;
+                    });
+                    resolve(res);
+                })
+                .catch(err => {
+                    reject(
+                        this.handleError(AccountError.transaction_history_fetch_failed, err)
+                    );
+                });
             });
-            transaction.m_to_account_name = new Observable(observable => {
-              this.getAccountById(transaction.m_to_account)
-                .then(account => observable.next(account.name))
-                .catch(err => observable.next(''));
-            });
-            return transaction;
-          });
-          resolve(res);
-        })
-        .catch(err => {
-          reject(
-            this.handleError(AccountError.transaction_history_fetch_failed, err)
-          );
-        });
-    });
-  }
+    }
 
-  /**
+    /**
      * Transfers exact amount of DCT between accounts with optional
      * message for recipient
      *
@@ -251,123 +246,119 @@ export class AccountApi {
      * @param {string} memo             Message for recipient
      * @param {string} privateKey       Private key used to encrypt memo and sign transaction
      */
-  public transfer(
-    amount: number,
-    fromAccount: string,
-    toAccount: string,
-    memo: string,
-    privateKey: string
-  ): Promise<any> {
-    const pKey = Utils.privateKeyFromWif(privateKey);
-    const pubKey = Utils.getPublicKey(pKey);
+    public transfer(amount: number,
+                  fromAccount: string,
+                  toAccount: string,
+                  memo: string,
+                  privateKey: string): Promise<any> {
+        const pKey = Utils.privateKeyFromWif(privateKey);
+        const pubKey = Utils.getPublicKey(pKey);
 
-    return new Promise((resolve, reject) => {
-      if (memo && !privateKey) {
-        reject(AccountError.transfer_missing_pkey);
-      }
-      const operations = new ChainMethods();
-      operations.add(ChainMethods.getAccount, fromAccount);
-      operations.add(ChainMethods.getAccount, toAccount);
-      operations.add(ChainMethods.getAsset, ChainApi.asset);
+        return new Promise((resolve, reject) => {
+            if (memo && !privateKey) {
+                reject(AccountError.transfer_missing_pkey);
+            }
+            const operations = new ChainMethods();
+            operations.add(ChainMethods.getAccount, fromAccount);
+            operations.add(ChainMethods.getAccount, toAccount);
+            operations.add(ChainMethods.getAsset, ChainApi.asset);
 
-      this._chainApi.fetch(operations).then(result => {
-        const [senderAccount, receiverAccount, asset] = result;
-        if (!senderAccount) {
-          reject(
-            this.handleError(
-              AccountError.transfer_sender_account_not_found,
-              `${fromAccount}`
-            )
-          );
-        }
-        if (!receiverAccount) {
-          reject(
-            this.handleError(
-              AccountError.transfer_receiver_account_not_found,
-              `${toAccount}`
-            )
-          );
-        }
+            this._chainApi.fetch(operations).then(result => {
+                const [senderAccount, receiverAccount, asset] = result;
+                if (!senderAccount) {
+                    reject(
+                        this.handleError(
+                            AccountError.transfer_sender_account_not_found,
+                            `${fromAccount}`
+                        )
+                    );
+                }
+                if (!receiverAccount) {
+                    reject(
+                        this.handleError(
+                        AccountError.transfer_receiver_account_not_found,
+                        `${toAccount}`
+                        )
+                    );
+                }
 
-        const nonce: string = ChainApi.generateNonce();
-        const fromPublicKey = senderAccount
-          .get('owner')
-          .get('key_auths')
-          .get(0)
-          .get(0);
-        const toPublicKey = receiverAccount
-          .get('owner')
-          .get('key_auths')
-          .get(0)
-          .get(0);
+                const nonce: string = ChainApi.generateNonce();
+                const fromPublicKey = senderAccount
+                    .get('owner')
+                    .get('key_auths')
+                    .get(0)
+                    .get(0);
+                const toPublicKey = receiverAccount
+                    .get('owner')
+                    .get('key_auths')
+                    .get(0)
+                    .get(0);
 
-        const memo_object: Memo = {
-          from: fromPublicKey,
-          to: toPublicKey,
-          nonce: nonce,
-          message: CryptoUtils.encryptWithChecksum(
-            memo,
-            pKey.key,
-            pubKey.key,
-            nonce
-          )
-        };
+                const memo_object: Memo = {
+                    from: fromPublicKey,
+                    to: toPublicKey,
+                    nonce: nonce,
+                    message: CryptoUtils.encryptWithChecksum(
+                        memo,
+                        pKey.key,
+                        pubKey.key,
+                        nonce
+                    )
+                };
 
-        const transfer: TransferOperation = {
-          from: senderAccount.get('id'),
-          to: receiverAccount.get('id'),
-          amount: Asset.createAsset(amount, asset.get('id')),
-          memo: memo_object
-        };
+                const transfer: TransferOperation = {
+                    from: senderAccount.get('id'),
+                    to: receiverAccount.get('id'),
+                    amount: Asset.createAsset(amount, asset.get('id')),
+                    memo: memo_object
+                };
 
-        const transaction = new Transaction();
-        transaction.addOperation({
-          name: OperationName.transfer,
-          operation: transfer
+                const transaction = new Transaction();
+                transaction.addOperation({
+                    name: OperationName.transfer,
+                    operation: transfer
+                });
+                transaction.broadcast(privateKey)
+                    .then(res => {
+                        resolve();
+                    })
+                    .catch(err => {
+                        reject(
+                            this.handleError(AccountError.transaction_broadcast_failed, err)
+                        );
+                    });
+            });
         });
-        transaction
-          .broadcast(privateKey)
-          .then(res => {
-            resolve();
-          })
-          .catch(err => {
-            reject(
-              this.handleError(AccountError.transaction_broadcast_failed, err)
-            );
-          });
-      });
-    });
-  }
+    }
 
-  /**
+    /**
      * Current account balance of DCT asset on given account
      *
      * @param {string} accountId    Account id, example: '1.2.345'
      * @return {Promise<number>}
      */
-  public getBalance(accountId: string): Promise<number> {
-    return new Promise((resolve, reject) => {
-      if (!accountId) {
-        reject('missing_parameter');
-        return;
-      }
-      const dbOperation = new DatabaseOperations.GetAccountBalances(accountId, [
-        ChainApi.asset_id
-      ]);
-      this._dbApi
-        .execute(dbOperation)
-        .then(res => {
-          resolve(res[0].amount);
-        })
-        .catch(err => {
-          reject(this.handleError(AccountError.database_operation_failed, err));
+    public getBalance(accountId: string): Promise<number> {
+        return new Promise((resolve, reject) => {
+        if (!accountId) {
+            reject('missing_parameter');
+            return;
+        }
+        const dbOperation = new DatabaseOperations.GetAccountBalances(accountId, [
+            ChainApi.asset_id
+        ]);
+        this._dbApi.execute(dbOperation)
+            .then(res => {
+                resolve(res[0].amount);
+            })
+            .catch(err => {
+                reject(this.handleError(AccountError.database_operation_failed, err));
+            });
         });
-    });
-  }
+    }
 
-  private handleError(message: string, err: any): Error {
-    const error = new Error(message);
-    error.stack = err;
-    return error;
-  }
+    private handleError(message: string, err: any): Error {
+        const error = new Error(message);
+        error.stack = err;
+        return error;
+    }
 }
