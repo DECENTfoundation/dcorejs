@@ -7,4 +7,4 @@ export {
     SubmitObject
 } from './content';
 export { Account } from './account';
-export { Core } from './api/core';
+export { Core } from './core';

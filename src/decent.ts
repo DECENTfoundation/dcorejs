@@ -1,4 +1,4 @@
-import {Core} from './api/core';
+import {Core} from './core';
 
 export class DecentError {
     static app_not_initialized = 'app_not_initialized';

@@ -1,7 +1,7 @@
-import { ContentApi } from '../content';
-import { DatabaseApi } from './database';
-import { ChainApi } from './chain';
-import { AccountApi } from '../account';
+import { ContentApi } from './content';
+import { DatabaseApi } from './api/database';
+import { ChainApi } from './api/chain';
+import { AccountApi } from './account';
 
 const { Apis, ChainConfig } = require('decentjs-lib/lib/ws/cjs');
 const { ChainStore } = require('decentjs-lib/lib');
