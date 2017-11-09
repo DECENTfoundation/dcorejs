@@ -1,4 +1,4 @@
-import {Decent} from 'decent-js';
+import { Decent } from 'decent-js';
 
 // Initialization
 const config = {

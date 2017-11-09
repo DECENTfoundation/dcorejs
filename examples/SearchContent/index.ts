@@ -1,4 +1,4 @@
-import {Content, Decent, SearchParams, SearchParamsOrder} from 'decent-js';
+import { Content, Decent, SearchParams, SearchParamsOrder } from 'decent-js';
 
 // Initialization
 const config = {

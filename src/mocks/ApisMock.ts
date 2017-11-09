@@ -41,10 +41,10 @@ export class ApisMock {
   public static exec(operation: string, parameters: any[]): Promise<any> {
     return new Promise((resolve, reject) => {
       // switch (operation) {
-      //   case DatabaseOperationName.getAccountByName: {
-      //     const res = this.getAccountByName(parameters[0]);
-      //     res ? resolve(res) : reject();
-      //   }
+      //     case DatabaseOperationName.getAccountByName: {
+      //         const res = this.getAccountByName(parameters[0]);
+      //         res ? resolve(res) : reject();
+      //     }
       // }
     });
   }

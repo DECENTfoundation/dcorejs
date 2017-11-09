@@ -17,7 +17,6 @@ export class CryptoUtils {
     publicKey: any,
     nonce: string = ''
   ): Buffer {
-      console.log();
     return Aes.encrypt_with_checksum(privateKey, publicKey, nonce, message);
   }
 
