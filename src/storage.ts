@@ -1,8 +1,8 @@
 import { IpfsApi } from './api/ipfs';
 
 export interface StorageConfig {
-    ipfs_server: string
-    ipfs_port: number
+    ipfs_server: string;
+    ipfs_port: number;
 }
 
 export class StorageApi {

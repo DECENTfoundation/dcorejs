@@ -1,5 +1,5 @@
 import { StorageApi } from './storage';
-import {Core} from './core';
+import { Core } from './core';
 
 export class DecentError {
     static app_not_initialized = 'app_not_initialized';
@@ -32,7 +32,7 @@ export class Decent {
         return Decent._storage;
     }
 
-    public static initialize(config: DecentConfig) {
+    public static initialize(config: DecentConfig): void {
         if (config.decent_network_wspaths[0] === '' || config.chain_id === '') {
             throw new Error(DecentError.app_missing_config);
         }
