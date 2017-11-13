@@ -1,1 +1,0 @@
-{"version":3,"file":"decent-js.umd.js","sources":["../src/decent-js.ts"],"sourcesContent":["export { Decent, DecentConfig } from './decent';\nexport { Utils } from './utils';\nexport * from './publicApi';\n"],"names":[],"mappings":";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;IAAA,mCAAgD;IAAvC,0BAAA,MAAM,CAAA;IACf,iCAAgC;IAAvB,wBAAA,KAAK,CAAA;IACd,iCAA4B;;;;;;;;;;;;;"}
