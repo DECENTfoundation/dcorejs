@@ -1,5 +1,5 @@
-import {DatabaseApi, DatabaseOperations, SearchParams, SearchParamsOrder} from './api/database';
-import {ChainApi, ChainMethods} from './api/chain';
+import { DatabaseApi, DatabaseOperations, SearchParams, SearchParamsOrder } from './api/database';
+import { ChainApi, ChainMethods } from './api/chain';
 import {
     BuyContentOperation,
     ContentCancelOperation,
@@ -9,14 +9,14 @@ import {
     SubmitContentOperation,
     Transaction
 } from './transaction';
-import {Asset} from './account';
-
+import { Asset } from './account';
 const moment = require('moment');
 
 export class ContentError {
     static database_operation_failed = 'operation_failed';
     static fetch_content_failed = 'fetch_content_failed';
     static transaction_broadcast_failed = 'transaction_broadcast_failed';
+    static restore_content_keys_failed = 'restore_content_keys_failed';
 }
 
 export interface SubmitObject {
@@ -70,6 +70,23 @@ export interface Synopsis {
     userRights: string;
 }
 
+export class KeyPair {
+    private _public: string;
+    private _private: string;
+    get privateKey(): string {
+        return this._private;
+    }
+
+    get publicKey(): string {
+        return this._public;
+    }
+
+    constructor(privateKey: string, publicKey: string) {
+        this._private = privateKey;
+        this._public = publicKey;
+    }
+}
+
 export class ContentType {
     private _appId: number;
     private _category: number;
@@ -77,9 +94,9 @@ export class ContentType {
     private _isInappropriate: boolean;
 
     constructor(appId: number,
-                category: number,
-                subCategory: number,
-                isInappropriate: boolean) {
+        category: number,
+        subCategory: number,
+        isInappropriate: boolean) {
         this._appId = appId;
         this._category = category;
         this._subCategory = subCategory;
@@ -164,37 +181,10 @@ export class ContentApi {
                     const objectified = JSON.parse(stringidied);
                     objectified.synopsis = JSON.parse(objectified.synopsis);
                     resolve(objectified as Content);
-
                 })
                 .catch(err => {
                     reject(err);
                 });
-            // const sp = new SearchParams('', '', '', '', id, '', 1);
-            // this.searchContent(sp)
-            //     .then(content => {
-            //         if (content.length === 0) {
-            //             reject(this.handleError(ContentError.fetch_content_failed, ''));
-            //         }
-            //         resolve(content[0]);
-            //     })
-            //     .catch(err => {
-            //         reject(this.handleError(ContentError.fetch_content_failed, err));
-            //     });
-            // const chainOps = new ChainMethods();
-            // chainOps.add(ChainMethods.getObject, id);
-            // this._chainApi
-            //     .fetch(chainOps)
-            //     .then((response: any[]) => {
-            //         const [content] = response;
-            //         const stringidied = JSON.stringify(content);
-            //         const objectified = JSON.parse(stringidied);
-            //         objectified.price = objectified.price.map_price[0][1];
-            //         objectified.synopsis = JSON.parse(objectified.synopsis);
-            //         resolve(objectified as Content);
-            //     })
-            //     .catch(err => {
-            //         reject(this.handleError(ContentError.fetch_content_failed, err));
-            //     });
         });
     }
 
@@ -207,8 +197,8 @@ export class ContentApi {
      * @return {Promise<any>}
      */
     public removeContent(contentId: string,
-                         authorId: string,
-                         privateKey: string): Promise<any> {
+        authorId: string,
+        privateKey: string): Promise<any> {
         return new Promise((resolve, reject) => {
             this.getContent(contentId)
                 .then((content: Content) => {
@@ -245,27 +235,45 @@ export class ContentApi {
     /**
      * Restores key to decrypt downloaded content.
      *
-     * ElGammalPrivate key is used to identify if user have bought content.
+     * ElGamalPrivate contains keys used to identify if user have bought content.
+     * May contains older keys, if elGamal keys pair were changed,
+     * to restore content bought before keys have been changed. Otherwise content keys
+     * would not be restored.
      *
-     * @param {String} contentId example: '1.2.453'
-     * @param {string} elGammalPrivate
-     * @return {Promise<string>} Key to decrypt content
+     * @param {string} contentId                example: '1.2.453'
+     * @param {...string[]} elGamalPrivate
+     * @returns {Promise<string>}
+     * @memberof ContentApi
      */
-    public restoreContentKeys(contentId: string,
-                              elGammalPrivate: string): Promise<string> {
-        const dbOperation = new DatabaseOperations.RestoreEncryptionKey(
-            contentId,
-            elGammalPrivate
-        );
+    public restoreContentKeys(contentId: string, accountId: string, ...elGamalPrivate: KeyPair[]): Promise<string> {
+        // const dbOperation = new DatabaseOperations.RestoreEncryptionKey(
+        //     contentId,
+        //     elGamalPrivate[0]
+        // );
+
         return new Promise((resolve, reject) => {
-            this._dbApi
-                .execute(dbOperation)
-                .then(key => {
-                    resolve(key);
-                })
-                .catch(err => {
-                    reject(this.handleError(ContentError.database_operation_failed, err));
+            this.getContent(contentId)
+            .then(content => {
+                const dbOperation = new DatabaseOperations.GetBuyingHistoryObjects(accountId, content.URI);
+                this._dbApi.execute(dbOperation)
+                .then(res => {
+                    console.log(res);
+                    const validKey = elGamalPrivate.find((elgPair: KeyPair) => elgPair.publicKey === res.pubKey.s);
+                    if (!validKey) {
+                        reject(this.handleError(ContentError.restore_content_keys_failed, 'wrong keys'));
+                    }
+
+                    const dbOperation = new DatabaseOperations.RestoreEncryptionKey(contentId, validKey.privateKey);
+                    this._dbApi
+                        .execute(dbOperation)
+                        .then(key => {
+                            resolve(key);
+                        })
+                        .catch(err => {
+                            reject(this.handleError(ContentError.restore_content_keys_failed, err));
+                        });
                 });
+            });
         });
     }
 
@@ -352,13 +360,14 @@ export class ContentApi {
 
     private calculateFee(content: SubmitObject): number {
         const num_days = moment(content.date).diff(moment(), 'days') + 1;
-        return Math.ceil(
+        const fee = Math.ceil(
             this.getFileSize(content.fileSize) *
             content.seeders.reduce(
                 (fee, seed) => fee + seed.price.amount * num_days,
                 0
             )
         );
+        return fee;
     }
 
     /**
@@ -371,9 +380,9 @@ export class ContentApi {
      * @return {Promise<any>}
      */
     public buyContent(contentId: string,
-                      buyerId: string,
-                      elGammalPub: string,
-                      privateKey: string): Promise<any> {
+        buyerId: string,
+        elGammalPub: string,
+        privateKey: string): Promise<any> {
         return new Promise((resolve, reject) => {
             this.getContent(contentId)
                 .then((content: Content) => {
@@ -382,7 +391,7 @@ export class ContentApi {
                         consumer: buyerId,
                         price: content.price,
                         region_code_from: 1,
-                        pubKey: {s: elGammalPub}
+                        pubKey: { s: elGammalPub }
                     };
                     const transaction = new Transaction();
                     transaction.addOperation({
@@ -437,10 +446,10 @@ export class ContentApi {
      * @return {Promise<Content[]>}
      */
     public getPurchasedContent(accountId: string,
-                               order: string = SearchParamsOrder.createdDesc,
-                               startObjectId: string = '0.0.0',
-                               term: string = '',
-                               resultSize: number = 100): Promise<Content[]> {
+        order: string = SearchParamsOrder.createdDesc,
+        startObjectId: string = '0.0.0',
+        term: string = '',
+        resultSize: number = 100): Promise<Content[]> {
         return new Promise((resolve, reject) => {
             if (!accountId) {
                 reject('missing_parameter');
