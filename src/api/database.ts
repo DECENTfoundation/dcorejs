@@ -144,7 +144,7 @@ export namespace DatabaseOperations {
 
     export class GetAccounts extends DatabaseOperation {
         constructor(ids: string[]) {
-            super(DatabaseOperationName.getAccounts, [ids]);
+            super(DatabaseOperationName.getAccounts, ids);
         }
     }
 

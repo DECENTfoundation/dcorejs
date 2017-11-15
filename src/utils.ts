@@ -1,6 +1,6 @@
 import { CryptoUtils } from './crypt';
 
-const { PrivateKey, key } = require('decentjs-lib/lib');
+const { PrivateKey, PublicKey, key } = require('decentjs-lib/lib');
 
 export class Utils {
 
@@ -36,6 +36,11 @@ export class Utils {
     public static privateKeyFromWif(pkWif: string): KeyPrivate {
         const pKey = PrivateKey.fromWif(pkWif);
         return new KeyPrivate(pKey);
+    }
+
+    public static publicKeyFromString(pubKeyString: string): KeyPublic {
+        const pubKey = PublicKey.fromPublicKeyString(pubKeyString);
+        return new KeyPublic(pubKey);
     }
 
     private static generatePrivateKey(brainKey: string): KeyPrivate {

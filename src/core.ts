@@ -13,7 +13,6 @@ export interface CoreConfig {
 export class Core {
     private _content: ContentApi;
     private _account: AccountApi;
-    private _config: CoreConfig;
     private _database: DatabaseApi;
     private _chain: ChainApi;
 
@@ -28,7 +27,7 @@ export class Core {
     public static create(config: CoreConfig,
                          api: any = Apis,
                          chainConfigApi: any = ChainConfig): Core {
-        const core = new Core(config);
+        const core = new Core();
         core.setupChain(config.chain_id, chainConfigApi);
         core._database = DatabaseApi.create(config, api);
         const apiConnectionPromise = core._database.initApi(
@@ -45,7 +44,6 @@ export class Core {
         ChainApi.setupChain(chainId, chainConfig);
     }
 
-    private constructor(config: CoreConfig) {
-        this._config = config;
+    private constructor() {
     }
 }

@@ -1,19 +1,19 @@
-import { Observable } from 'rxjs/Observable';
-import {
-    Database,
-    DatabaseApi,
-    DatabaseOperations,
-    SearchAccountHistoryOrder
-} from './api/database';
-import { ChainApi, ChainMethods } from './api/chain';
-import { CryptoUtils } from './crypt';
-import {
-    Memo,
-    OperationName,
-    Transaction,
-    TransferOperation
-} from './transaction';
-import { Utils } from './utils';
+import {Database, DatabaseApi, DatabaseOperations, SearchAccountHistoryOrder} from './api/database';
+import {ChainApi, ChainMethods} from './api/chain';
+import {CryptoUtils} from './crypt';
+import {Memo, OperationName, Transaction, TransferOperation} from './transaction';
+import {KeyPrivate, Utils} from './utils';
+
+export interface TransactionRaw {
+    id: string;
+    m_from_account: string;
+    m_operation_type: number;
+    m_str_description: string;
+    m_timestamp: string;
+    m_to_account: string;
+    m_transaction_amount: Asset;
+    m_transaction_fee: Asset;
+}
 
 export interface Account {
     id: string;
@@ -77,27 +77,29 @@ export interface Options {
 }
 
 export class TransactionRecord {
-    m_from_account_name: Observable<string>;
-    m_to_account_name: Observable<string>;
-    m_from_account: string;
-    m_to_account: string;
-    m_operation_type: number;
-    m_transaction_amount: number;
-    m_transaction_fee: number;
-    m_str_description: string;
-    m_timestamp: string;
-    m_memo: TransactionMemo;
-    m_memo_string: string;
+    fromAccountName: string;
+    toAccountName: string;
+    fromAccountId: string;
+    toAccountId: string;
+    operationType: number;
+    transactionAmount: number;
+    transactionFee: number;
+    description: string;
+    timestamp: string;
+    memo: TransactionMemo;
+    memoString: string;
 
-    constructor(transaction: any) {
-        this.m_from_account = transaction.m_from_account;
-        this.m_to_account = transaction.m_to_account;
-        this.m_operation_type = transaction.m_operation_type;
-        this.m_transaction_amount = transaction.m_transaction_amount;
-        this.m_transaction_fee = transaction.m_transaction_fee;
-        this.m_str_description = transaction.m_str_description;
-        this.m_timestamp = transaction.m_timestamp;
-        this.m_memo = new TransactionMemo(transaction);
+    constructor(transaction: any, privateKeys: string[]) {
+        this.fromAccountId = transaction.m_from_account;
+        this.toAccountId = transaction.m_to_account;
+        this.operationType = transaction.m_operation_type;
+        this.transactionAmount = transaction.m_transaction_amount.amount;
+        this.transactionFee = transaction.m_transaction_fee.amount;
+        this.description = transaction.m_str_description;
+        this.timestamp = transaction.m_timestamp;
+        this.memo = new TransactionMemo(transaction);
+        this.memoString = this.memo.decryptedMessage(privateKeys);
+        console.log(`done : ${this.memoString}`);
     }
 }
 
@@ -119,6 +121,28 @@ export class TransactionMemo {
             this.to = transaction.m_transaction_encrypted_memo.to;
         }
     }
+
+    decryptedMessage(privateKeys: string[]): string {
+        if (!this.valid) {
+            return '';
+        }
+        const pubKey = Utils.publicKeyFromString(this.to);
+        let decrypted = '';
+
+        privateKeys.forEach(pk => {
+            let pKey: KeyPrivate;
+            try {
+                pKey = Utils.privateKeyFromWif(pk);
+                try {
+                    decrypted = CryptoUtils.decryptWithChecksum(this.message, pKey, pubKey, this.nonce).toString();
+                } catch (err) {
+                    throw new Error(AccountError.account_keys_incorrect);
+                }
+            } catch (err) {
+            }
+        });
+        return decrypted;
+    }
 }
 
 export class AccountError {
@@ -129,7 +153,8 @@ export class AccountError {
     static transfer_sender_account_not_found = 'transfer_sender_account_not_found';
     static transfer_receiver_account_not_found = 'transfer_receiver_account_not_found';
     static database_operation_failed = 'database_operation_failed';
-    static transaction_broadcast_failed = '';
+    static transaction_broadcast_failed = 'transaction_broadcast_failed';
+    static account_keys_incorrect = 'account_keys_incorrect';
 }
 
 /**
@@ -153,13 +178,13 @@ export class AccountApi {
     public getAccountByName(name: string): Promise<Account> {
         const dbOperation = new DatabaseOperations.GetAccountByName(name);
         return new Promise((resolve, reject) => {
-        this._dbApi.execute(dbOperation)
-            .then((account: Account) => {
-                resolve(account as Account);
-            })
-            .catch(err => {
-                reject(this.handleError(AccountError.account_fetch_failed, err));
-            });
+            this._dbApi.execute(dbOperation)
+                .then((account: Account) => {
+                    resolve(account as Account);
+                })
+                .catch(err => {
+                    reject(this.handleError(AccountError.account_fetch_failed, err));
+                });
         });
     }
 
@@ -172,19 +197,19 @@ export class AccountApi {
     public getAccountById(id: string): Promise<Account> {
         const dbOperation = new DatabaseOperations.GetAccounts([id]);
         return new Promise((resolve, reject) => {
-        this._dbApi.execute(dbOperation)
-            .then((accounts: Account[]) => {
-                if (accounts.length === 0) {
-                    reject(
-                        this.handleError(AccountError.account_does_not_exist, `${id}`)
-                    );
-                }
-                const [account] = accounts;
-                resolve(account as Account);
-            })
-            .catch(err => {
-                reject(this.handleError(AccountError.account_fetch_failed, err));
-            });
+            this._dbApi.execute(dbOperation)
+                .then((accounts: Account[]) => {
+                    if (accounts.length === 0) {
+                        reject(
+                            this.handleError(AccountError.account_does_not_exist, `${id}`)
+                        );
+                    }
+                    const [account] = accounts;
+                    resolve(account as Account);
+                })
+                .catch(err => {
+                    reject(this.handleError(AccountError.account_fetch_failed, err));
+                });
         });
     }
 
@@ -194,11 +219,14 @@ export class AccountApi {
      * @param {string} accountId                example: "1.2.345"
      * @param {string} order                    SearchAccountHistoryOrder class holds all available options.
      *                                          Default SearchParamsOrder.createdDesc
+     * @param {string[]} privateKeys            Array of private keys in case private/public pair has been changed
+     *                                          to be able of decrypt older memo messages from transactions.
      * @param {string} startObjectId            Id of object to start search from for paging purposes. Default 0.0.0
      * @param {number} resultLimit              Number of returned transaction history records for paging. Default 100(max)
      * @return {Promise<TransactionRecord[]>}
      */
     public getTransactionHistory(accountId: string,
+                                 privateKeys: string[],
                                  order: string = SearchAccountHistoryOrder.timeDesc,
                                  startObjectId: string = '0.0.0',
                                  resultLimit: number = 100): Promise<TransactionRecord[]> {
@@ -210,30 +238,46 @@ export class AccountApi {
                 resultLimit
             );
             this._dbApi.execute(dbOperation)
-                .then(transactions => {
+                .then((transactions: any[]) => {
+                    console.log(transactions);
+                    const namePromises: Promise<string>[] = [];
                     const res = transactions.map((tr: any) => {
-                        const transaction = new TransactionRecord(tr);
-                        // TODO: memo decrypt
-                        transaction.m_from_account_name = new Observable((observable: any) => {
-                        this.getAccountById(transaction.m_from_account)
-                            .then(account => observable.next(account.name))
-                            .catch(err => observable.next(''));
-                        });
-                        transaction.m_to_account_name = new Observable((observable: any) => {
-                        this.getAccountById(transaction.m_to_account)
-                            .then(account => observable.next(account.name))
-                            .catch(err => observable.next(''));
-                        });
+                        const transaction = new TransactionRecord(tr, privateKeys);
+
+                        namePromises.push(new Promise((resolve, reject) => {
+                            this.getAccountById(transaction.fromAccountId)
+                                .then(account => {
+                                    transaction.fromAccountName = account.name;
+                                    resolve();
+                                })
+                                .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
+                        }));
+
+                        namePromises.push(new Promise((resolve, reject) => {
+                            this.getAccountById(transaction.toAccountId)
+                                .then(account => {
+                                    transaction.toAccountName = account.name;
+                                    resolve();
+                                })
+                                .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
+                        }));
+
                         return transaction;
                     });
-                    resolve(res);
+                    Promise.all(namePromises)
+                        .then(() => {
+                            resolve(res);
+                        })
+                        .catch(err => {
+                            reject(this.handleError(AccountError.account_fetch_failed, err));
+                        });
                 })
                 .catch(err => {
                     reject(
                         this.handleError(AccountError.transaction_history_fetch_failed, err)
                     );
                 });
-            });
+        });
     }
 
     /**
@@ -247,12 +291,11 @@ export class AccountApi {
      * @param {string} privateKey       Private key used to encrypt memo and sign transaction
      */
     public transfer(amount: number,
-                  fromAccount: string,
-                  toAccount: string,
-                  memo: string,
-                  privateKey: string): Promise<any> {
+                    fromAccount: string,
+                    toAccount: string,
+                    memo: string,
+                    privateKey: string): Promise<any> {
         const pKey = Utils.privateKeyFromWif(privateKey);
-        const pubKey = Utils.getPublicKey(pKey);
 
         return new Promise((resolve, reject) => {
             if (memo && !privateKey) {
@@ -276,8 +319,8 @@ export class AccountApi {
                 if (!receiverAccount) {
                     reject(
                         this.handleError(
-                        AccountError.transfer_receiver_account_not_found,
-                        `${toAccount}`
+                            AccountError.transfer_receiver_account_not_found,
+                            `${toAccount}`
                         )
                     );
                 }
@@ -294,14 +337,16 @@ export class AccountApi {
                     .get(0)
                     .get(0);
 
+                const pubKey = Utils.publicKeyFromString(toPublicKey);
+
                 const memo_object: Memo = {
                     from: fromPublicKey,
                     to: toPublicKey,
                     nonce: nonce,
                     message: CryptoUtils.encryptWithChecksum(
                         memo,
-                        pKey.key,
-                        pubKey.key,
+                        pKey,
+                        pubKey,
                         nonce
                     )
                 };
@@ -339,20 +384,20 @@ export class AccountApi {
      */
     public getBalance(accountId: string): Promise<number> {
         return new Promise((resolve, reject) => {
-        if (!accountId) {
-            reject('missing_parameter');
-            return;
-        }
-        const dbOperation = new DatabaseOperations.GetAccountBalances(accountId, [
-            ChainApi.asset_id
-        ]);
-        this._dbApi.execute(dbOperation)
-            .then(res => {
-                resolve(res[0].amount);
-            })
-            .catch(err => {
-                reject(this.handleError(AccountError.database_operation_failed, err));
-            });
+            if (!accountId) {
+                reject('missing_parameter');
+                return;
+            }
+            const dbOperation = new DatabaseOperations.GetAccountBalances(accountId, [
+                ChainApi.asset_id
+            ]);
+            this._dbApi.execute(dbOperation)
+                .then(res => {
+                    resolve(res[0].amount);
+                })
+                .catch(err => {
+                    reject(this.handleError(AccountError.database_operation_failed, err));
+                });
         });
     }
 
