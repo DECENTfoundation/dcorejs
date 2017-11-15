@@ -1,4 +1,3 @@
-import { StorageApi } from './storage';
 import { Core } from './core';
 
 export class DecentError {
@@ -14,9 +13,8 @@ export interface DecentConfig {
 }
 
 export class Decent {
-    private static _config: DecentConfig;
+    // private static _config: DecentConfig;
     private static _core: Core;
-    private static _storage: StorageApi;
 
     public static get core(): Core | null {
         if (!Decent._core) {
@@ -25,26 +23,21 @@ export class Decent {
         return Decent._core;
     }
 
-    public static get storage(): StorageApi | null {
-        if (!Decent._storage) {
-            throw new Error(DecentError.app_not_initialized);
-        }
-        return Decent._storage;
-    }
+
 
     public static initialize(config: DecentConfig): void {
         if (config.decent_network_wspaths[0] === '' || config.chain_id === '') {
             throw new Error(DecentError.app_missing_config);
         }
-        Decent._config = config;
+        // Decent._config = config;
         Decent._core = Core.create({
             decent_network_wspaths: config.decent_network_wspaths,
             chain_id: config.chain_id
         });
-        Decent._storage = new StorageApi({
-            ipfs_server: config.ipfs_server,
-            ipfs_port: config.ipfs_port
-        });
+        // Decent._storage = new StorageApi({
+        //     ipfs_server: config.ipfs_server,
+        //     ipfs_port: config.ipfs_port
+        // });
     }
 
     private constructor() {
