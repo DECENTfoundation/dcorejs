@@ -19,7 +19,6 @@
         "node": ">=6.0.0"
     },
     "scripts": {
-        "postinstall": "npm run build && rimraf compiled",
         "lint": "tslint -t codeFrame 'src/**/*.ts' 'test/**/*.ts'",
         "prebuild": "rimraf dist",
         "build": "tsc && rollup -c rollup.config.ts && rimraf compiled && typedoc --out dist/docs --target es6 --theme minimal --excludeExternals --includeDeclarations --excludePrivate --exclude \"{**/{api,mocks}/*.ts,**/crypt.ts}\" src",
