@@ -1,5 +1,5 @@
 import {Database, DatabaseApi, DatabaseOperations, SearchAccountHistoryOrder} from './api/database';
-import {ChainApi, ChainMethods} from './api/chain';
+import { ChainApi, ChainMethods } from './api/chain';
 import {CryptoUtils} from './crypt';
 import {Memo, OperationName, Transaction, TransferOperation} from './transaction';
 import {KeyPrivate, Utils} from './utils';
@@ -393,7 +393,7 @@ export class AccountApi {
             ]);
             this._dbApi.execute(dbOperation)
                 .then(res => {
-                    resolve(res[0].amount);
+                    resolve(res[0].amount / ChainApi.DCTPower);
                 })
                 .catch(err => {
                     reject(this.handleError(AccountError.database_operation_failed, err));
