@@ -1,9 +1,12 @@
-const {FetchChain, TransactionHelper, ChainStore, types} = require('decentjs-lib/lib');
-const {map} = types;
+import * as DecentLib from 'decentjs-lib';
+
+export class ChainError {
+    static command_execution_failed = 'command_execution_failed';
+}
 
 export interface ChainMethod {
-    name: string
-    param: any
+    name: string;
+    param: any;
 }
 
 /**
@@ -21,11 +24,12 @@ export class ChainMethods {
     }
 
     add(method: string, params: any) {
-        this._commands.push({name: method, param: params});
+        this._commands.push({ name: method, param: params });
     }
 }
 
 export class ChainApi {
+
     static asset = 'DCT';
     static asset_id = '1.3.0';
     static DCTPower = Math.pow(10, 8);
@@ -35,7 +39,7 @@ export class ChainApi {
      * Generates random sequence of bytes
      */
     public static generateNonce(): string {
-        return TransactionHelper.unique_nonce_uint64();
+        return DecentLib.TransactionHelper.unique_nonce_uint64();
     }
 
     public static setupChain(chainId: string, chainConfig: any) {
@@ -60,11 +64,16 @@ export class ChainApi {
     public fetch(methods: ChainMethods): Promise<any[]> {
         return new Promise((resolve, reject) => {
             this._apiConnector.then(() => {
-                ChainStore.init().then(() => {
-                    const commands = methods.commands.map(op => FetchChain(op.name, op.param));
+                DecentLib.ChainStore.init().then(() => {
+                    const commands = methods.commands
+                        .map(op => DecentLib.FetchChain(op.name, op.param));
                     Promise.all(commands)
-                        .then((result) => resolve(result))
-                        .catch(err => reject(err));
+                        .then(result => resolve(result))
+                        .catch(err => {
+                            const e = new Error(ChainError.command_execution_failed);
+                            e.stack = err;
+                            reject(e);
+                        });
                 });
             });
         });

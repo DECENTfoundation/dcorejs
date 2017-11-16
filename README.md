@@ -68,7 +68,7 @@ Once Decent lib is initialized, you can access methods using `Decent.instance().
     const searchParams: SearchParams = new SearchParams(
         term, order, user, region_code, itemId, category, count
     );
-    decent.core.content.searchContent(searchParams)
+    Decent.core.content.searchContent(searchParams)
         .then((contents: Content[]) => {
             console.log(contents);
         })
@@ -88,12 +88,11 @@ Replace all variables with your values to get requested content.
     const publicKey = 'DCT8ca8b79a8b79a8cb9a8b79a8b79a8c7b98ac7b';
     const elGammalPublic = '704978309485720398475187405981709436818374592763459872645';
     
-    decent.core.content.buyContent(
+    Decent.core.content.buyContent(
         contentId,
         accountId,
         elGammalPublic,
-        privateKey,
-        publicKey)
+        privateKey)
         .then(() => {
             // Content successfully bought
         })
@@ -112,7 +111,7 @@ Method `restoreContentKeys` will restore your key generated during content submi
     const contentId = '1.2.312';
     
     // Content key restoration
-    decent.core.content.restoreContentKeys(elGammalPrivate, contentId)
+    Decent.core.content.restoreContentKeys(contentId, elGammalPrivate)
         .then(key => {
             // ... now you are able to decrypt your content
         })

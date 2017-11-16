@@ -1,4 +1,4 @@
-import {Core} from './api/core';
+import { Core } from './core';
 
 export class DecentError {
     static app_not_initialized = 'app_not_initialized';
@@ -11,7 +11,7 @@ export interface DecentConfig {
 }
 
 export class Decent {
-    private static _config: DecentConfig;
+    // private static _config: DecentConfig;
     private static _core: Core;
 
     public static get core(): Core | null {
@@ -21,11 +21,17 @@ export class Decent {
         return Decent._core;
     }
 
-    public static initialize(config: DecentConfig) {
+
+
+    public static initialize(config: DecentConfig): void {
         if (config.decent_network_wspaths[0] === '' || config.chain_id === '') {
             throw new Error(DecentError.app_missing_config);
         }
-        Decent._config = config;
+
+        if (Decent._core) {
+            return;
+        }
+
         Decent._core = Core.create({
             decent_network_wspaths: config.decent_network_wspaths,
             chain_id: config.chain_id

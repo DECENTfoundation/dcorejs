@@ -1,7 +1,6 @@
-import {KeyPrivate, KeyPublic, Utils} from './utils';
+import { KeyPrivate, KeyPublic, Utils } from './utils';
 
-const {TransactionBuilder, ops} = require('decentjs-lib/lib');
-
+import * as DecentLib from 'decentjs-lib';
 /**
  * OperationType to be broadcasted to blockchain
  * internal representation
@@ -43,8 +42,7 @@ export interface Memo {
 /**
  * OperationType operations generalization
  */
-export interface OperationType {
-}
+export interface OperationType {}
 
 /**
  * Transfer operation between two accounts
@@ -111,7 +109,7 @@ export class Transaction {
     private _operations: Operation[] = [];
 
     constructor() {
-        this._transaction = new TransactionBuilder();
+        this._transaction = new DecentLib.TransactionBuilder();
     }
 
     /**
@@ -129,13 +127,11 @@ export class Transaction {
      * @return {boolean}
      */
     public addOperation(operation: Operation): boolean {
-        if (!ops.hasOwnProperty(operation.name)) {
+        if (!DecentLib.ops.hasOwnProperty(operation.name)) {
             return false;
         }
-        ops[operation.name].keys.forEach((key: string) => {
-            if (!operation.operation.hasOwnProperty(key)) {
-                return false;
-            }
+        DecentLib.ops[operation.name].keys.forEach((key: string) => {
+            return operation.operation.hasOwnProperty(key);
         });
         this._transaction.add_type_operation(operation.name, operation.operation);
         this._operations.push(operation);
@@ -155,8 +151,7 @@ export class Transaction {
             this.setTransactionFees()
                 .then(() => {
                     this.signTransaction(secret, pubKey);
-                    this._transaction
-                        .broadcast()
+                    this._transaction.broadcast()
                         .then(() => {
                             resolve();
                         })
@@ -177,8 +172,7 @@ export class Transaction {
      */
     private setTransactionFees(): Promise<any> {
         return new Promise((resolve, reject) => {
-            this._transaction
-                .set_required_fees()
+            this._transaction.set_required_fees()
                 .then(() => {
                     resolve();
                 })
