@@ -1,7 +1,6 @@
 import { KeyPrivate, KeyPublic, Utils } from './utils';
 
-const { TransactionBuilder, ops } = require('decentjs-lib/lib');
-
+import * as DecentLib from 'decentjs-lib';
 /**
  * OperationType to be broadcasted to blockchain
  * internal representation
@@ -110,7 +109,7 @@ export class Transaction {
     private _operations: Operation[] = [];
 
     constructor() {
-        this._transaction = new TransactionBuilder();
+        this._transaction = new DecentLib.TransactionBuilder();
     }
 
     /**
@@ -128,10 +127,10 @@ export class Transaction {
      * @return {boolean}
      */
     public addOperation(operation: Operation): boolean {
-        if (!ops.hasOwnProperty(operation.name)) {
+        if (!DecentLib.ops.hasOwnProperty(operation.name)) {
             return false;
         }
-        ops[operation.name].keys.forEach((key: string) => {
+        DecentLib.ops[operation.name].keys.forEach((key: string) => {
             return operation.operation.hasOwnProperty(key);
         });
         this._transaction.add_type_operation(operation.name, operation.operation);

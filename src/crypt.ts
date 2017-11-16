@@ -1,6 +1,6 @@
 import { KeyPrivate, KeyPublic } from './utils';
 
-const { Aes } = require('decentjs-lib/lib');
+import * as DecentLib from 'decentjs-lib';
 const RIPEMD160 = require('ripemd160');
 
 export class CryptoUtils {
@@ -17,11 +17,11 @@ export class CryptoUtils {
                                       privateKey: KeyPrivate,
                                       publicKey: KeyPublic,
                                       nonce: string = ''): Buffer {
-        return Aes.encrypt_with_checksum(privateKey.key, publicKey.key, nonce, message);
+        return DecentLib.Aes.encrypt_with_checksum(privateKey.key, publicKey.key, nonce, message);
     }
 
     public static decryptWithChecksum(message: string, privateKey: KeyPrivate, publicKey: KeyPublic, nonce: string = ''): Buffer {
-        return Aes.decrypt_with_checksum(privateKey.key, publicKey.key, nonce, message);
+        return DecentLib.Aes.decrypt_with_checksum(privateKey.key, publicKey.key, nonce, message);
     }
 
     public static ripemdHash(fromBuffer: Buffer): string {

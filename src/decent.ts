@@ -8,8 +8,6 @@ export class DecentError {
 export interface DecentConfig {
     decent_network_wspaths: string[]
     chain_id: string
-    ipfs_server: string
-    ipfs_port: number
 }
 
 export class Decent {
@@ -29,15 +27,15 @@ export class Decent {
         if (config.decent_network_wspaths[0] === '' || config.chain_id === '') {
             throw new Error(DecentError.app_missing_config);
         }
-        // Decent._config = config;
+
+        if (Decent._core) {
+            return;
+        }
+
         Decent._core = Core.create({
             decent_network_wspaths: config.decent_network_wspaths,
             chain_id: config.chain_id
         });
-        // Decent._storage = new StorageApi({
-        //     ipfs_server: config.ipfs_server,
-        //     ipfs_port: config.ipfs_port
-        // });
     }
 
     private constructor() {

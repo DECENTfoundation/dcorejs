@@ -3,7 +3,7 @@ import { DatabaseApi } from './api/database';
 import { ChainApi } from './api/chain';
 import { AccountApi } from './account';
 
-const { Apis, ChainConfig } = require('decentjs-lib/lib/ws/cjs');
+import * as DecentLib from 'decentjs-lib';
 
 export interface CoreConfig {
     decent_network_wspaths: string[];
@@ -25,8 +25,8 @@ export class Core {
     }
 
     public static create(config: CoreConfig,
-                         api: any = Apis,
-                         chainConfigApi: any = ChainConfig): Core {
+                         api: any = DecentLib.Apis,
+                         chainConfigApi: any = DecentLib.ChainConfig): Core {
         const core = new Core();
         core.setupChain(config.chain_id, chainConfigApi);
         core._database = DatabaseApi.create(config, api);
