@@ -390,7 +390,7 @@ export class ContentApi {
                     const buyOperation: BuyContentOperation = {
                         URI: content.URI,
                         consumer: buyerId,
-                        price: content.price,
+                        price: content.price['map_price'][0][1],
                         region_code_from: 1,
                         pubKey: { s: elGammalPub }
                     };
