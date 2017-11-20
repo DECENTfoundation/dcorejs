@@ -96,16 +96,15 @@ export declare class Database {
     protected _api: any;
 }
 export declare class DatabaseApi extends Database {
-    private _config;
     protected _api: any;
     private _connectionStatus;
     private _apiConnector;
+    readonly connectionStatus: string;
     static create(config: DatabaseConfig, api: any): DatabaseApi;
     private dbApi();
     constructor(config: DatabaseConfig, api: any);
-    initApi(addresses: string[], forApi: any): Promise<any>;
+    initApi(addresses: string[], forApi: any): Promise<void>;
     private connectDaemon(toApi, addresses, onSuccess, onError, addressIndex?);
-    exec(operation: DatabaseOperation): Promise<any>;
     execute(operation: DatabaseOperation): Promise<any>;
     private handleError(message, err);
 }

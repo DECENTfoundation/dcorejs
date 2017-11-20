@@ -20,6 +20,6 @@ export declare class ChainApi {
     private _apiConnector;
     static generateNonce(): string;
     static setupChain(chainId: string, chainConfig: any): void;
-    constructor(apiConnector: Promise<any>);
+    constructor(apiConnector: Promise<void>);
     fetch(methods: ChainMethods): Promise<any[]>;
 }

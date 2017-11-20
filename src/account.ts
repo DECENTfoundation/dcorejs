@@ -294,7 +294,7 @@ export class AccountApi {
                     fromAccount: string,
                     toAccount: string,
                     memo: string,
-                    privateKey: string): Promise<any> {
+                    privateKey: string): Promise<void> {
         const pKey = Utils.privateKeyFromWif(privateKey);
 
         return new Promise((resolve, reject) => {

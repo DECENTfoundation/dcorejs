@@ -241,10 +241,16 @@ var DatabaseApi = (function (_super) {
     __extends(DatabaseApi, _super);
     function DatabaseApi(config, api) {
         var _this = _super.call(this) || this;
-        _this._config = config;
         _this._api = api;
         return _this;
     }
+    Object.defineProperty(DatabaseApi.prototype, "connectionStatus", {
+        get: function () {
+            return this._connectionStatus;
+        },
+        enumerable: true,
+        configurable: true
+    });
     DatabaseApi.create = function (config, api) {
         return new DatabaseApi(config, api);
     };
@@ -282,19 +288,6 @@ var DatabaseApi = (function (_super) {
             _this.connectDaemon(toApi, addresses, onSuccess, onError, addressIndex + 1);
         });
     };
-    DatabaseApi.prototype.exec = function (operation) {
-        var _this = this;
-        return new Promise(function (resolve, reject) {
-            _this._apiConnector.then(function () {
-                _this.dbApi()
-                    .exec(operation.name, operation.parameters)
-                    .then(function (content) { return resolve(content); })
-                    .catch(function (err) {
-                    reject(_this.handleError(DatabaseError.chain_connection_failed, err));
-                });
-            });
-        });
-    };
     DatabaseApi.prototype.execute = function (operation) {
         var _this = this;
         return new Promise(function (resolve, reject) {
@@ -315,6 +308,8 @@ var DatabaseApi = (function (_super) {
     };
     return DatabaseApi;
 }(Database));
+
+//# sourceMappingURL=database.js.map
 
 var ChainError = (function () {
     function ChainError() {
@@ -377,6 +372,8 @@ var ChainApi = (function () {
     return ChainApi;
 }());
 
+//# sourceMappingURL=chain.js.map
+
 var RIPEMD160 = require('ripemd160');
 var CryptoUtils = (function () {
     function CryptoUtils() {
@@ -394,6 +391,8 @@ var CryptoUtils = (function () {
     };
     return CryptoUtils;
 }());
+
+//# sourceMappingURL=crypt.js.map
 
 var Utils = (function () {
     function Utils() {
@@ -465,6 +464,8 @@ var KeyPublic = (function () {
     return KeyPublic;
 }());
 
+//# sourceMappingURL=utils.js.map
+
 var OperationName = (function () {
     function OperationName() {
     }
@@ -535,6 +536,8 @@ var Transaction = (function () {
     };
     return Transaction;
 }());
+
+//# sourceMappingURL=transaction.js.map
 
 var moment = require('moment');
 var ContentError = (function () {
@@ -842,6 +845,8 @@ var ContentApi = (function () {
     return ContentApi;
 }());
 
+//# sourceMappingURL=content.js.map
+
 var Asset$1 = (function () {
     function Asset$$1() {
     }
@@ -1095,6 +1100,8 @@ var AccountApi = (function () {
     return AccountApi;
 }());
 
+//# sourceMappingURL=account.js.map
+
 var Core = (function () {
     function Core() {
     }
@@ -1130,6 +1137,8 @@ var Core = (function () {
     return Core;
 }());
 
+//# sourceMappingURL=core.js.map
+
 var DecentError = (function () {
     function DecentError() {
     }
@@ -1164,6 +1173,12 @@ var Decent = (function () {
     };
     return Decent;
 }());
+
+//# sourceMappingURL=decent.js.map
+
+//# sourceMappingURL=publicApi.js.map
+
+//# sourceMappingURL=decent-js.js.map
 
 exports.Decent = Decent;
 exports.Utils = Utils;

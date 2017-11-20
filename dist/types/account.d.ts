@@ -93,7 +93,7 @@ export declare class AccountApi {
     getAccountByName(name: string): Promise<Account>;
     getAccountById(id: string): Promise<Account>;
     getTransactionHistory(accountId: string, privateKeys: string[], order?: string, startObjectId?: string, resultLimit?: number): Promise<TransactionRecord[]>;
-    transfer(amount: number, fromAccount: string, toAccount: string, memo: string, privateKey: string): Promise<any>;
+    transfer(amount: number, fromAccount: string, toAccount: string, memo: string, privateKey: string): Promise<void>;
     getBalance(accountId: string): Promise<number>;
     private handleError(message, err);
 }
