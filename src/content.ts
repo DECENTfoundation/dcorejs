@@ -307,9 +307,9 @@ export class ContentApi {
      * @param {SubmitObject} content
      * @param {string} privateKey
      * @param {string} publicKey
-     * @return {Promise<any>}
+     * @return {Promise<void>}
      */
-    public addContent(content: SubmitObject, privateKey: string): Promise<any> {
+    public addContent(content: SubmitObject, privateKey: string): Promise<void> {
         return new Promise((resolve, reject) => {
             content.size = this.getFileSize(content.size);
             const submitOperation: SubmitContentOperation = {
@@ -378,12 +378,12 @@ export class ContentApi {
      * @param {string} buyerId Account id of user buying content, example: '1.2.123'
      * @param {string} elGammalPub ElGammal public key which will be used to identify users bought content
      * @param {string} privateKey
-     * @return {Promise<any>}
+     * @return {Promise<void>}
      */
     public buyContent(contentId: string,
         buyerId: string,
         elGammalPub: string,
-        privateKey: string): Promise<any> {
+        privateKey: string): Promise<void> {
         return new Promise((resolve, reject) => {
             this.getContent(contentId)
                 .then((content: Content) => {

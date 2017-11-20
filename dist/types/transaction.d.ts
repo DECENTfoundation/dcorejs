@@ -69,7 +69,7 @@ export declare class Transaction {
     constructor();
     readonly operations: Operation[];
     addOperation(operation: Operation): boolean;
-    broadcast(privateKey: string): Promise<any>;
+    broadcast(privateKey: string): Promise<void>;
     private setTransactionFees();
     private signTransaction(privateKey, publicKey);
 }
