@@ -33,7 +33,7 @@ export class ChainApi {
     static asset = 'DCT';
     static asset_id = '1.3.0';
     static DCTPower = Math.pow(10, 8);
-    private _apiConnector: Promise<any>;
+    private _apiConnector: Promise<void>;
 
     /**
      * Generates random sequence of bytes
@@ -48,7 +48,7 @@ export class ChainApi {
         };
     }
 
-    constructor(apiConnector: Promise<any>) {
+    constructor(apiConnector: Promise<void>) {
         this._apiConnector = apiConnector;
     }
 

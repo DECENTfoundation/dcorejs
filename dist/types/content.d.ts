@@ -94,13 +94,13 @@ export declare class ContentApi {
     constructor(dbApi: DatabaseApi, chainApi: ChainApi);
     searchContent(searchParams: SearchParams): Promise<Content[]>;
     getContent(id: string): Promise<Content>;
-    removeContent(contentId: string, authorId: string, privateKey: string): Promise<any>;
+    removeContent(contentId: string, authorId: string, privateKey: string): Promise<void>;
     restoreContentKeys(contentId: string, accountId: string, ...elGamalPrivate: KeyPair[]): Promise<string>;
     generateContentKeys(seeders: string[]): Promise<any>;
-    addContent(content: SubmitObject, privateKey: string): Promise<any>;
+    addContent(content: SubmitObject, privateKey: string): Promise<void>;
     private getFileSize(fileSize);
     private calculateFee(content);
-    buyContent(contentId: string, buyerId: string, elGammalPub: string, privateKey: string): Promise<any>;
+    buyContent(contentId: string, buyerId: string, elGammalPub: string, privateKey: string): Promise<void>;
     getSeeders(resultSize?: number): Promise<Seeder[]>;
     getPurchasedContent(accountId: string, order?: string, startObjectId?: string, term?: string, resultSize?: number): Promise<Content[]>;
     private handleError(message, err);

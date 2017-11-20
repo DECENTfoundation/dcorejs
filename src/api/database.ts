@@ -231,10 +231,13 @@ export class Database {
 }
 
 export class DatabaseApi extends Database {
-    private _config: DatabaseConfig;
     protected _api: any;
     private _connectionStatus: string;
-    private _apiConnector: Promise<any>;
+    private _apiConnector: Promise<void>;
+
+    get connectionStatus(): string {
+        return this._connectionStatus;
+    }
 
     public static create(config: DatabaseConfig, api: any): DatabaseApi {
         return new DatabaseApi(config, api);
@@ -246,11 +249,10 @@ export class DatabaseApi extends Database {
 
     constructor(config: DatabaseConfig, api: any) {
         super();
-        this._config = config;
         this._api = api;
     }
 
-    public initApi(addresses: string[], forApi: any): Promise<any> {
+    public initApi(addresses: string[], forApi: any): Promise<void> {
         // TODO: when not connected yet, calls throws errors
         forApi.setRpcConnectionStatusCallback((status: any) => {
             this._connectionStatus = status;
@@ -274,7 +276,7 @@ export class DatabaseApi extends Database {
                           addresses: string[],
                           onSuccess: () => void,
                           onError: (error: Error) => void,
-                          addressIndex: number = 0): Promise<any> | boolean {
+                          addressIndex: number = 0): Promise<void> | boolean {
         if (addresses.length === addressIndex) {
             onError(this.handleError(DatabaseError.chain_connection_failed, ''));
             return false;
@@ -295,21 +297,6 @@ export class DatabaseApi extends Database {
                     addressIndex + 1
                 );
             });
-    }
-
-    public exec(operation: DatabaseOperation): Promise<any> {
-        return new Promise((resolve, reject) => {
-            this._apiConnector.then(() => {
-                this.dbApi()
-                    .exec(operation.name, operation.parameters)
-                    .then((content: any) => resolve(content))
-                    .catch((err: any) => {
-                        reject(
-                            this.handleError(DatabaseError.chain_connection_failed, err)
-                        );
-                    });
-            });
-        });
     }
 
     public execute(operation: DatabaseOperation): Promise<any> {

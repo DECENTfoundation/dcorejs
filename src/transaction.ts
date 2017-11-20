@@ -142,9 +142,9 @@ export class Transaction {
      * Broadcast transaction to decent blockchain.
      *
      * @param {string} privateKey
-     * @return {Promise<any>}
+     * @return {Promise<void>}
      */
-    public broadcast(privateKey: string): Promise<any> {
+    public broadcast(privateKey: string): Promise<void> {
         const secret = Utils.privateKeyFromWif(privateKey);
         const pubKey = Utils.getPublicKey(secret);
         return new Promise((resolve, reject) => {
@@ -168,9 +168,9 @@ export class Transaction {
     /**
      * Set transaction fee required for transaction operation
      * @param transaction TransactionBuilder instance
-     * @return {Promise<any>}
+     * @return {Promise<void>}
      */
-    private setTransactionFees(): Promise<any> {
+    private setTransactionFees(): Promise<void> {
         return new Promise((resolve, reject) => {
             this._transaction.set_required_fees()
                 .then(() => {
