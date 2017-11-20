@@ -8,7 +8,7 @@
     ],
     "main": "dist/decent-js.umd.js",
     "module": "dist/decent-js.es5.js",
-    "typings": "dist/types/decent-js.d.ts",
+    "types": "dist/types/decent-js.d.ts",
     "author": "DECENT Foundation <info@decent.ch>",
     "repository": {
         "type": "git",
