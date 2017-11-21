@@ -1,6 +1,6 @@
 {
     "name": "decent-js",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "description": "",
     "keywords": [
         "blockchain",
@@ -14,9 +14,14 @@
         "type": "git",
         "url": "https://github.com/DECENTfoundation/decent-js.git"
     },
+    "directories": {
+        "bin": "./dist",
+        "lib": "./dist"
+    },
     "license": "MIT",
     "engines": {
-        "node": ">=6.0.0"
+        "node": ">=8.0.0",
+        "npm": ">=5.0.0"
     },
     "scripts": {
         "lint": "tslint -t codeFrame 'src/**/*.ts' 'test/**/*.ts'",

@@ -5,3 +5,4 @@ compiled/
 *.d.ts
 .idea/
 .DS_Store
+.editorconfig
