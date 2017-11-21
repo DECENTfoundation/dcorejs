@@ -1,5 +1,5 @@
 {
-    "name": "decent",
+    "name": "decent-js",
     "version": "1.0.0",
     "description": "",
     "keywords": [
@@ -18,9 +18,6 @@
         "bin": "./dist",
         "lib": "./dist"
     },
-    "files": [
-        "./dist/**/*.ts"
-    ],
     "license": "MIT",
     "engines": {
         "node": ">=8.0.0",
