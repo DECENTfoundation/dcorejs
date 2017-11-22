@@ -1,6 +1,6 @@
 {
     "name": "decent-js",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "",
     "keywords": [
         "blockchain",
@@ -88,7 +88,6 @@
     },
     "dependencies": {
         "concat-stream": "1.6.0",
-        "decentjs-lib": "git+ssh://git@github.com/DECENTfoundation/decentjs-lib.git",
         "ipfs-api": "15.0.1",
         "moment": "2.19.1",
         "requirejs": "2.3.5",
