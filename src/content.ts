@@ -3,8 +3,6 @@ import { ChainApi, ChainMethods } from './api/chain';
 import {
     BuyContentOperation,
     ContentCancelOperation,
-    Key,
-    KeyParts,
     OperationName,
     SubmitContentOperation,
     Transaction
@@ -21,7 +19,7 @@ export class ContentError {
 
 export interface SubmitObject {
     authorId: string;
-    seeders: Array<any>;
+    seeders: Seeder[];
     fileName: string;
     fileContent: Buffer;
     date: string;
@@ -85,6 +83,20 @@ export class KeyPair {
         this._private = privateKey;
         this._public = publicKey;
     }
+}
+
+export interface Key {
+    s: string;
+}
+
+export interface KeyParts {
+    C1: Key;
+    D1: Key;
+}
+
+export interface ContentKeys {
+    key: string
+    parts: KeyParts[]
 }
 
 export class ContentType {
@@ -282,10 +294,9 @@ export class ContentApi {
      * content to be uploaded.
      *
      * @param {string[]} seeders Array of seeders ids example: ['1.2.12', '1.4.13']
-     * @return {Promise<any>}
+     * @return {Promise<ContentKeys>}
      */
-    public generateContentKeys(seeders: string[]): Promise<any> {
-        // TODO: define type COntentKeys
+    public generateContentKeys(seeders: string[]): Promise<ContentKeys> {
         const dbOperation = new DatabaseOperations.GenerateContentKeys(seeders);
         return new Promise((resolve, reject) => {
             this._dbApi

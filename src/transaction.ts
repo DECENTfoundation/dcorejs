@@ -1,6 +1,7 @@
 import { KeyPrivate, KeyPublic, Utils } from './utils';
 
 import * as DecentLib from 'decentjs-lib';
+import {Key, KeyParts} from './content';
 /**
  * OperationType to be broadcasted to blockchain
  * internal representation
@@ -85,16 +86,7 @@ export interface SubmitContentOperation extends OperationType {
     synopsis: string;
 }
 
-// userRights: content.userRights,
 
-export interface Key {
-    s: string;
-}
-
-export interface KeyParts {
-    C1: Key;
-    D1: Key;
-}
 
 export interface RegionalPrice {
     region: number;
