@@ -87,6 +87,7 @@
         "validate-commit-msg": "^2.12.2"
     },
     "dependencies": {
+        "bluebird": "3.5.1",
         "concat-stream": "1.6.0",
         "decentjs-lib": "git+ssh://git@github.com/DECENTfoundation/decentjs-lib.git",
         "ipfs-api": "15.0.1",

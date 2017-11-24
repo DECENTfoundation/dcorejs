@@ -1,3 +1,5 @@
+const BBPromise = require('bluebird');
+
 export class ConnectionStatus {
     static open = 'open';
 }
@@ -257,46 +259,18 @@ export class DatabaseApi extends Database {
         forApi.setRpcConnectionStatusCallback((status: any) => {
             this._connectionStatus = status;
         });
-        this._apiConnector = new Promise((resolve, reject) => {
-            this.connectDaemon(
-                forApi,
-                addresses,
-                () => {
-                    resolve();
-                },
-                (error: Error) => {
-                    reject(error);
-                }
-            );
+
+        const promises: Promise<any>[] = [];
+        addresses.forEach(address => {
+            promises.push(this.getConnectionPromise(address, forApi));
         });
+
+        this._apiConnector = BBPromise.any(promises);
         return this._apiConnector;
     }
 
-    private connectDaemon(toApi: any,
-                          addresses: string[],
-                          onSuccess: () => void,
-                          onError: (error: Error) => void,
-                          addressIndex: number = 0): Promise<void> | boolean {
-        if (addresses.length === addressIndex) {
-            onError(this.handleError(DatabaseError.chain_connection_failed, ''));
-            return false;
-        }
-        const address = addresses[addressIndex];
-
-        return toApi
-            .instance(address, true)
-            .init_promise.then(() => {
-                onSuccess();
-            })
-            .catch((reason: any) => {
-                this.connectDaemon(
-                    toApi,
-                    addresses,
-                    onSuccess,
-                    onError,
-                    addressIndex + 1
-                );
-            });
+    private getConnectionPromise(forAddress: string, toApi: any): Promise<any> {
+        return toApi.instance(forAddress, true).init_promise();
     }
 
     public execute(operation: DatabaseOperation): Promise<any> {
