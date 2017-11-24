@@ -192,6 +192,7 @@ export class ContentApi {
                     const stringidied = JSON.stringify(content);
                     const objectified = JSON.parse(stringidied);
                     objectified.synopsis = JSON.parse(objectified.synopsis);
+                    objectified.price = objectified.price['map_price'][0][1];
                     resolve(objectified as Content);
                 })
                 .catch(err => {
