@@ -270,7 +270,7 @@ export class DatabaseApi extends Database {
     }
 
     private getConnectionPromise(forAddress: string, toApi: any): Promise<any> {
-        return toApi.instance(forAddress, true).init_promise();
+        return toApi.instance(forAddress, true).init_promise;
     }
 
     public execute(operation: DatabaseOperation): Promise<any> {
