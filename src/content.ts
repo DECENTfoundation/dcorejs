@@ -8,6 +8,7 @@ import {
     Transaction
 } from './transaction';
 import { Asset } from './account';
+import {isUndefined} from 'util';
 const moment = require('moment');
 
 export class ContentError {
@@ -192,7 +193,9 @@ export class ContentApi {
                     const stringidied = JSON.stringify(content);
                     const objectified = JSON.parse(stringidied);
                     objectified.synopsis = JSON.parse(objectified.synopsis);
-                    objectified.price = objectified.price['map_price'][0][1];
+                    if (isUndefined(objectified.price['amount'])) {
+                        objectified.price = objectified.price['map_price'][0][1];
+                    }
                     resolve(objectified as Content);
                 })
                 .catch(err => {
@@ -402,7 +405,7 @@ export class ContentApi {
                     const buyOperation: BuyContentOperation = {
                         URI: content.URI,
                         consumer: buyerId,
-                        price: content.price['map_price'][0][1],
+                        price: content.price,
                         region_code_from: 1,
                         pubKey: { s: elGammalPub }
                     };
