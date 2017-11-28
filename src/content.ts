@@ -22,9 +22,7 @@ export interface SubmitObject {
     authorId: string;
     seeders: Seeder[];
     fileName: string;
-    fileContent: Buffer;
     date: string;
-    fileSize: number;
     price: number;
     size: number;
     URI: string;
@@ -377,7 +375,7 @@ export class ContentApi {
     private calculateFee(content: SubmitObject): number {
         const num_days = moment(content.date).diff(moment(), 'days') + 1;
         const fee = Math.ceil(
-            this.getFileSize(content.fileSize) *
+            this.getFileSize(content.size) *
             content.seeders.reduce(
                 (fee, seed) => fee + seed.price.amount * num_days,
                 0
