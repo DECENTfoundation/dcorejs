@@ -30,7 +30,7 @@ export interface SubmitObject {
     URI: string;
     hash: string;
     keyParts: KeyParts[];
-    synopsis: Synopsis;
+    synopsis: any;
 }
 
 export interface Content {
@@ -44,7 +44,7 @@ export interface Content {
     buy_id?: string;
     author: string;
     price: Price;
-    synopsis: Synopsis;
+    synopsis: any;
     status: Status;
     URI: string;
     _hash: string;
