@@ -44,6 +44,10 @@ export class SearchAccountHistoryOrder {
 export class SearchParams {
     term = '';
     order = '';
+    /**
+     * Content owner
+     * @memberof SearchParams
+     */
     user = '';
     region_code = '';
     itemId = '';

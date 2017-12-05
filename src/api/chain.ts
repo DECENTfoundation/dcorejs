@@ -1,4 +1,9 @@
-import * as DecentLib from 'decentjs-lib';
+if (process.env.ENV === 'node') {
+    import * as DecentLib from 'decentjs-lib';
+} else {
+    const DecentLib = global.Dencet;
+}
+
 
 export class ChainError {
     static command_execution_failed = 'command_execution_failed';

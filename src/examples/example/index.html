@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>SearchContent example</title>
+</head>
+
+<body>
+    <h1>Content search</h1>
+    <input id="keyword" type="text" title="Search" />
+    <button id="searchButton" type="button" title="searchButton"> Search </button>
+    <div id="output"></div>
+    <script src="./../../../dist/decent-js.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        var decent = window['decent'];
+        var chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
+        var decentNetworkAddresses = ['wss://stage.decentgo.com:8090'];
+        console.log(decent);
+        // decent.Decent.initialize({
+        //     chain_id: chainId,
+        //     decent_network_wspaths: decentNetworkAddresses
+        // });
+        // decent.Decent.core.content.searchContent(new decent.SeachParams())
+            // .then(res => console.log(res));
+    </script>
+</body>
+
+</html>

@@ -6,8 +6,8 @@
         "blockchain",
         "decent"
     ],
-    "main": "dist/decent-js.umd.js",
-    "module": "dist/decent-js.es5.js",
+    "main": "compiled/decent-js.js",
+    "module": "compiled/decent-js.js",
     "types": "dist/types/decent-js.d.ts",
     "author": "DECENT Foundation <info@decent.ch>",
     "repository": {
@@ -26,8 +26,9 @@
     "scripts": {
         "lint": "tslint -t codeFrame 'src/**/*.ts' 'test/**/*.ts'",
         "prebuild": "rimraf dist",
-        "build": "tsc && rollup -c rollup.config.ts && rimraf compiled && typedoc --out dist/docs --target es6 --theme minimal --excludeExternals --includeDeclarations --excludePrivate --exclude \"{**/{api,mocks}/*.ts,**/crypt.ts}\" src",
+        "build": "tsc && NODE_ENV=node rollup -c rollup.config.ts && rimraf compiled && typedoc --out dist/docs --target es6 --theme minimal --excludeExternals --includeDeclarations --excludePrivate --exclude \"{**/{api,mocks}/*.ts,**/crypt.ts}\" src",
         "pack": "tsc && webpack --config webpack.config.js",
+        "generate-docs": " typedoc --out dist/docs --target es6 --theme minimal --excludeExternals --includeDeclarations --excludePrivate --exclude \"{**/{api,mocks}/*.ts,**/crypt.ts}\" src",
         "start": "tsc -w & rollup -c rollup.config.ts -w",
         "test": "jest",
         "test:watch": "jest --watch",
@@ -74,7 +75,7 @@
         "lodash.camelcase": "^4.3.0",
         "prompt": "^1.0.0",
         "replace-in-file": "^3.0.0-beta.2",
-        "rimraf": "^2.6.1",
+        "rimraf": "2.6.2",
         "rollup": "^0.50.0",
         "rollup-plugin-node-builtins": "2.1.2",
         "rollup-plugin-node-resolve": "^3.0.0",
