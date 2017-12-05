@@ -1,0 +1,1 @@
+{"version":3,"file":"DatabaseApiMock.js","sourceRoot":"","sources":["../../src/mocks/DatabaseApiMock.ts"],"names":[],"mappings":";;;;;;;;;;;;AAAA,4CAA2C;AAE3C;IAAqC,mCAAQ;IACzC;eACI,iBAAO;IACX,CAAC;IAEM,iCAAO,GAAd,UAAe,SAAiB,EAAE,UAAiB;QAC/C,MAAM,CAAC,IAAI,OAAO,CAAC,UAAC,OAAO,EAAE,MAAM;QAYnC,CAAC,CAAC,CAAC;IACP,CAAC;IACL,sBAAC;AAAD,CAAC,AApBD,CAAqC,mBAAQ,GAoB5C;AApBY,0CAAe"}
