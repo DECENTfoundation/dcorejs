@@ -8,16 +8,15 @@ const pkg = require('./package.json');
 
 const libraryName = 'decent-js';
 
-const isNode = process.env.NODE_ENV === 'node';
-const externals = () => isNode ? [] : ['ws', 'crypto'];
+
 export default {
-    input: `compiled/${libraryName}.js`,
+    input: `lib/${libraryName}.js`,
     output: [
         {file: `./dist/decent-js.js`, name: camelCase(libraryName), format: 'umd'}
     ],
     sourcemap: true,
     // Indicate here external modules you don't wanna include in your bundle (i.e.: 'lodash')
-    external: ['ws', 'crypto'],
+    external: ['decentjs-lib'],
     watch: {
         include: 'compiled/**',
     },

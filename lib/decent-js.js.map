@@ -1,1 +1,1 @@
-{"version":3,"file":"decent-js.js","sourceRoot":"","sources":["../src/decent-js.ts"],"names":[],"mappings":";;;;;AAAA,mCAAgD;AAAvC,0BAAA,MAAM,CAAA;AACf,iCAAgC;AAAvB,wBAAA,KAAK,CAAA;AACd,iCAA4B"}
+{"version":3,"file":"decent-js.js","sourceRoot":"","sources":["../src/decent-js.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,MAAM,EAAgB,MAAM,UAAU,CAAC;AAChD,OAAO,EAAE,KAAK,EAAE,MAAM,SAAS,CAAC;AAChC,cAAc,aAAa,CAAC"}
