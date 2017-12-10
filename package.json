@@ -6,8 +6,8 @@
         "blockchain",
         "decent"
     ],
-    "main": "compiled/decent-js.js",
-    "module": "compiled/decent-js.js",
+    "main": "lib/decent-js.js",
+    "module": "lib/decent-js.js",
     "types": "dist/types/decent-js.d.ts",
     "author": "DECENT Foundation <info@decent.ch>",
     "repository": {
@@ -24,9 +24,10 @@
         "npm": ">=5.0.0"
     },
     "scripts": {
+        "start": "tsc -w & rollup -c rollup.config.ts -w",
         "lint": "tslint -t codeFrame 'src/**/*.ts' 'test/**/*.ts'",
         "prebuild": "rimraf dist",
-        "build": "tsc && NODE_ENV=node rollup -c rollup.config.ts && rimraf compiled && typedoc --out dist/docs --target es6 --theme minimal --excludeExternals --includeDeclarations --excludePrivate --exclude \"{**/{api,mocks}/*.ts,**/crypt.ts}\" src",
+        "build": "tsc && rollup -c rollup.config.ts && typedoc --out dist/docs --target es6 --theme minimal --excludeExternals --includeDeclarations --excludePrivate --exclude \"{**/{api,mocks}/*.ts,**/crypt.ts}\" src",
         "pack": "tsc && webpack --config webpack.config.js",
         "generate-docs": " typedoc --out dist/docs --target es6 --theme minimal --excludeExternals --includeDeclarations --excludePrivate --exclude \"{**/{api,mocks}/*.ts,**/crypt.ts}\" src",
         "start": "tsc -w & rollup -c rollup.config.ts -w",
@@ -93,7 +94,7 @@
         "bluebird": "3.5.1",
         "concat-stream": "1.6.0",
         "ipfs-api": "15.0.1",
-        "moment": "2.19.1",
+        "moment": "2.18.1",
         "requirejs": "2.3.5",
         "ripemd160": "2.0.1",
         "rollup-plugin-node-globals": "1.1.0"
