@@ -326,16 +326,8 @@ export class AccountApi {
                 }
 
                 const nonce: string = ChainApi.generateNonce();
-                const fromPublicKey = senderAccount
-                    .get('owner')
-                    .get('key_auths')
-                    .get(0)
-                    .get(0);
-                const toPublicKey = receiverAccount
-                    .get('owner')
-                    .get('key_auths')
-                    .get(0)
-                    .get(0);
+                const fromPublicKey = senderAccount.get('options').get('memo_key');
+                const toPublicKey = receiverAccount.get('options').get('memo_key');
 
                 const pubKey = Utils.publicKeyFromString(toPublicKey);
 
