@@ -6,6 +6,7 @@ module.exports = {
         filename: 'decent-js.umd.js',
         path: path.resolve(__dirname, 'dist'),
         libraryTarget: "umd",
-        library: "decent"
-    }
+        library: "decent",
+    },
+    devtool: 'source-map'
 };
