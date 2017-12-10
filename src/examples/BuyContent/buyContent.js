@@ -3,14 +3,17 @@
 const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
 const decentNetworkAddresses = ['wss://stage.decentgo.com:8090'];
 
+let decentjs_lib = window['decentjs-lib'];
+
 decent.Decent.initialize({
     chain_id: chainId,
     decent_network_wspaths: decentNetworkAddresses
-});
+}, decentjs_lib);
 
 const output = document.getElementById('output');
 const result = document.getElementById('result');
 
+output.innerHTML = 'Loading ...';
 decent.Decent.core.content.searchContent(new decent.SearchParams())
     .then(content => {
         const data = renderContent(content);
@@ -21,6 +24,11 @@ function renderContent(content) {
     let render = '<ul>';
     render += content.map(c => '<li>' + c.synopsis.title + '</li> <button type="button" value="c.id" onclick="buyContent(\'' +  c.id + '\')">Buy</button>');
     render += '</ul>';
+
+    if (content.length === 0) {
+        render = '<h3>No content</h3>'
+    }
+
     return render
 }
 
