@@ -1,3 +1,4 @@
+import { setLibRef } from './helpers';
 import { Core } from './core';
 
 export class DecentError {
@@ -26,6 +27,8 @@ export class Decent {
 
     public static initialize(config: DecentConfig, decentjs_lib: any): void {
         this._decentjs_lib = decentjs_lib;
+        setLibRef(decentjs_lib);
+
         if (config.decent_network_wspaths[0] === '' || config.chain_id === '') {
             throw new Error(DecentError.app_missing_config);
         }
@@ -34,10 +37,14 @@ export class Decent {
             return;
         }
 
-        Decent._core = Core.create({
-            decent_network_wspaths: config.decent_network_wspaths,
-            chain_id: config.chain_id
-        });
+        Decent._core = Core.create(
+            {
+                decent_network_wspaths: config.decent_network_wspaths,
+                chain_id: config.chain_id
+            },
+            this._decentjs_lib.Apis,
+            this._decentjs_lib.ChainConfig,
+            this._decentjs_lib.ChainStore);
     }
 
     private constructor() {

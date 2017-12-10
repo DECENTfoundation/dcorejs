@@ -1,6 +1,6 @@
+import { DecentLib } from './helpers';
 import { KeyPrivate, KeyPublic, Utils } from './utils';
 
-import * as DecentLib from 'decentjs-lib';
 import {Key, KeyParts} from './content';
 /**
  * OperationType to be broadcasted to blockchain
