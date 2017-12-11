@@ -1,4 +1,5 @@
-import * as DecentLib from 'decentjs-lib';
+import { DecentLib } from '../helpers';
+
 
 export class ChainError {
     static command_execution_failed = 'command_execution_failed';
@@ -34,6 +35,7 @@ export class ChainApi {
     static asset_id = '1.3.0';
     static DCTPower = Math.pow(10, 8);
     private _apiConnector: Promise<void>;
+    private _chainStore: any;
 
     /**
      * Generates random sequence of bytes
@@ -48,8 +50,9 @@ export class ChainApi {
         };
     }
 
-    constructor(apiConnector: Promise<void>) {
+    constructor(apiConnector: Promise<void>, chainStore: any) {
         this._apiConnector = apiConnector;
+        this._chainStore = chainStore;
     }
 
     /**
@@ -63,8 +66,10 @@ export class ChainApi {
      */
     public fetch(methods: ChainMethods): Promise<any[]> {
         return new Promise((resolve, reject) => {
-            this._apiConnector.then(() => {
-                DecentLib.ChainStore.init().then(() => {
+            this._apiConnector
+            .then(() => {
+                this._chainStore.init()
+                .then(() => {
                     const commands = methods.commands
                         .map(op => DecentLib.FetchChain(op.name, op.param));
                     Promise.all(commands)
@@ -74,7 +79,13 @@ export class ChainApi {
                             e.stack = err;
                             reject(e);
                         });
+                })
+                .catch(err => {
+                    reject(err);
                 });
+            })
+            .catch(err => {
+                reject(err);
             });
         });
     }

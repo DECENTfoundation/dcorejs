@@ -8,10 +8,12 @@ document.getElementById('searchButton').onclick = () => {
 const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
 const decentNetworkAddresses = ['wss://stage.decentgo.com:8090'];
 
+let decentjs_lib = window['decentjs-lib'];
+
 decent.Decent.initialize({
     chain_id: chainId,
     decent_network_wspaths: decentNetworkAddresses
-});
+}, decentjs_lib);
 
 const output = document.getElementById('output');
 
@@ -33,6 +35,11 @@ function renderContent(content) {
     let render = '<ul>';
      render += content.map(c => '<li>' + c.synopsis.title + '</li>');
      render += '</ul>';
+     
+    if (content.length === 0) {
+        render = '<h3>No results</h3>'
+    }
+
      return render
 }
 //# sourceMappingURL=searchContent.js.map

@@ -44,6 +44,10 @@ export class SearchAccountHistoryOrder {
 export class SearchParams {
     term = '';
     order = '';
+    /**
+     * Content owner
+     * @memberof SearchParams
+     */
     user = '';
     region_code = '';
     itemId = '';
@@ -236,6 +240,7 @@ export class DatabaseApi extends Database {
     protected _api: any;
     private _connectionStatus: string;
     private _apiConnector: Promise<void>;
+    private _config: DatabaseConfig;
 
     get connectionStatus(): string {
         return this._connectionStatus;
@@ -252,17 +257,18 @@ export class DatabaseApi extends Database {
     constructor(config: DatabaseConfig, api: any) {
         super();
         this._api = api;
+        this._config = config;
     }
 
-    public initApi(addresses: string[], forApi: any): Promise<void> {
+    public initApi(): Promise<void> {
         // TODO: when not connected yet, calls throws errors
-        forApi.setRpcConnectionStatusCallback((status: any) => {
+        this._api.setRpcConnectionStatusCallback((status: any) => {
             this._connectionStatus = status;
         });
 
         const promises: Promise<any>[] = [];
-        addresses.forEach(address => {
-            promises.push(this.getConnectionPromise(address, forApi));
+        this._config.decent_network_wspaths.forEach(address => {
+            promises.push(this.getConnectionPromise(address, this._api));
         });
 
         this._apiConnector = BBPromise.any(promises);
