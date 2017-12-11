@@ -7,6 +7,8 @@ document.getElementById('searchButton').onclick = () => {
 };
 const output = document.getElementById('output');
 
+let decentjs_lib = window['decentjs-lib'];
+
 // Lib initialization
 const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
 const decentNetworkAddresses = ['wss://stage.decentgo.com:8090'];
@@ -14,7 +16,7 @@ const decentNetworkAddresses = ['wss://stage.decentgo.com:8090'];
 decent.Decent.initialize({
     chain_id: chainId,
     decent_network_wspaths: decentNetworkAddresses
-});
+}, decentjs_lib);
 
 function renderContent(content) {
     let render = '<ul>';

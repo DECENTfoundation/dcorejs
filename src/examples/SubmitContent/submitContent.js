@@ -8,6 +8,8 @@ get('file').onchange = (event) => {
     file = event.target.files[0];
 };
 
+const output = get('output');
+
 const dctPow = Math.pow(10, 8);
 const chainId =
     '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
@@ -15,10 +17,12 @@ const decentNetworkAddresses = ['wss://stage.decentgo.com:8090'];
 const authorId = '1.2.30';
 const privateKey = '5JDFQN3T8CFT1ynhgd5s574mTV9UPf9WamkHojBL4NgbhSBDmBj';
 
+const decentjs_lib = window['decentjs-lib'];
+
 decent.Decent.initialize({
     chain_id: chainId,
     decent_network_wspaths: decentNetworkAddresses
-});
+}, decentjs_lib);
 
 let file = null;
 let seeders = [];
@@ -36,29 +40,32 @@ function getContentKeys(forSeeders) {
 }
 
 function onSubmit() {
-    console.log(get('expirationDate').value);
+    output.innerHTML = 'Submitting...';
+    const [year, month, day] = get('expirationDate').value.split('-');
+    const date = new Date(year, month, day, 0, 0, 0);
     decent.Decent.core.content.getSeeders(2).then(seeders => {
-        console.log(seeders);
+        const synopsis = JSON.parse(get('meta').value);
         getContentKeys(seeders.map(s => s.seeder))
         .then(keys => {
             const submitObject = {
                 authorId: authorId,
                 seeders: seeders,
                 fileName: file.name,
-                date: get('expirationDate').value + 'T00:00:00',
+                date: date.toString(),
                 price: get('price').value * dctPow,
                 size: file.size,
                 URI: get('uri').value,
                 hash: get('hash').value,
                 keyParts: keys.parts,
-                synopsis: get('meta')
+                synopsis: synopsis
             };
+            
             decent.Decent.core.content.addContent(submitObject, privateKey)
             .then(res => {
-                console.log('success!!')
+                output.innerHTML = '<h3 style="color: green;">Content sucessfully submitted</h3>'
             })
             .catch(err => {
-                console.log(err)
+                output.innerHTML = '<h3 style="color: red;">!!! Error submitting content</h3>'
             });
         });
     });
@@ -72,17 +79,3 @@ function get(elementId) {
 function selectSeeder(event) {
     console.log(id);
 }
-
-// authorId: string;
-// seeders: Seeder[];
-// fileName: string;
-// fileContent: Buffer;
-// date: string;
-// fileSize: number;
-// price: number;
-// size: number;
-// URI: string;
-// hash: string;
-// keyParts: KeyParts[];
-// synopsis: any;
-//# sourceMappingURL=searchContent.js.map
