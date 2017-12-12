@@ -1,11 +1,12 @@
 const path = require('path');
 
 module.exports = {
-    entry: './compiled/decent-js.js',
+    entry: './lib/decent-js.js',
     output: {
         filename: 'decent-js.umd.js',
         path: path.resolve(__dirname, 'dist'),
         libraryTarget: "umd",
-        library: "decent"
-    }
+        library: "decent",
+    },
+    devtool: 'source-map'
 };

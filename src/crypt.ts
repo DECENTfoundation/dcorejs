@@ -1,6 +1,6 @@
 import { KeyPrivate, KeyPublic } from './utils';
+import { DecentLib } from './helpers';
 
-import * as DecentLib from 'decentjs-lib';
 const RIPEMD160 = require('ripemd160');
 
 export class CryptoUtils {

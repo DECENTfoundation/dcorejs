@@ -2,6 +2,7 @@ node_modules/
 dist/
 coverage/
 compiled/
+lib/
 *.d.ts
 .idea/
 .DS_Store

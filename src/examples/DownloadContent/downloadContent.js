@@ -4,13 +4,16 @@
 const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
 const decentNetworkAddresses = ['wss://stage.decentgo.com:8090'];
 
+let decentjs_lib = window['decentjs-lib'];
+
 decent.Decent.initialize({
     chain_id: chainId,
     decent_network_wspaths: decentNetworkAddresses
-});
+}, decentjs_lib);
 
 const accountId = '1.2.30';
 
+output.innerHTML = 'Loading ...';
 decent.Decent.core.content.getPurchasedContent(accountId)
     .then(purchasedContent => {
         const data = renderContent(purchasedContent);
@@ -22,6 +25,9 @@ function renderContent(content) {
     let render = '<ul>';
     render += content.map(c => '<li>' + c.synopsis.title + '</li> <button type="button" value="c.id" onclick="downloadContent(\'' +  c.buy_id + '\')">Download</button>');
     render += '</ul>';
+    if (content.length === 0) {
+        render = '<h3>No purchased content</h3>'
+    }
     return render
 }
 

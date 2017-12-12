@@ -1,6 +1,6 @@
+import { DecentLib } from './helpers';
 import { CryptoUtils } from './crypt';
 
-import * as DecentLib from 'decentjs-lib';
 
 export class Utils {
 
@@ -16,7 +16,8 @@ export class Utils {
      * @param {string} fromBrainKey
      * @return {any[]} [privateKey: KeyPrivate, publicKey: KeyPublic]
      */
-    public static generateKeys(fromBrainKey: string): any[] {
+    public static generateKeys(fromBrainKey: string): (KeyPrivate | KeyPublic)[] {
+
         const pkey: KeyPrivate = Utils.generatePrivateKey(fromBrainKey);
         const pubKey: KeyPublic = Utils.getPublicKey(pkey);
         return [pkey, pubKey];
