@@ -96,5 +96,8 @@
         "requirejs": "2.3.5",
         "ripemd160": "2.0.1",
         "rollup-plugin-node-globals": "1.1.0"
+    },
+    "prettier": {
+      "tabWidth": 4
     }
 }
