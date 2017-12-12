@@ -1,5 +1,5 @@
 import {Database, DatabaseApi, DatabaseOperations, SearchAccountHistoryOrder} from './api/database';
-import { ChainApi, ChainMethods } from './api/chain';
+import {ChainApi, ChainMethods} from './api/chain';
 import {CryptoUtils} from './crypt';
 import {Memo, OperationName, Transaction, TransferOperation} from './transaction';
 import {KeyPrivate, Utils} from './utils';
@@ -390,6 +390,28 @@ export class AccountApi {
                 .catch(err => {
                     reject(this.handleError(AccountError.database_operation_failed, err));
                 });
+        });
+    }
+
+    public isTransactionConfirmed(transactionId: string): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+            const operations = new ChainMethods();
+            operations.add(ChainMethods.getObject, transactionId);
+            // this._chainApi.fetch(operations)
+            //     .then(res => {
+            //         console.log(res);
+            //     });
+            const dbOperation = new DatabaseOperations.GetObjects([transactionId]);
+            this._dbApi.execute(dbOperation)
+                .then(object => {
+                    console.log(object);
+                    const dbOp = new DatabaseOperations.GetDynamicGlobalProperties();
+                    this._dbApi.execute(dbOp)
+                        .then(props => {
+                        })
+                        .catch(err => this.handleError(AccountError.database_operation_failed, err));
+                })
+                .catch(err => this.handleError(AccountError.database_operation_failed, err));
         });
     }
 
