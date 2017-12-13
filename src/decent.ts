@@ -3,6 +3,7 @@ import {ContentApi} from './content';
 import {ChainApi} from './api/chain';
 import {DatabaseApi} from './api/database';
 import {AccountApi} from './account';
+import {HistoryApi} from './api/history';
 
 let decentjslib: any = null;
 let _content: ContentApi = null;
@@ -61,10 +62,12 @@ export function initialize(config: DecentConfig, decentjs_lib: any): void {
     ChainApi.setupChain(config.chain_id, decentjslib.ChainConfig);
     const database = DatabaseApi.create(config, decentjslib.Apis);
     const apiConnectionPromise = database.initApi();
+    const historyApi = new HistoryApi(decentjs_lib.Apis, {decent_network_wspaths: config.decent_network_wspaths});
+    historyApi.initApi();
 
     const chain = new ChainApi(apiConnectionPromise, decentjslib.ChainStore);
     _content = new ContentApi(database, chain);
-    _account = new AccountApi(database, chain);
+    _account = new AccountApi(database, chain, historyApi);
 }
 
 export function content(): ContentApi {
