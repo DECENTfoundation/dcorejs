@@ -93,8 +93,8 @@ export class TransactionRecord {
         this.fromAccountId = transaction.m_from_account;
         this.toAccountId = transaction.m_to_account;
         this.operationType = transaction.m_operation_type;
-        this.transactionAmount = transaction.m_transaction_amount.amount;
-        this.transactionFee = transaction.m_transaction_fee.amount;
+        this.transactionAmount = transaction.m_transaction_amount.amount / ChainApi.DCTPower;
+        this.transactionFee = transaction.m_transaction_fee.amount / ChainApi.DCTPower;
         this.description = transaction.m_str_description;
         this.timestamp = transaction.m_timestamp;
         this.memo = new TransactionMemo(transaction);
