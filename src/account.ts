@@ -99,7 +99,6 @@ export class TransactionRecord {
         this.timestamp = transaction.m_timestamp;
         this.memo = new TransactionMemo(transaction);
         this.memoString = this.memo.decryptedMessage(privateKeys);
-        console.log(`done : ${this.memoString}`);
     }
 }
 
