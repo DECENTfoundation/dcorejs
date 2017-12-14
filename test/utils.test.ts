@@ -29,7 +29,9 @@ function initLib() {
 }
 
 describe('Utils methods test', () => {
+
     beforeAll(() => initLib());
+
     it('generate keys from brainkey', () => {
         const keys = Utils.generateKeys(bk);
         expect(keys.length).toEqual(2);

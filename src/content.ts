@@ -9,6 +9,7 @@ import {
 } from './transaction';
 import { Asset } from './account';
 import {isUndefined} from 'util';
+
 const moment = require('moment');
 
 export class ContentError {

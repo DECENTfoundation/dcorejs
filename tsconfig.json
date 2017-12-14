@@ -20,7 +20,7 @@
         "declarationDir": "dist/types",
         "outDir": "lib",
         "typeRoots": [
-          "node_modules/@types"
+            "node_modules/@types"
         ]
     },
     "include": [
