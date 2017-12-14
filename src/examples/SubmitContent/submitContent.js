@@ -29,7 +29,7 @@ let seeders = [];
 
 function getContentKeys(forSeeders) {
     return new Promise((resolve, reject) => {
-        decent.Decent.core.content.generateContentKeys(forSeeders)
+        decent.content().generateContentKeys(forSeeders)
         .then(keys => {
             resolve(keys);
         })
@@ -43,7 +43,7 @@ function onSubmit() {
     output.innerHTML = 'Submitting...';
     const [year, month, day] = get('expirationDate').value.split('-');
     const date = new Date(year, month, day, 0, 0, 0);
-    decent.Decent.core.content.getSeeders(2).then(seeders => {
+    decent.content().getSeeders(2).then(seeders => {
         const synopsis = JSON.parse(get('meta').value);
         getContentKeys(seeders.map(s => s.seeder))
         .then(keys => {

@@ -13,7 +13,7 @@ let decentjs_lib = window['decentjs-lib'];
 const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
 const decentNetworkAddresses = ['wss://stage.decentgo.com:8090'];
 
-decent.Decent.initialize({
+decent.initialize({
     chain_id: chainId,
     decent_network_wspaths: decentNetworkAddresses
 }, decentjs_lib);
@@ -28,7 +28,7 @@ function renderContent(content) {
 function getAccount(accountId) {
     console.log(accountId);
     output.innerHTML = 'Loading ...';
-    decent.Decent.core.account.getAccountById(accountId)
+    decent.account().getAccountById(accountId)
         .then(res => {
             console.log(res);
             output.innerHTML = '';
