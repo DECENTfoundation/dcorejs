@@ -6,7 +6,7 @@ const decentNetworkAddresses = ['wss://stage.decentgo.com:8090'];
 
 let decentjs_lib = window['decentjs-lib'];
 
-decent.Decent.initialize({
+decent.initialize({
     chain_id: chainId,
     decent_network_wspaths: decentNetworkAddresses
 }, decentjs_lib);
@@ -14,7 +14,7 @@ decent.Decent.initialize({
 const accountId = '1.2.30';
 
 output.innerHTML = 'Loading ...';
-decent.Decent.core.content.getPurchasedContent(accountId)
+decent.content().getPurchasedContent(accountId)
     .then(purchasedContent => {
         const data = renderContent(purchasedContent);
         const el = document.getElementById('output');
@@ -52,7 +52,7 @@ function downloadContent(contentId) {
         })
         .catch(err => {
             console.error(err);
-            keyOut.innerHTML = '<p style="color: red;">Error download content</p>';    
+            keyOut.innerHTML = '<p style="color: red;">Error download content</p>';
         });
 }
 //# sourceMappingURL=searchContent.js.map
