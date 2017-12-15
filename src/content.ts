@@ -23,7 +23,7 @@ export interface SubmitObject {
     authorId: string;
     seeders: Seeder[];
     fileName: string;
-    date: string;
+    date: Date;
     price: number;
     size: number;
     URI: string;
@@ -344,7 +344,7 @@ export class ContentApi {
                 hash: content.hash,
                 seeders: content.seeders.map(s => s.seeder),
                 key_parts: content.keyParts,
-                expiration: content.date,
+                expiration: content.date.toString(),
                 publishing_fee: {
                     amount: this.calculateFee(content),
                     asset_id: ChainApi.asset_id
