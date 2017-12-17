@@ -1,4 +1,4 @@
-import { Decent, DecentConfig } from './../src/decent-js';
+import { DecentConfig } from './../src/decent-js';
 import { Utils } from './../src/utils';
 import * as Decentjs from 'decentjs-lib';
 import { setLibRef } from '../src/helpers';
@@ -50,5 +50,10 @@ describe('Utils methods test', () => {
     it('secret from WIF string', () => {
         const secret = Utils.privateKeyFromWif(priv);
         expect(secret.key).toEqual(refPriv);
+    });
+
+    it('change amount format', () => {
+        const formated = Utils.formatToReadiblePrice(1);
+        expect(formated).toEqual('0.00000001');
     });
 });

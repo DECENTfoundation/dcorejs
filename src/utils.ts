@@ -1,8 +1,13 @@
 import { DecentLib } from './helpers';
 import { CryptoUtils } from './crypt';
+import {ChainApi} from './api/chain';
 
 
 export class Utils {
+
+    public static formatToReadiblePrice(dctAmount: number): string {
+        return (dctAmount / ChainApi.DCTPower).toFixed(8);
+    }
 
     public static ripemdHash(fromBuffer: Buffer): string {
         return CryptoUtils.ripemdHash(fromBuffer);
