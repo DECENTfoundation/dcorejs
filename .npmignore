@@ -1,4 +1,6 @@
 .*
+compiled/
+coverage/
 src/
 node_modules/
 test/
