@@ -159,6 +159,12 @@ export class ContentApi {
         this._chainApi = chainApi;
     }
 
+    /**
+     * Searches content submitted to decent network and is not expired.
+     *
+     * @param {SearchParams} searchParams
+     * @return {Promise<Content[]>}
+     */
     public searchContent(searchParams: SearchParams): Promise<Content[]> {
         const dbOperation = new DatabaseOperations.SearchContent(searchParams);
         return new Promise((resolve, reject) => {
@@ -256,16 +262,12 @@ export class ContentApi {
      * would not be restored.
      *
      * @param {string} contentId                example: '1.2.453'
-     * @param {...string[]} elGamalPrivate
+     * @param {string} accountId                example: '1.2.453'
+     * @param {...string[]} elGamalKeys
      * @returns {Promise<string>}
      * @memberof ContentApi
      */
-    public restoreContentKeys(contentId: string, accountId: string, ...elGamalPrivate: KeyPair[]): Promise<string> {
-        // const dbOperation = new DatabaseOperations.RestoreEncryptionKey(
-        //     contentId,
-        //     elGamalPrivate[0]
-        // );
-
+    public restoreContentKeys(contentId: string, accountId: string, ...elGamalKeys: KeyPair[]): Promise<string> {
         return new Promise((resolve, reject) => {
             this.getContent(contentId)
             .then(content => {
@@ -273,7 +275,7 @@ export class ContentApi {
                 this._dbApi.execute(dbOperation)
                 .then(res => {
                     console.log(res);
-                    const validKey = elGamalPrivate.find((elgPair: KeyPair) => elgPair.publicKey === res.pubKey.s);
+                    const validKey = elGamalKeys.find((elgPair: KeyPair) => elgPair.publicKey === res.pubKey.s);
                     if (!validKey) {
                         reject(this.handleError(ContentError.restore_content_keys_failed, 'wrong keys'));
                     }
@@ -320,7 +322,6 @@ export class ContentApi {
      *
      * @param {SubmitObject} content
      * @param {string} privateKey
-     * @param {string} publicKey
      * @return {Promise<void>}
      */
     public addContent(content: SubmitObject, privateKey: string): Promise<void> {
