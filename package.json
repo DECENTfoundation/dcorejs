@@ -26,9 +26,8 @@
     "scripts": {
         "start": "tsc -w & rollup -c rollup.config.ts -w",
         "lint": "tslint -t codeFrame 'src/**/*.ts' 'test/**/*.ts'",
-        "prebuild": "rimraf dist",
-        "build": "tsc && rollup -c rollup.config.ts && typedoc --out dist/docs --target es6 --theme minimal --excludeExternals --includeDeclarations --excludePrivate --exclude \"{**/{api,mocks}/*.ts,**/crypt.ts}\" src",
-        "pack": "tsc && webpack --config webpack.config.js",
+        "prebuild": "rimraf dist && rimraf lib",
+        "build": "tsc && webpack --config webpack.config.js && typedoc --out dist/docs --target es6 --theme minimal --excludeExternals --includeDeclarations --excludePrivate --exclude \"{**/{api,mocks}/*.ts,**/crypt.ts}\" src",
         "generate-docs": " typedoc --out dist/docs --target es6 --theme minimal --excludeExternals --includeDeclarations --excludePrivate --exclude \"{**/{api,mocks}/*.ts,**/crypt.ts}\" src",
         "test": "jest",
         "test:watch": "jest --watch",
