@@ -1,6 +1,6 @@
 import { KeyPrivate, KeyPublic } from './utils';
 import { DecentLib } from './helpers';
-import * as md5 from 'crypto-js/md5';
+import md5 from 'crypto-js/md5';
 
 const RIPEMD160 = require('ripemd160');
 
