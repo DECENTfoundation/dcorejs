@@ -1,4 +1,12 @@
-import { Core } from './core';
+import {setLibRef} from './helpers';
+import {ContentApi} from './content';
+import {ChainApi} from './api/chain';
+import {DatabaseApi} from './api/database';
+import {AccountApi} from './account';
+
+let decentjslib: any = null;
+let _content: ContentApi = null;
+let _account: AccountApi = null;
 
 export class DecentError {
     static app_not_initialized = 'app_not_initialized';
@@ -10,34 +18,22 @@ export interface DecentConfig {
     chain_id: string
 }
 
-export class Decent {
-    // private static _config: DecentConfig;
-    private static _core: Core;
+export function initialize(config: DecentConfig, decentjs_lib: any): void {
+    decentjslib = decentjs_lib;
+    setLibRef(decentjslib);
+    ChainApi.setupChain(config.chain_id, decentjslib.ChainConfig);
+    const database = DatabaseApi.create(config, decentjslib.Apis);
+    const apiConnectionPromise = database.initApi();
 
-    public static get core(): Core | null {
-        if (!Decent._core) {
-            throw new Error(DecentError.app_not_initialized);
-        }
-        return Decent._core;
-    }
+    const chain = new ChainApi(apiConnectionPromise, decentjslib.ChainStore);
+    _content = new ContentApi(database, chain);
+    _account = new AccountApi(database, chain);
+}
 
+export function content(): ContentApi {
+    return _content;
+}
 
-
-    public static initialize(config: DecentConfig): void {
-        if (config.decent_network_wspaths[0] === '' || config.chain_id === '') {
-            throw new Error(DecentError.app_missing_config);
-        }
-
-        if (Decent._core) {
-            return;
-        }
-
-        Decent._core = Core.create({
-            decent_network_wspaths: config.decent_network_wspaths,
-            chain_id: config.chain_id
-        });
-    }
-
-    private constructor() {
-    }
+export function account(): AccountApi {
+    return _account;
 }

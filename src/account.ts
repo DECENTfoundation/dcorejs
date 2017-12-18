@@ -99,7 +99,6 @@ export class TransactionRecord {
         this.timestamp = transaction.m_timestamp;
         this.memo = new TransactionMemo(transaction);
         this.memoString = this.memo.decryptedMessage(privateKeys);
-        console.log(`done : ${this.memoString}`);
     }
 }
 
@@ -301,6 +300,11 @@ export class AccountApi {
             if (memo && !privateKey) {
                 reject(AccountError.transfer_missing_pkey);
             }
+
+            if (!toAccount.startsWith('u')) {
+                toAccount = `u${CryptoUtils.md5(toAccount)}`;
+            }
+
             const operations = new ChainMethods();
             operations.add(ChainMethods.getAccount, fromAccount);
             operations.add(ChainMethods.getAccount, toAccount);
@@ -326,16 +330,8 @@ export class AccountApi {
                 }
 
                 const nonce: string = ChainApi.generateNonce();
-                const fromPublicKey = senderAccount
-                    .get('owner')
-                    .get('key_auths')
-                    .get(0)
-                    .get(0);
-                const toPublicKey = receiverAccount
-                    .get('owner')
-                    .get('key_auths')
-                    .get(0)
-                    .get(0);
+                const fromPublicKey = senderAccount.get('options').get('memo_key');
+                const toPublicKey = receiverAccount.get('options').get('memo_key');
 
                 const pubKey = Utils.publicKeyFromString(toPublicKey);
 

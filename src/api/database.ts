@@ -1,3 +1,5 @@
+const BBPromise = require('bluebird');
+
 export class ConnectionStatus {
     static open = 'open';
 }
@@ -42,6 +44,10 @@ export class SearchAccountHistoryOrder {
 export class SearchParams {
     term = '';
     order = '';
+    /**
+     * Content owner
+     * @memberof SearchParams
+     */
     user = '';
     region_code = '';
     itemId = '';
@@ -234,6 +240,7 @@ export class DatabaseApi extends Database {
     protected _api: any;
     private _connectionStatus: string;
     private _apiConnector: Promise<void>;
+    private _config: DatabaseConfig;
 
     get connectionStatus(): string {
         return this._connectionStatus;
@@ -250,53 +257,26 @@ export class DatabaseApi extends Database {
     constructor(config: DatabaseConfig, api: any) {
         super();
         this._api = api;
+        this._config = config;
     }
 
-    public initApi(addresses: string[], forApi: any): Promise<void> {
+    public initApi(): Promise<void> {
         // TODO: when not connected yet, calls throws errors
-        forApi.setRpcConnectionStatusCallback((status: any) => {
+        this._api.setRpcConnectionStatusCallback((status: any) => {
             this._connectionStatus = status;
         });
-        this._apiConnector = new Promise((resolve, reject) => {
-            this.connectDaemon(
-                forApi,
-                addresses,
-                () => {
-                    resolve();
-                },
-                (error: Error) => {
-                    reject(error);
-                }
-            );
+
+        const promises: Promise<any>[] = [];
+        this._config.decent_network_wspaths.forEach(address => {
+            promises.push(this.getConnectionPromise(address, this._api));
         });
+
+        this._apiConnector = BBPromise.any(promises);
         return this._apiConnector;
     }
 
-    private connectDaemon(toApi: any,
-                          addresses: string[],
-                          onSuccess: () => void,
-                          onError: (error: Error) => void,
-                          addressIndex: number = 0): Promise<void> | boolean {
-        if (addresses.length === addressIndex) {
-            onError(this.handleError(DatabaseError.chain_connection_failed, ''));
-            return false;
-        }
-        const address = addresses[addressIndex];
-
-        return toApi
-            .instance(address, true)
-            .init_promise.then(() => {
-                onSuccess();
-            })
-            .catch((reason: any) => {
-                this.connectDaemon(
-                    toApi,
-                    addresses,
-                    onSuccess,
-                    onError,
-                    addressIndex + 1
-                );
-            });
+    private getConnectionPromise(forAddress: string, toApi: any): Promise<any> {
+        return toApi.instance(forAddress, true).init_promise;
     }
 
     public execute(operation: DatabaseOperation): Promise<any> {

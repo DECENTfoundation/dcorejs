@@ -1,6 +1,7 @@
 import resolve from 'rollup-plugin-node-resolve';
 import sourceMaps from 'rollup-plugin-sourcemaps';
 import camelCase from 'lodash.camelcase';
+import globals from 'rollup-plugin-node-globals';
 // import json from 'rollup-plugin-json';
 
 const pkg = require('./package.json');
@@ -8,14 +9,13 @@ const pkg = require('./package.json');
 const libraryName = 'decent-js';
 
 export default {
-    input: `compiled/${libraryName}.js`,
+    input: `lib/${libraryName}.js`,
     output: [
-        {file: pkg.main, name: camelCase(libraryName), format: 'umd'},
-        {file: pkg.module, format: 'es'},
+        {file: `./dist/decent-js.js`, name: camelCase(libraryName), format: 'umd'}
     ],
     sourcemap: true,
     // Indicate here external modules you don't wanna include in your bundle (i.e.: 'lodash')
-    external: [],
+    external: ['decentjs-lib'],
     watch: {
         include: 'compiled/**',
     },
@@ -24,9 +24,9 @@ export default {
         // which external modules to include in the bundle
         // https://github.com/rollup/rollup-plugin-node-resolve#usage
         resolve({
-            modulesOnly: true,
+            // modulesOnly: true,
             customResolveOptions: {
-                moduleDirectory: 'decentjs-lib/lib'
+                moduleDirectory: 'node_modules'
             }
         }),
 

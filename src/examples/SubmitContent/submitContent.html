@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Submit content example</title>
+</head>
+
+<body>
+    <h1>Submit content</h1>
+    <div>
+        <div>
+            <label for="file">File</label>
+            <input id="file" type="file" title="file" />
+        </div>
+        <div>
+            <label for="expirationDate">Expiration date</label>
+            <input id="expirationDate" type="date" title="expirationDate" placeholder="yyyy-mm-dd" />
+        </div>
+        <div>
+            <label for="price">Price</label>
+            <input id="price" type="number" title="price" />
+        </div>
+        <div>
+            <label for="uri">URI</label>
+            <input id="uri" type="text" title="uri" />
+        </div>
+        <div>
+            <label for="hash">Hash</label>
+            <input id="hash" type="text" title="hash" />
+        </div>
+        <div>
+            <label for="meta">Meta data</label>
+            <input id="meta" type="text" title="meta" />
+        </div>
+        <div id="seeders"></div>
+        <button id="submitButton" type="button" title="submitButton"> Submit </button>
+    </div>
+
+    <div id="output"></div>
+    <script src="./../../../node_modules/decentjs-lib/dist/bundle.js" type="text/javascript"></script>
+    <script src="./../../../dist/decent-js.umd.js" type="text/javascript"></script>
+    <script type="text/javascript" src="./submitContent.js"></script>
+</body>
+
+</html>

@@ -17,18 +17,18 @@
         "allowSyntheticDefaultImports": true,
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
-        "declarationDir": "dist/types",
-        "outDir": "lib",
+        "declarationDir": "./../../dist/types",
+        "outDir": "./../../lib",
         "typeRoots": [
-            "node_modules/@types"
+            "./../../node_modules/@types"
         ]
     },
     "include": [
-        "src"
+        "./../../src"
     ],
     "exclude": [
-        "node_modules",
-        "dist",
-        "src/examples"
+        "./../../node_modules",
+        "./../../dist",
+        "./../../src/examples"
     ]
 }

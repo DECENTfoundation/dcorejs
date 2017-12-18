@@ -3,13 +3,13 @@ import { ChainApi, ChainMethods } from './api/chain';
 import {
     BuyContentOperation,
     ContentCancelOperation,
-    Key,
-    KeyParts,
     OperationName,
     SubmitContentOperation,
     Transaction
 } from './transaction';
 import { Asset } from './account';
+import {isUndefined} from 'util';
+
 const moment = require('moment');
 
 export class ContentError {
@@ -21,17 +21,15 @@ export class ContentError {
 
 export interface SubmitObject {
     authorId: string;
-    seeders: Array<any>;
+    seeders: Seeder[];
     fileName: string;
-    fileContent: Buffer;
-    date: string;
-    fileSize: number;
+    date: Date;
     price: number;
     size: number;
     URI: string;
     hash: string;
     keyParts: KeyParts[];
-    synopsis: Synopsis;
+    synopsis: any;
 }
 
 export interface Content {
@@ -45,7 +43,7 @@ export interface Content {
     buy_id?: string;
     author: string;
     price: Price;
-    synopsis: Synopsis;
+    synopsis: any;
     status: Status;
     URI: string;
     _hash: string;
@@ -85,6 +83,20 @@ export class KeyPair {
         this._private = privateKey;
         this._public = publicKey;
     }
+}
+
+export interface Key {
+    s: string;
+}
+
+export interface KeyParts {
+    C1: Key;
+    D1: Key;
+}
+
+export interface ContentKeys {
+    key: string
+    parts: KeyParts[]
 }
 
 export class ContentType {
@@ -147,6 +159,12 @@ export class ContentApi {
         this._chainApi = chainApi;
     }
 
+    /**
+     * Searches content submitted to decent network and is not expired.
+     *
+     * @param {SearchParams} searchParams
+     * @return {Promise<Content[]>}
+     */
     public searchContent(searchParams: SearchParams): Promise<Content[]> {
         const dbOperation = new DatabaseOperations.SearchContent(searchParams);
         return new Promise((resolve, reject) => {
@@ -180,6 +198,9 @@ export class ContentApi {
                     const stringidied = JSON.stringify(content);
                     const objectified = JSON.parse(stringidied);
                     objectified.synopsis = JSON.parse(objectified.synopsis);
+                    if (isUndefined(objectified.price['amount'])) {
+                        objectified.price = objectified.price['map_price'][0][1];
+                    }
                     resolve(objectified as Content);
                 })
                 .catch(err => {
@@ -241,16 +262,12 @@ export class ContentApi {
      * would not be restored.
      *
      * @param {string} contentId                example: '1.2.453'
-     * @param {...string[]} elGamalPrivate
+     * @param {string} accountId                example: '1.2.453'
+     * @param {...string[]} elGamalKeys
      * @returns {Promise<string>}
      * @memberof ContentApi
      */
-    public restoreContentKeys(contentId: string, accountId: string, ...elGamalPrivate: KeyPair[]): Promise<string> {
-        // const dbOperation = new DatabaseOperations.RestoreEncryptionKey(
-        //     contentId,
-        //     elGamalPrivate[0]
-        // );
-
+    public restoreContentKeys(contentId: string, accountId: string, ...elGamalKeys: KeyPair[]): Promise<string> {
         return new Promise((resolve, reject) => {
             this.getContent(contentId)
             .then(content => {
@@ -258,7 +275,7 @@ export class ContentApi {
                 this._dbApi.execute(dbOperation)
                 .then(res => {
                     console.log(res);
-                    const validKey = elGamalPrivate.find((elgPair: KeyPair) => elgPair.publicKey === res.pubKey.s);
+                    const validKey = elGamalKeys.find((elgPair: KeyPair) => elgPair.publicKey === res.pubKey.s);
                     if (!validKey) {
                         reject(this.handleError(ContentError.restore_content_keys_failed, 'wrong keys'));
                     }
@@ -282,10 +299,9 @@ export class ContentApi {
      * content to be uploaded.
      *
      * @param {string[]} seeders Array of seeders ids example: ['1.2.12', '1.4.13']
-     * @return {Promise<any>}
+     * @return {Promise<ContentKeys>}
      */
-    public generateContentKeys(seeders: string[]): Promise<any> {
-        // TODO: define type COntentKeys
+    public generateContentKeys(seeders: string[]): Promise<ContentKeys> {
         const dbOperation = new DatabaseOperations.GenerateContentKeys(seeders);
         return new Promise((resolve, reject) => {
             this._dbApi
@@ -306,7 +322,6 @@ export class ContentApi {
      *
      * @param {SubmitObject} content
      * @param {string} privateKey
-     * @param {string} publicKey
      * @return {Promise<void>}
      */
     public addContent(content: SubmitObject, privateKey: string): Promise<void> {
@@ -330,7 +345,7 @@ export class ContentApi {
                 hash: content.hash,
                 seeders: content.seeders.map(s => s.seeder),
                 key_parts: content.keyParts,
-                expiration: content.date,
+                expiration: content.date.toString(),
                 publishing_fee: {
                     amount: this.calculateFee(content),
                     asset_id: ChainApi.asset_id
@@ -362,7 +377,7 @@ export class ContentApi {
     private calculateFee(content: SubmitObject): number {
         const num_days = moment(content.date).diff(moment(), 'days') + 1;
         const fee = Math.ceil(
-            this.getFileSize(content.fileSize) *
+            this.getFileSize(content.size) *
             content.seeders.reduce(
                 (fee, seed) => fee + seed.price.amount * num_days,
                 0

@@ -1,0 +1,9 @@
+.*
+compiled/
+coverage/
+src/
+node_modules/
+test/
+tools/
+*.json
+rollup.config.ts

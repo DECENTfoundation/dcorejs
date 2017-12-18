@@ -1,6 +1,7 @@
 import { KeyPrivate, KeyPublic } from './utils';
+import { DecentLib } from './helpers';
+import md5 from 'crypto-js/md5';
 
-import * as DecentLib from 'decentjs-lib';
 const RIPEMD160 = require('ripemd160');
 
 export class CryptoUtils {
@@ -26,5 +27,9 @@ export class CryptoUtils {
 
     public static ripemdHash(fromBuffer: Buffer): string {
         return new RIPEMD160().update(fromBuffer).digest('hex');
+    }
+
+    public static md5(message: string): string {
+        return md5(message).toString();
     }
 }
