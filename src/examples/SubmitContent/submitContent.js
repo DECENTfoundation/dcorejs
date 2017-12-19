@@ -8,7 +8,20 @@ get('file').onchange = (event) => {
     file = event.target.files[0];
 };
 
+get('categoryList').onchange = (event) => {
+    onCategorySelect(event);
+};
+
+get('title').onchange = (event) => {
+    onPropertyChange('title', event.target.value);
+};
+
+get('description').onchange = (event) => {
+    onPropertyChange('description', event.target.value);
+};
+
 const output = get('output');
+const categoryOut = get('categoryList');
 
 const dctPow = Math.pow(10, 8);
 const chainId =
@@ -25,17 +38,28 @@ decent.initialize({
 }, decentjs_lib);
 
 let file = null;
-let seeders = [];
+const seeders = [];
+
+function listCategories() {
+    let render = '';
+    categories.forEach(category => {
+        render += '<option value="" disabled>' + category.name + '</option>';
+        category.subcategory.forEach(subcat => {
+            render += '<option value="' + subcat.id + '">' + subcat.name + '</option>';
+        });
+    });
+    categoryOut.innerHTML = render;
+}
 
 function getContentKeys(forSeeders) {
     return new Promise((resolve, reject) => {
         decent.content().generateContentKeys(forSeeders)
-        .then(keys => {
-            resolve(keys);
-        })
-        .catch(err => {
-            reject(err);
-        });
+            .then(keys => {
+                resolve(keys);
+            })
+            .catch(err => {
+                reject(err);
+            });
     });
 }
 
@@ -46,36 +70,45 @@ function onSubmit() {
     decent.content().getSeeders(2).then(seeders => {
         const synopsis = JSON.parse(get('meta').value);
         getContentKeys(seeders.map(s => s.seeder))
-        .then(keys => {
-            const submitObject = {
-                authorId: authorId,
-                seeders: seeders,
-                fileName: file.name,
-                date: date.toString(),
-                price: get('price').value * dctPow,
-                size: file.size,
-                URI: get('uri').value,
-                hash: get('hash').value,
-                keyParts: keys.parts,
-                synopsis: synopsis
-            };
-            
-            decent.content().addContent(submitObject, privateKey)
-            .then(res => {
-                output.innerHTML = '<h3 style="color: green;">Content sucessfully submitted</h3>'
-            })
-            .catch(err => {
-                output.innerHTML = '<h3 style="color: red;">!!! Error submitting content</h3>'
+            .then(keys => {
+                const submitObject = {
+                    authorId: authorId,
+                    seeders: seeders,
+                    fileName: file.name,
+                    date: date.toString(),
+                    price: get('price').value * dctPow,
+                    size: file.size,
+                    URI: get('uri').value,
+                    hash: get('hash').value,
+                    keyParts: keys.parts,
+                    synopsis: synopsis
+                };
+
+                decent.content().addContent(submitObject, privateKey)
+                    .then(res => {
+                        output.innerHTML = '<h3 style="color: green;">Content sucessfully submitted</h3>'
+                    })
+                    .catch(err => {
+                        output.innerHTML = '<h3 style="color: red;">!!! Error submitting content</h3>'
+                    });
             });
-        });
     });
-    
+
+}
+
+function onCategorySelect(event) {
+    onPropertyChange('content_type_id', event.target.value + '.0');
+}
+
+function onPropertyChange(prop, value) {
+    const meta = get('meta');
+    const obj = JSON.parse(meta.value);
+    obj[prop] = value;
+    meta.value = JSON.stringify(obj);
 }
 
 function get(elementId) {
     return document.getElementById(elementId);
 }
 
-function selectSeeder(event) {
-    console.log(id);
-}
+listCategories();

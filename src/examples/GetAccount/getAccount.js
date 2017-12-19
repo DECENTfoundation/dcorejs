@@ -1,13 +1,12 @@
 "use strict";
 
-document.getElementById('searchButton').onclick = () => {
-    const keyword = document.getElementById('keyword').value;
-    console.log('dasdasda');
+get('searchButton').onclick = () => {
+    const keyword = get('keyword').value;
     getAccount(keyword);
 };
-const output = document.getElementById('output');
+const output = get('output');
 
-let decentjs_lib = window['decentjs-lib'];
+const decentjs_lib = window['decentjs-lib'];
 
 // Lib initialization
 const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
@@ -26,11 +25,9 @@ function renderContent(content) {
 }
 
 function getAccount(accountId) {
-    console.log(accountId);
     output.innerHTML = 'Loading ...';
     decent.account().getAccountById(accountId)
         .then(res => {
-            console.log(res);
             output.innerHTML = '';
             output.innerHTML += '<h3>Id: ' + res.id + '</h3>';
             output.innerHTML += '<h3>Name: ' + res.name + '</h3>';
@@ -43,4 +40,9 @@ function getAccount(accountId) {
             output.innerHTML = '<p style="color: red;">Error loading user account</p>';    
         });
 }
+
+function get(elementId) {
+    return document.getElementById(elementId);
+}
+
 //# sourceMappingURL=searchContent.js.map

@@ -3,32 +3,31 @@
 const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
 const decentNetworkAddresses = ['wss://stage.decentgo.com:8090'];
 
-let decentjs_lib = window['decentjs-lib'];
+const decentjs_lib = window['decentjs-lib'];
 
-decent.Decent.initialize({
+decent.initialize({
     chain_id: chainId,
     decent_network_wspaths: decentNetworkAddresses
 }, decentjs_lib);
 
-const output = document.getElementById('output');
-const result = document.getElementById('result');
+const output = get('output');
+const result = get('result');
 
 output.innerHTML = 'Loading ...';
 decent.content().searchContent(new decent.SearchParams())
     .then(content => {
-        const data = renderContent(content);
-        output.innerHTML = data;
+        output.innerHTML = renderContent(content);
     });
 
 function renderContent(content) {
-    let render = '<ul>';
-    render += content.map(c => '<li>' + c.synopsis.title + '</li> <button type="button" value="c.id" onclick="buyContent(\'' +  c.id + '\')">Buy</button>');
-    render += '</ul>';
-
+    let render;
     if (content.length === 0) {
         render = '<h3>No content</h3>'
+    } else {
+        render = '<ul>';
+        render += content.map(c => '<li>' + c.synopsis.title + '</li> <button type="button" value="c.id" onclick="buyContent(\'' +  c.id + '\')">Buy</button>');
+        render += '</ul>';
     }
-
     return render
 }
 
@@ -39,7 +38,6 @@ const elGamalPublic = '731775263338303358215908804150959349223846835020507020023
 const privateKey = '5JDFQN3T8CFT1ynhgd5s574mTV9UPf9WamkHojBL4NgbhSBDmBj';
 
 function buyContent(contentId) {
-    console.log(contentId);
     result.innerHTML = 'Loading ...';
     decent.content().buyContent(contentId, buyerId, elGamalPublic, privateKey)
         .then(() => {
@@ -51,4 +49,9 @@ function buyContent(contentId) {
             result.innerHTML = '<p style="color: red;">Content already bought or own content</p>';
         });
 }
+
+function get(elementId) {
+    return document.getElementById(elementId);
+}
+
 //# sourceMappingURL=searchContent.js.map
