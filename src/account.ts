@@ -284,12 +284,38 @@ export class AccountApi {
      * message for recipient
      *
      * @param {number} amount
-     * @param {string} fromAccount      Name or id of account
-     * @param {string} toAccount        Name or id of account
+     * @param {string} fromAccount      Id of account
+     * @param {string} toAccountName    Name of account
      * @param {string} memo             Message for recipient
      * @param {string} privateKey       Private key used to encrypt memo and sign transaction
      */
-    public transfer(amount: number,
+    public transferToName(amount: number,
+                          fromAccount: string,
+                          toAccountName: string,
+                          memo: string,
+                          privateKey: string) {
+        this.transfer(amount, fromAccount, toAccountName, memo, privateKey);
+    }
+
+    /**
+     * Same as transferToName, bud recipient is identified via email address.
+     *
+     * @param {number} amount
+     * @param {string} fromAccount      Id of account
+     * @param {string} toAccountEmail   Receiver's account email
+     * @param {string} memo             Message for recipient
+     * @param {string} privateKey       Private key used to encrypt memo and sign transaction
+     */
+    public transferToMail(amount: number,
+                          fromAccount: string,
+                          toAccountEmail: string,
+                          memo: string,
+                          privateKey: string) {
+        const toAccount = `u${CryptoUtils.md5(toAccountEmail)}`;
+        return this.transfer(amount, fromAccount, toAccount, memo, privateKey);
+    }
+
+    private transfer(amount: number,
                     fromAccount: string,
                     toAccount: string,
                     memo: string,
@@ -299,10 +325,6 @@ export class AccountApi {
         return new Promise((resolve, reject) => {
             if (memo && !privateKey) {
                 reject(AccountError.transfer_missing_pkey);
-            }
-
-            if (!toAccount.startsWith('u')) {
-                toAccount = `u${CryptoUtils.md5(toAccount)}`;
             }
 
             const operations = new ChainMethods();
