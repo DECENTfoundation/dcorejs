@@ -1,8 +1,6 @@
-import { DecentConfig } from './../src/decent-js';
 import { Utils } from './../src/utils';
 import * as Decentjs from 'decentjs-lib';
 import { setLibRef } from '../src/helpers';
-import { print } from 'util';
 
 const bk = 'WORKBOX UPJERK GORBLE SPECULA SUCKLER FUNNEL INWRAP DOSIS DARNEL CATTABU FINGER MINARET TUCKER DENDRIC WOD CULMEN';
 const pub = 'DCT5dJjvk9k3yTsnJsAph6V8zEPxsAvJ7FCCzqYWiQQyVTiHvReLz';
