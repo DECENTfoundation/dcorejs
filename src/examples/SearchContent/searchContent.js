@@ -31,15 +31,15 @@ function searchContent(keyword) {
 }
 
 function renderContent(content) {
-    let render;
+    const render = [];
     if (content.length === 0) {
-        render = '<h3>No results</h3>'
+        render.push('<h3>No content</h3>');
     } else {
-        render = '<ul>';
-        render += content.map(c => '<li>' + c.synopsis.title + '</li>');
-        render += '</ul>';
+        render.push('<ul>');
+        render.push(content.map(c => '<li>' + c.synopsis.title + '</li>'));
+        render.push('</ul>');
     }
-    return render
+    return render.join('');
 }
 
 function get(elementId) {

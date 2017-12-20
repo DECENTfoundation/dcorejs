@@ -29,15 +29,15 @@ decent.content().getPurchasedContent(accountId)
     });
 
 function renderContent(content) {
-    let render;
+    const render = [];
     if (content.length === 0) {
-        render = '<h3>No purchased content</h3>'
+        render.push('<h3>No content</h3>');
     } else {
-        render = '<ul>';
-        render += content.map(c => '<li>' + c.synopsis.title + '</li> <button type="button" value="c.id" onclick="downloadContent(\'' + c.buy_id + '\')">Download</button>');
-        render += '</ul>';
+        render.push('<ul>');
+        render.push(content.map(c => '<li>' + c.synopsis.title + '</li> <button type="button" value="c.id" onclick="downloadContent(\'' + c.buy_id + '\')">Download</button>'));
+        render.push('</ul>');
     }
-    return render
+    return render.join('');
 }
 
 function downloadContent(contentId) {

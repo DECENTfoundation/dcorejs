@@ -20,15 +20,15 @@ decent.content().searchContent(new decent.SearchParams())
     });
 
 function renderContent(content) {
-    let render;
+    const render = [];
     if (content.length === 0) {
-        render = '<h3>No content</h3>'
+        render.push('<h3>No content</h3>');
     } else {
-        render = '<ul>';
-        render += content.map(c => '<li>' + c.synopsis.title + '</li> <button type="button" value="c.id" onclick="buyContent(\'' +  c.id + '\')">Buy</button>');
-        render += '</ul>';
+        render.push('<ul>');
+        render.push(content.map(c => '<li>' + c.synopsis.title + '</li> <button type="button" value="c.id" onclick="buyContent(\'' +  c.id + '\')">Buy</button>'));
+        render.push('</ul>');
     }
-    return render
+    return render.join('');
 }
 
 
