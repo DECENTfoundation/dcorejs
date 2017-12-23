@@ -142,7 +142,7 @@ Method `restoreContentKeys` will restore your key generated during content submi
 [Download example](https://github.com/DECENTfoundation/decent-js/tree/master/src/examples/DownloadContent)
 
 More examples available [here](https://github.com/DECENTfoundation/decent-js/tree/master/src/examples).
-To run examples, you need to clone repository and build with `npm run pack`. Browser bundle will be found 
+To run examples, you need to clone repository and build with `npm run build` if folders `dist` and `lib` is not presented. Browser bundle can be found 
 within `dist/bundle.js`. Node version in `lib/decent-js.js`.
 
 ## All available methods
@@ -167,3 +167,12 @@ within `dist/bundle.js`. Node version in `lib/decent-js.js`.
     transfer(amount: number, fromAccount: string, toAccount: string, memo: string, privateKey: string): Promise<void> 
     getBalance(account: string): Promise<number> 
 
+### Utils
+
+    formatToReadiblePrice(dctAmount: number): string
+    ripemdHash(fromBuffer: Buffer): string
+    generateKeys(fromBrainKey: string): (KeyPrivate | KeyPublic)[]
+    getPublicKey(privkey: KeyPrivate): KeyPublic
+    privateKeyFromWif(pkWif: string): KeyPrivate
+    publicKeyFromString(pubKeyString: string): KeyPublic
+    
