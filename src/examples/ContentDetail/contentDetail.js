@@ -5,7 +5,7 @@ const decentNetworkAddresses = ['wss://stage.decentgo.com:8090'];
 
 let decentjs_lib = window['decentjs-lib'];
 
-decent.Decent.initialize({
+decent.initialize({
     chain_id: chainId,
     decent_network_wspaths: decentNetworkAddresses
 }, decentjs_lib);
@@ -17,7 +17,7 @@ let contentItems = [];
 
 function getContent() {
     contentList.innerHTML = 'Loading ...';
-    decent.Decent.core.content.searchContent(new decent.SearchParams())
+    decent.content().searchContent(new decent.SearchParams())
         .then(content => {
             contentList.innerHTML = renderContent(content);
             contentItems = content;

@@ -1,8 +1,6 @@
-import { Decent, DecentConfig } from './../src/decent-js';
 import { Utils } from './../src/utils';
 import * as Decentjs from 'decentjs-lib';
 import { setLibRef } from '../src/helpers';
-import { print } from 'util';
 
 const bk = 'WORKBOX UPJERK GORBLE SPECULA SUCKLER FUNNEL INWRAP DOSIS DARNEL CATTABU FINGER MINARET TUCKER DENDRIC WOD CULMEN';
 const pub = 'DCT5dJjvk9k3yTsnJsAph6V8zEPxsAvJ7FCCzqYWiQQyVTiHvReLz';
@@ -29,7 +27,9 @@ function initLib() {
 }
 
 describe('Utils methods test', () => {
+
     beforeAll(() => initLib());
+
     it('generate keys from brainkey', () => {
         const keys = Utils.generateKeys(bk);
         expect(keys.length).toEqual(2);
@@ -48,5 +48,10 @@ describe('Utils methods test', () => {
     it('secret from WIF string', () => {
         const secret = Utils.privateKeyFromWif(priv);
         expect(secret.key).toEqual(refPriv);
+    });
+
+    it('change amount format', () => {
+        const formated = Utils.formatToReadiblePrice(1);
+        expect(formated).toEqual('0.00000001');
     });
 });

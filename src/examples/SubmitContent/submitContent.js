@@ -19,7 +19,7 @@ const privateKey = '5JDFQN3T8CFT1ynhgd5s574mTV9UPf9WamkHojBL4NgbhSBDmBj';
 
 const decentjs_lib = window['decentjs-lib'];
 
-decent.Decent.initialize({
+decent.initialize({
     chain_id: chainId,
     decent_network_wspaths: decentNetworkAddresses
 }, decentjs_lib);
@@ -29,7 +29,7 @@ let seeders = [];
 
 function getContentKeys(forSeeders) {
     return new Promise((resolve, reject) => {
-        decent.Decent.core.content.generateContentKeys(forSeeders)
+        decent.content().generateContentKeys(forSeeders)
         .then(keys => {
             resolve(keys);
         })
@@ -43,7 +43,7 @@ function onSubmit() {
     output.innerHTML = 'Submitting...';
     const [year, month, day] = get('expirationDate').value.split('-');
     const date = new Date(year, month, day, 0, 0, 0);
-    decent.Decent.core.content.getSeeders(2).then(seeders => {
+    decent.content().getSeeders(2).then(seeders => {
         const synopsis = JSON.parse(get('meta').value);
         getContentKeys(seeders.map(s => s.seeder))
         .then(keys => {
@@ -60,7 +60,7 @@ function onSubmit() {
                 synopsis: synopsis
             };
             
-            decent.Decent.core.content.addContent(submitObject, privateKey)
+            decent.content().addContent(submitObject, privateKey)
             .then(res => {
                 output.innerHTML = '<h3 style="color: green;">Content sucessfully submitted</h3>'
             })

@@ -24,4 +24,9 @@ describe('Crypt helper test', () => {
         const encryptedMessage = CryptoUtils.encryptWithChecksum(message, secret, pkey, '');
         expect(encryptedMessage).toEqual(encryptedMessage);
     });
+
+    it('create md5 hash', () => {
+        const hash = CryptoUtils.md5('dd.duskis+st14@gmail.com');
+        expect(`u${hash}`).toEqual('u5d42a7b0b5713396aac58019eed01d53');
+    });
 });

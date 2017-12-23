@@ -1,8 +1,21 @@
 import { DecentLib } from './helpers';
 import { CryptoUtils } from './crypt';
+import {ChainApi} from './api/chain';
 
 
 export class Utils {
+
+    /**
+     * Change price amount from blockchain format to real and readable formatted string.
+     *
+     * Example: Amount price from blockchain is 1, formatted price 0.00000001 DCT
+     *
+     * @param {number} dctAmount
+     * @return {string}
+     */
+    public static formatToReadiblePrice(dctAmount: number): string {
+        return (dctAmount / ChainApi.DCTPower).toFixed(8);
+    }
 
     public static ripemdHash(fromBuffer: Buffer): string {
         return CryptoUtils.ripemdHash(fromBuffer);
@@ -34,11 +47,23 @@ export class Utils {
         return new KeyPublic(publicKey);
     }
 
+    /**
+     * Create KeyPrivate object from WIF format of private key.
+     *
+     * @param {string} pkWif
+     * @return {KeyPrivate}
+     */
     public static privateKeyFromWif(pkWif: string): KeyPrivate {
         const pKey = DecentLib.PrivateKey.fromWif(pkWif);
         return new KeyPrivate(pKey);
     }
 
+    /**
+     * Create KeyPublic object from string format of public key.
+     *
+     * @param {string} pubKeyString
+     * @return {KeyPublic}
+     */
     public static publicKeyFromString(pubKeyString: string): KeyPublic {
         const pubKey = DecentLib.PublicKey.fromPublicKeyString(pubKeyString);
         return new KeyPublic(pubKey);

@@ -102,7 +102,6 @@ export class TransactionRecord {
         this.timestamp = transaction.m_timestamp;
         this.memo = new TransactionMemo(transaction);
         this.memoString = this.memo.decryptedMessage(privateKeys);
-        console.log(`done : ${this.memoString}`);
     }
 }
 
@@ -317,6 +316,11 @@ export class AccountApi {
             if (memo && !privateKey) {
                 reject(AccountError.transfer_missing_pkey);
             }
+
+            if (!toAccount.startsWith('u')) {
+                toAccount = `u${CryptoUtils.md5(toAccount)}`;
+            }
+
             const operations = new ChainMethods();
             operations.add(ChainMethods.getAccount, fromAccount);
             operations.add(ChainMethods.getAccount, toAccount);

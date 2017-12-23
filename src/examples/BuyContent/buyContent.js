@@ -14,7 +14,7 @@ const output = document.getElementById('output');
 const result = document.getElementById('result');
 
 output.innerHTML = 'Loading ...';
-decent.Decent.core.content.searchContent(new decent.SearchParams())
+decent.content().searchContent(new decent.SearchParams())
     .then(content => {
         const data = renderContent(content);
         output.innerHTML = data;
@@ -41,7 +41,7 @@ const privateKey = '5JDFQN3T8CFT1ynhgd5s574mTV9UPf9WamkHojBL4NgbhSBDmBj';
 function buyContent(contentId) {
     console.log(contentId);
     result.innerHTML = 'Loading ...';
-    decent.Decent.core.content.buyContent(contentId, buyerId, elGamalPublic, privateKey)
+    decent.content().buyContent(contentId, buyerId, elGamalPublic, privateKey)
         .then(() => {
             console.log('Successful');
             result.innerHTML = '<p style="color: green;">Content bought</p>';

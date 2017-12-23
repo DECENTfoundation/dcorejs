@@ -9,6 +9,7 @@ import {
 } from './transaction';
 import { Asset } from './account';
 import {isUndefined} from 'util';
+
 const moment = require('moment');
 
 export class ContentError {
@@ -22,7 +23,7 @@ export interface SubmitObject {
     authorId: string;
     seeders: Seeder[];
     fileName: string;
-    date: string;
+    date: Date;
     price: number;
     size: number;
     URI: string;
@@ -158,6 +159,12 @@ export class ContentApi {
         this._chainApi = chainApi;
     }
 
+    /**
+     * Searches content submitted to decent network and is not expired.
+     *
+     * @param {SearchParams} searchParams
+     * @return {Promise<Content[]>}
+     */
     public searchContent(searchParams: SearchParams): Promise<Content[]> {
         const dbOperation = new DatabaseOperations.SearchContent(searchParams);
         return new Promise((resolve, reject) => {
@@ -255,16 +262,12 @@ export class ContentApi {
      * would not be restored.
      *
      * @param {string} contentId                example: '1.2.453'
-     * @param {...string[]} elGamalPrivate
+     * @param {string} accountId                example: '1.2.453'
+     * @param {...string[]} elGamalKeys
      * @returns {Promise<string>}
      * @memberof ContentApi
      */
-    public restoreContentKeys(contentId: string, accountId: string, ...elGamalPrivate: KeyPair[]): Promise<string> {
-        // const dbOperation = new DatabaseOperations.RestoreEncryptionKey(
-        //     contentId,
-        //     elGamalPrivate[0]
-        // );
-
+    public restoreContentKeys(contentId: string, accountId: string, ...elGamalKeys: KeyPair[]): Promise<string> {
         return new Promise((resolve, reject) => {
             this.getContent(contentId)
             .then(content => {
@@ -272,7 +275,7 @@ export class ContentApi {
                 this._dbApi.execute(dbOperation)
                 .then(res => {
                     console.log(res);
-                    const validKey = elGamalPrivate.find((elgPair: KeyPair) => elgPair.publicKey === res.pubKey.s);
+                    const validKey = elGamalKeys.find((elgPair: KeyPair) => elgPair.publicKey === res.pubKey.s);
                     if (!validKey) {
                         reject(this.handleError(ContentError.restore_content_keys_failed, 'wrong keys'));
                     }
@@ -319,7 +322,6 @@ export class ContentApi {
      *
      * @param {SubmitObject} content
      * @param {string} privateKey
-     * @param {string} publicKey
      * @return {Promise<void>}
      */
     public addContent(content: SubmitObject, privateKey: string): Promise<void> {
@@ -343,7 +345,7 @@ export class ContentApi {
                 hash: content.hash,
                 seeders: content.seeders.map(s => s.seeder),
                 key_parts: content.keyParts,
-                expiration: content.date,
+                expiration: content.date.toString(),
                 publishing_fee: {
                     amount: this.calculateFee(content),
                     asset_id: ChainApi.asset_id

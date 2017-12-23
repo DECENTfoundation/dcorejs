@@ -9,8 +9,8 @@ const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376b
 const decentNetworkAddresses = ['wss://stage.decentgo.com:8090'];
 
 let decentjs_lib = window['decentjs-lib'];
-
-decent.Decent.initialize({
+console.log(decentjs_lib);
+decent.initialize({
     chain_id: chainId,
     decent_network_wspaths: decentNetworkAddresses
 }, decentjs_lib);
@@ -20,7 +20,7 @@ const output = document.getElementById('output');
 function searchContent(keyword) {
     console.log(keyword);
     output.innerHTML = 'Loading ...';
-    decent.Decent.core.content.searchContent(new decent.SearchParams(keyword))
+    decent.content().searchContent(new decent.SearchParams(keyword))
         .then(content => {
             const data = renderContent(content);
             output.innerHTML = data;
