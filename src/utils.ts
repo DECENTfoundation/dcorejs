@@ -1,6 +1,6 @@
 import { DecentLib } from './helpers';
 import { CryptoUtils } from './crypt';
-import {ChainApi} from './api/chain';
+import { ChainApi } from './api/chain';
 
 
 export class Utils {

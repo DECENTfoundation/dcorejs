@@ -21,7 +21,10 @@ export class CryptoUtils {
         return DecentLib.Aes.encrypt_with_checksum(privateKey.key, publicKey.key, nonce, message);
     }
 
-    public static decryptWithChecksum(message: string, privateKey: KeyPrivate, publicKey: KeyPublic, nonce: string = ''): Buffer {
+    public static decryptWithChecksum(message: string,
+                                      privateKey: KeyPrivate,
+                                      publicKey: KeyPublic,
+                                      nonce: string = ''): Buffer {
         return DecentLib.Aes.decrypt_with_checksum(privateKey.key, publicKey.key, nonce, message);
     }
 

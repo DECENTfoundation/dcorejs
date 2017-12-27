@@ -40,7 +40,7 @@ function getAccount(accountId) {
         })
         .catch(err => {
             console.error(err);
-            output.innerHTML = '<p style="color: red;">Error loading user account</p>';    
+            output.innerHTML = '<p style="color: red;">Error loading user account</p>';
         });
 }
 //# sourceMappingURL=searchContent.js.map

@@ -8,7 +8,7 @@ import {
     Transaction
 } from './transaction';
 import { Asset } from './account';
-import {isUndefined} from 'util';
+import { isUndefined } from 'util';
 
 const moment = require('moment');
 
