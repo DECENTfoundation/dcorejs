@@ -6,7 +6,7 @@ import {AccountApi} from './account';
 import {HistoryApi} from './api/history';
 import {ApiConnector} from './api/apiConnector';
 
-let decentjslib: any = null;
+let _decentjslib: any = null;
 let _content: ContentApi = null;
 let _account: AccountApi = null;
 let _history: HistoryApi = null;

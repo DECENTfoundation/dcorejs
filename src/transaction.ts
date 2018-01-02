@@ -86,8 +86,6 @@ export interface SubmitContentOperation extends OperationType {
     synopsis: string;
 }
 
-
-
 export interface RegionalPrice {
     region: number;
     price: Asset;

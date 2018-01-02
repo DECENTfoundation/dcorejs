@@ -33,9 +33,9 @@ function searchContent(keyword) {
 
 function renderContent(content) {
     let render = '<ul>';
-     render += content.map(c => '<li>' + c.synopsis.title + '</li>');
-     render += '</ul>';
-     
+    render += content.map(c => '<li>' + c.synopsis.title + '</li>');
+    render += '</ul>';
+
     if (content.length === 0) {
         render = '<h3>No results</h3>'
     }
