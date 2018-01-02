@@ -167,7 +167,7 @@ export class AccountError {
     static database_operation_failed = 'database_operation_failed';
     static transaction_broadcast_failed = 'transaction_broadcast_failed';
     static account_keys_incorrect = 'account_keys_incorrect';
-    static empty_parameter = 'empty_parameter';
+    static bad_parameter = 'bad_parameter';
 }
 
 /**
@@ -230,6 +230,8 @@ export class AccountApi {
 
     /**
      * Gets transaction history for given Account name.
+     *
+     * @deprecated This method will be removed since future Decent Core update. Use getAccountHistory instead
      *
      * @param {string} accountId                example: "1.2.345"
      * @param {string} order                    SearchAccountHistoryOrder class holds all available options.
@@ -428,12 +430,12 @@ export class AccountApi {
     public isTransactionConfirmed(accountId: string, transactionId: string): Promise<boolean> {
         return new Promise((resolve, reject) => {
             let start = transactionId;
-            if (transactionId && transactionId !== '1.7.0') {
+            if (transactionId !== '1.7.0') {
                 const trNumSplit = transactionId.split('.');
                 trNumSplit[2] = `${Number(trNumSplit[2]) - 1}`;
                 start = trNumSplit.join('.');
             } else {
-                reject(this.handleError(AccountError.empty_parameter, ''));
+                reject(this.handleError(AccountError.bad_parameter, ''));
             }
 
             const operation = new HistoryOperations.GetAccountHistory(
@@ -443,6 +445,9 @@ export class AccountApi {
             );
             this._historyApi.execute(operation)
                 .then(res => {
+                    if (res.length === 0) {
+                        reject(this.handleError(AccountError.transaction_history_fetch_failed, ''));
+                    }
                     const dbOp = new DatabaseOperations.GetDynamicGlobalProperties();
                     this._dbApi.execute(dbOp)
                         .then(props => {
@@ -455,21 +460,24 @@ export class AccountApi {
     }
 
     /**
-     * List complete operations history list for given user
+     * List chain operations history list for given user
+     * Operations can be filtered using Chain.ChainOperationType
      *
-     * @param {string} accountId    Users account id, example: '1.2.30'
-     * @return {Promise<HistoryRecord[]>}     Return variable object types, based on operation in history record
+     * @param {string} accountId                Users account id, example: '1.2.30'
+     * @param {number} resultLimit              Number of results to be returned, max value is 100
+     * @return {Promise<HistoryRecord[]>}       Return variable object types, based on operation in history record
      */
-    public getAccountHistory(accountId: string): Promise<HistoryRecord[]> {
+    public getAccountHistory(accountId: string, resultLimit: number = 100): Promise<HistoryRecord[]> {
         return new Promise((resolve, reject) => {
             const operation = new HistoryOperations.GetAccountHistory(
                 accountId,
                 '1.7.0',
-                '1.7.0'
+                '1.7.0',
+                resultLimit
             );
             this._historyApi.execute(operation)
                 .then(res => {
-                    // TODO: create models for different operations names, placed in decentjs-lib/operations.js
+                    // TODO: create models for different operations names, placed in decentjs-lib/src/chain/src/ChainTypes.js
                     resolve(res);
                 })
                 .catch(err => reject(this.handleError(AccountError.transaction_history_fetch_failed, err)));
