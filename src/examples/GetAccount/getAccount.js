@@ -1,10 +1,12 @@
 "use strict";
 
-get('searchButton').onclick = () => {
-    const keyword = get('keyword').value;
+const el = document.getElementById;
+
+el('searchButton').onclick = () => {
+    const keyword = el('keyword').value;
     getAccount(keyword);
 };
-const output = get('output');
+const output = el('output');
 
 const decentjs_lib = window['decentjs-lib'];
 
@@ -30,12 +32,8 @@ function getAccount(accountId) {
         })
         .catch(err => {
             console.error(err);
-            output.innerHTML = '<p style="color: red;">Error loading user account</p>';    
+            output.innerHTML = '<p style="color: red;">Error loading user account</p>';
         });
-}
-
-function get(elementId) {
-    return document.getElementById(elementId);
 }
 
 //# sourceMappingURL=searchContent.js.map

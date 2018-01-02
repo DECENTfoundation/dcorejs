@@ -10,8 +10,10 @@ decent.initialize({
     decent_network_wspaths: decentNetworkAddresses
 }, decentjs_lib);
 
-const output = get('output');
-const result = get('result');
+const el = document.getElementById;
+
+const output = el('output');
+const result = el('result');
 
 output.innerHTML = 'Loading ...';
 decent.content().searchContent(new decent.SearchParams())
@@ -48,10 +50,6 @@ function buyContent(contentId) {
             console.error(err);
             result.innerHTML = '<p style="color: red;">Content already bought or own content</p>';
         });
-}
-
-function get(elementId) {
-    return document.getElementById(elementId);
 }
 
 //# sourceMappingURL=searchContent.js.map

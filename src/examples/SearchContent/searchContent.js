@@ -1,7 +1,9 @@
 "use strict";
 
-get('searchButton').onclick = () => {
-    const keyword = get('keyword').value;
+const el = document.getElementById;
+
+el('searchButton').onclick = () => {
+    const keyword = el('keyword').value;
     searchContent(keyword);
 };
 
@@ -16,7 +18,7 @@ decent.initialize({
     decent_network_wspaths: decentNetworkAddresses
 }, decentjs_lib);
 
-const output = get('output');
+const output = el('output');
 
 function searchContent(keyword) {
     output.innerHTML = 'Loading ...';
@@ -40,10 +42,6 @@ function renderContent(content) {
         render.push('</ul>');
     }
     return render.join('');
-}
-
-function get(elementId) {
-    return document.getElementById(elementId);
 }
 
 //# sourceMappingURL=searchContent.js.map

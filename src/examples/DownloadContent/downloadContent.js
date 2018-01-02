@@ -1,8 +1,10 @@
 "use strict";
 
-const output = get('output');
-const keyOut = get('key');
-const info = get('info');
+const el = document.getElementById;
+
+const output = el('output');
+const keyOut = el('key');
+const info = el('info');
 
 // Lib initialization
 const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
@@ -52,10 +54,6 @@ function downloadContent(contentId) {
             console.error(err);
             keyOut.innerHTML = '<p style="color: red;">Error download content</p>';
         });
-}
-
-function get(elementId) {
-    return document.getElementById(elementId);
 }
 
 //# sourceMappingURL=searchContent.js.map

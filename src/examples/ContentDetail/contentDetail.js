@@ -10,8 +10,10 @@ decent.initialize({
     decent_network_wspaths: decentNetworkAddresses
 }, decentjs_lib);
 
-const contentList = document.getElementById('contentList');
-const contentDetail = document.getElementById('contentDetail');
+const el = document.getElementById;
+
+const contentList = el('contentList');
+const contentDetail = el('contentDetail');
 
 const contentItems = [];
 

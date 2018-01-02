@@ -1,27 +1,29 @@
 'use strict';
 
-get('submitButton').onclick = () => {
+const el = document.getElementById;
+
+el('submitButton').onclick = () => {
     onSubmit();
 };
 
-get('file').onchange = (event) => {
+el('file').onchange = (event) => {
     file = event.target.files[0];
 };
 
-get('categoryList').onchange = (event) => {
+el('categoryList').onchange = (event) => {
     onCategorySelect(event);
 };
 
-get('title').onchange = (event) => {
+el('title').onchange = (event) => {
     onPropertyChange('title', event.target.value);
 };
 
-get('description').onchange = (event) => {
+el('description').onchange = (event) => {
     onPropertyChange('description', event.target.value);
 };
 
-const output = get('output');
-const categoryOut = get('categoryList');
+const output = el('output');
+const categoryOut = el('categoryList');
 
 const dctPow = Math.pow(10, 8);
 const chainId =
@@ -65,10 +67,10 @@ function getContentKeys(forSeeders) {
 
 function onSubmit() {
     output.innerHTML = 'Submitting...';
-    const [year, month, day] = get('expirationDate').value.split('-');
+    const [year, month, day] = el('expirationDate').value.split('-');
     const date = new Date(year, month, day, 0, 0, 0);
     decent.content().getSeeders(2).then(seeders => {
-        const synopsis = JSON.parse(get('meta').value);
+        const synopsis = JSON.parse(el('meta').value);
         getContentKeys(seeders.map(s => s.seeder))
             .then(keys => {
                 const submitObject = {
@@ -76,10 +78,10 @@ function onSubmit() {
                     seeders: seeders,
                     fileName: file.name,
                     date: date.toString(),
-                    price: get('price').value * dctPow,
+                    price: el('price').value * dctPow,
                     size: file.size,
-                    URI: get('uri').value,
-                    hash: get('hash').value,
+                    URI: el('uri').value,
+                    hash: el('hash').value,
                     keyParts: keys.parts,
                     synopsis: synopsis
                 };
@@ -101,14 +103,10 @@ function onCategorySelect(event) {
 }
 
 function onPropertyChange(prop, value) {
-    const meta = get('meta');
+    const meta = el('meta');
     const obj = JSON.parse(meta.value);
     obj[prop] = value;
     meta.value = JSON.stringify(obj);
-}
-
-function get(elementId) {
-    return document.getElementById(elementId);
 }
 
 listCategories();
