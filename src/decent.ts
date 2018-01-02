@@ -4,10 +4,12 @@ import {ChainApi} from './api/chain';
 import {DatabaseApi} from './api/database';
 import {AccountApi} from './account';
 import {HistoryApi} from './api/history';
+import {ApiConnector} from './api/apiConnector';
 
 let decentjslib: any = null;
 let _content: ContentApi = null;
 let _account: AccountApi = null;
+let _history: HistoryApi = null;
 
 export class DecentError {
     static app_not_initialized = 'app_not_initialized';
@@ -23,12 +25,14 @@ export function initialize(config: DecentConfig, decentjs_lib: any): void {
     decentjslib = decentjs_lib;
     setLibRef(decentjslib);
     ChainApi.setupChain(config.chain_id, decentjslib.ChainConfig);
-    const database = DatabaseApi.create(config, decentjslib.Apis);
-    const apiConnectionPromise = database.initApi();
-    const historyApi = new HistoryApi(decentjs_lib.Apis, {decent_network_wspaths: config.decent_network_wspaths});
-    historyApi.initApi();
 
-    const chain = new ChainApi(apiConnectionPromise, decentjslib.ChainStore);
+    const connector = new ApiConnector(config.decent_network_wspaths, decentjslib.Apis);
+
+    const database = new DatabaseApi(decentjslib.Apis, connector);
+    const historyApi = new HistoryApi(decentjs_lib.Apis, connector);
+    _history = historyApi;
+
+    const chain = new ChainApi(connector, decentjslib.ChainStore);
     _content = new ContentApi(database, chain);
     _account = new AccountApi(database, chain, historyApi);
 }

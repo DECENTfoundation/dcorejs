@@ -1,4 +1,4 @@
-const BBPromise = require('bluebird');
+import {ApiConnector} from './apiConnector';
 
 enum HistoryError {
     error_executing_command = 'error_executing_command'
@@ -40,35 +40,20 @@ export interface HistoryConfig {
 
 export class HistoryApi {
     private _api: any;
-    private _config: HistoryConfig;
-    private _apiConnector: Promise<void>;
+    private _apiConnector: ApiConnector;
 
     private histApi(): any {
         return this._api.instance().history_api();
     }
 
-    constructor(api: any, config: HistoryConfig) {
+    constructor(api: any, apiConnector: ApiConnector) {
         this._api = api;
-        this._config = config;
-    }
-
-    public initApi(): Promise<void> {
-        const promises: Promise<any>[] = [];
-        this._config.decent_network_wspaths.forEach(address => {
-            promises.push(this.getConnectionPromise(address));
-        });
-
-        this._apiConnector = BBPromise.any(promises);
-        return this._apiConnector;
-    }
-
-    private getConnectionPromise(forAddress: string): Promise<any> {
-        return this._api.instance(forAddress, true).init_promise;
+        this._apiConnector = apiConnector;
     }
 
     public execute(operation: HistoryOperation): Promise<any> {
         return new Promise((resolve, reject) => {
-            this._apiConnector.then(() => {
+            this._apiConnector.connect().then(() => {
                 this.histApi()
                     .exec(operation.name, operation.parameters)
                     .then((content: any) => resolve(content))
