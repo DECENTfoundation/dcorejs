@@ -1,10 +1,10 @@
-import {setLibRef} from './helpers';
-import {ContentApi} from './content';
-import {ChainApi} from './api/chain';
-import {DatabaseApi} from './api/database';
-import {AccountApi} from './account';
+import { setLibRef } from './helpers';
+import { ContentApi } from './content';
+import { ChainApi } from './api/chain';
+import { DatabaseApi } from './api/database';
+import { AccountApi } from './account';
 
-let decentjslib: any = null;
+let _decentjslib: any = null;
 let _content: ContentApi = null;
 let _account: AccountApi = null;
 
@@ -19,13 +19,13 @@ export interface DecentConfig {
 }
 
 export function initialize(config: DecentConfig, decentjs_lib: any): void {
-    decentjslib = decentjs_lib;
-    setLibRef(decentjslib);
-    ChainApi.setupChain(config.chain_id, decentjslib.ChainConfig);
-    const database = DatabaseApi.create(config, decentjslib.Apis);
+    _decentjslib = decentjs_lib;
+    setLibRef(_decentjslib);
+    ChainApi.setupChain(config.chain_id, _decentjslib.ChainConfig);
+    const database = DatabaseApi.create(config, _decentjslib.Apis);
     const apiConnectionPromise = database.initApi();
 
-    const chain = new ChainApi(apiConnectionPromise, decentjslib.ChainStore);
+    const chain = new ChainApi(apiConnectionPromise, _decentjslib.ChainStore);
     _content = new ContentApi(database, chain);
     _account = new AccountApi(database, chain);
 }

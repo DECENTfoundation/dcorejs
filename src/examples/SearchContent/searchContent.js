@@ -34,6 +34,7 @@ function searchContent(keyword) {
 
 function renderContent(content) {
     const render = [];
+
     if (content.length === 0) {
         render.push('<h3>No content</h3>');
     } else {

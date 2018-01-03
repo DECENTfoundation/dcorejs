@@ -95,7 +95,6 @@ function onSubmit() {
                     });
             });
     });
-
 }
 
 function onCategorySelect(event) {
