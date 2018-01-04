@@ -1,15 +1,15 @@
-import {setLibRef} from './helpers';
-import {ContentApi} from './content';
-import {ChainApi} from './api/chain';
-import {DatabaseApi} from './api/database';
-import {AccountApi} from './account';
-import {HistoryApi} from './api/history';
-import {ApiConnector} from './api/apiConnector';
+import { setLibRef } from './helpers';
+import { ContentApi } from './content';
+import { ChainApi } from './api/chain';
+import { DatabaseApi } from './api/database';
+import { AccountApi } from './account';
+import { HistoryApi } from './api/history';
+import { ApiConnector } from './api/apiConnector';
 
-let _decentjslib: any = null;
-let _content: ContentApi = null;
-let _account: AccountApi = null;
-let _history: HistoryApi = null;
+let _decentjslib: any;
+let _content: ContentApi;
+let _account: AccountApi;
+let _history: HistoryApi;
 
 export class DecentError {
     static app_not_initialized = 'app_not_initialized';
@@ -22,17 +22,17 @@ export interface DecentConfig {
 }
 
 export function initialize(config: DecentConfig, decentjs_lib: any): void {
-    decentjslib = decentjs_lib;
-    setLibRef(decentjslib);
-    ChainApi.setupChain(config.chain_id, decentjslib.ChainConfig);
+    _decentjslib = decentjs_lib;
+    setLibRef(_decentjslib);
+    ChainApi.setupChain(config.chain_id, _decentjslib.ChainConfig);
 
-    const connector = new ApiConnector(config.decent_network_wspaths, decentjslib.Apis);
+    const connector = new ApiConnector(config.decent_network_wspaths, _decentjslib.Apis);
 
-    const database = new DatabaseApi(decentjslib.Apis, connector);
-    const historyApi = new HistoryApi(decentjs_lib.Apis, connector);
+    const database = new DatabaseApi(_decentjslib.Apis, connector);
+    const historyApi = new HistoryApi(_decentjslib.Apis, connector);
     _history = historyApi;
 
-    const chain = new ChainApi(connector, decentjslib.ChainStore);
+    const chain = new ChainApi(connector, _decentjslib.ChainStore);
     _content = new ContentApi(database, chain);
     _account = new AccountApi(database, chain, historyApi);
 }

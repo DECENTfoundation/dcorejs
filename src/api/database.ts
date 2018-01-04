@@ -1,4 +1,4 @@
-import {ApiConnector} from './apiConnector';
+import { ApiConnector } from './apiConnector';
 
 export class ConnectionStatus {
     static open = 'open';

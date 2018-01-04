@@ -1,9 +1,9 @@
-import {Database, DatabaseApi, DatabaseOperations, SearchAccountHistoryOrder} from './api/database';
-import {ChainApi, ChainMethods} from './api/chain';
-import {CryptoUtils} from './crypt';
-import {Memo, OperationName, Transaction, TransferOperation} from './transaction';
-import {KeyPrivate, Utils} from './utils';
-import {HistoryApi, HistoryOperations} from './api/history';
+import { Database, DatabaseApi, DatabaseOperations, SearchAccountHistoryOrder } from './api/database';
+import { ChainApi, ChainMethods } from './api/chain';
+import { CryptoUtils } from './crypt';
+import { Memo, OperationName, Transaction, TransferOperation } from './transaction';
+import { KeyPrivate, Utils } from './utils';
+import { HistoryApi, HistoryOperations } from './api/history';
 
 export interface TransactionRaw {
     id: string;
