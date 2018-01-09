@@ -1,6 +1,6 @@
 "use strict";
 
-const el = document.getElementById;
+const el = document.getElementById.bind(document);
 
 const output = el('output');
 const keyOut = el('key');
