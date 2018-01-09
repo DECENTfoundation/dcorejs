@@ -1,4 +1,4 @@
-const BBPromise = require('bluebird');
+import { ApiConnector } from './apiConnector';
 
 export class ConnectionStatus {
     static open = 'open';
@@ -98,6 +98,7 @@ class DatabaseOperationName {
     static listPublishers = 'list_seeders_by_price';
     static getObjects = 'get_objects';
     static getBuyingHistoryObjects = 'get_buying_by_consumer_URI';
+    static getDynamicGlobalProperties = 'get_dynamic_global_properties';
 }
 
 export class DatabaseOperation {
@@ -226,6 +227,12 @@ export namespace DatabaseOperations {
             super(DatabaseOperationName.getBuyingHistoryObjects, accountId, contentURI);
         }
     }
+
+    export class GetDynamicGlobalProperties extends DatabaseOperation {
+        constructor() {
+            super(DatabaseOperationName.getDynamicGlobalProperties);
+        }
+    }
 }
 
 export interface DatabaseConfig {
@@ -238,50 +245,21 @@ export class Database {
 
 export class DatabaseApi extends Database {
     protected _api: any;
-    private _connectionStatus: string;
-    private _apiConnector: Promise<void>;
-    private _config: DatabaseConfig;
-
-    get connectionStatus(): string {
-        return this._connectionStatus;
-    }
-
-    public static create(config: DatabaseConfig, api: any): DatabaseApi {
-        return new DatabaseApi(config, api);
-    }
+    private _apiConnector: ApiConnector;
 
     private dbApi(): any {
         return this._api.instance().db_api();
     }
 
-    constructor(config: DatabaseConfig, api: any) {
+    constructor(api: any, apiConnector: ApiConnector) {
         super();
         this._api = api;
-        this._config = config;
-    }
-
-    public initApi(): Promise<void> {
-        // TODO: when not connected yet, calls throws errors
-        this._api.setRpcConnectionStatusCallback((status: any) => {
-            this._connectionStatus = status;
-        });
-
-        const promises: Promise<any>[] = [];
-        this._config.decent_network_wspaths.forEach(address => {
-            promises.push(this.getConnectionPromise(address, this._api));
-        });
-
-        this._apiConnector = BBPromise.any(promises);
-        return this._apiConnector;
-    }
-
-    private getConnectionPromise(forAddress: string, toApi: any): Promise<any> {
-        return toApi.instance(forAddress, true).init_promise;
+        this._apiConnector = apiConnector;
     }
 
     public execute(operation: DatabaseOperation): Promise<any> {
         return new Promise((resolve, reject) => {
-            this._apiConnector.then(() => {
+            this._apiConnector.connect().then(() => {
                 this.dbApi()
                     .exec(operation.name, operation.parameters)
                     .then((content: any) => resolve(content))

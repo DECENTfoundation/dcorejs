@@ -24,7 +24,7 @@
         "npm": ">=5.0.0"
     },
     "scripts": {
-        "start": "tsc -w & rollup -c rollup.config.ts -w",
+        "start": "tsc -w & webpack --config webpack.config.js --watch",
         "lint": "tslint -t codeFrame 'src/**/*.ts' 'test/**/*.ts'",
         "prebuild": "rimraf dist && rimraf lib",
         "build": "tsc && webpack --config webpack.config.js && typedoc --out dist/docs --target es6 --theme minimal --excludeExternals --includeDeclarations --excludePrivate --exclude \"{**/{api,mocks}/*.ts,**/crypt.ts}\" src",
@@ -32,10 +32,6 @@
         "test": "jest",
         "test:watch": "jest --watch",
         "test:prod": "npm run lint && npm run test -- --coverage --no-cache",
-        "deploy-docs": "ts-node tools/gh-pages-publish",
-        "report-coverage": "cat ./coverage/lcov.info | coveralls",
-        "semantic-release": "semantic-release pre && npm publish && semantic-release post",
-        "semantic-release-prepare": "ts-node tools/semantic-release-prepare",
         "prepush": "npm run test:prod && npm run build"
     },
     "jest": {
@@ -68,7 +64,6 @@
         "@types/jest": "^21.1.0",
         "@types/node": "8.0.47",
         "colors": "^1.1.2",
-        "coveralls": "^3.0.0",
         "cross-env": "5.1.1",
         "decentjs-lib": "git+ssh://git@github.com/DECENTfoundation/decentjs-lib",
         "jest": "21.2.1",
@@ -76,17 +71,10 @@
         "prompt": "^1.0.0",
         "replace-in-file": "^3.0.0-beta.2",
         "rimraf": "2.6.2",
-        "rollup": "^0.50.0",
-        "rollup-plugin-node-builtins": "2.1.2",
-        "rollup-plugin-node-resolve": "^3.0.0",
-        "rollup-plugin-sourcemaps": "^0.4.2",
-        "semantic-release": "8.2.3",
         "ts-jest": "21.1.4",
-        "ts-node": "^3.0.6",
         "tslint": "5.8.0",
         "typedoc": "^0.9.0",
         "typescript": "2.5.3",
-        "validate-commit-msg": "^2.12.2",
         "webpack": "3.8.1"
     },
     "dependencies": {

@@ -3,6 +3,7 @@ import { ChainApi, ChainMethods } from './api/chain';
 import { CryptoUtils } from './crypt';
 import { Memo, OperationName, Transaction, TransferOperation } from './transaction';
 import { KeyPrivate, Utils } from './utils';
+import { HistoryApi, HistoryOperations } from './api/history';
 
 export interface TransactionRaw {
     id: string;
@@ -77,6 +78,7 @@ export interface Options {
 }
 
 export class TransactionRecord {
+    id: string;
     fromAccountName: string;
     toAccountName: string;
     fromAccountId: string;
@@ -90,6 +92,7 @@ export class TransactionRecord {
     memoString: string;
 
     constructor(transaction: any, privateKeys: string[]) {
+        this.id = transaction.id;
         this.fromAccountId = transaction.m_from_account;
         this.toAccountId = transaction.m_to_account;
         this.operationType = transaction.m_operation_type;
@@ -144,6 +147,16 @@ export class TransactionMemo {
     }
 }
 
+export interface HistoryRecord {
+    id: string
+    op: any[]
+    result: any[]
+    block_num: number
+    trx_in_block: number
+    op_in_trx: number
+    virtual_op: number
+}
+
 export class AccountError {
     static account_does_not_exist = 'account_does_not_exist';
     static account_fetch_failed = 'account_fetch_failed';
@@ -154,6 +167,7 @@ export class AccountError {
     static database_operation_failed = 'database_operation_failed';
     static transaction_broadcast_failed = 'transaction_broadcast_failed';
     static account_keys_incorrect = 'account_keys_incorrect';
+    static bad_parameter = 'bad_parameter';
 }
 
 /**
@@ -162,10 +176,12 @@ export class AccountError {
 export class AccountApi {
     private _dbApi: DatabaseApi;
     private _chainApi: ChainApi;
+    private _historyApi: HistoryApi;
 
-    constructor(dbApi: Database, chainApi: ChainApi) {
+    constructor(dbApi: Database, chainApi: ChainApi, historyApi: HistoryApi) {
         this._dbApi = dbApi as DatabaseApi;
         this._chainApi = chainApi;
+        this._historyApi = historyApi;
     }
 
     /**
@@ -214,6 +230,8 @@ export class AccountApi {
 
     /**
      * Gets transaction history for given Account name.
+     *
+     * @deprecated This method will be removed since future Decent Core update. Use getAccountHistory instead
      *
      * @param {string} accountId                example: "1.2.345"
      * @param {string} order                    SearchAccountHistoryOrder class holds all available options.
@@ -299,10 +317,6 @@ export class AccountApi {
         return new Promise((resolve, reject) => {
             if (memo && !privateKey) {
                 reject(AccountError.transfer_missing_pkey);
-            }
-
-            if (!toAccount.startsWith('u')) {
-                toAccount = `u${CryptoUtils.md5(toAccount)}`;
             }
 
             const operations = new ChainMethods();
@@ -394,6 +408,75 @@ export class AccountApi {
                 .catch(err => {
                     reject(this.handleError(AccountError.database_operation_failed, err));
                 });
+        });
+    }
+
+    /**
+     * Determine if block with transaction is verified and irreversible.
+     * Unverified blocks still can be reversed.
+     *
+     * NOTICE:
+     * Transaction object with id in form '1.7.X' can be fetched from AccountApi.getAccountHistory(:)
+     * method.
+     *
+     * @param {string} accountId        User's account id, example: '1.2.30'
+     * @param {string} transactionId    Transaction id in format '1.7.X'.
+     * @return {Promise<boolean>}
+     */
+    public isTransactionConfirmed(accountId: string, transactionId: string): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+            let start = transactionId;
+            if (transactionId !== '1.7.0') {
+                const trNumSplit = transactionId.split('.');
+                trNumSplit[2] = `${Number(trNumSplit[2]) - 1}`;
+                start = trNumSplit.join('.');
+            } else {
+                reject(this.handleError(AccountError.bad_parameter, ''));
+            }
+
+            const operation = new HistoryOperations.GetAccountHistory(
+                accountId,
+                start,
+                transactionId
+            );
+            this._historyApi.execute(operation)
+                .then(res => {
+                    if (res.length === 0) {
+                        reject(this.handleError(AccountError.transaction_history_fetch_failed, ''));
+                    }
+                    const dbOp = new DatabaseOperations.GetDynamicGlobalProperties();
+                    this._dbApi.execute(dbOp)
+                        .then(props => {
+                            resolve(res[0].block_num <= props.last_irreversible_block_num);
+                        })
+                        .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
+                })
+                .catch(err => console.log(err));
+        });
+    }
+
+    /**
+     * List chain operations history list for given user
+     * Operations can be filtered using Chain.ChainOperationType
+     *
+     * @param {string} accountId                Users account id, example: '1.2.30'
+     * @param {number} resultLimit              Number of results to be returned, max value is 100
+     * @return {Promise<HistoryRecord[]>}       Return variable object types, based on operation in history record
+     */
+    public getAccountHistory(accountId: string, resultLimit: number = 100): Promise<HistoryRecord[]> {
+        return new Promise((resolve, reject) => {
+            const operation = new HistoryOperations.GetAccountHistory(
+                accountId,
+                '1.7.0',
+                '1.7.0',
+                resultLimit
+            );
+            this._historyApi.execute(operation)
+                .then(res => {
+                    // TODO: create models for different operations names, placed in decentjs-lib/src/chain/src/ChainTypes.js
+                    resolve(res);
+                })
+                .catch(err => reject(this.handleError(AccountError.transaction_history_fetch_failed, err)));
         });
     }
 
