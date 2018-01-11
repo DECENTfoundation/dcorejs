@@ -9,7 +9,6 @@ import { ApiConnector } from './api/apiConnector';
 let _decentjslib: any;
 let _content: ContentApi;
 let _account: AccountApi;
-let _history: HistoryApi;
 
 export class DecentError {
     static app_not_initialized = 'app_not_initialized';
@@ -30,7 +29,6 @@ export function initialize(config: DecentConfig, decentjs_lib: any): void {
 
     const database = new DatabaseApi(_decentjslib.Apis, connector);
     const historyApi = new HistoryApi(_decentjslib.Apis, connector);
-    _history = historyApi;
 
     const chain = new ChainApi(connector, _decentjslib.ChainStore);
     _content = new ContentApi(database, chain);
