@@ -89,8 +89,6 @@ export class ExplorerModule {
         return this.getObject(Space.protocol_ids, Type.Protocol.vesting_balance, id);
     }
 
-    // Implementation Space
-
     getGlobalProperty(): Promise<any> {
         return this.getObject(Space.implementation_ids, Type.Implementation.global_property, 0);
     }
@@ -143,6 +141,7 @@ export class ExplorerModule {
         return this.getObject(Space.implementation_ids, Type.Implementation.publisher, id);
     }
 
+    // TODO: discuss functionality with Richard
     // getRating(id: number): Promise<any> {
     //     return this.getObject(Space.implementation_ids, Type.Implementation.rating, id);
     // }
