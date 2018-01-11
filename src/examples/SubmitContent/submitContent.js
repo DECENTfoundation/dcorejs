@@ -1,6 +1,6 @@
 'use strict';
 
-const el = document.getElementById.bind(document);
+const el = id => document.getElementById(id);
 
 el('submitButton').onclick = () => {
     onSubmit();
