@@ -1,6 +1,6 @@
 "use strict";
 
-const el = document.getElementById;
+const el = document.getElementById.bind(document);
 
 el('searchButton').onclick = () => {
     const keyword = el('keyword').value;
