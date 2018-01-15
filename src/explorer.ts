@@ -475,11 +475,6 @@ export class ExplorerModule {
         return this.getObject(Space.implementation_ids, Type.Implementation.publisher, id);
     }
 
-    // TODO: discuss functionality with Richard
-    // getRating(id: number): Promise<any> {
-    //     return this.getObject(Space.implementation_ids, Type.Implementation.rating, id);
-    // }
-
     getSubscription(id: number): Promise<Block.Subscription> {
         return this.getObject(Space.implementation_ids, Type.Implementation.subscription, id);
     }
