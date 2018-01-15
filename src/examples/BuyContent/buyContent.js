@@ -10,7 +10,7 @@ decent.initialize({
     decent_network_wspaths: decentNetworkAddresses
 }, decentjs_lib);
 
-const el = document.getElementById;
+const el = id => document.getElementById(id);
 
 const output = el('output');
 const result = el('result');
