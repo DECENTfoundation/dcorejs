@@ -33,7 +33,10 @@ export class ApiConnector {
         return this._connectionPromise;
     }
 
-    private handleConnectionState(state: string, callback: (ConnectionState) => void) {
+    private handleConnectionState(state: string, callback: (ConnectionState) => void): void {
+        if (callback === null) {
+            return;
+        }
         let connectionState: ConnectionState;
         switch (state) {
             case 'open':
