@@ -99,6 +99,9 @@ class DatabaseOperationName {
     static getObjects = 'get_objects';
     static getBuyingHistoryObjects = 'get_buying_by_consumer_URI';
     static getDynamicGlobalProperties = 'get_dynamic_global_properties';
+    static getBlock = 'get_block';
+    static getTransaction = 'get_transaction';
+    static getAccountCount = 'get_account_count';
 }
 
 export class DatabaseOperation {
@@ -231,6 +234,24 @@ export namespace DatabaseOperations {
     export class GetDynamicGlobalProperties extends DatabaseOperation {
         constructor() {
             super(DatabaseOperationName.getDynamicGlobalProperties);
+        }
+    }
+
+    export class GetBlock extends DatabaseOperation {
+        constructor(blockId: number) {
+            super(DatabaseOperationName.getBlock, blockId);
+        }
+    }
+
+    export class GetTransaction extends DatabaseOperation {
+        constructor(blockId: number, txNumber: number) {
+            super(DatabaseOperationName.getTransaction, blockId, txNumber);
+        }
+    }
+
+    export class GetAccountCount extends DatabaseOperation {
+        constructor() {
+            super(DatabaseOperationName.getAccountCount);
         }
     }
 }

@@ -336,6 +336,37 @@ export namespace Block {
             ];
         text: string;
     }
+
+    export interface Block {
+        height: number;
+        previous: string;
+        timestamp: string;
+        miner: string;
+        miner_signature: string;
+        witness: string;
+        transaction_merkle_root: string;
+        extensions: string;
+        transactions: Transaction[];
+    }
+
+    export interface Transaction {
+        ref_block_num: number;
+        ref_block_prefix: number;
+        expiration: string;
+        operations: [
+            [
+                number,
+                {
+                    fee: TransactionAsset,
+                    seeder: string,
+                    URI: string
+                }
+                ]
+            ],
+        extensions: any[];
+        signatures: string[];
+        operation_results: [[number, object]];
+    }
 }
 
 export enum Space {
@@ -485,5 +516,33 @@ export class ExplorerModule {
 
     getTransactionDetail(id: number): Promise<Block.TransactionDetail> {
         return this.getObject(Space.implementation_ids, Type.Implementation.transaction_detail, id);
+    }
+
+    getBlock(id: number): Promise<Block.Block> {
+        const operation = new DatabaseOperations.GetBlock(id);
+        return this._database.execute(operation);
+    }
+
+    getBlocks(id: number, count: number): Promise<Array<Block.Block>> {
+        const promises = [];
+        for (let i = 0; i < count; i++) {
+            promises.push(this.getBlock(i));
+        }
+        return Promise.all(promises);
+    }
+
+    getAccountCount(): Promise<number> {
+        const operation = new DatabaseOperations.GetAccountCount();
+        return this._database.execute(operation);
+    }
+
+    getAccounts(...ids: string[]): Promise<Array<Account>> {
+        const operation = new DatabaseOperations.GetAccounts(ids);
+        return this._database.execute(operation);
+    }
+
+    getTransaction(blockNo: number, txNum: number): Promise<Block.Transaction> {
+        const operation = new DatabaseOperations.GetTransaction(blockNo, txNum);
+        return this._database.execute(operation);
     }
 }
