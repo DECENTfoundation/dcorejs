@@ -1,14 +1,15 @@
 "use strict";
 // Lib initialization
 const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
-const decentNetworkAddresses = ['wss://stage.decentgo.com:8090'];
+const dcoreNetworkAddresses = ['wss://stage.decentgo.com:8090'];
 
-const decentjs_lib = window['decentjs-lib'];
+const dcore = window['dcore'];
+const dcore_js = window['dcore-js'];
 
-decent.initialize({
-    chain_id: chainId,
-    decent_network_wspaths: decentNetworkAddresses
-}, decentjs_lib);
+dcore_js.initialize({
+    chainId: chainId,
+    dcoreNetworkWSPaths: dcoreNetworkAddresses
+}, dcore);
 
 const el = id => document.getElementById(id);
 
@@ -16,7 +17,7 @@ const output = el('output');
 const result = el('result');
 
 output.innerHTML = 'Loading ...';
-decent.content().searchContent(new decent.SearchParams())
+dcore_js.content().searchContent(new dcore_js.SearchParams())
     .then(content => {
         output.innerHTML = renderContent(content);
     });
@@ -41,7 +42,7 @@ const privateKey = '5JDFQN3T8CFT1ynhgd5s574mTV9UPf9WamkHojBL4NgbhSBDmBj';
 
 function buyContent(contentId) {
     result.innerHTML = 'Loading ...';
-    decent.content().buyContent(contentId, buyerId, elGamalPublic, privateKey)
+    dcore_js.content().buyContent(contentId, buyerId, elGamalPublic, privateKey)
         .then(() => {
             console.log('Successful');
             result.innerHTML = '<p style="color: green;">Content bought</p>';

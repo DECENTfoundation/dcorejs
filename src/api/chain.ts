@@ -1,4 +1,4 @@
-import {DecentLib} from '../helpers';
+import {dcore} from '../helpers';
 import {ApiConnector} from './apiConnector';
 
 export enum ChainOperationType {
@@ -83,12 +83,12 @@ export class ChainApi {
      * Generates random sequence of bytes
      */
     public static generateNonce(): string {
-        return DecentLib.TransactionHelper.unique_nonce_uint64();
+        return dcore.TransactionHelper.unique_nonce_uint64();
     }
 
     public static setupChain(chainId: string, chainConfig: any) {
         chainConfig.networks.decent = {
-            chain_id: chainId
+            chainId: chainId
         };
     }
 
@@ -114,7 +114,7 @@ export class ChainApi {
                     this._chainStore.init()
                         .then(() => {
                             const commands = methods.commands
-                                .map(op => DecentLib.FetchChain(op.name, op.param));
+                                .map(op => dcore.FetchChain(op.name, op.param));
                             Promise.all(commands)
                                 .then(result => resolve(result))
                                 .catch(err => {

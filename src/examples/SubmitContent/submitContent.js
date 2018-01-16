@@ -28,16 +28,17 @@ const categoryOut = el('categoryList');
 const dctPow = Math.pow(10, 8);
 const chainId =
     '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
-const decentNetworkAddresses = ['wss://stage.decentgo.com:8090'];
+const dcoreNetworkAddresses = ['wss://stage.decentgo.com:8090'];
 const authorId = '1.2.30';
 const privateKey = '5JDFQN3T8CFT1ynhgd5s574mTV9UPf9WamkHojBL4NgbhSBDmBj';
 
-const decentjs_lib = window['decentjs-lib'];
+const dcore = window['dcore'];
+const dcore_js = window['dcore-js'];
 
-decent.initialize({
-    chain_id: chainId,
-    decent_network_wspaths: decentNetworkAddresses
-}, decentjs_lib);
+dcore_js.initialize({
+    chainId: chainId,
+    dcoreNetworkWSPaths: dcoreNetworkAddresses
+}, dcore);
 
 let file = null;
 const seeders = [];
@@ -55,7 +56,7 @@ function listCategories() {
 
 function getContentKeys(forSeeders) {
     return new Promise((resolve, reject) => {
-        decent.content().generateContentKeys(forSeeders)
+        dcore_js.content().generateContentKeys(forSeeders)
             .then(keys => {
                 resolve(keys);
             })
@@ -69,7 +70,7 @@ function onSubmit() {
     output.innerHTML = 'Submitting...';
     const [year, month, day] = el('expirationDate').value.split('-');
     const date = new Date(year, month, day, 0, 0, 0);
-    decent.content().getSeeders(2).then(seeders => {
+    dcore_js.content().getSeeders(2).then(seeders => {
         const synopsis = JSON.parse(el('meta').value);
         getContentKeys(seeders.map(s => s.seeder))
             .then(keys => {
@@ -86,7 +87,7 @@ function onSubmit() {
                     synopsis: synopsis
                 };
 
-                decent.content().addContent(submitObject, privateKey)
+                dcore_js.content().addContent(submitObject, privateKey)
                     .then(res => {
                         output.innerHTML = '<h3 style="color: green;">Content sucessfully submitted</h3>'
                     })

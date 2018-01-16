@@ -1,15 +1,15 @@
 // import {Type} from "../../explorer";
 
 const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
-const decentNetworkAddresses = ['wss://stage.decentgo.com:8090'];
+const dcoreNetworkAddresses = ['wss://stage.decentgo.com:8090'];
 
-const decentjs_lib = window['decentjs-lib'];
+const dcore = window['dcore'];
+const dcore_js = window['dcore-js'];
 
-
-decent.initialize({
-    chain_id: chainId,
-    decent_network_wspaths: decentNetworkAddresses
-}, decentjs_lib);
+dcore_js.initialize({
+    chainId: chainId,
+    dcoreNetworkWSPaths: dcoreNetworkAddresses
+}, dcore);
 
 const el = id => document.getElementById(id);
 
@@ -21,27 +21,27 @@ methodList.onchange = (ev) => {
 };
 
 const availableMethods = {
-    account: decent.Type.Protocol.account,
-    asset: decent.Type.Protocol.asset,
-    miner: decent.Type.Protocol.miner,
-    operation_history: decent.Type.Protocol.operation_history,
-    vesting_balance: decent.Type.Protocol.vesting_balance,
-    global_property: decent.Type.Implementation.global_property,
-    dynamic_global_property: decent.Type.Implementation.dynamic_global_property,
-    asset_dynamic_data_type: decent.Type.Implementation.asset_dynamic_data_type,
-    account_balance: decent.Type.Implementation.account_balance,
-    account_statistics: decent.Type.Implementation.account_statistics,
-    block_summary: decent.Type.Implementation.block_summary,
-    account_transaction_history: decent.Type.Implementation.account_transaction_history,
-    chain_property: decent.Type.Implementation.chain_property,
-    miner_schedule: decent.Type.Implementation.miner_schedule,
-    budget_record: decent.Type.Implementation.budget_record,
-    buying: decent.Type.Implementation.buying,
-    content: decent.Type.Implementation.content,
-    publisher: decent.Type.Implementation.publisher,
-    subscription: decent.Type.Implementation.subscription,
-    seeding_statistics: decent.Type.Implementation.seeding_statistics,
-    transaction_detail: decent.Type.Implementation.transaction_detail
+    account: dcore_js.Type.Protocol.account,
+    asset: dcore_js.Type.Protocol.asset,
+    miner: dcore_js.Type.Protocol.miner,
+    operation_history: dcore_js.Type.Protocol.operation_history,
+    vesting_balance: dcore_js.Type.Protocol.vesting_balance,
+    global_property: dcore_js.Type.Implementation.global_property,
+    dynamic_global_property: dcore_js.Type.Implementation.dynamic_global_property,
+    asset_dynamic_data_type: dcore_js.Type.Implementation.asset_dynamic_data_type,
+    account_balance: dcore_js.Type.Implementation.account_balance,
+    account_statistics: dcore_js.Type.Implementation.account_statistics,
+    block_summary: dcore_js.Type.Implementation.block_summary,
+    account_transaction_history: dcore_js.Type.Implementation.account_transaction_history,
+    chain_property: dcore_js.Type.Implementation.chain_property,
+    miner_schedule: dcore_js.Type.Implementation.miner_schedule,
+    budget_record: dcore_js.Type.Implementation.budget_record,
+    buying: dcore_js.Type.Implementation.buying,
+    content: dcore_js.Type.Implementation.content,
+    publisher: dcore_js.Type.Implementation.publisher,
+    subscription: dcore_js.Type.Implementation.subscription,
+    seeding_statistics: dcore_js.Type.Implementation.seeding_statistics,
+    transaction_detail: dcore_js.Type.Implementation.transaction_detail
 };
 
 function renderMethods() {
@@ -63,67 +63,67 @@ renderMethods();
 function listBlock(selectedValue) {
     blockView.innerHTML = 'Loading ... ';
     switch (Number(selectedValue)) {
-        case decent.Type.Protocol.account :
+        case dcore_js.Type.Protocol.account :
             getAccount();
             break;
-        case decent.Type.Protocol.asset :
+        case dcore_js.Type.Protocol.asset :
             getAsset();
             break;
-        case decent.Type.Protocol.miner :
+        case dcore_js.Type.Protocol.miner :
             getWitness();
             break;
-        case decent.Type.Protocol.operation_history :
+        case dcore_js.Type.Protocol.operation_history :
             getOperationHistory();
             break;
-        case decent.Type.Protocol.vesting_balance :
+        case dcore_js.Type.Protocol.vesting_balance :
             getVestingBalance();
             break;
-        case decent.Type.Implementation.global_property :
+        case dcore_js.Type.Implementation.global_property :
             getGlobalProperty();
             break;
-        case decent.Type.Implementation.dynamic_global_property :
+        case dcore_js.Type.Implementation.dynamic_global_property :
             getDynamicGlobalProperty();
             break;
-        case decent.Type.Implementation.asset_dynamic_data_type :
+        case dcore_js.Type.Implementation.asset_dynamic_data_type :
             getAssetDynamicDataType();
             break;
-        case decent.Type.Implementation.account_balance :
+        case dcore_js.Type.Implementation.account_balance :
             getAccountBalance();
             break;
-        case decent.Type.Implementation.account_statistics :
+        case dcore_js.Type.Implementation.account_statistics :
             getAccountStatistics();
             break;
-        case decent.Type.Implementation.block_summary :
+        case dcore_js.Type.Implementation.block_summary :
             getBlockSummary();
             break;
-        case decent.Type.Implementation.account_transaction_history :
+        case dcore_js.Type.Implementation.account_transaction_history :
             getAccountTransactionHistory();
             break;
-        case decent.Type.Implementation.chain_property :
+        case dcore_js.Type.Implementation.chain_property :
             getChainProperty();
             break;
-        case decent.Type.Implementation.miner_schedule :
+        case dcore_js.Type.Implementation.miner_schedule :
             getWitnessSchedule();
             break;
-        case decent.Type.Implementation.budget_record :
+        case dcore_js.Type.Implementation.budget_record :
             getBudgetRecord();
             break;
-        case decent.Type.Implementation.buying :
+        case dcore_js.Type.Implementation.buying :
             getBuying();
             break;
-        case decent.Type.Implementation.content :
+        case dcore_js.Type.Implementation.content :
             getContent();
             break;
-        case decent.Type.Implementation.publisher :
+        case dcore_js.Type.Implementation.publisher :
             getPublisher();
             break;
-        case decent.Type.Implementation.subscription :
+        case dcore_js.Type.Implementation.subscription :
             getSubscription();
             break;
-        case decent.Type.Implementation.seeding_statistics :
+        case dcore_js.Type.Implementation.seeding_statistics :
             getSeedingStatistics();
             break;
-        case decent.Type.Implementation.transaction_detail :
+        case dcore_js.Type.Implementation.transaction_detail :
             getTransactionDetail();
             break;
         default:
@@ -132,147 +132,147 @@ function listBlock(selectedValue) {
 }
 
 function getAccount() {
-    decent.explorer().getAccount('22').then(res => {
+    dcore_js.explorer().getAccount('22').then(res => {
         block = res;
         renderBlock(block);
     });
 }
 
 function getAsset() {
-    decent.explorer().getAsset('22').then(res => {
+    dcore_js.explorer().getAsset('22').then(res => {
         block = res;
         renderBlock(block);
     });
 }
 
 function getWitness() {
-    decent.explorer().getWitness('1').then(res => {
+    dcore_js.explorer().getWitness('1').then(res => {
         block = res;
         renderBlock(block);
     });
 }
 
 function getOperationHistory() {
-    decent.explorer().getOperationHistory('22').then(res => {
+    dcore_js.explorer().getOperationHistory('22').then(res => {
         block = res;
         renderBlock(block);
     });
 }
 
 function getVestingBalance() {
-    decent.explorer().getVestingBalance('1').then(res => {
+    dcore_js.explorer().getVestingBalance('1').then(res => {
         block = res;
         renderBlock(block);
     });
 }
 
 function getGlobalProperty() {
-    decent.explorer().getGlobalProperty('1').then(res => {
+    dcore_js.explorer().getGlobalProperty('1').then(res => {
         block = res;
         renderBlock(block);
     });
 }
 
 function getDynamicGlobalProperty() {
-    decent.explorer().getDynamicGlobalProperty('1').then(res => {
+    dcore_js.explorer().getDynamicGlobalProperty('1').then(res => {
         block = res;
         renderBlock(block);
     });
 }
 
 function getAssetDynamicDataType() {
-    decent.explorer().getAssetDynamicDataType('22').then(res => {
+    dcore_js.explorer().getAssetDynamicDataType('22').then(res => {
         block = res;
         renderBlock(block);
     });
 }
 
 function getAccountBalance() {
-    decent.explorer().getAccountBalance('22').then(res => {
+    dcore_js.explorer().getAccountBalance('22').then(res => {
         block = res;
         renderBlock(block);
     });
 }
 
 function getAccountStatistics() {
-    decent.explorer().getAccountStatistics('22').then(res => {
+    dcore_js.explorer().getAccountStatistics('22').then(res => {
         block = res;
         renderBlock(block);
     });
 }
 
 function getBlockSummary() {
-    decent.explorer().getBlockSummary('22').then(res => {
+    dcore_js.explorer().getBlockSummary('22').then(res => {
         block = res;
         renderBlock(block);
     });
 }
 
 function getAccountTransactionHistory() {
-    decent.explorer().getAccountTransactionHistory('22').then(res => {
+    dcore_js.explorer().getAccountTransactionHistory('22').then(res => {
         block = res;
         renderBlock(block);
     });
 }
 
 function getChainProperty() {
-    decent.explorer().getChainProperty('0').then(res => {
+    dcore_js.explorer().getChainProperty('0').then(res => {
         block = res;
         renderBlock(block);
     });
 }
 
 function getWitnessSchedule() {
-    decent.explorer().getWitnessSchedule('0').then(res => {
+    dcore_js.explorer().getWitnessSchedule('0').then(res => {
         block = res;
         renderBlock(block);
     });
 }
 
 function getBudgetRecord() {
-    decent.explorer().getBudgetRecord('22').then(res => {
+    dcore_js.explorer().getBudgetRecord('22').then(res => {
         block = res;
         renderBlock(block);
     });
 }
 
 function getBuying() {
-    decent.explorer().getBuying('22').then(res => {
+    dcore_js.explorer().getBuying('22').then(res => {
         block = res;
         renderBlock(block);
     });
 }
 
 function getContent() {
-    decent.explorer().getContent('22').then(res => {
+    dcore_js.explorer().getContent('22').then(res => {
         block = res;
         renderBlock(block);
     });
 }
 
 function getPublisher() {
-    decent.explorer().getPublisher('1').then(res => {
+    dcore_js.explorer().getPublisher('1').then(res => {
         block = res;
         renderBlock(block);
     });
 }
 
 function getSubscription() {
-    decent.explorer().getSubscription('0').then(res => {
+    dcore_js.explorer().getSubscription('0').then(res => {
         block = res;
         renderBlock(block);
     });
 }
 
 function getSeedingStatistics() {
-    decent.explorer().getSeedingStatistics('1').then(res => {
+    dcore_js.explorer().getSeedingStatistics('1').then(res => {
         block = res;
         renderBlock(block);
     });
 }
 
 function getTransactionDetail() {
-    decent.explorer().getTransactionDetail('22').then(res => {
+    dcore_js.explorer().getTransactionDetail('22').then(res => {
         block = res;
         renderBlock(block);
     });

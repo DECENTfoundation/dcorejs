@@ -256,10 +256,6 @@ export namespace DatabaseOperations {
     }
 }
 
-export interface DatabaseConfig {
-    decent_network_wspaths: string[];
-}
-
 export class Database {
     protected _api: any;
 }

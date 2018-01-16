@@ -34,10 +34,6 @@ export namespace HistoryOperations {
     }
 }
 
-export interface HistoryConfig {
-    decent_network_wspaths: string[];
-}
-
 export class HistoryApi {
     private _api: any;
     private _apiConnector: ApiConnector;

@@ -4,7 +4,7 @@
 
  Our intention is to revolutionize digital distribution across the Internet.
 
- DECENT Network is a content distribution platform that is decentralized,
+ Dcore Network is a content distribution platform that is decentralized,
  open-source and uses Blockchain technology. Blockchain technology guarantees
  trust and security by embedding encryption at the lowest level.
  Perhaps the greatest benefit of this implementation of blockchain technology
@@ -18,12 +18,12 @@
  DCT tokens help mitigate attacks, promote funding and ensure transaction
  validation. One last thing of note, unlike other content distribution platforms
  underdevelopment, there are virtually no limitations as to the type of media that
- can be published on DECENT Network. It could be songs, books, articles, videos,
+ can be published on Dcore Network. It could be songs, books, articles, videos,
  source code, or anything really and in almost any format.
 
-# decent-js
+# dcore-js
 
-Javascript library to work with Decent blockchain network.
+Javascript library to work with Dcore blockchain network.
 
 ## Quick start
 
@@ -33,51 +33,51 @@ Javascript library to work with Decent blockchain network.
 
  2. Change directory to project root dir
 
- 3. Install `npm install decent-js`
+ 3. Install `npm install dcore-js`
 
- 4. Install decentjs-lib dependency library using
-    `npm install git+ssh://git@github.com/DECENTfoundation/decentjs-lib`
+ 4. Install dcore dependency library using
+    `npm install git+ssh://git@github.com/DECENTfoundation/dcore`
 
 ### Initialize library
 
 ```javascript
-import * as DecentjsLib from 'decentjs-lib';
-import * as decent from 'decent-js';
+import * as dcore from 'dcore';
+import * as dcore_js from 'dcore-js';
 
 const config = {
-    decent_network_wspaths: ['wss://your.decent.daemon:8090'],
-    chain_id: 'your-decent-chain-id'
+    dcoreNetworkWSPaths: ['wss://your.dcore.daemon:8090'],
+    chainId: 'your-dcore-chain-id'
 };
 
-decent.initialize(config, DecentjsLib);
+dcore_js.initialize(config, dcore);
 ```
 
-Replace `decent_network_wspaths` with active decent daemon instance and `chain_id` with blockchain id which
+Replace `dcoreNetworkWSPaths` with active dcore daemon instance and `chainId` with blockchain id which
 you are about to work on.
 
 ## Usage
 
-Once Decent lib is initialized, you can access methods using `Decent.instance().core`
+Once dcore lib is initialized, you can access methods using `dcore` with any of submodule - `account()`, `content()` or `explorer()`
 
 ## Search content
 
 ```javascript
-import * as decent from 'decent-js';
+import * as dcore from 'dcore-js';
 
 const term = 'some phrase';
-const order = decent.SearchParamsOrder.createdDesc;
+const order = dcore.SearchParamsOrder.createdDesc;
 const user = '1.2.345';
 const region_code = 'en';
 const itemId = '0.0.0';
 const category = '1';
 const count = 4;
 
-const searchParams: decent.SearchParams = new decent.SearchParams(
+const searchParams: dcore.SearchParams = new dcore.SearchParams(
     term, order, user, region_code, itemId, category, count
 );
 
-decent.content().searchContent(searchParams)
-    .then((contents: decent.Content[]) => {
+dcore.content().searchContent(searchParams)
+    .then((contents: dcore.Content[]) => {
         // process found content
     })
     .catch(err => {
@@ -86,19 +86,19 @@ decent.content().searchContent(searchParams)
 ```
 
 Replace all variables with your values to get requested content.
-[Search example](https://github.com/DECENTfoundation/decent-js/tree/master/src/examples/SearchContent)
+[Search example](https://github.com/DECENTfoundation/dcore-js/tree/master/src/examples/SearchContent)
 
 ## Buy content
 
 ```javascript
-import * as decent from 'decent-js';
+import * as dcore from 'dcore-js';
 
 const contentId = '1.2.3';
-const accountId = '1.3.45';
+const accountId = '1.3.45';dcore
 const privateKey = 'ac7b6876b8a7b68a7c6b8a7c6b8a7cb68a7cb78a6cb8';
 const elGammalPublic = '704978309485720398475187405981709436818374592763459872645';
 
-decent.content()
+dcore.content()
     .buyContent(contentId,
                 accountId,
                 elGammalPublic,
@@ -111,25 +111,25 @@ decent.content()
     });
 ```
 
-Replace variables with keys from your decent account to buy content.
+Replace variables with keys from your dcore account to buy content.
 Otherwise you will not be able to buy content.
 Private key must be in WIF(Wallet Import Format).
-[Buy example](https://github.com/DECENTfoundation/decent-js/tree/master/src/examples/BuyContent)
+[Buy example](https://github.com/DECENTfoundation/dcore-js/tree/master/src/examples/BuyContent)
 
 ## Download/Restore content
 
 Method `restoreContentKeys` will restore your key generated during content submission, used to encrypt content.
 
 ```javascript
-import * as decent from 'decent-js';
+import * as dcore from 'dcore-js';
 
 const elGamalPrivate = '32983749287349872934792739472387492387492834';
 const elGamalPublic = '704978309485720398475187405981709436818374592763459872645';
-const elGamalKeyPair = new decent.KeyPair(elGamalPrivate, elGamalPublic);
+const elGamalKeyPair = new dcore.KeyPair(elGamalPrivate, elGamalPublic);
 const contentId = '1.2.312';
 
 // Content key restoration
-decent.content().restoreContentKeys(contentId, elGamalKeyPair)
+dcore.content().restoreContentKeys(contentId, elGamalKeyPair)
     .then(key => {
         // ... now you are able to decrypt your content
     })
@@ -138,12 +138,12 @@ decent.content().restoreContentKeys(contentId, elGamalKeyPair)
     });
 ```
 
-[Download example](https://github.com/DECENTfoundation/decent-js/tree/master/src/examples/DownloadContent)
+[Download example](https://github.com/DECENTfoundation/dcore-js/tree/master/src/examples/DownloadContent)
 
-More examples available [here](https://github.com/DECENTfoundation/decent-js/tree/master/src/examples).
+More examples available [here](https://github.com/DECENTfoundation/dcore-js/tree/master/src/examples).
 To run examples, you need to clone repository and build with `npm run build`
 if folders `dist` and `lib` is not presented. Browser bundle can be found
-within `dist/bundle.js`. Node version in `lib/decent-js.js`.
+within `dist/bundle.js`. Node version in `lib/dcore-js.js`.
 
 ## All available methods
 

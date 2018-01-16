@@ -1,4 +1,4 @@
-import { DecentLib } from './helpers';
+import { dcore } from './helpers';
 import { KeyPrivate, KeyPublic, Utils } from './utils';
 
 import {Key, KeyParts} from './content';
@@ -93,13 +93,13 @@ export interface RegionalPrice {
 
 export class Transaction {
     /**
-     * decentjs.lib/lib - TransactionBuilder
+     * dcore_jsjs.lib/lib - TransactionBuilder
      */
     private _transaction: any;
     private _operations: Operation[] = [];
 
     constructor() {
-        this._transaction = new DecentLib.TransactionBuilder();
+        this._transaction = new dcore.TransactionBuilder();
     }
 
     /**
@@ -117,10 +117,10 @@ export class Transaction {
      * @return {boolean}
      */
     public addOperation(operation: Operation): boolean {
-        if (!DecentLib.ops.hasOwnProperty(operation.name)) {
+        if (!dcore.ops.hasOwnProperty(operation.name)) {
             return false;
         }
-        DecentLib.ops[operation.name].keys.forEach((key: string) => {
+        dcore.ops[operation.name].keys.forEach((key: string) => {
             return operation.operation.hasOwnProperty(key);
         });
         this._transaction.add_type_operation(operation.name, operation.operation);
@@ -129,7 +129,7 @@ export class Transaction {
     }
 
     /**
-     * Broadcast transaction to decent blockchain.
+     * Broadcast transaction to dcore_js blockchain.
      *
      * @param {string} privateKey
      * @return {Promise<void>}

@@ -1,18 +1,18 @@
 {
-    "name": "decent-js",
+    "name": "dcore-js",
     "version": "1.0.2",
     "description": "",
     "keywords": [
         "blockchain",
-        "decent"
+        "dcore_js"
     ],
-    "main": "lib/decent-js.js",
-    "module": "lib/decent-js.js",
-    "types": "dist/types/decent-js.d.ts",
+    "main": "lib/dcore-js.js",
+    "module": "lib/dcore-js.js",
+    "types": "dist/types/dcore-js.d.ts",
     "author": "DECENT Foundation <info@decent.ch>",
     "repository": {
         "type": "git",
-        "url": "https://github.com/DECENTfoundation/decent-js.git"
+        "url": "https://github.com/DECENTfoundation/dcore.git"
     },
     "directories": {
         "bin": "./dist",
@@ -25,7 +25,6 @@
     },
     "scripts": {
         "start": "tsc -w & webpack --config webpack.config.js --watch",
-        "lint": "tslint -t codeFrame 'src/**/*.ts' 'test/**/*.ts'",
         "prebuild": "rimraf dist && rimraf lib",
         "build": "tsc && webpack --config webpack.config.js && typedoc --out dist/docs --target es6 --theme minimal --excludeExternals --includeDeclarations --excludePrivate --exclude \"{**/{api,mocks}/*.ts,**/crypt.ts}\" src",
         "generate-docs": " typedoc --out dist/docs --target es6 --theme minimal --excludeExternals --includeDeclarations --excludePrivate --exclude \"{**/{api,mocks}/*.ts,**/crypt.ts}\" src",
@@ -47,17 +46,7 @@
         "coveragePathIgnorePatterns": [
             "/node_modules/",
             "/test/"
-        ],
-        "coverageThreshold": {
-            "global": {
-                "branches": 90,
-                "functions": 95,
-                "lines": 95,
-                "statements": 95
-            }
-        },
-        "collectCoverage": true,
-        "mapCoverage": true
+        ]
     },
     "devDependencies": {
         "@types/concat-stream": "1.6.0",
@@ -65,7 +54,6 @@
         "@types/node": "8.0.47",
         "colors": "^1.1.2",
         "cross-env": "5.1.1",
-        "decentjs-lib": "git+ssh://git@github.com/DECENTfoundation/decentjs-lib",
         "jest": "21.2.1",
         "lodash.camelcase": "^4.3.0",
         "prompt": "^1.0.0",
@@ -79,13 +67,11 @@
     },
     "dependencies": {
         "bluebird": "3.5.1",
-        "concat-stream": "1.6.0",
         "crypto-js": "3.1.9-1",
+        "dcore": "file:../../decentjs-lib/dcore-1.0.0.tgz",
         "ipfs-api": "15.0.1",
         "moment": "2.18.1",
-        "requirejs": "2.3.5",
-        "ripemd160": "2.0.1",
-        "rollup-plugin-node-globals": "1.1.0"
+        "ripemd160": "2.0.1"
     },
     "prettier": {
         "tabWidth": 4

@@ -8,21 +8,21 @@ el('searchButton').onclick = () => {
 };
 
 const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
-const decentNetworkAddresses = ['wss://stage.decentgo.com:8090'];
+const dcoreNetworkAddresses = ['wss://stage.decentgo.com:8090'];
 
-const decentjs_lib = window['decentjs-lib'];
+const dcore = window['dcore'];
+const dcore_js = window['dcore-js'];
 
-
-decent.initialize({
-    chain_id: chainId,
-    decent_network_wspaths: decentNetworkAddresses
-}, decentjs_lib);
+dcore_js.initialize({
+    chainId: chainId,
+    dcoreNetworkWSPaths: dcoreNetworkAddresses
+}, dcore);
 
 const output = el('output');
 
 function searchContent(keyword) {
     output.innerHTML = 'Loading ...';
-    decent.content().searchContent(new decent.SearchParams(keyword))
+    dcore_js.content().searchContent(new dcore_js.SearchParams(keyword))
         .then(content => {
             output.innerHTML = renderContent(content);
         })

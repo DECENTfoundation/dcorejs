@@ -231,7 +231,7 @@ export class AccountApi {
     /**
      * Gets transaction history for given Account name.
      *
-     * @deprecated This method will be removed since future Decent Core update. Use getAccountHistory instead
+     * @deprecated This method will be removed since future DCore update. Use getAccountHistory instead
      *
      * @param {string} accountId                example: "1.2.345"
      * @param {string} order                    SearchAccountHistoryOrder class holds all available options.
@@ -473,7 +473,7 @@ export class AccountApi {
             );
             this._historyApi.execute(operation)
                 .then(res => {
-                    // TODO: create models for different operations names, placed in decentjs-lib/src/chain/src/ChainTypes.js
+                    // TODO: create models for different operations names, placed in dcore/src/chain/src/ChainTypes.js
                     resolve(res);
                 })
                 .catch(err => reject(this.handleError(AccountError.transaction_history_fetch_failed, err)));

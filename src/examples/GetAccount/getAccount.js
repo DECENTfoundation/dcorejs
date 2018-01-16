@@ -8,20 +8,21 @@ el('searchButton').onclick = () => {
 };
 const output = el('output');
 
-const decentjs_lib = window['decentjs-lib'];
+const dcore = window['dcore'];
+const dcore_js = window['dcore-js'];
 
 // Lib initialization
 const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
-const decentNetworkAddresses = ['wss://stage.decentgo.com:8090'];
+const dcoreNetworkAddresses = ['wss://stage.decentgo.com:8090'];
 
-decent.initialize({
-    chain_id: chainId,
-    decent_network_wspaths: decentNetworkAddresses
-}, decentjs_lib);
+dcore_js.initialize({
+    chainId: chainId,
+    dcoreNetworkWSPaths: dcoreNetworkAddresses
+}, dcore);
 
 function getAccount(accountId) {
     output.innerHTML = 'Loading ...';
-    decent.account().getAccountById(accountId)
+    dcore_js.account().getAccountById(accountId)
         .then(res => {
             output.innerHTML = '';
             output.innerHTML += '<h3>Id: ' + res.id + '</h3>';
@@ -29,6 +30,8 @@ function getAccount(accountId) {
             output.innerHTML += '<h3>Auth: ' + res.owner.key_auths[0][0] + '</h3>';
             output.innerHTML += '<h3>Registered by: ' + res.registrar + '</h3>';
             output.innerHTML += JSON.stringify(res);
+            debugger;
+            console.log(dcore_js.account().handleError('pico', 'vina'));
         })
         .catch(err => {
             console.error(err);

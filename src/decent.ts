@@ -18,16 +18,16 @@ export class DecentError {
 }
 
 export interface DecentConfig {
-    decent_network_wspaths: string[]
-    chain_id: string
+    dcoreNetworkWSPaths: string[]
+    chainId: string
 }
 
-export function initialize(config: DecentConfig, decentjs_lib: any): void {
-    _decentjslib = decentjs_lib;
+export function initialize(config: DecentConfig, dcore: any): void {
+    _decentjslib = dcore;
     setLibRef(_decentjslib);
-    ChainApi.setupChain(config.chain_id, _decentjslib.ChainConfig);
+    ChainApi.setupChain(config.chainId, _decentjslib.ChainConfig);
 
-    const connector = new ApiConnector(config.decent_network_wspaths, _decentjslib.Apis);
+    const connector = new ApiConnector(config.dcoreNetworkWSPaths, _decentjslib.Apis);
 
     const database = new DatabaseApi(_decentjslib.Apis, connector);
     const historyApi = new HistoryApi(_decentjslib.Apis, connector);
