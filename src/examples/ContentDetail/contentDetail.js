@@ -50,7 +50,7 @@ function showDetail(itemId) {
     contentDetail.innerHTML += '<p>Description: ' + item.synopsis.description + '</p>';
     contentDetail.innerHTML += '<h4>Price: ' + item.price.amount + '</h4>';
     contentDetail.innerHTML += '<h4>Expiration: ' + item.expiration + '</h4>';
-    contentDetail.innerHTML += JSON.stringify(item);
+    contentDetail.innerHTML += JSON.stringify(item, null, 2);
 }
 
 //# sourceMappingURL=searchContent.js.map
