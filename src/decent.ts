@@ -22,12 +22,20 @@ export interface DecentConfig {
     chain_id: string
 }
 
-export function initialize(config: DecentConfig, decentjs_lib: any): void {
+/**
+ * Intialize decent-js library with custom data that are used for library operations
+ *
+ * @export
+ * @param {DecentConfig} config                                 Configuration of decent network yout about to connect to
+ * @param {*} decentjs_lib                                      Reference to low level decentjs-lib library
+ * @param {(string) => void} [connectionStatusCallback=null]    Status callback to handle connection. Available states are 'open', 'closed'
+ */
+export function initialize(config: DecentConfig, decentjs_lib: any, connectionStatusCallback: (string) => void = null): void {
     _decentjslib = decentjs_lib;
     setLibRef(_decentjslib);
     ChainApi.setupChain(config.chain_id, _decentjslib.ChainConfig);
 
-    const connector = new ApiConnector(config.decent_network_wspaths, _decentjslib.Apis);
+    const connector = new ApiConnector(config.decent_network_wspaths, _decentjslib.Apis, connectionStatusCallback);
 
     const database = new DatabaseApi(_decentjslib.Apis, connector);
     const historyApi = new HistoryApi(_decentjslib.Apis, connector);
