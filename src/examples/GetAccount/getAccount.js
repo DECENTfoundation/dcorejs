@@ -28,7 +28,7 @@ function getAccount(accountId) {
             output.innerHTML += '<h3>Name: ' + res.name + '</h3>';
             output.innerHTML += '<h3>Auth: ' + res.owner.key_auths[0][0] + '</h3>';
             output.innerHTML += '<h3>Registered by: ' + res.registrar + '</h3>';
-            output.innerHTML += JSON.stringify(res);
+            output.innerHTML += JSON.stringify(res, null, 2);
         })
         .catch(err => {
             console.error(err);
