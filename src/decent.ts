@@ -27,13 +27,14 @@ export interface DecentConfig {
  * @export
  * @param {DecentConfig} config                                 Configuration of decent network yout about to connect to
  * @param {*} dcore                                             Reference to low level decentjs-lib library
- * @param {(string) => void} [connectionStatusCallback=null]    Status callback to handle connection. Available states are 'open', 'closed'
+ * @param {(string) => void} [connectionStatusCallback=null]    Status callback to handle connection. Available states are
+ *                                                              defined in ConnectionState enum
  */
 export function initialize(config: DecentConfig, dcore: any, connectionStatusCallback: (string) => void = null): void {
     setLibRef(dcore);
     ChainApi.setupChain(config.chainId, dcore.ChainConfig);
 
-    const connector = new ApiConnector(config.decent_network_wspaths, dcore.Apis, connectionStatusCallback);
+    const connector = new ApiConnector(config.dcoreNetworkWSPaths, dcore.Apis, connectionStatusCallback);
 
     const database = new DatabaseApi(dcore.Apis, connector);
     const historyApi = new HistoryApi(dcore.Apis, connector);
