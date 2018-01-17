@@ -5,3 +5,5 @@ export { ContentApi, Content, Price, Synopsis, SubmitObject, KeyPair, ContentKey
 export { Account, TransactionRecord } from './account';
 
 export { ExplorerModule, Type, Space, ErrorExplorer } from './explorer';
+
+export { ConnectionState } from './api/apiConnector';
