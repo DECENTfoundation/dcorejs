@@ -4,7 +4,7 @@
 
  Our intention is to revolutionize digital distribution across the Internet.
 
- Dcore Network is a content distribution platform that is decentralized,
+ DCore Network is a content distribution platform that is decentralized,
  open-source and uses Blockchain technology. Blockchain technology guarantees
  trust and security by embedding encryption at the lowest level.
  Perhaps the greatest benefit of this implementation of blockchain technology
