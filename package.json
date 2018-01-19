@@ -1,6 +1,6 @@
 {
     "name": "dcore-js",
-    "version": "1.0.2",
+    "version": "0.0.1",
     "description": "",
     "keywords": [
         "blockchain",
@@ -12,7 +12,7 @@
     "author": "DECENT Foundation <info@decent.ch>",
     "repository": {
         "type": "git",
-        "url": "https://github.com/DECENTfoundation/dcore.git"
+        "url": "https://github.com/DECENTfoundation/dcorejs.git"
     },
     "directories": {
         "bin": "./dist",
@@ -54,7 +54,7 @@
         "@types/node": "8.0.47",
         "colors": "^1.1.2",
         "cross-env": "5.1.1",
-        "dcore": "1.0.0",
+        "dcorejs-lib": "0.0.1",
         "jest": "21.2.1",
         "lodash.camelcase": "^4.3.0",
         "prompt": "^1.0.0",
