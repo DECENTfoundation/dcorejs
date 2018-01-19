@@ -8,7 +8,7 @@ import {
     Transaction
 } from './transaction';
 import { Asset } from './account';
-import {isUndefined} from 'util';
+import { isUndefined } from 'util';
 
 const moment = require('moment');
 
@@ -148,7 +148,7 @@ export interface Seeder {
 
 /**
  * ContentApi provide methods to communication
- * with content stored in decent network.
+ * with content stored in dcore_js network.
  */
 export class ContentApi {
     private _dbApi: DatabaseApi;
@@ -160,7 +160,7 @@ export class ContentApi {
     }
 
     /**
-     * Searches content submitted to decent network and is not expired.
+     * Searches content submitted to dcore_js network and is not expired.
      *
      * @param {SearchParams} searchParams
      * @return {Promise<Content[]>}

@@ -1,0 +1,22 @@
+#.travis.yml
+sudo: required
+dist: trusty
+language: node_js
+node_js:
+  - "6.9"
+
+
+branches:
+  only:
+    - develop
+    - master
+    - /^release-.*$/
+
+script:
+  - npm run build
+  - npm run test
+
+notifications:
+  email:
+    on_failure: change
+    on_success: change

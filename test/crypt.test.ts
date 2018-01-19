@@ -1,7 +1,7 @@
 import { KeyPrivate, KeyPublic } from '../src/utils';
 import { CryptoUtils } from '../src/crypt';
 import { setLibRef } from './../src/helpers';
-import * as DecentLib from 'decentjs-lib';
+import * as dcore from 'dcore';
 import { Utils } from '../src/utils';
 
 const message = 'test message for encryption';
@@ -12,7 +12,7 @@ let secret: KeyPrivate = null;
 let pkey: KeyPublic = null;
 
 function initLib() {
-    setLibRef(DecentLib);
+    setLibRef(dcore);
     secret = Utils.privateKeyFromWif(secretWif);
     pkey = Utils.publicKeyFromString(pkeyString);
 }
