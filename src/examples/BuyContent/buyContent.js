@@ -1,35 +1,37 @@
 "use strict";
 // Lib initialization
 const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
-const decentNetworkAddresses = ['wss://stage.decentgo.com:8090'];
+const dcoreNetworkAddresses = ['wss://stage.decentgo.com:8090'];
 
-let decentjs_lib = window['decentjs-lib'];
+const dcore = window['dcore'];
+const dcore_js = window['dcore-js'];
 
-decent.Decent.initialize({
-    chain_id: chainId,
-    decent_network_wspaths: decentNetworkAddresses
-}, decentjs_lib);
+dcore_js.initialize({
+    chainId: chainId,
+    dcoreNetworkWSPaths: dcoreNetworkAddresses
+}, dcore);
 
-const output = document.getElementById('output');
-const result = document.getElementById('result');
+const el = id => document.getElementById(id);
+
+const output = el('output');
+const result = el('result');
 
 output.innerHTML = 'Loading ...';
-decent.content().searchContent(new decent.SearchParams())
+dcore_js.content().searchContent(new dcore_js.SearchParams())
     .then(content => {
-        const data = renderContent(content);
-        output.innerHTML = data;
+        output.innerHTML = renderContent(content);
     });
 
 function renderContent(content) {
-    let render = '<ul>';
-    render += content.map(c => '<li>' + c.synopsis.title + '</li> <button type="button" value="c.id" onclick="buyContent(\'' +  c.id + '\')">Buy</button>');
-    render += '</ul>';
-
+    const render = [];
     if (content.length === 0) {
-        render = '<h3>No content</h3>'
+        render.push('<h3>No content</h3>');
+    } else {
+        render.push('<ul>');
+        render.push(content.map(c => '<li>' + c.synopsis.title + '</li> <button type="button" value="c.id" onclick="buyContent(\'' +  c.id + '\')">Buy</button>'));
+        render.push('</ul>');
     }
-
-    return render
+    return render.join('');
 }
 
 
@@ -39,9 +41,8 @@ const elGamalPublic = '731775263338303358215908804150959349223846835020507020023
 const privateKey = '5JDFQN3T8CFT1ynhgd5s574mTV9UPf9WamkHojBL4NgbhSBDmBj';
 
 function buyContent(contentId) {
-    console.log(contentId);
     result.innerHTML = 'Loading ...';
-    decent.content().buyContent(contentId, buyerId, elGamalPublic, privateKey)
+    dcore_js.content().buyContent(contentId, buyerId, elGamalPublic, privateKey)
         .then(() => {
             console.log('Successful');
             result.innerHTML = '<p style="color: green;">Content bought</p>';
@@ -51,4 +52,5 @@ function buyContent(contentId) {
             result.innerHTML = '<p style="color: red;">Content already bought or own content</p>';
         });
 }
+
 //# sourceMappingURL=searchContent.js.map

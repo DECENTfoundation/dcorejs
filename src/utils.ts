@@ -1,6 +1,6 @@
-import { DecentLib } from './helpers';
+import { dcore } from './helpers';
 import { CryptoUtils } from './crypt';
-import {ChainApi} from './api/chain';
+import { ChainApi } from './api/chain';
 
 
 export class Utils {
@@ -54,7 +54,7 @@ export class Utils {
      * @return {KeyPrivate}
      */
     public static privateKeyFromWif(pkWif: string): KeyPrivate {
-        const pKey = DecentLib.PrivateKey.fromWif(pkWif);
+        const pKey = dcore.PrivateKey.fromWif(pkWif);
         return new KeyPrivate(pKey);
     }
 
@@ -65,12 +65,12 @@ export class Utils {
      * @return {KeyPublic}
      */
     public static publicKeyFromString(pubKeyString: string): KeyPublic {
-        const pubKey = DecentLib.PublicKey.fromPublicKeyString(pubKeyString);
+        const pubKey = dcore.PublicKey.fromPublicKeyString(pubKeyString);
         return new KeyPublic(pubKey);
     }
 
     private static generatePrivateKey(brainKey: string): KeyPrivate {
-        const pKey = DecentLib.key.get_brainPrivateKey(brainKey);
+        const pKey = dcore.key.get_brainPrivateKey(brainKey);
         return new KeyPrivate(pKey);
     }
 }
@@ -86,7 +86,7 @@ export class KeyPrivate {
     }
 
     /**
-     * Raw representation of key for decent-js
+     * Raw representation of key for dcore-js
      * library purposes.
      * @return {any}
      */
@@ -115,7 +115,7 @@ export class KeyPublic {
     }
 
     /**
-     * Raw representation of key for decent-js
+     * Raw representation of key for dcore-js
      * library purposes.
      * @return {any}
      */

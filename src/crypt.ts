@@ -1,5 +1,5 @@
 import { KeyPrivate, KeyPublic } from './utils';
-import { DecentLib } from './helpers';
+import { dcore } from './helpers';
 import md5 from 'crypto-js/md5';
 
 const RIPEMD160 = require('ripemd160');
@@ -18,11 +18,14 @@ export class CryptoUtils {
                                       privateKey: KeyPrivate,
                                       publicKey: KeyPublic,
                                       nonce: string = ''): Buffer {
-        return DecentLib.Aes.encrypt_with_checksum(privateKey.key, publicKey.key, nonce, message);
+        return dcore.Aes.encrypt_with_checksum(privateKey.key, publicKey.key, nonce, message);
     }
 
-    public static decryptWithChecksum(message: string, privateKey: KeyPrivate, publicKey: KeyPublic, nonce: string = ''): Buffer {
-        return DecentLib.Aes.decrypt_with_checksum(privateKey.key, publicKey.key, nonce, message);
+    public static decryptWithChecksum(message: string,
+                                      privateKey: KeyPrivate,
+                                      publicKey: KeyPublic,
+                                      nonce: string = ''): Buffer {
+        return dcore.Aes.decrypt_with_checksum(privateKey.key, publicKey.key, nonce, message);
     }
 
     public static ripemdHash(fromBuffer: Buffer): string {
