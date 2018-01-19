@@ -1,29 +1,30 @@
 "use strict";
 
-document.getElementById('searchButton').onclick = () => {
-    const keyword = document.getElementById('keyword').value;
+const el = id => document.getElementById(id);
+
+el('searchButton').onclick = () => {
+    const keyword = el('keyword').value;
     searchContent(keyword);
 };
 
 const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
-const decentNetworkAddresses = ['wss://stage.decentgo.com:8090'];
+const dcoreNetworkAddresses = ['wss://stage.decentgo.com:8090'];
 
-let decentjs_lib = window['decentjs-lib'];
-console.log(decentjs_lib);
-decent.initialize({
-    chain_id: chainId,
-    decent_network_wspaths: decentNetworkAddresses
-}, decentjs_lib);
+const dcore = window['dcore'];
+const dcore_js = window['dcore-js'];
 
-const output = document.getElementById('output');
+dcore_js.initialize({
+    chainId: chainId,
+    dcoreNetworkWSPaths: dcoreNetworkAddresses
+}, dcore);
+
+const output = el('output');
 
 function searchContent(keyword) {
-    console.log(keyword);
     output.innerHTML = 'Loading ...';
-    decent.content().searchContent(new decent.SearchParams(keyword))
+    dcore_js.content().searchContent(new dcore_js.SearchParams(keyword))
         .then(content => {
-            const data = renderContent(content);
-            output.innerHTML = data;
+            output.innerHTML = renderContent(content);
         })
         .catch(err => {
             console.error(err);
@@ -32,14 +33,16 @@ function searchContent(keyword) {
 }
 
 function renderContent(content) {
-    let render = '<ul>';
-     render += content.map(c => '<li>' + c.synopsis.title + '</li>');
-     render += '</ul>';
-     
-    if (content.length === 0) {
-        render = '<h3>No results</h3>'
-    }
+    const render = [];
 
-     return render
+    if (content.length === 0) {
+        render.push('<h3>No content</h3>');
+    } else {
+        render.push('<ul>');
+        render.push(content.map(c => '<li>' + c.synopsis.title + '</li>'));
+        render.push('</ul>');
+    }
+    return render.join('');
 }
+
 //# sourceMappingURL=searchContent.js.map

@@ -1,9 +1,9 @@
-export let DecentLib: any = {};
+export let dcore: any = {};
 
 export function setLibRef(libRef: any) {
-    DecentLib = libRef;
+    dcore = libRef;
 }
 
 export function getLibRef(): any {
-    return DecentLib;
+    return dcore;
 }
