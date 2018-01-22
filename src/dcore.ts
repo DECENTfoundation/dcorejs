@@ -26,19 +26,19 @@ export interface DcoreConfig {
  *
  * @export
  * @param {DcoreConfig} config                                                  Configuration of dcore network yout about to connect to
- * @param {*} dcore                                                             Reference to low level dcorejs-lib library
+ * @param {*} dcorejs_lib                                                             Reference to low level dcorejs-lib library
  * @param {(state: ConnectionState) => void} [connectionStatusCallback=null]    Status callback to handle connection
  */
-export function initialize(config: DcoreConfig, dcore: any, connectionStatusCallback: (state: ConnectionState) => void = null): void {
-    setLibRef(dcore);
-    ChainApi.setupChain(config.chainId, dcore.ChainConfig);
+export function initialize(config: DcoreConfig, dcorejs_lib: any, connectionStatusCallback: (state: ConnectionState) => void = null): void {
+    setLibRef(dcorejs_lib);
+    ChainApi.setupChain(config.chainId, dcorejs_lib.ChainConfig);
 
-    const connector = new ApiConnector(config.dcoreNetworkWSPaths, dcore.Apis, connectionStatusCallback);
+    const connector = new ApiConnector(config.dcoreNetworkWSPaths, dcorejs_lib.Apis, connectionStatusCallback);
 
-    const database = new DatabaseApi(dcore.Apis, connector);
-    const historyApi = new HistoryApi(dcore.Apis, connector);
+    const database = new DatabaseApi(dcorejs_lib.Apis, connector);
+    const historyApi = new HistoryApi(dcorejs_lib.Apis, connector);
 
-    const chain = new ChainApi(connector, dcore.ChainStore);
+    const chain = new ChainApi(connector, dcorejs_lib.ChainStore);
     _content = new ContentApi(database, chain);
     _account = new AccountApi(database, chain, historyApi);
     _explorer = new ExplorerModule(database);
