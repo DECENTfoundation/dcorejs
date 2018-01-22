@@ -6,9 +6,9 @@
         "blockchain",
         "dcore_js"
     ],
-    "main": "lib/dcore-js.js",
-    "module": "lib/dcore-js.js",
-    "types": "dist/types/dcore-js.d.ts",
+    "main": "lib/dcorejs.js",
+    "module": "lib/dcorejs.js",
+    "types": "dist/types/dcorejs.d.ts",
     "author": "DECENT Foundation <info@decent.ch>",
     "repository": {
         "type": "git",
