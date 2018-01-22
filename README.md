@@ -21,7 +21,7 @@
  can be published on Dcore Network. It could be songs, books, articles, videos,
  source code, or anything really and in almost any format.
 
-# dcore-js
+# dcorejs
 
 Javascript library to work with Dcore blockchain network.
 
@@ -33,23 +33,23 @@ Javascript library to work with Dcore blockchain network.
 
  2. Change directory to project root dir
 
- 3. Install `npm install dcore-js`
+ 3. Install `npm install dcorejs`
 
  4. Install dcore dependency library using
-    `npm install git+ssh://git@github.com/DECENTfoundation/dcore`
+    `npm install dcorejs-lib`
 
 ### Initialize library
 
 ```javascript
-import * as dcore from 'dcore';
-import * as dcore_js from 'dcore-js';
+import * as dcore from 'dcorejs-lib';
+import * as dcore_js from 'dcorejs';
 
 const config = {
     dcoreNetworkWSPaths: ['wss://your.dcore.daemon:8090'],
     chainId: 'your-dcore-chain-id'
 };
 
-dcore_js.initialize(config, dcore);
+dcore_js.initialize(config, dcorejs_lib);
 ```
 
 Replace `dcoreNetworkWSPaths` with active dcore daemon instance and `chainId` with blockchain id which
@@ -62,7 +62,7 @@ Once dcore lib is initialized, you can access methods using `dcore` with any of 
 ## Search content
 
 ```javascript
-import * as dcore from 'dcore-js';
+import * as dcore from 'dcorejs';
 
 const term = 'some phrase';
 const order = dcore.SearchParamsOrder.createdDesc;
@@ -86,12 +86,12 @@ dcore.content().searchContent(searchParams)
 ```
 
 Replace all variables with your values to get requested content.
-[Search example](https://github.com/DECENTfoundation/dcore-js/tree/master/src/examples/SearchContent)
+[Search example](https://github.com/DECENTfoundation/dcorejs/tree/master/src/examples/SearchContent)
 
 ## Buy content
 
 ```javascript
-import * as dcore from 'dcore-js';
+import * as dcore from 'dcorejs';
 
 const contentId = '1.2.3';
 const accountId = '1.3.45';dcore
@@ -114,14 +114,14 @@ dcore.content()
 Replace variables with keys from your dcore account to buy content.
 Otherwise you will not be able to buy content.
 Private key must be in WIF(Wallet Import Format).
-[Buy example](https://github.com/DECENTfoundation/dcore-js/tree/master/src/examples/BuyContent)
+[Buy example](https://github.com/DECENTfoundation/dcorejs/tree/master/src/examples/BuyContent)
 
 ## Download/Restore content
 
 Method `restoreContentKeys` will restore your key generated during content submission, used to encrypt content.
 
 ```javascript
-import * as dcore from 'dcore-js';
+import * as dcore from 'dcorejs';
 
 const elGamalPrivate = '32983749287349872934792739472387492387492834';
 const elGamalPublic = '704978309485720398475187405981709436818374592763459872645';
@@ -138,12 +138,12 @@ dcore.content().restoreContentKeys(contentId, elGamalKeyPair)
     });
 ```
 
-[Download example](https://github.com/DECENTfoundation/dcore-js/tree/master/src/examples/DownloadContent)
+[Download example](https://github.com/DECENTfoundation/dcorejs/tree/master/src/examples/DownloadContent)
 
-More examples available [here](https://github.com/DECENTfoundation/dcore-js/tree/master/src/examples).
+More examples available [here](https://github.com/DECENTfoundation/dcorejs/tree/master/src/examples).
 To run examples, you need to clone repository and build with `npm run build`
 if folders `dist` and `lib` is not presented. Browser bundle can be found
-within `dist/bundle.js`. Node version in `lib/dcore-js.js`.
+within `dist/bundle.js`. Node version in `lib/dcorejs.js`.
 
 ## All available methods
 
