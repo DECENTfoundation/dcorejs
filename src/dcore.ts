@@ -4,33 +4,32 @@ import { ChainApi } from './api/chain';
 import { DatabaseApi } from './api/database';
 import { AccountApi } from './account';
 import { HistoryApi } from './api/history';
-import { ApiConnector } from './api/apiConnector';
-import {ExplorerModule} from './explorer';
+import { ApiConnector, ConnectionState } from './api/apiConnector';
+import { ExplorerModule } from './explorer';
 
 let _content: ContentApi;
 let _account: AccountApi;
 let _explorer: ExplorerModule;
 
-export class DecentError {
+export class DcoreError {
     static app_not_initialized = 'app_not_initialized';
     static app_missing_config = 'app_missing_config';
 }
 
-export interface DecentConfig {
+export interface DcoreConfig {
     dcoreNetworkWSPaths: string[]
     chainId: string
 }
 
 /**
- * Intialize decent-js library with custom data that are used for library operations
+ * Intialize dcorejs library with custom data that are used for library operations
  *
  * @export
- * @param {DecentConfig} config                                 Configuration of decent network yout about to connect to
- * @param {*} dcore                                             Reference to low level decentjs-lib library
- * @param {(string) => void} [connectionStatusCallback=null]    Status callback to handle connection. Available states are
- *                                                              defined in ConnectionState enum
+ * @param {DcoreConfig} config                                                  Configuration of dcore network yout about to connect to
+ * @param {*} dcore                                                             Reference to low level dcorejs-lib library
+ * @param {(state: ConnectionState) => void} [connectionStatusCallback=null]    Status callback to handle connection
  */
-export function initialize(config: DecentConfig, dcore: any, connectionStatusCallback: (string) => void = null): void {
+export function initialize(config: DcoreConfig, dcore: any, connectionStatusCallback: (state: ConnectionState) => void = null): void {
     setLibRef(dcore);
     ChainApi.setupChain(config.chainId, dcore.ChainConfig);
 
