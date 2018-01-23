@@ -1,12 +1,12 @@
 const path = require('path');
 
 module.exports = {
-    entry: './lib/dcore-js.js',
+    entry: './lib/dcorejs.js',
     output: {
-        filename: 'dcore-js.umd.js',
+        filename: 'dcorejs.umd.js',
         path: path.resolve(__dirname, 'dist'),
         libraryTarget: "umd",
-        library: "dcore-js",
+        library: "dcorejs",
     },
     devtool: 'source-map'
 };

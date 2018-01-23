@@ -10,13 +10,13 @@ const info = el('info');
 const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
 const dcoreNetworkAddresses = ['wss://stage.decentgo.com:8090'];
 
-const dcore = window['dcore'];
-const dcore_js = window['dcore-js'];
+const dcorejs_lib = window['dcorejs-lib'];
+const dcore_js = window['dcorejs'];
 
 dcore_js.initialize({
     chainId: chainId,
     dcoreNetworkWSPaths: dcoreNetworkAddresses
-}, dcore);
+}, dcorejs_lib);
 
 // Define own values for variables
 const elGamalPrivate = '10264811947384987455806884361188312159337997349773266680031652882869271200883393026310091771774151908862673648846588359689442630336710264201803312709689478';

@@ -86,7 +86,7 @@ export class KeyPrivate {
     }
 
     /**
-     * Raw representation of key for dcore-js
+     * Raw representation of key for dcorejs
      * library purposes.
      * @return {any}
      */
@@ -115,7 +115,7 @@ export class KeyPublic {
     }
 
     /**
-     * Raw representation of key for dcore-js
+     * Raw representation of key for dcorejs
      * library purposes.
      * @return {any}
      */

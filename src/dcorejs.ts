@@ -1,3 +1,3 @@
-export * from './decent';
+export * from './dcore';
 export { Utils } from './utils';
 export * from './publicApi';

@@ -8,8 +8,8 @@ el('searchButton').onclick = () => {
 };
 const output = el('output');
 
-const dcore = window['dcore'];
-const dcore_js = window['dcore-js'];
+const dcorejs_lib = window['dcorejs-lib'];
+const dcore_js = window['dcorejs'];
 
 // Lib initialization
 const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
@@ -18,7 +18,7 @@ const dcoreNetworkAddresses = ['wss://stage.decentgo.com:8090'];
 dcore_js.initialize({
     chainId: chainId,
     dcoreNetworkWSPaths: dcoreNetworkAddresses
-}, dcore);
+}, dcorejs_lib);
 
 function getAccount(accountId) {
     output.innerHTML = 'Loading ...';
