@@ -33,7 +33,7 @@ export class ApiConnector {
         });
 
         this._connectionPromise = new Promise((resolve, reject) => {
-            BBPromise.any(promises, )
+            BBPromise.any(promises)
             .then((result) => {
                 resolve(result);
             })
