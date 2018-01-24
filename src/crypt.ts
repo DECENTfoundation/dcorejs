@@ -1,6 +1,6 @@
 import { KeyPrivate, KeyPublic } from './utils';
 import { dcore } from './helpers';
-import md5 from 'crypto-js/md5';
+import * as md5 from 'crypto-js/md5';
 
 const RIPEMD160 = require('ripemd160');
 
