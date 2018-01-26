@@ -22,8 +22,8 @@ describe('Crypt helper test', () => {
     before(() => initLib());
 
     it('encrypt message', () => {
-        const encryptedMessage = CryptoUtils.encryptWithChecksum(message, secret, pkey, '');
-        expect(encryptedMessage).to.equal(encryptedMessage);
+        const encryptedMsg = CryptoUtils.encryptWithChecksum(message, secret, pkey, '');
+        expect(encryptedMsg).to.equal(encryptedMessage);
     });
 
     it('create md5 hash', () => {

@@ -56,9 +56,10 @@ describe('Content fetch', () => {
             '1901976526778157668840202.';
         const privateKey = '5JDFQN3T8CFT1ynhgd5s574mTV9UPf9WamkHojBL4NgbhSBDmBj';
         const keyPair = new dcore_js.KeyPair(privateKey, elGamalPublic);
-        dcore_js.content().restoreContentKeys(contentId, accountId, keyPair)
+        const buyContentId = '2.12.114';
+        dcore_js.content().restoreContentKeys(buyContentId, accountId, keyPair)
             .then(res => {
-                res.should.exist('object');
+                expect(res).a('string');
                 done();
             })
             .catch(err => {
@@ -85,7 +86,7 @@ describe('Content fetch', () => {
             .then(seeders => {
                 dcore_js.content().generateContentKeys(seeders.map(s => s.seeder))
                     .then(res => {
-                        expect(res.key).to.exist('object');
+                        expect(res.key).a('string');
                         done();
                     })
                     .catch(err => {
