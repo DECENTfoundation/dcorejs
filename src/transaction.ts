@@ -1,4 +1,4 @@
-import { dcore } from './helpers';
+import { dcorejs_lib } from './helpers';
 import { KeyPrivate, KeyPublic, Utils } from './utils';
 
 import {Key, KeyParts} from './content';
@@ -99,7 +99,7 @@ export class Transaction {
     private _operations: Operation[] = [];
 
     constructor() {
-        this._transaction = new dcore.TransactionBuilder();
+        this._transaction = new dcorejs_lib.TransactionBuilder();
     }
 
     /**
@@ -117,10 +117,10 @@ export class Transaction {
      * @return {boolean}
      */
     public addOperation(operation: Operation): boolean {
-        if (!dcore.ops.hasOwnProperty(operation.name)) {
+        if (!dcorejs_lib.ops.hasOwnProperty(operation.name)) {
             return false;
         }
-        dcore.ops[operation.name].keys.forEach((key: string) => {
+        dcorejs_lib.ops[operation.name].keys.forEach((key: string) => {
             return operation.operation.hasOwnProperty(key);
         });
         this._transaction.add_type_operation(operation.name, operation.operation);

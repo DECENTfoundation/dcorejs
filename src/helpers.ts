@@ -1,9 +1,9 @@
-export let dcore: any = {};
+export let dcorejs_lib: any = {};
 
 export function setLibRef(libRef: any) {
-    dcore = libRef;
+    dcorejs_lib = libRef;
 }
 
 export function getLibRef(): any {
-    return dcore;
+    return dcorejs_lib;
 }
