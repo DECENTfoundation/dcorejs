@@ -1,6 +1,6 @@
-import { Utils } from './../src/utils';
+import { Utils } from '../../src/utils';
 import * as dcorejs_lib from 'dcorejs-lib';
-import { setLibRef } from '../src/helpers';
+import { setLibRef } from '../../src/helpers';
 import { expect } from 'chai';
 
 const bk = 'WORKBOX UPJERK GORBLE SPECULA SUCKLER FUNNEL INWRAP DOSIS DARNEL CATTABU FINGER MINARET TUCKER DENDRIC WOD CULMEN';

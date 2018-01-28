@@ -1,8 +1,8 @@
-import { KeyPrivate, KeyPublic } from '../src/utils';
-import { CryptoUtils } from '../src/crypt';
-import { setLibRef } from './../src/helpers';
+import { KeyPrivate, KeyPublic } from '../../src/utils';
+import { CryptoUtils } from '../../src/crypt';
+import { setLibRef } from '../../src/helpers';
 import * as dcorejs_lib from 'dcorejs-lib';
-import { Utils } from '../src/utils';
+import { Utils } from '../../src/utils';
 import { expect } from 'chai';
 
 const message = 'test message for encryption';
@@ -23,7 +23,7 @@ describe('Crypt helper test', () => {
 
     it('encrypt message', () => {
         const encryptedMsg = CryptoUtils.encryptWithChecksum(message, secret, pkey, '');
-        expect(encryptedMsg).to.equal(encryptedMessage);
+        expect(encryptedMsg.toString('hex')).to.equal(encryptedMessage);
     });
 
     it('create md5 hash', () => {
