@@ -54,7 +54,7 @@
         "@types/node": "8.0.47",
         "colors": "^1.1.2",
         "cross-env": "5.1.1",
-        "dcorejs-lib": "0.0.1",
+        "dcorejs-lib": "1.0.0",
         "jest": "21.2.1",
         "lodash.camelcase": "^4.3.0",
         "prompt": "^1.0.0",
