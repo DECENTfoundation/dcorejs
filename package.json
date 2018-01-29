@@ -43,7 +43,7 @@
         "chai": "4.1.2",
         "colors": "^1.1.2",
         "cross-env": "5.1.1",
-        "dcorejs-lib": "0.0.1",
+        "dcorejs-lib": "1.0.0",
         "karma": "2.0.0",
         "karma-chai": "0.1.0",
         "karma-chrome-launcher": "2.2.0",
