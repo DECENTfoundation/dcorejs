@@ -1,4 +1,4 @@
-import * as dcore from 'dcore';
+import * as dcore from 'dcorejs-lib';
 import * as dcore_js from './../';
 
 const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
@@ -14,5 +14,5 @@ describe('Initialize', () => {
             chainId: chainId,
             dcoreNetworkWSPaths: dcoreNetworkAddresses
         }, dcore, connectionHandler);
-    }, 10000);
+    });
 });

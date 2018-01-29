@@ -1,5 +1,5 @@
 import { Utils } from './../src/utils';
-import * as dcore from 'dcore';
+import * as dcore from 'dcorejs-lib';
 import { setLibRef } from '../src/helpers';
 
 const bk = 'WORKBOX UPJERK GORBLE SPECULA SUCKLER FUNNEL INWRAP DOSIS DARNEL CATTABU FINGER MINARET TUCKER DENDRIC WOD CULMEN';
@@ -23,7 +23,7 @@ const refPriv = {'d':
                 };
 
 function initLib() {
-    setLibRef(dcore);
+    setLibRef(dcorejs_lib);
 }
 
 describe('Utils methods test', () => {

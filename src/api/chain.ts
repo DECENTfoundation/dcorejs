@@ -88,7 +88,7 @@ export class ChainApi {
 
     public static setupChain(chainId: string, chainConfig: any) {
         chainConfig.networks.decent = {
-            chainId: chainId
+            chain_id: chainId
         };
     }
 

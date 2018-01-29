@@ -1,5 +1,9 @@
 const BBPromise = require('bluebird');
 
+export enum ApiConnectorError {
+    ws_connection_failed = 'ws_connection_failed'
+}
+
 export enum ConnectionState {
     open = 'open',
     closed = 'closed',
@@ -8,6 +12,12 @@ export enum ConnectionState {
     unknown = 'unknown'
 }
 
+/**
+ * ApiConnector provide connection to dcorejs-lib apis
+ *
+ * @export
+ * @class ApiConnector
+ */
 export class ApiConnector {
     private _connectionPromise: Promise<any>;
 
@@ -22,7 +32,15 @@ export class ApiConnector {
             promises.push(this.getConnectionPromise(address, api));
         });
 
-        this._connectionPromise = BBPromise.any(promises);
+        this._connectionPromise = new Promise((resolve, reject) => {
+            BBPromise.any(promises)
+            .then((result) => {
+                resolve(result);
+            })
+            .catch(err => {
+                reject(this.handleError(ApiConnectorError.ws_connection_failed, err));
+            });
+        });
     }
 
     private getConnectionPromise(forAddress: string, api: any): Promise<any> {
@@ -56,5 +74,11 @@ export class ApiConnector {
                 break;
         }
         callback(connectionState);
+    }
+
+    private handleError(message: string, err: any): Error {
+        const error = new Error(message);
+        error.stack = err;
+        return error;
     }
 }

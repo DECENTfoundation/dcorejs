@@ -32,13 +32,13 @@ const dcoreNetworkAddresses = ['wss://stage.decentgo.com:8090'];
 const authorId = '1.2.30';
 const privateKey = '5JDFQN3T8CFT1ynhgd5s574mTV9UPf9WamkHojBL4NgbhSBDmBj';
 
-const dcore = window['dcore'];
-const dcore_js = window['dcore-js'];
+const dcorejs_lib = window['dcorejs-lib'];
+const dcore_js = window['dcorejs'];
 
 dcore_js.initialize({
     chainId: chainId,
     dcoreNetworkWSPaths: dcoreNetworkAddresses
-}, dcore);
+}, dcorejs_lib);
 
 let file = null;
 const seeders = [];

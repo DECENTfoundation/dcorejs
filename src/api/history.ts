@@ -1,4 +1,4 @@
-import {ApiConnector} from './apiConnector';
+import { ApiConnector } from './apiConnector';
 
 enum HistoryError {
     error_executing_command = 'error_executing_command'
@@ -49,16 +49,18 @@ export class HistoryApi {
 
     public execute(operation: HistoryOperation): Promise<any> {
         return new Promise((resolve, reject) => {
-            this._apiConnector.connect().then(() => {
-                this.histApi()
-                    .exec(operation.name, operation.parameters)
-                    .then((content: any) => resolve(content))
-                    .catch((err: any) => {
-                        reject(
-                            this.handleError(HistoryError.error_executing_command, err)
-                        );
-                    });
-            });
+            this._apiConnector.connect()
+                .then(() => {
+                    this.histApi()
+                        .exec(operation.name, operation.parameters)
+                        .then((content: any) => resolve(content))
+                        .catch((err: any) => {
+                            reject(
+                                this.handleError(HistoryError.error_executing_command, err)
+                            );
+                        });
+                })
+                .catch(err => reject(err));
         });
     }
 
