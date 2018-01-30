@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Transfer example</title>
+</head>
+
+<body>
+    <h1>Transfer DCT</h1>
+    <form action="javascript:void(0)">
+        <div>
+            <label for="amount">Amount</label>
+            <input id="amount" type="number" title="amount" />
+        </div>
+        <div>
+            <label for="receiver">To account</label>
+            <input id="receiver" type="text" title="receiver" />
+        </div>
+
+        <div>
+            <label for="memo">Memo</label>
+            <input id="memo" type="text" title="memo" />
+        </div>
+        <button id="transferButton" type="submit" title="transferButton"> Transfer </button>
+    </form>
+    <pre id="output"></pre>
+    <script src="./../../../node_modules/dcorejs-lib/dist/bundle.js" type="text/javascript"></script>
+    <script src="./../../../dist/dcorejs.umd.js" type="text/javascript"></script>
+    <script type="text/javascript" src="./transfer.js"></script>
+</body>
+
+</html>
