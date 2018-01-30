@@ -1,6 +1,6 @@
 import { KeyPrivate, KeyPublic } from './utils';
-import { dcore } from './helpers';
-import md5 from 'crypto-js/md5';
+import { dcorejs_lib } from './helpers';
+import * as md5 from 'crypto-js/md5';
 
 const RIPEMD160 = require('ripemd160');
 
@@ -18,14 +18,14 @@ export class CryptoUtils {
                                       privateKey: KeyPrivate,
                                       publicKey: KeyPublic,
                                       nonce: string = ''): Buffer {
-        return dcore.Aes.encrypt_with_checksum(privateKey.key, publicKey.key, nonce, message);
+        return dcorejs_lib.Aes.encrypt_with_checksum(privateKey.key, publicKey.key, nonce, message);
     }
 
     public static decryptWithChecksum(message: string,
                                       privateKey: KeyPrivate,
                                       publicKey: KeyPublic,
                                       nonce: string = ''): Buffer {
-        return dcore.Aes.decrypt_with_checksum(privateKey.key, publicKey.key, nonce, message);
+        return dcorejs_lib.Aes.decrypt_with_checksum(privateKey.key, publicKey.key, nonce, message);
     }
 
     public static ripemdHash(fromBuffer: Buffer): string {

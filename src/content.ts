@@ -274,7 +274,6 @@ export class ContentApi {
                 const dbOperation = new DatabaseOperations.GetBuyingHistoryObjects(accountId, content.URI);
                 this._dbApi.execute(dbOperation)
                 .then(res => {
-                    console.log(res);
                     const validKey = elGamalKeys.find((elgPair: KeyPair) => elgPair.publicKey === res.pubKey.s);
                     if (!validKey) {
                         reject(this.handleError(ContentError.restore_content_keys_failed, 'wrong keys'));
