@@ -1,7 +1,7 @@
 import { Database, DatabaseApi, DatabaseOperations, SearchAccountHistoryOrder } from './api/database';
 import { ChainApi, ChainMethods } from './api/chain';
 import { CryptoUtils } from './crypt';
-import { Memo, OperationName, Transaction, TransferOperation } from './transaction';
+import {Memo, Operation, OperationName, Transaction, TransferOperation} from './transaction';
 import { KeyPrivate, Utils } from './utils';
 import { HistoryApi, HistoryOperations } from './api/history';
 
@@ -306,12 +306,13 @@ export class AccountApi {
      * @param {string} toAccount        Name or id of account
      * @param {string} memo             Message for recipient
      * @param {string} privateKey       Private key used to encrypt memo and sign transaction
+     * @return {Promise<Operation>}
      */
     public transfer(amount: number,
                     fromAccount: string,
                     toAccount: string,
                     memo: string,
-                    privateKey: string): Promise<void> {
+                    privateKey: string): Promise<Operation> {
         const pKey = Utils.privateKeyFromWif(privateKey);
 
         return new Promise((resolve, reject) => {
@@ -374,8 +375,8 @@ export class AccountApi {
                     operation: transfer
                 });
                 transaction.broadcast(privateKey)
-                    .then(res => {
-                        resolve();
+                    .then(() => {
+                        resolve(transaction.operations[0]);
                     })
                     .catch(err => {
                         reject(
