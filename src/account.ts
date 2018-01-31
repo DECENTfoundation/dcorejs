@@ -256,7 +256,6 @@ export class AccountApi {
             );
             this._dbApi.execute(dbOperation)
                 .then((transactions: any[]) => {
-                    console.log(transactions);
                     const namePromises: Promise<string>[] = [];
                     const res = transactions.map((tr: any) => {
                         const transaction = new TransactionRecord(tr, privateKeys);
