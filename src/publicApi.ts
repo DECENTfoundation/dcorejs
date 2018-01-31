@@ -8,4 +8,6 @@ export { ExplorerModule, Type, Space, ErrorExplorer } from './explorer';
 
 export { ConnectionState } from './api/apiConnector';
 
-export { dcorejs_lib } from './helpers';
+export { setLibRef, getLibRef } from './helpers';
+
+export { CryptoUtils } from './crypt';

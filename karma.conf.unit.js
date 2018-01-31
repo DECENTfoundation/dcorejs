@@ -18,8 +18,8 @@ module.exports = function (config) {
             './dist/dcorejs.umd.js',
             './node_modules/dcorejs-lib/dist/bundle.js',
             './node_modules/mocha/mocha.js',
-            './test/declarations.js',
-            './test/browser/*.js',
+            'src/test/client/declarations.js',
+            'src/test/client/unit/*.js',
             './test-main.js'
         ],
 

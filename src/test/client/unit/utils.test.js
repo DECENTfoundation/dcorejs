@@ -16,7 +16,7 @@ const refPriv = {
         }
 };
 
-describe('Utils methods test', () => {
+describe('(client/unit) Utils methods test', () => {
 
     it('generate keys from brainkey', () => {
         const keys = dcorejs.Utils.generateKeys(bk);

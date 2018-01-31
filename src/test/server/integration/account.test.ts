@@ -1,11 +1,10 @@
 import * as dcorejs_lib from 'dcorejs-lib';
-import * as dcore_js from './../../';
+import * as dcore_js from '../../../../';
 import * as chai from 'chai';
 
 const expect = chai.expect;
 chai.should();
 chai.config.showDiff = false;
-// require('ssl-root-cas').inject();
 
 const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
 const dcoreNetworkAddresses = ['wss://stage.decentgo.com:8090'];
@@ -23,7 +22,7 @@ before(() => {
         dcoreNetworkWSPaths: dcoreNetworkAddresses
     }, dcorejs_lib);
 });
-describe('Account fetch', () => {
+describe('(server/integration) Account fetch', () => {
     it('get account by id', (done) => {
         dcore_js.account().getAccountById(accountId)
             .then(res => {
@@ -58,7 +57,7 @@ describe('Account fetch', () => {
                 expect(err).to.be.a('array');
                 done();
             });
-    }).timeout(5000);
+    }).timeout(10000);
 
     it('get transaction history( HistoryAPI )', (done) => {
         dcore_js.account().getAccountHistory(accountId)

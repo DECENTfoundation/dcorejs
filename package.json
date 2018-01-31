@@ -28,10 +28,10 @@
         "prebuild": "rimraf dist && rimraf lib",
         "build": "tsc && webpack --config webpack.config.js && npm run generate-docs",
         "generate-docs": "typedoc --out dist/docs --target es6 --theme minimal --excludeExternals --includeDeclarations --excludePrivate --exclude \"{**/{api,mocks}/*.ts,**/crypt.ts}\" src",
-        "test": "npm-run-parallel test:unit:node test:integ:browser test:integ:node",
-        "test:unit:node": "mocha --exit -r ts-node/register test/node/*.test.ts",
+        "test": "npm-run-parallel test:unit:node test:unit:browser test:integ:browser test:integ:node",
+        "test:unit:node": "mocha --exit -r ts-node/register ./src/test/server/unit/*.test.ts",
         "test:unit:browser": "./node_modules/karma-cli/bin/karma start ./karma.conf.unit.js --single-run",
-        "test:integ:node": "mocha --exit -r ts-node/register test.integration/node/*.test.ts",
+        "test:integ:node": "mocha --exit -r ts-node/register ./src/test/server/integration/*.test.ts",
         "test:integ:browser": "./node_modules/karma-cli/bin/karma start ./karma.conf.integ.js --single-run",
         "prepush": "npm run test && npm run build"
     },
