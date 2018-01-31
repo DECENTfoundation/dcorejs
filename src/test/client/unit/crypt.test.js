@@ -16,10 +16,10 @@ describe('(client/unit) Crypt helper test', () => {
     it('encrypt message', () => {
         const encryptedMsg = dcorejs.CryptoUtils.encryptWithChecksum(message, secret, pkey, '');
         expect(encryptedMsg.toString('hex')).to.equal(encryptedMessage);
-    });
+    }).timeout(5000);
 
     it('create md5 hash', () => {
         const hash = dcorejs.CryptoUtils.md5('dd.duskis+st14@gmail.com');
         expect(`u${hash}`).to.equal('u5d42a7b0b5713396aac58019eed01d53');
-    });
+    }).timeout(5000);
 });
