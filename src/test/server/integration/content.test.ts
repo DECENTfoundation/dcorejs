@@ -1,17 +1,14 @@
 import * as dcorejs_lib from 'dcorejs-lib';
-import * as dcore_js from './../../';
+import * as dcore_js from '../../../../';
 import * as chai from 'chai';
 
 const expect = chai.expect;
 chai.should();
 chai.config.showDiff = false;
-// require('ssl-root-cas').inject();
 
 const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
 const dcoreNetworkAddresses = ['wss://stage.decentgo.com:8090'];
 const accountId = '1.2.30';
-// const privateKey = '5JDFQN3T8CFT1ynhgd5s574mTV9UPf9WamkHojBL4NgbhSBDmBj';
-// const transactionId = '1.7.15355';
 const contentId = '2.13.240';
 
 // turn off unverified certificate rejection
@@ -23,7 +20,7 @@ before(() => {
         dcoreNetworkWSPaths: dcoreNetworkAddresses
     }, dcorejs_lib);
 });
-describe('Content fetch', () => {
+describe('(server/integration) Content fetch', () => {
     it('search content', (done) => {
         const searchParameters = new dcore_js.SearchParams('');
         dcore_js.content().searchContent(searchParameters)

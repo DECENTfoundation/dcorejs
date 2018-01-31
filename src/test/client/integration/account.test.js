@@ -9,7 +9,7 @@ before(() => {
         dcoreNetworkWSPaths: dcoreNetworkAddresses
     }, dcorejs_lib);
 });
-describe('Account module', () => {
+describe('(client/integration) Account module', () => {
     it('get account by id', (done) => {
         dcorejs.account().getAccountById(accountId)
             .then(res => {

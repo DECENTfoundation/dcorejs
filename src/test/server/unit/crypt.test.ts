@@ -1,8 +1,8 @@
-import { KeyPrivate, KeyPublic } from '../../src/utils';
-import { CryptoUtils } from '../../src/crypt';
-import { setLibRef } from '../../src/helpers';
+import { KeyPrivate, KeyPublic } from '../../../utils';
+import { CryptoUtils } from '../../../crypt';
+import { setLibRef } from '../../../helpers';
 import * as dcorejs_lib from 'dcorejs-lib';
-import { Utils } from '../../src/utils';
+import { Utils } from '../../../utils';
 import { expect } from 'chai';
 
 const message = 'test message for encryption';
@@ -18,7 +18,7 @@ function initLib() {
     pkey = Utils.publicKeyFromString(pkeyString);
 }
 
-describe('Crypt helper test', () => {
+describe('(server/unit) Crypt helper test', () => {
     before(() => initLib());
 
     it('encrypt message', () => {

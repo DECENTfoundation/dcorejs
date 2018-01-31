@@ -10,12 +10,12 @@ function initLib() {
     pkey = dcorejs.Utils.publicKeyFromString(pkeyString);
 }
 
-describe('Crypt helper test', () => {
+describe('(client/unit) Crypt helper test', () => {
     before(() => initLib());
 
     it('encrypt message', () => {
         const encryptedMsg = dcorejs.CryptoUtils.encryptWithChecksum(message, secret, pkey, '');
-        expect(encryptedMsg).to.equal(encryptedMessage);
+        expect(encryptedMsg.toString('hex')).to.equal(encryptedMessage);
     });
 
     it('create md5 hash', () => {

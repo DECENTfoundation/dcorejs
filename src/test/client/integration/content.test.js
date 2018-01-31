@@ -6,7 +6,8 @@ before(() => {
         dcoreNetworkWSPaths: dcoreNetworkAddresses
     }, dcorejs_lib);
 });
-describe('Content fetch', () => {
+
+describe('(client/integration) Content fetch', () => {
     it('search content', (done) => {
         const searchParameters = new dcorejs.SearchParams('');
         dcorejs.content().searchContent(searchParameters)
