@@ -29,7 +29,6 @@ function transfer(fromAccount, toAccount, amount, memo) {
     dcore_js.account().transfer(amount, fromAccount, toAccount, memo, privateKey)
         .then(result => {
             output.innerHTML = '<h3 style="color: green;">Payment successful</h3>';
-            console.log(result);
             output.innerHTML += '<br/>';
             output.innerHTML += '<pre>' + JSON.stringify(result, null, 2) + '</pre>';
         })
