@@ -1,7 +1,7 @@
 {
     "name": "dcorejs",
     "version": "2.1.1",
-    "description": "",
+    "description": "Javascript library to work with Dcore blockchain network.",
     "keywords": [
         "blockchain",
         "dcore_js"
@@ -34,7 +34,7 @@
         "test:unit:client": "./node_modules/karma-cli/bin/karma start ./karma.conf.unit.js --single-run",
         "test:integ:server": "mocha --exit -r ts-node/register ./src/test/server/integration/*.test.ts",
         "test:integ:client": "./node_modules/karma-cli/bin/karma start ./karma.conf.integ.js --single-run",
-        "prepublish": "npm run build && npm run test && npm run test:int"
+        "prepublishOnly": "npm run build && npm run test && npm run test:int"
     },
     "devDependencies": {
         "@types/chai": "4.1.1",
@@ -57,7 +57,6 @@
         "mocha-chrome": "1.0.3",
         "mocha-phantomjs": "4.1.0",
         "npm-run-parallel": "0.6.0",
-        "phantomjs": "2.1.7",
         "pre-push": "0.1.1",
         "prompt": "^1.0.0",
         "replace-in-file": "^3.0.0-beta.2",
