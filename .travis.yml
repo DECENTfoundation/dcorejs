@@ -10,6 +10,7 @@ branches:
     - develop
     - master
     - /^release-.*$/
+
 addons:
   apt:
     sources:
