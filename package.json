@@ -33,7 +33,8 @@
         "test:unit:server": "mocha --exit -r ts-node/register ./src/test/server/unit/*.test.ts",
         "test:unit:client": "./node_modules/karma-cli/bin/karma start ./karma.conf.unit.js --single-run",
         "test:integ:server": "mocha --exit -r ts-node/register ./src/test/server/integration/*.test.ts",
-        "test:integ:client": "./node_modules/karma-cli/bin/karma start ./karma.conf.integ.js --single-run"
+        "test:integ:client": "./node_modules/karma-cli/bin/karma start ./karma.conf.integ.js --single-run",
+        "prepublish": "npm run build && npm run test && npm run test:int"
     },
     "devDependencies": {
         "@types/chai": "4.1.1",
