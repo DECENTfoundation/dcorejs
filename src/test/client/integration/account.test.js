@@ -20,7 +20,7 @@ describe('(client/integration) Account module', () => {
                 console.log('Catch: ', err);
                 chai.assert.isDefined(err);
             });
-    });
+    }).timeout(5000);
 
     it('get account by name', (done) => {
         dcorejs.account().getAccountByName(accountName)
@@ -32,7 +32,7 @@ describe('(client/integration) Account module', () => {
                 chai.assert.isDefined(err);
                 done();
             });
-    });
+    }).timeout(5000);
 
     it('get transaction history( DatabaseAPI )', (done) => {
         dcorejs.account().getTransactionHistory(accountId, [privateKey])
@@ -57,7 +57,7 @@ describe('(client/integration) Account module', () => {
                 expect(err).to.be.a('array');
                 done();
             });
-    });
+    }).timeout(5000);
 
     it('verify transaction', (done) => {
         dcorejs.account().isTransactionConfirmed(accountId, transactionId)
@@ -69,7 +69,7 @@ describe('(client/integration) Account module', () => {
                 expect(err).to.be.equal(true);
                 done();
             });
-    });
+    }).timeout(5000);
 
     it('get account balance', (done) => {
         dcorejs.account().getBalance(accountId)
@@ -81,7 +81,7 @@ describe('(client/integration) Account module', () => {
                 expect(err).to.be.a('number');
                 done();
             });
-    });
+    }).timeout(5000);
 
     it('transfer asset', (done) => {
         dcorejs.account().transfer(0.00000001,

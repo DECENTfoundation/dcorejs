@@ -19,7 +19,7 @@ describe('(client/integration) Content fetch', () => {
                 console.log('Catch: ', err);
                 chai.assert.isDefined(err);
             });
-    });
+    }).timeout(5000);
 
     it('get content', (done) => {
         dcorejs.content().getContent(contentId)
@@ -31,7 +31,7 @@ describe('(client/integration) Content fetch', () => {
                 chai.assert.isDefined(err);
                 done();
             });
-    });
+    }).timeout(5000);
 
     it('restore content keys', (done) => {
         const elGamalPublic = '7317752633383033582159088' +
@@ -63,7 +63,7 @@ describe('(client/integration) Content fetch', () => {
                 expect(err).to.be.a('array');
                 done();
             });
-    });
+    }).timeout(5000);
 
     it('generate content keys', (done) => {
         dcorejs.content().getSeeders(2)
