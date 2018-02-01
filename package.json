@@ -1,7 +1,7 @@
 {
     "name": "dcorejs",
     "version": "2.1.1",
-    "description": "",
+    "description": "Javascript library to work with Dcore blockchain network.",
     "keywords": [
         "blockchain",
         "dcore_js"
@@ -26,41 +26,44 @@
     "scripts": {
         "start": "tsc -w & webpack --config webpack.config.js --watch",
         "prebuild": "rimraf dist && rimraf lib",
-        "build": "tsc && webpack --config webpack.config.js && typedoc --out dist/docs --target es6 --theme minimal --excludeExternals --includeDeclarations --excludePrivate --exclude \"{**/{api,mocks}/*.ts,**/crypt.ts}\" src",
-        "generate-docs": " typedoc --out dist/docs --target es6 --theme minimal --excludeExternals --includeDeclarations --excludePrivate --exclude \"{**/{api,mocks}/*.ts,**/crypt.ts}\" src",
-        "test": "jest",
-        "test:watch": "jest --watch",
-        "test:prod": "npm run lint && npm run test -- --coverage --no-cache",
-        "prepush": "npm run test:prod && npm run build"
-    },
-    "jest": {
-        "transform": {
-            ".(ts|tsx)": "<rootDir>/node_modules/ts-jest/preprocessor.js"
-        },
-        "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
-        "moduleFileExtensions": [
-            "ts",
-            "tsx",
-            "js"
-        ],
-        "coveragePathIgnorePatterns": [
-            "/node_modules/",
-            "/test/"
-        ]
+        "build": "tsc && webpack --config webpack.config.js && npm run generate-docs",
+        "generate-docs": "typedoc --out dist/docs --target es6 --theme minimal --excludeExternals --includeDeclarations --excludePrivate --exclude \"{**/{api,mocks}/*.ts,**/crypt.ts}\" src",
+        "test": "npm-run-parallel test:unit:server test:unit:client",
+        "test:int": "npm-run-parallel test:integ:client test:integ:server",
+        "test:unit:server": "mocha --exit -r ts-node/register ./src/test/server/unit/*.test.ts",
+        "test:unit:client": "./node_modules/karma-cli/bin/karma start ./karma.conf.unit.js --single-run",
+        "test:integ:server": "mocha --exit -r ts-node/register ./src/test/server/integration/*.test.ts",
+        "test:integ:client": "./node_modules/karma-cli/bin/karma start ./karma.conf.integ.js --single-run",
+        "prepublishOnly": "npm run build && npm run test && npm run test:int"
     },
     "devDependencies": {
+        "@types/chai": "4.1.1",
         "@types/concat-stream": "1.6.0",
-        "@types/jest": "^21.1.0",
+        "@types/mocha": "2.2.46",
         "@types/node": "8.0.47",
+        "chai": "4.1.2",
         "colors": "^1.1.2",
         "cross-env": "5.1.1",
         "dcorejs-lib": "1.0.0",
-        "jest": "21.2.1",
+        "karma": "2.0.0",
+        "karma-chai": "0.1.0",
+        "karma-chrome-launcher": "2.2.0",
+        "karma-cli": "1.0.1",
+        "karma-mocha": "1.3.0",
+        "karma-requirejs": "1.1.0",
+        "karma-typescript": "3.0.9",
         "lodash.camelcase": "^4.3.0",
+        "mocha": "5.0.0",
+        "mocha-chrome": "1.0.3",
+        "mocha-phantomjs": "4.1.0",
+        "npm-run-parallel": "0.6.0",
+        "pre-push": "0.1.1",
         "prompt": "^1.0.0",
         "replace-in-file": "^3.0.0-beta.2",
+        "requirejs": "2.3.5",
         "rimraf": "2.6.2",
-        "ts-jest": "21.1.4",
+        "ts-jest": "21.2.4",
+        "ts-node": "4.1.0",
         "tslint": "5.8.0",
         "typedoc": "^0.9.0",
         "typescript": "2.5.3",
@@ -71,9 +74,14 @@
         "crypto-js": "3.1.9-1",
         "ipfs-api": "15.0.1",
         "moment": "2.18.1",
-        "ripemd160": "2.0.1"
+        "ripemd160": "2.0.1",
+        "ssl-root-cas": "1.2.4"
     },
     "prettier": {
         "tabWidth": 4
-    }
+    },
+    "pre-push": [
+        "build",
+        "test"
+    ]
 }

@@ -18,21 +18,21 @@ const output = el('output');
 function handleState(state) {
     let msg = '';
     switch (state) {
-        case 'open': 
+        case 'open':
             msg = 'Connection opened';
             break;
-        case 'closed': 
+        case 'closed':
             msg = 'Connection closed';
             break;
-        case 'reconnect': 
+        case 'reconnect':
             msg = 'Reconnecting ...';
-            break; 
-        case 'error': 
+            break;
+        case 'error':
             msg = '!!! Connection falied !!!';
-            break;    
+            break;
         default:
             msg = 'Unknown state';
-            break;   
+            break;
     }
 
     output.innerHTML = msg;
