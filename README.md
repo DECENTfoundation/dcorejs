@@ -35,9 +35,6 @@ Javascript library to work with Dcore blockchain network.
 
  3. Install `npm install dcorejs`
 
- 4. Install dcore dependency library using
-    `npm install dcorejs-lib`
-
 ### Initialize library
 
 ```javascript
