@@ -1,7 +1,7 @@
 import { Database, DatabaseApi, DatabaseOperations, SearchAccountHistoryOrder } from './api/database';
 import { ChainApi, ChainMethods } from './api/chain';
 import { CryptoUtils } from './crypt';
-import {Memo, Operation, OperationName, Transaction, TransferOperation} from './transaction';
+import { Memo, Operation, OperationName, Transaction, TransferOperation } from './transaction';
 import { KeyPrivate, Utils } from './utils';
 import { HistoryApi, HistoryOperations } from './api/history';
 
@@ -168,6 +168,7 @@ export class AccountError {
     static transaction_broadcast_failed = 'transaction_broadcast_failed';
     static account_keys_incorrect = 'account_keys_incorrect';
     static bad_parameter = 'bad_parameter';
+    static history_fetch_failed = 'history_fetch_failed';
 }
 
 /**
@@ -243,10 +244,10 @@ export class AccountApi {
      * @return {Promise<TransactionRecord[]>}
      */
     public getTransactionHistory(accountId: string,
-                                 privateKeys: string[],
-                                 order: string = SearchAccountHistoryOrder.timeDesc,
-                                 startObjectId: string = '0.0.0',
-                                 resultLimit: number = 100): Promise<TransactionRecord[]> {
+        privateKeys: string[],
+        order: string = SearchAccountHistoryOrder.timeDesc,
+        startObjectId: string = '0.0.0',
+        resultLimit: number = 100): Promise<TransactionRecord[]> {
         return new Promise((resolve, reject) => {
             const dbOperation = new DatabaseOperations.SearchAccountHistory(
                 accountId,
@@ -308,10 +309,10 @@ export class AccountApi {
      * @return {Promise<Operation>}
      */
     public transfer(amount: number,
-                    fromAccount: string,
-                    toAccount: string,
-                    memo: string,
-                    privateKey: string): Promise<Operation> {
+        fromAccount: string,
+        toAccount: string,
+        memo: string,
+        privateKey: string): Promise<Operation> {
         const pKey = Utils.privateKeyFromWif(privateKey);
 
         return new Promise((resolve, reject) => {
@@ -324,65 +325,67 @@ export class AccountApi {
             operations.add(ChainMethods.getAccount, toAccount);
             operations.add(ChainMethods.getAsset, ChainApi.asset);
 
-            this._chainApi.fetch(operations).then(result => {
-                const [senderAccount, receiverAccount, asset] = result;
-                if (!senderAccount) {
-                    reject(
-                        this.handleError(
-                            AccountError.transfer_sender_account_not_found,
-                            `${fromAccount}`
-                        )
-                    );
-                }
-                if (!receiverAccount) {
-                    reject(
-                        this.handleError(
-                            AccountError.transfer_receiver_account_not_found,
-                            `${toAccount}`
-                        )
-                    );
-                }
-
-                const nonce: string = ChainApi.generateNonce();
-                const fromPublicKey = senderAccount.get('options').get('memo_key');
-                const toPublicKey = receiverAccount.get('options').get('memo_key');
-
-                const pubKey = Utils.publicKeyFromString(toPublicKey);
-
-                const memo_object: Memo = {
-                    from: fromPublicKey,
-                    to: toPublicKey,
-                    nonce: nonce,
-                    message: CryptoUtils.encryptWithChecksum(
-                        memo,
-                        pKey,
-                        pubKey,
-                        nonce
-                    )
-                };
-
-                const transfer: TransferOperation = {
-                    from: senderAccount.get('id'),
-                    to: receiverAccount.get('id'),
-                    amount: Asset.createAsset(amount, asset.get('id')),
-                    memo: memo_object
-                };
-
-                const transaction = new Transaction();
-                transaction.addOperation({
-                    name: OperationName.transfer,
-                    operation: transfer
-                });
-                transaction.broadcast(privateKey)
-                    .then(() => {
-                        resolve(transaction.operations[0]);
-                    })
-                    .catch(err => {
+            this._chainApi.fetch(operations)
+                .then(result => {
+                    const [senderAccount, receiverAccount, asset] = result;
+                    if (!senderAccount) {
                         reject(
-                            this.handleError(AccountError.transaction_broadcast_failed, err)
+                            this.handleError(
+                                AccountError.transfer_sender_account_not_found,
+                                `${fromAccount}`
+                            )
                         );
+                    }
+                    if (!receiverAccount) {
+                        reject(
+                            this.handleError(
+                                AccountError.transfer_receiver_account_not_found,
+                                `${toAccount}`
+                            )
+                        );
+                    }
+
+                    const nonce: string = ChainApi.generateNonce();
+                    const fromPublicKey = senderAccount.get('options').get('memo_key');
+                    const toPublicKey = receiverAccount.get('options').get('memo_key');
+
+                    const pubKey = Utils.publicKeyFromString(toPublicKey);
+
+                    const memo_object: Memo = {
+                        from: fromPublicKey,
+                        to: toPublicKey,
+                        nonce: nonce,
+                        message: CryptoUtils.encryptWithChecksum(
+                            memo,
+                            pKey,
+                            pubKey,
+                            nonce
+                        )
+                    };
+
+                    const transfer: TransferOperation = {
+                        from: senderAccount.get('id'),
+                        to: receiverAccount.get('id'),
+                        amount: Asset.createAsset(amount, asset.get('id')),
+                        memo: memo_object
+                    };
+
+                    const transaction = new Transaction();
+                    transaction.addOperation({
+                        name: OperationName.transfer,
+                        operation: transfer
                     });
-            });
+                    transaction.broadcast(privateKey)
+                        .then(() => {
+                            resolve(transaction.operations[0]);
+                        })
+                        .catch(err => {
+                            reject(
+                                this.handleError(AccountError.transaction_broadcast_failed, err)
+                            );
+                        });
+                })
+                .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
         });
     }
 
@@ -451,7 +454,7 @@ export class AccountApi {
                         })
                         .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
                 })
-                .catch(err => console.log(err));
+                .catch(err => reject(this.handleError(AccountError.history_fetch_failed, err)));
         });
     }
 

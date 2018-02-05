@@ -12,11 +12,11 @@ import { isUndefined } from 'util';
 
 const moment = require('moment');
 
-export class ContentError {
-    static database_operation_failed = 'operation_failed';
-    static fetch_content_failed = 'fetch_content_failed';
-    static transaction_broadcast_failed = 'transaction_broadcast_failed';
-    static restore_content_keys_failed = 'restore_content_keys_failed';
+export enum ContentError {
+    database_operation_failed = 'operation_failed',
+    fetch_content_failed = 'fetch_content_failed',
+    transaction_broadcast_failed = 'transaction_broadcast_failed',
+    restore_content_keys_failed = 'restore_content_keys_failed'
 }
 
 export interface SubmitObject {
@@ -126,11 +126,11 @@ export interface Price {
     asset_id: string;
 }
 
-export class Status {
-    static Uploaded = 'Uploaded';
-    static Partially_uploaded = 'Partially uploaded';
-    static Uploading = 'Uploading';
-    static Expired = 'Expired';
+export enum Status {
+    Uploaded = 'Uploaded',
+    Partially_uploaded = 'Partially uploaded',
+    Uploading = 'Uploading',
+    Expired = 'Expired'
 }
 
 export interface Seeder {
@@ -204,7 +204,7 @@ export class ContentApi {
                     resolve(objectified as Content);
                 })
                 .catch(err => {
-                    reject(err);
+                    reject(this.handleError(ContentError.database_operation_failed, err));
                 });
         });
     }
@@ -289,7 +289,8 @@ export class ContentApi {
                             reject(this.handleError(ContentError.restore_content_keys_failed, err));
                         });
                 });
-            });
+            })
+            .catch(err => reject(this.handleError(ContentError.fetch_content_failed, err)));
         });
     }
 
@@ -508,8 +509,8 @@ export class ContentApi {
         });
     }
 
-    private handleError(message: string, err: any): Error {
-        const error = new Error(message);
+    private handleError(contentErrorMessage: ContentError, err: any): Error {
+        const error = new Error(contentErrorMessage);
         error.stack = err;
         return error;
     }
