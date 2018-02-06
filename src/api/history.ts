@@ -1,7 +1,8 @@
 import { ApiConnector } from './apiConnector';
 
 enum HistoryError {
-    error_executing_command = 'error_executing_command'
+    error_executing_command = 'error_executing_command',
+    api_connection_failed = 'api_connection_failed'
 }
 
 enum HistoryOperationName {
@@ -60,12 +61,12 @@ export class HistoryApi {
                             );
                         });
                 })
-                .catch(err => reject(err));
+                .catch(err => reject(this.handleError(HistoryError.api_connection_failed, err)));
         });
     }
 
-    private handleError(message: string, err: any): Error {
-        const error = new Error(message);
+    private handleError(historyErrorMessage: HistoryError, err: any): Error {
+        const error = new Error(historyErrorMessage);
         error.stack = err;
         return error;
     }

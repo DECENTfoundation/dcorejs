@@ -80,10 +80,11 @@ export class SearchParams {
     }
 }
 
-export class DatabaseError {
-    static chain_connection_failed = 'chain_connection_failed';
-    static chain_connecting = 'chain_connecting';
-    static database_execution_failed = 'database_execution_failed';
+export enum DatabaseError {
+    chain_connection_failed = 'chain_connection_failed',
+    chain_connecting = 'chain_connecting',
+    database_execution_failed = 'database_execution_failed',
+    api_connection_failed = 'api_connection_failed'
 }
 
 class DatabaseOperationName {
@@ -288,13 +289,13 @@ export class DatabaseApi extends Database {
                         });
                 })
                 .catch(err => {
-                    reject(err);
+                    reject(this.handleError(DatabaseError.api_connection_failed, err));
                 });
         });
     }
 
-    private handleError(message: string, err: any): Error {
-        const error = new Error(message);
+    private handleError(databaseErrorMessage: DatabaseError, err: any): Error {
+        const error = new Error(databaseErrorMessage);
         error.stack = err;
         return error;
     }
