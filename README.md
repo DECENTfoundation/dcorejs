@@ -150,29 +150,21 @@ within `dist/dcorejs.umd.js`. Node version in `lib/dcorejs.js`.
 
 ```typescript
 searchContent(searchParams: SearchParams): Promise<Content[]>
-
 getContent(id: string): Promise<Content>
-
 removeContent(contentId: string,
               authorId: string,
               privateKey: string): Promise<void>
-
 restoreContentKeys(contentId: String,
                    accountId: string,
                    ...elGamalKeys: KeyPair[]): Promise<string>
-
 generateContentKeys(seeders: string[]): Promise<ContentKeys>
-
 addContent(content: SubmitObject,
            privateKey: string): Promise<void>
-
 buyContent(contentId: string,
            buyerId: string,
            elGammalPub: string,
            privateKey: string): Promise<void>
-
 getSeeders(resultSize: number): Promise<Seeder[]>
-
 getPurchasedContent(accountId: string,
                     order: string,
                     startObjectId: string,
@@ -184,21 +176,17 @@ getPurchasedContent(accountId: string,
 
 ```typescript
 getAccountByName(name: string): Promise<Account>
-
 getAccountById(id: string): Promise<Account>
-
 getTransactionHistory(accountId: string,
                       privateKeys: string[],
                       order: string,
                       startObjectId: string,
                       resultLimit: number): Promise<TransactionRecord[]>
-
 transfer(amount: number,
          fromAccount: string,
          toAccount: string,
          memo: string,
          privateKey: string): Promise<void>
-
 getBalance(account: string): Promise<number>
 ```
 
@@ -206,14 +194,40 @@ getBalance(account: string): Promise<number>
 
 ```typescript
 formatToReadiblePrice(dctAmount: number): string
-
 ripemdHash(fromBuffer: Buffer): string
-
 generateKeys(fromBrainKey: string): (KeyPrivate | KeyPublic)[]
-
 getPublicKey(privkey: KeyPrivate): KeyPublic
-
 privateKeyFromWif(pkWif: string): KeyPrivate
-
 publicKeyFromString(pubKeyString: string): KeyPublic
+```
+
+### Explorer 
+
+```typescript
+getAccount(id: number): Promise<Account>
+getAsset(id: number): Promise<Block.Asset> 
+getWitness(id: number): Promise<Block.Witness> 
+getOperationHistory(id: number): Promise<Block.Transaction> 
+getVestingBalance(id: number): Promise<Block.VestingBalance> 
+getGlobalProperty(): Promise<Block.GlobalProperty> 
+getDynamicGlobalProperty(): Promise<Block.DynamicGlobalProperty> 
+getAssetDynamicDataType(id: number): Promise<Block.AssetDynamicProperty> 
+getAccountBalance(id: number): Promise<Block.AccountBalance> 
+getAccountStatistics(id: number): Promise<Block.AccountStatistics> 
+getBlockSummary(id: number): Promise<Block.BlockSummary> 
+getAccountTransactionHistory(id: number): Promise<Block.AccountTransactionHistory> 
+getChainProperty(id: number): Promise<Block.ChainProperty> 
+getWitnessSchedule(id: number): Promise<Block.WitnessSchedule> 
+getBudgetRecord(id: number): Promise<Block.BudgetReport> 
+getBuying(id: number): Promise<Block.Buying> 
+getContent(id: number): Promise<Block.Content> 
+getPublisher(id: number): Promise<Block.Publisher> 
+getSubscription(id: number): Promise<Block.Subscription> 
+getSeedingStatistics(id: number): Promise<Block.SeedingStatistics> 
+getTransactionDetail(id: number): Promise<Block.TransactionDetail> 
+getBlock(id: number): Promise<Block.Block> 
+getBlocks(id: number, count: number): Promise<Array<Block.Block>> 
+getAccountCount(): Promise<number> 
+getAccounts(...ids: string[]): Promise<Array<Account>> 
+getTransaction(blockNo: number, txNum: number): Promise<Block.Transaction> 
 ```
