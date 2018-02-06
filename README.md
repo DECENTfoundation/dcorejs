@@ -29,24 +29,26 @@ Javascript library to work with Dcore blockchain network.
 
 ### Installation
 
- 1. Install `Node.js >6` and `npm >3` globally
+ 1. Install `Node.js >6` and `npm >3` globally 
+ 
+ 2. For Windows you need to install [node-gyp](https://github.com/nodejs/node-gyp) build tool.
 
- 2. Change directory to project root dir
+ 3. Change directory to project root dir
 
- 3. Install `npm install dcorejs`
+ 4. Install `npm install dcorejs`
 
 ### Initialize library
 
-```javascript
-import * as dcore from 'dcorejs-lib';
-import * as dcore_js from 'dcorejs';
+```typescript
+import * as dcorejs_lib from 'dcorejs-lib';
+import * as dcorejs from 'dcorejs';
 
 const config = {
     dcoreNetworkWSPaths: ['wss://your.dcore.daemon:8090'],
     chainId: 'your-dcore-chain-id'
 };
 
-dcore_js.initialize(config, dcorejs_lib);
+dcorejs.initialize(config, dcorejs_lib);
 ```
 
 Replace `dcoreNetworkWSPaths` with active dcore daemon instance and `chainId` with blockchain id which
@@ -54,27 +56,27 @@ you are about to work on.
 
 ## Usage
 
-Once dcore lib is initialized, you can access methods using `dcore` with any of submodule - `account()`, `content()` or `explorer()`
+Once dcore lib is initialized, you can access methods using `dcorejs` with any of submodule - `account()`, `content()` or `explorer()`
 
 ## Search content
 
-```javascript
-import * as dcore from 'dcorejs';
+```typescript
+import * as dcorejs from 'dcorejs';
 
 const term = 'some phrase';
-const order = dcore.SearchParamsOrder.createdDesc;
+const order = dcorejs.SearchParamsOrder.createdDesc;
 const user = '1.2.345';
 const region_code = 'en';
 const itemId = '0.0.0';
 const category = '1';
 const count = 4;
 
-const searchParams: dcore.SearchParams = new dcore.SearchParams(
+const searchParams: dcorejs.SearchParams = new dcorejs.SearchParams(
     term, order, user, region_code, itemId, category, count
 );
 
-dcore.content().searchContent(searchParams)
-    .then((contents: dcore.Content[]) => {
+dcorejs.content().searchContent(searchParams)
+    .then((contents: dcorejs.Content[]) => {
         // process found content
     })
     .catch(err => {
@@ -87,15 +89,15 @@ Replace all variables with your values to get requested content.
 
 ## Buy content
 
-```javascript
-import * as dcore from 'dcorejs';
+```typescript
+import * as dcorejs from 'dcorejs';
 
 const contentId = '1.2.3';
-const accountId = '1.3.45';dcore
+const accountId = '1.3.45';
 const privateKey = 'ac7b6876b8a7b68a7c6b8a7c6b8a7cb68a7cb78a6cb8';
 const elGammalPublic = '704978309485720398475187405981709436818374592763459872645';
 
-dcore.content()
+dcorejs.content()
     .buyContent(contentId,
                 accountId,
                 elGammalPublic,
@@ -117,16 +119,16 @@ Private key must be in WIF(Wallet Import Format).
 
 Method `restoreContentKeys` will restore your key generated during content submission, used to encrypt content.
 
-```javascript
-import * as dcore from 'dcorejs';
+```typescript
+import * as dcorejs from 'dcorejs';
 
 const elGamalPrivate = '32983749287349872934792739472387492387492834';
 const elGamalPublic = '704978309485720398475187405981709436818374592763459872645';
-const elGamalKeyPair = new dcore.KeyPair(elGamalPrivate, elGamalPublic);
+const elGamalKeyPair = new dcorejs.KeyPair(elGamalPrivate, elGamalPublic);
 const contentId = '1.2.312';
 
 // Content key restoration
-dcore.content().restoreContentKeys(contentId, elGamalKeyPair)
+dcorejs.content().restoreContentKeys(contentId, elGamalKeyPair)
     .then(key => {
         // ... now you are able to decrypt your content
     })
@@ -140,7 +142,7 @@ dcore.content().restoreContentKeys(contentId, elGamalKeyPair)
 More examples available [here](https://github.com/DECENTfoundation/dcorejs/tree/master/src/examples).
 To run examples, you need to clone repository and build with `npm run build`
 if folders `dist` and `lib` is not presented. Browser bundle can be found
-within `dist/bundle.js`. Node version in `lib/dcorejs.js`.
+within `dist/dcorejs.umd.js`. Node version in `lib/dcorejs.js`.
 
 ## All available methods
 
