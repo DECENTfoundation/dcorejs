@@ -38,7 +38,6 @@ Javascript library to work with Dcore blockchain network.
 ### Initialize library
 
 ```javascript
-import * as dcore from 'dcorejs-lib';
 import * as dcore_js from 'dcorejs';
 
 const config = {
@@ -46,7 +45,7 @@ const config = {
     chainId: 'your-dcore-chain-id'
 };
 
-dcore_js.initialize(config, dcorejs_lib);
+dcore_js.initialize(config);
 ```
 
 Replace `dcoreNetworkWSPaths` with active dcore daemon instance and `chainId` with blockchain id which

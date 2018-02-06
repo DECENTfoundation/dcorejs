@@ -1,7 +1,5 @@
 import { KeyPrivate, KeyPublic } from '../../../utils';
 import { CryptoUtils } from '../../../crypt';
-import { setLibRef } from '../../../helpers';
-import * as dcorejs_lib from 'dcorejs-lib';
 import { Utils } from '../../../utils';
 import { expect } from 'chai';
 
@@ -16,7 +14,6 @@ let secret: KeyPrivate = null;
 let pkey: KeyPublic = null;
 
 function initLib() {
-    setLibRef(dcorejs_lib);
     secret = Utils.privateKeyFromWif(secretWif);
     pkey = Utils.publicKeyFromString(pkeyString);
 }
