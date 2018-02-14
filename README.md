@@ -23,7 +23,12 @@
 
 # dcorejs
 
-Javascript library to work with Dcore blockchain network.
+Javascript library for browser and node.js to work with Dcore blockchain network.
+Supported browsers versions:
+ - Chrome   - > 54
+ - Firefox  - > 58
+ - Safari   - > 11
+ - Edge     - > 41
 
 ## Quick start
 
@@ -37,6 +42,8 @@ Javascript library to work with Dcore blockchain network.
 
 ### Initialize library
 
+## Server
+
 ```javascript
 import * as dcore from 'dcorejs-lib';
 import * as dcore_js from 'dcorejs';
@@ -47,6 +54,20 @@ const config = {
 };
 
 dcore_js.initialize(config, dcorejs_lib);
+```
+
+## Browser
+
+```html
+    <script src="./node_modules/dcorejs-lib/dist/bundle.js" type="text/javascript"></script>
+    <script src="./dcorejs.umd.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        var dcorejs_lib = window['dcorejs-lib'];
+        var chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
+        var dcoreNetworkAddresses = ['wss://server.decentgo.com:8090'];
+        
+        dcorejs.initialize({chainId: chainId, dcoreNetworkWSPaths: dcoreNetworkAddresses}, dcorejs_lib);
+    </script>
 ```
 
 Replace `dcoreNetworkWSPaths` with active dcore daemon instance and `chainId` with blockchain id which
@@ -83,7 +104,7 @@ dcore.content().searchContent(searchParams)
 ```
 
 Replace all variables with your values to get requested content.
-[Search example](https://github.com/DECENTfoundation/dcorejs/tree/master/src/examples/SearchContent)
+[Search browser example](https://github.com/DECENTfoundation/dcorejs/tree/master/src/examples/SearchContent)
 
 ## Buy content
 
@@ -91,7 +112,7 @@ Replace all variables with your values to get requested content.
 import * as dcore from 'dcorejs';
 
 const contentId = '1.2.3';
-const accountId = '1.3.45';dcore
+const accountId = '1.3.45';
 const privateKey = 'ac7b6876b8a7b68a7c6b8a7c6b8a7cb68a7cb78a6cb8';
 const elGammalPublic = '704978309485720398475187405981709436818374592763459872645';
 
@@ -111,7 +132,7 @@ dcore.content()
 Replace variables with keys from your dcore account to buy content.
 Otherwise you will not be able to buy content.
 Private key must be in WIF(Wallet Import Format).
-[Buy example](https://github.com/DECENTfoundation/dcorejs/tree/master/src/examples/BuyContent)
+[Buy browser example](https://github.com/DECENTfoundation/dcorejs/tree/master/src/examples/BuyContent)
 
 ## Download/Restore content
 
@@ -135,7 +156,7 @@ dcore.content().restoreContentKeys(contentId, elGamalKeyPair)
     });
 ```
 
-[Download example](https://github.com/DECENTfoundation/dcorejs/tree/master/src/examples/DownloadContent)
+[Download browser example](https://github.com/DECENTfoundation/dcorejs/tree/master/src/examples/DownloadContent)
 
 More examples available [here](https://github.com/DECENTfoundation/dcorejs/tree/master/src/examples).
 To run examples, you need to clone repository and build with `npm run build`
