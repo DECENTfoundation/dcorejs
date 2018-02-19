@@ -103,6 +103,8 @@ class DatabaseOperationName {
     static getBlock = 'get_block';
     static getTransaction = 'get_transaction';
     static getAccountCount = 'get_account_count';
+    static lookupMiners = 'lookup_miner_accounts';
+    static getMiners = 'get_miners';
 }
 
 export class DatabaseOperation {
@@ -253,6 +255,18 @@ export namespace DatabaseOperations {
     export class GetAccountCount extends DatabaseOperation {
         constructor() {
             super(DatabaseOperationName.getAccountCount);
+        }
+    }
+
+    export class LookupMiners extends DatabaseOperation {
+        constructor(startFrom: string, limit: number) {
+            super(DatabaseOperationName.lookupMiners, startFrom, limit);
+        }
+    }
+
+    export class GetMiners extends DatabaseOperation {
+        constructor(minerIds: string[]) {
+            super(DatabaseOperationName.getMiners, minerIds);
         }
     }
 }
