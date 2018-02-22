@@ -251,4 +251,7 @@ getBlocks(id: number, count: number): Promise<Array<Block.Block>>
 getAccountCount(): Promise<number> 
 getAccounts(...ids: string[]): Promise<Array<Account>> 
 getTransaction(blockNo: number, txNum: number): Promise<Block.Transaction> 
+listMiners(): Promise<Array<Miner>>
+getMiners(ids: number[]): Promise<Array<Miner>>
+getMiner(id: number): Promise<Miner|null>
 ```
