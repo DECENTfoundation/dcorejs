@@ -4,7 +4,7 @@ before(() => {
     dcorejs.initialize({
         chainId: chainId,
         dcoreNetworkWSPaths: dcoreNetworkAddresses
-    }, dcorejs_lib);
+    });
 });
 
 describe('(client/integration) Content fetch', () => {

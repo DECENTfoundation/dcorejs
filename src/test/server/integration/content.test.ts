@@ -1,4 +1,3 @@
-import * as dcorejs_lib from 'dcorejs-lib';
 import * as dcore_js from '../../../../';
 import * as chai from 'chai';
 
@@ -18,7 +17,7 @@ before(() => {
     dcore_js.initialize({
         chainId: chainId,
         dcoreNetworkWSPaths: dcoreNetworkAddresses
-    }, dcorejs_lib);
+    });
 });
 describe('(server/integration) Content fetch', () => {
     it('search content', (done) => {

@@ -1,5 +1,5 @@
 // declarations of variables shared for all browser tests
-const dcorejs_lib = window['dcorejs-lib'];
+const dcorejs_lib = dcorejs.getLibRef();
 const expect = chai.expect;
 chai.should();
 const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';

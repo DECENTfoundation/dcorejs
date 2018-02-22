@@ -103,6 +103,7 @@ class DatabaseOperationName {
     static getBlock = 'get_block';
     static getTransaction = 'get_transaction';
     static getAccountCount = 'get_account_count';
+    static searchFeedback = 'search_feedback';
 }
 
 export class DatabaseOperation {
@@ -253,6 +254,12 @@ export namespace DatabaseOperations {
     export class GetAccountCount extends DatabaseOperation {
         constructor() {
             super(DatabaseOperationName.getAccountCount);
+        }
+    }
+
+    export class SearchFeedback extends DatabaseOperation {
+        constructor(accountId: string, contentUri: string, startId: string, count: number) {
+            super(DatabaseOperationName.searchFeedback, accountId, contentUri, startId, count);
         }
     }
 }

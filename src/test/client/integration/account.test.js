@@ -1,4 +1,3 @@
-
 const accountName = 'u5d42a7b0b5713396aac58019eed01d53';
 const privateKey = '5JdZfU9Ni7wopN8JPLPM2SJBkKWB19XJSR4mK27Ww7kyZAidJ1M';
 const transactionId = '1.7.49';
@@ -7,7 +6,7 @@ before(() => {
     dcorejs.initialize({
         chainId: chainId,
         dcoreNetworkWSPaths: dcoreNetworkAddresses
-    }, dcorejs_lib);
+    });
 });
 describe('(client/integration) Account module', () => {
     it('get account by id', (done) => {
