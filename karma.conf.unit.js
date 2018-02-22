@@ -16,7 +16,6 @@ module.exports = function (config) {
         // list of files / patterns to load in the browser
         files: [
             './dist/dcorejs.umd.js',
-            './node_modules/dcorejs-lib/dist/bundle.js',
             './node_modules/mocha/mocha.js',
             'src/test/client/declarations.js',
             'src/test/client/unit/*.js',
