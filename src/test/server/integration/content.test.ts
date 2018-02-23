@@ -45,6 +45,7 @@ describe('(server/integration) Content fetch', () => {
             });
     });
 
+    // Test is commented due to reseted testnet, therefore, no seeders and no content is on testnet yet
     // it('restore content keys', (done) => {
     //     const elGamalPublic = '7317752633383033582159088' +
     //         '0415095934922384683502050702002361917832276924025919' +
