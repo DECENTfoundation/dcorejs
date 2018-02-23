@@ -565,8 +565,8 @@ export class ExplorerModule {
         return this._database.execute(operation);
     }
 
-    getAccounts(...ids: string[]): Promise<Array<Account>> {
-        const operation = new DatabaseOperations.GetAccounts(ids);
+    getAccounts(...ids: number[]): Promise<Array<Account>> {
+        const operation = new DatabaseOperations.GetAccounts(ids.map(id => `${Space.protocol_ids}.${Type.Protocol.account}.${id}`));
         return this._database.execute(operation);
     }
 
