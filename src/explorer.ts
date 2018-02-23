@@ -563,10 +563,10 @@ export class ExplorerModule {
             const operation = new DatabaseOperations.LookupMiners('0.0.0', 100);
             this._database.execute(operation)
                 .then((res: [string, string][]) => {
-                    const ids = res.map(el => Number(el[1]));
+                    const ids = res.map(el => Number(el[1].split('.')[2]));
                     this.getMiners(ids)
                         .then(res => {
-                            resolve(res)
+                            resolve(res);
                         })
                         .catch(err => reject(err));
                 })
