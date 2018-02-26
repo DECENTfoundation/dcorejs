@@ -1,13 +1,12 @@
-
 const accountName = 'u5d42a7b0b5713396aac58019eed01d53';
-const privateKey = '5JDFQN3T8CFT1ynhgd5s574mTV9UPf9WamkHojBL4NgbhSBDmBj';
-const transactionId = '1.7.15355';
+const privateKey = '5JdZfU9Ni7wopN8JPLPM2SJBkKWB19XJSR4mK27Ww7kyZAidJ1M';
+const transactionId = '1.7.49';
 
 before(() => {
     dcorejs.initialize({
         chainId: chainId,
         dcoreNetworkWSPaths: dcoreNetworkAddresses
-    }, dcorejs_lib);
+    });
 });
 describe('(client/integration) Account module', () => {
     it('get account by id', (done) => {
@@ -85,7 +84,7 @@ describe('(client/integration) Account module', () => {
 
     it('transfer asset', (done) => {
         dcorejs.account().transfer(0.00000001,
-            accountId, 'u5c88063211031ce2278b3fbd522b6ec4',
+            accountId, 'u1240446860c3766acefe22dc1a0d3ac5',
             '',
             privateKey)
             .then(() => {

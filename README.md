@@ -23,7 +23,12 @@
 
 # dcorejs
 
-Javascript library to work with Dcore blockchain network.
+Javascript library for browser and node.js to work with Dcore blockchain network.
+Supported browsers versions:
+ - Chrome   - > 54
+ - Firefox  - > 58
+ - Safari   - > 11
+ - Edge     - > 41
 
 ## Quick start
 
@@ -39,6 +44,8 @@ Javascript library to work with Dcore blockchain network.
 
 ### Initialize library
 
+## Server
+
 ```typescript
 import * as dcorejs_lib from 'dcorejs-lib';
 import * as dcorejs from 'dcorejs';
@@ -49,6 +56,20 @@ const config = {
 };
 
 dcorejs.initialize(config, dcorejs_lib);
+```
+
+## Browser
+
+```html
+    <script src="./node_modules/dcorejs-lib/dist/bundle.js" type="text/javascript"></script>
+    <script src="./dcorejs.umd.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        var dcorejs_lib = window['dcorejs-lib'];
+        var chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
+        var dcoreNetworkAddresses = ['wss://server.decentgo.com:8090'];
+        
+        dcorejs.initialize({chainId: chainId, dcoreNetworkWSPaths: dcoreNetworkAddresses}, dcorejs_lib);
+    </script>
 ```
 
 Replace `dcoreNetworkWSPaths` with active dcore daemon instance and `chainId` with blockchain id which
@@ -85,7 +106,7 @@ dcorejs.content().searchContent(searchParams)
 ```
 
 Replace all variables with your values to get requested content.
-[Search example](https://github.com/DECENTfoundation/dcorejs/tree/master/src/examples/SearchContent)
+[Search browser example](https://github.com/DECENTfoundation/dcorejs/tree/master/src/examples/SearchContent)
 
 ## Buy content
 
@@ -113,7 +134,7 @@ dcorejs.content()
 Replace variables with keys from your dcore account to buy content.
 Otherwise you will not be able to buy content.
 Private key must be in WIF(Wallet Import Format).
-[Buy example](https://github.com/DECENTfoundation/dcorejs/tree/master/src/examples/BuyContent)
+[Buy browser example](https://github.com/DECENTfoundation/dcorejs/tree/master/src/examples/BuyContent)
 
 ## Download/Restore content
 
@@ -137,7 +158,7 @@ dcorejs.content().restoreContentKeys(contentId, elGamalKeyPair)
     });
 ```
 
-[Download example](https://github.com/DECENTfoundation/dcorejs/tree/master/src/examples/DownloadContent)
+[Download browser example](https://github.com/DECENTfoundation/dcorejs/tree/master/src/examples/DownloadContent)
 
 More examples available [here](https://github.com/DECENTfoundation/dcorejs/tree/master/src/examples).
 To run examples, you need to clone repository and build with `npm run build`
@@ -230,4 +251,7 @@ getBlocks(id: number, count: number): Promise<Array<Block.Block>>
 getAccountCount(): Promise<number> 
 getAccounts(...ids: string[]): Promise<Array<Account>> 
 getTransaction(blockNo: number, txNum: number): Promise<Block.Transaction> 
+listMiners(): Promise<Array<Miner>>
+getMiners(ids: number[]): Promise<Array<Miner>>
+getMiner(id: number): Promise<Miner|null>
 ```

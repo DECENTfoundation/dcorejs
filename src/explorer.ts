@@ -413,6 +413,18 @@ export namespace Type {
     }
 }
 
+export interface Miner {
+    id: string;
+    miner_account: string;
+    last_aslot: number;
+    signing_key: string;
+    vote_id: string;
+    total_votes: number;
+    url: string;
+    total_missed: number;
+    last_confirmed_block_num: number;
+}
+
 export class ExplorerModule {
     private _database: DatabaseApi;
 
@@ -553,13 +565,48 @@ export class ExplorerModule {
         return this._database.execute(operation);
     }
 
-    getAccounts(...ids: string[]): Promise<Array<Account>> {
-        const operation = new DatabaseOperations.GetAccounts(ids);
+    getAccounts(...ids: number[]): Promise<Array<Account>> {
+        const operation = new DatabaseOperations.GetAccounts(ids.map(id => `${Space.protocol_ids}.${Type.Protocol.account}.${id}`));
         return this._database.execute(operation);
     }
 
     getTransaction(blockNo: number, txNum: number): Promise<Block.Transaction> {
         const operation = new DatabaseOperations.GetTransaction(blockNo, txNum);
         return this._database.execute(operation);
+    }
+
+    listMiners(): Promise<Array<Miner>> {
+        return new Promise((resolve, reject) => {
+            const operation = new DatabaseOperations.LookupMiners('0.0.0', 100);
+            this._database.execute(operation)
+                .then((res: [string, string][]) => {
+                    const ids = res.map(el => Number(el[1].split('.')[2]));
+                    this.getMiners(ids)
+                        .then(res => {
+                            resolve(res);
+                        })
+                        .catch(err => reject(err));
+                })
+                .catch(err => reject(err));
+        });
+    }
+
+    getMiners(ids: number[]): Promise<Array<Miner>> {
+        const op = new DatabaseOperations.GetMiners(ids.map(el => `${Space.protocol_ids}.${Type.Protocol.miner}.${el}`));
+        return new Promise<Array<Miner>>((resolve, reject) => {
+            this._database.execute(op)
+                .then(res => resolve(res))
+                .catch(err => reject(err));
+        });
+    }
+
+    getMiner(id: number): Promise<Miner|null> {
+        return new Promise<Miner>((resolve, reject) => {
+            this.getMiners([id])
+                .then(res => {
+                    resolve(res.length > 0 ? res[0] : null);
+                })
+                .catch(err => reject(err));
+        });
     }
 }
