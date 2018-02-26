@@ -8,9 +8,9 @@ chai.config.showDiff = false;
 const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
 const dcoreNetworkAddresses = ['wss://stage.decentgo.com:8090'];
 const accountName = 'u5d42a7b0b5713396aac58019eed01d53';
-const accountId = '1.2.30';
-const privateKey = '5JDFQN3T8CFT1ynhgd5s574mTV9UPf9WamkHojBL4NgbhSBDmBj';
-const transactionId = '1.7.15355';
+const accountId = '1.2.18';
+const privateKey = '5JdZfU9Ni7wopN8JPLPM2SJBkKWB19XJSR4mK27Ww7kyZAidJ1M';
+const transactionId = '1.7.49';
 
 // turn off unverified certificate rejection
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
@@ -97,7 +97,7 @@ describe('(server/integration) Account fetch', () => {
 
     it('do transfer', (done) => {
         dcore_js.account().transfer(0.00000001,
-            accountId, 'u5c88063211031ce2278b3fbd522b6ec4',
+            accountId, 'u1240446860c3766acefe22dc1a0d3ac5',
             '',
             privateKey)
             .then(() => {
