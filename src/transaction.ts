@@ -2,6 +2,7 @@ import { dcorejs_lib } from './helpers';
 import { KeyPrivate, KeyPublic, Utils } from './utils';
 
 import {Key, KeyParts} from './content';
+import { Authority, Options } from './account';
 /**
  * OperationType to be broadcasted to blockchain
  * internal representation
@@ -19,6 +20,7 @@ export class OperationName {
     static content_cancellation = 'content_cancellation';
     static requestToBuy = 'request_to_buy';
     static content_submit = 'content_submit';
+    static account_update = 'account_update';
 }
 
 /**
@@ -84,6 +86,14 @@ export interface SubmitContentOperation extends OperationType {
     expiration: string;
     publishing_fee: Asset;
     synopsis: string;
+}
+
+export interface AccountUpdateOperation extends OperationType {
+    account: string;
+    owner: Authority;
+    active: Authority;
+    new_options: Options;
+    extensions: {};
 }
 
 export interface RegionalPrice {

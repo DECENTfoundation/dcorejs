@@ -209,6 +209,8 @@ transfer(amount: number,
          memo: string,
          privateKey: string): Promise<void>
 getBalance(account: string): Promise<number>
+voteForMiner(miner: string, account: string, privateKeyWif: string): Promise<any>
+unvoteMiner(miner: string, account: string, privateKeyWif: string): Promise<any>
 ```
 
 ### Utils
