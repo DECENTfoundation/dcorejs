@@ -413,6 +413,18 @@ export namespace Type {
     }
 }
 
+export interface Miner {
+    id: string;
+    miner_account: string;
+    last_aslot: number;
+    signing_key: string;
+    vote_id: string;
+    total_votes: number;
+    url: string;
+    total_missed: number;
+    last_confirmed_block_num: number;
+}
+
 export class ExplorerModule {
     private _database: DatabaseApi;
 
@@ -420,7 +432,7 @@ export class ExplorerModule {
         this._database = databaseApi;
     }
 
-    private async getObject<T>(space: Space, type: Type.Implementation | Type.Protocol, id: number): Promise<T | null> {
+    private async getDatabaseObject<T>(space: Space, type: Type.Implementation | Type.Protocol, id: number): Promise<T | null> {
         const operation = new DatabaseOperations.GetObjects([`${space}.${type}.${id}`]);
         try {
             const objects: Array<any> = await this._database.execute(operation);
@@ -434,88 +446,105 @@ export class ExplorerModule {
         }
     }
 
+    getObject(objectId: string): Promise<any> {
+        const operation = new DatabaseOperations.GetObjects([objectId]);
+        return new Promise((resolve, reject) => {
+            this._database.execute(operation)
+                .then(res => {
+                    if (res.length > 0) {
+                        resolve(res[0]);
+                    } else {
+                        resolve(null);
+                    }
+                })
+                .catch(err => {
+                    reject(err);
+                });
+        });
+    }
+
     getAccount(id: number): Promise<Account> {
-        return this.getObject<any>(Space.protocol_ids, Type.Protocol.account, id);
+        return this.getDatabaseObject<any>(Space.protocol_ids, Type.Protocol.account, id);
     }
 
     getAsset(id: number): Promise<Block.Asset> {
-        return this.getObject(Space.protocol_ids, Type.Protocol.asset, id);
+        return this.getDatabaseObject(Space.protocol_ids, Type.Protocol.asset, id);
     }
 
     getWitness(id: number): Promise<Block.Witness> {
-        return this.getObject(Space.protocol_ids, Type.Protocol.miner, id);
+        return this.getDatabaseObject(Space.protocol_ids, Type.Protocol.miner, id);
     }
 
     getOperationHistory(id: number): Promise<Block.Transaction> {
-        return this.getObject(Space.protocol_ids, Type.Protocol.operation_history, id);
+        return this.getDatabaseObject(Space.protocol_ids, Type.Protocol.operation_history, id);
     }
 
     getVestingBalance(id: number): Promise<Block.VestingBalance> {
-        return this.getObject(Space.protocol_ids, Type.Protocol.vesting_balance, id);
+        return this.getDatabaseObject(Space.protocol_ids, Type.Protocol.vesting_balance, id);
     }
 
     getGlobalProperty(): Promise<Block.GlobalProperty> {
-        return this.getObject(Space.implementation_ids, Type.Implementation.global_property, 0);
+        return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.global_property, 0);
     }
 
     getDynamicGlobalProperty(): Promise<Block.DynamicGlobalProperty> {
-        return this.getObject(Space.implementation_ids, Type.Implementation.dynamic_global_property, 0);
+        return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.dynamic_global_property, 0);
     }
 
     getAssetDynamicDataType(id: number): Promise<Block.AssetDynamicProperty> {
-        return this.getObject(Space.implementation_ids, Type.Implementation.asset_dynamic_data_type, id);
+        return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.asset_dynamic_data_type, id);
     }
 
     getAccountBalance(id: number): Promise<Block.AccountBalance> {
-        return this.getObject(Space.implementation_ids, Type.Implementation.account_balance, id);
+        return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.account_balance, id);
     }
 
     getAccountStatistics(id: number): Promise<Block.AccountStatistics> {
-        return this.getObject(Space.implementation_ids, Type.Implementation.account_statistics, id);
+        return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.account_statistics, id);
     }
 
     getBlockSummary(id: number): Promise<Block.BlockSummary> {
-        return this.getObject(Space.implementation_ids, Type.Implementation.block_summary, id);
+        return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.block_summary, id);
     }
 
     getAccountTransactionHistory(id: number): Promise<Block.AccountTransactionHistory> {
-        return this.getObject(Space.implementation_ids, Type.Implementation.account_transaction_history, id);
+        return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.account_transaction_history, id);
     }
 
     getChainProperty(id: number): Promise<Block.ChainProperty> {
-        return this.getObject(Space.implementation_ids, Type.Implementation.chain_property, id);
+        return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.chain_property, id);
     }
 
     getWitnessSchedule(id: number): Promise<Block.WitnessSchedule> {
-        return this.getObject(Space.implementation_ids, Type.Implementation.miner_schedule, id);
+        return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.miner_schedule, id);
     }
 
     getBudgetRecord(id: number): Promise<Block.BudgetReport> {
-        return this.getObject(Space.implementation_ids, Type.Implementation.budget_record, id);
+        return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.budget_record, id);
     }
 
     getBuying(id: number): Promise<Block.Buying> {
-        return this.getObject(Space.implementation_ids, Type.Implementation.buying, id);
+        return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.buying, id);
     }
 
     getContent(id: number): Promise<Block.Content> {
-        return this.getObject(Space.implementation_ids, Type.Implementation.content, id);
+        return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.content, id);
     }
 
     getPublisher(id: number): Promise<Block.Publisher> {
-        return this.getObject(Space.implementation_ids, Type.Implementation.publisher, id);
+        return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.publisher, id);
     }
 
     getSubscription(id: number): Promise<Block.Subscription> {
-        return this.getObject(Space.implementation_ids, Type.Implementation.subscription, id);
+        return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.subscription, id);
     }
 
     getSeedingStatistics(id: number): Promise<Block.SeedingStatistics> {
-        return this.getObject(Space.implementation_ids, Type.Implementation.seeding_statistics, id);
+        return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.seeding_statistics, id);
     }
 
     getTransactionDetail(id: number): Promise<Block.TransactionDetail> {
-        return this.getObject(Space.implementation_ids, Type.Implementation.transaction_detail, id);
+        return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.transaction_detail, id);
     }
 
     getBlock(id: number): Promise<Block.Block> {
@@ -536,13 +565,48 @@ export class ExplorerModule {
         return this._database.execute(operation);
     }
 
-    getAccounts(...ids: string[]): Promise<Array<Account>> {
-        const operation = new DatabaseOperations.GetAccounts(ids);
+    getAccounts(...ids: number[]): Promise<Array<Account>> {
+        const operation = new DatabaseOperations.GetAccounts(ids.map(id => `${Space.protocol_ids}.${Type.Protocol.account}.${id}`));
         return this._database.execute(operation);
     }
 
     getTransaction(blockNo: number, txNum: number): Promise<Block.Transaction> {
         const operation = new DatabaseOperations.GetTransaction(blockNo, txNum);
         return this._database.execute(operation);
+    }
+
+    listMiners(): Promise<Array<Miner>> {
+        return new Promise((resolve, reject) => {
+            const operation = new DatabaseOperations.LookupMiners('0.0.0', 100);
+            this._database.execute(operation)
+                .then((res: [string, string][]) => {
+                    const ids = res.map(el => Number(el[1].split('.')[2]));
+                    this.getMiners(ids)
+                        .then(res => {
+                            resolve(res);
+                        })
+                        .catch(err => reject(err));
+                })
+                .catch(err => reject(err));
+        });
+    }
+
+    getMiners(ids: number[]): Promise<Array<Miner>> {
+        const op = new DatabaseOperations.GetMiners(ids.map(el => `${Space.protocol_ids}.${Type.Protocol.miner}.${el}`));
+        return new Promise<Array<Miner>>((resolve, reject) => {
+            this._database.execute(op)
+                .then(res => resolve(res))
+                .catch(err => reject(err));
+        });
+    }
+
+    getMiner(id: number): Promise<Miner|null> {
+        return new Promise<Miner>((resolve, reject) => {
+            this.getMiners([id])
+                .then(res => {
+                    resolve(res.length > 0 ? res[0] : null);
+                })
+                .catch(err => reject(err));
+        });
     }
 }

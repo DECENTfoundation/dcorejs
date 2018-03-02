@@ -80,10 +80,11 @@ export class SearchParams {
     }
 }
 
-export class DatabaseError {
-    static chain_connection_failed = 'chain_connection_failed';
-    static chain_connecting = 'chain_connecting';
-    static database_execution_failed = 'database_execution_failed';
+export enum DatabaseError {
+    chain_connection_failed = 'chain_connection_failed',
+    chain_connecting = 'chain_connecting',
+    database_execution_failed = 'database_execution_failed',
+    api_connection_failed = 'api_connection_failed'
 }
 
 class DatabaseOperationName {
@@ -102,6 +103,9 @@ class DatabaseOperationName {
     static getBlock = 'get_block';
     static getTransaction = 'get_transaction';
     static getAccountCount = 'get_account_count';
+    static lookupMiners = 'lookup_miner_accounts';
+    static getMiners = 'get_miners';
+    static searchFeedback = 'search_feedback';
 }
 
 export class DatabaseOperation {
@@ -254,6 +258,24 @@ export namespace DatabaseOperations {
             super(DatabaseOperationName.getAccountCount);
         }
     }
+
+    export class LookupMiners extends DatabaseOperation {
+        constructor(startFrom: string, limit: number) {
+            super(DatabaseOperationName.lookupMiners, startFrom, limit);
+        }
+    }
+
+    export class GetMiners extends DatabaseOperation {
+        constructor(minerIds: string[]) {
+            super(DatabaseOperationName.getMiners, minerIds);
+        }
+    }
+  
+    export class SearchFeedback extends DatabaseOperation {
+        constructor(accountId: string, contentUri: string, startId: string, count: number) {
+            super(DatabaseOperationName.searchFeedback, accountId, contentUri, startId, count);
+        }
+    }
 }
 
 export class Database {
@@ -288,13 +310,13 @@ export class DatabaseApi extends Database {
                         });
                 })
                 .catch(err => {
-                    reject(err);
+                    reject(this.handleError(DatabaseError.api_connection_failed, err));
                 });
         });
     }
 
-    private handleError(message: string, err: any): Error {
-        const error = new Error(message);
+    private handleError(databaseErrorMessage: DatabaseError, err: any): Error {
+        const error = new Error(databaseErrorMessage);
         error.stack = err;
         return error;
     }

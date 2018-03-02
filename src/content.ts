@@ -7,16 +7,16 @@ import {
     SubmitContentOperation,
     Transaction
 } from './transaction';
-import { Asset } from './account';
-import { isUndefined } from 'util';
+import {Asset} from './account';
+import {isUndefined} from 'util';
 
 const moment = require('moment');
 
-export class ContentError {
-    static database_operation_failed = 'operation_failed';
-    static fetch_content_failed = 'fetch_content_failed';
-    static transaction_broadcast_failed = 'transaction_broadcast_failed';
-    static restore_content_keys_failed = 'restore_content_keys_failed';
+export enum ContentError {
+    database_operation_failed = 'operation_failed',
+    fetch_content_failed = 'fetch_content_failed',
+    transaction_broadcast_failed = 'transaction_broadcast_failed',
+    restore_content_keys_failed = 'restore_content_keys_failed'
 }
 
 export interface SubmitObject {
@@ -71,6 +71,7 @@ export interface Synopsis {
 export class KeyPair {
     private _public: string;
     private _private: string;
+
     get privateKey(): string {
         return this._private;
     }
@@ -106,9 +107,9 @@ export class ContentType {
     private _isInappropriate: boolean;
 
     constructor(appId: number,
-        category: number,
-        subCategory: number,
-        isInappropriate: boolean) {
+                category: number,
+                subCategory: number,
+                isInappropriate: boolean) {
         this._appId = appId;
         this._category = category;
         this._subCategory = subCategory;
@@ -126,11 +127,19 @@ export interface Price {
     asset_id: string;
 }
 
-export class Status {
-    static Uploaded = 'Uploaded';
-    static Partially_uploaded = 'Partially uploaded';
-    static Uploading = 'Uploading';
-    static Expired = 'Expired';
+export interface Rating {
+    consumer: string;
+    uri: string;
+    rating: number;
+    comment: string;
+    buying: string;
+}
+
+export enum Status {
+    Uploaded = 'Uploaded',
+    Partially_uploaded = 'Partially uploaded',
+    Uploading = 'Uploading',
+    Expired = 'Expired'
 }
 
 export interface Seeder {
@@ -204,7 +213,7 @@ export class ContentApi {
                     resolve(objectified as Content);
                 })
                 .catch(err => {
-                    reject(err);
+                    reject(this.handleError(ContentError.database_operation_failed, err));
                 });
         });
     }
@@ -218,8 +227,8 @@ export class ContentApi {
      * @return {Promise<void>}
      */
     public removeContent(contentId: string,
-        authorId: string,
-        privateKey: string): Promise<void> {
+                         authorId: string,
+                         privateKey: string): Promise<void> {
         return new Promise((resolve, reject) => {
             this.getContent(contentId)
                 .then((content: Content) => {
@@ -270,26 +279,27 @@ export class ContentApi {
     public restoreContentKeys(contentId: string, accountId: string, ...elGamalKeys: KeyPair[]): Promise<string> {
         return new Promise((resolve, reject) => {
             this.getContent(contentId)
-            .then(content => {
-                const dbOperation = new DatabaseOperations.GetBuyingHistoryObjects(accountId, content.URI);
-                this._dbApi.execute(dbOperation)
-                .then(res => {
-                    const validKey = elGamalKeys.find((elgPair: KeyPair) => elgPair.publicKey === res.pubKey.s);
-                    if (!validKey) {
-                        reject(this.handleError(ContentError.restore_content_keys_failed, 'wrong keys'));
-                    }
+                .then(content => {
+                    const dbOperation = new DatabaseOperations.GetBuyingHistoryObjects(accountId, content.URI);
+                    this._dbApi.execute(dbOperation)
+                        .then(res => {
+                            const validKey = elGamalKeys.find((elgPair: KeyPair) => elgPair.publicKey === res.pubKey.s);
+                            if (!validKey) {
+                                reject(this.handleError(ContentError.restore_content_keys_failed, 'wrong keys'));
+                            }
 
-                    const dbOperation = new DatabaseOperations.RestoreEncryptionKey(contentId, validKey.privateKey);
-                    this._dbApi
-                        .execute(dbOperation)
-                        .then(key => {
-                            resolve(key);
-                        })
-                        .catch(err => {
-                            reject(this.handleError(ContentError.restore_content_keys_failed, err));
+                            const dbOperation = new DatabaseOperations.RestoreEncryptionKey(contentId, validKey.privateKey);
+                            this._dbApi
+                                .execute(dbOperation)
+                                .then(key => {
+                                    resolve(key);
+                                })
+                                .catch(err => {
+                                    reject(this.handleError(ContentError.restore_content_keys_failed, err));
+                                });
                         });
-                });
-            });
+                })
+                .catch(err => reject(this.handleError(ContentError.fetch_content_failed, err)));
         });
     }
 
@@ -395,9 +405,9 @@ export class ContentApi {
      * @return {Promise<void>}
      */
     public buyContent(contentId: string,
-        buyerId: string,
-        elGammalPub: string,
-        privateKey: string): Promise<void> {
+                      buyerId: string,
+                      elGammalPub: string,
+                      privateKey: string): Promise<void> {
         return new Promise((resolve, reject) => {
             this.getContent(contentId)
                 .then((content: Content) => {
@@ -406,7 +416,7 @@ export class ContentApi {
                         consumer: buyerId,
                         price: content.price,
                         region_code_from: 1,
-                        pubKey: { s: elGammalPub }
+                        pubKey: {s: elGammalPub}
                     };
                     const transaction = new Transaction();
                     transaction.addOperation({
@@ -461,10 +471,10 @@ export class ContentApi {
      * @return {Promise<Content[]>}
      */
     public getPurchasedContent(accountId: string,
-        order: string = SearchParamsOrder.createdDesc,
-        startObjectId: string = '0.0.0',
-        term: string = '',
-        resultSize: number = 100): Promise<Content[]> {
+                               order: string = SearchParamsOrder.createdDesc,
+                               startObjectId: string = '0.0.0',
+                               term: string = '',
+                               resultSize: number = 100): Promise<Content[]> {
         return new Promise((resolve, reject) => {
             if (!accountId) {
                 reject('missing_parameter');
@@ -508,8 +518,37 @@ export class ContentApi {
         });
     }
 
-    private handleError(message: string, err: any): Error {
-        const error = new Error(message);
+    /**
+     * List rating for given content id.
+     * In case to list all rating for content, leave a parameter forUser empty string.
+     *
+     * @param {string} contentId
+     * @param {string} forUser
+     * @param {string} ratingStartId
+     * @param {number} count
+     * @return {Promise<Array<Rating>>}
+     */
+    getRating(contentId: string, forUser: string, ratingStartId: string, count: number = 100): Promise<Array<Rating>> {
+        return new Promise<Array<Rating>>((resolve, reject) => {
+            this.getContent(contentId)
+                .then(res => {
+                    const operation = new DatabaseOperations.SearchFeedback(forUser, res.URI, ratingStartId, count);
+                    this._dbApi.execute(operation)
+                        .then(res => {
+                            resolve(res);
+                        })
+                        .catch(err => {
+                            reject(this.handleError(ContentError.database_operation_failed, err));
+                        });
+                })
+                .catch(err => {
+                    reject(this.handleError(ContentError.fetch_content_failed, err));
+                });
+        });
+    }
+
+    private handleError(contentErrorMessage: ContentError, err: any): Error {
+        const error = new Error(contentErrorMessage);
         error.stack = err;
         return error;
     }

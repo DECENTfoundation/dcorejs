@@ -1,7 +1,8 @@
+import { Account } from './account';
 import { Database, DatabaseApi, DatabaseOperations, SearchAccountHistoryOrder } from './api/database';
 import { ChainApi, ChainMethods } from './api/chain';
 import { CryptoUtils } from './crypt';
-import {Memo, Operation, OperationName, Transaction, TransferOperation} from './transaction';
+import {AccountUpdateOperation, Memo, Operation, OperationName, Transaction, TransferOperation} from './transaction';
 import { KeyPrivate, Utils } from './utils';
 import { HistoryApi, HistoryOperations } from './api/history';
 
@@ -168,6 +169,7 @@ export class AccountError {
     static transaction_broadcast_failed = 'transaction_broadcast_failed';
     static account_keys_incorrect = 'account_keys_incorrect';
     static bad_parameter = 'bad_parameter';
+    static history_fetch_failed = 'history_fetch_failed';
 }
 
 /**
@@ -243,10 +245,10 @@ export class AccountApi {
      * @return {Promise<TransactionRecord[]>}
      */
     public getTransactionHistory(accountId: string,
-                                 privateKeys: string[],
-                                 order: string = SearchAccountHistoryOrder.timeDesc,
-                                 startObjectId: string = '0.0.0',
-                                 resultLimit: number = 100): Promise<TransactionRecord[]> {
+        privateKeys: string[],
+        order: string = SearchAccountHistoryOrder.timeDesc,
+        startObjectId: string = '0.0.0',
+        resultLimit: number = 100): Promise<TransactionRecord[]> {
         return new Promise((resolve, reject) => {
             const dbOperation = new DatabaseOperations.SearchAccountHistory(
                 accountId,
@@ -308,10 +310,10 @@ export class AccountApi {
      * @return {Promise<Operation>}
      */
     public transfer(amount: number,
-                    fromAccount: string,
-                    toAccount: string,
-                    memo: string,
-                    privateKey: string): Promise<Operation> {
+        fromAccount: string,
+        toAccount: string,
+        memo: string,
+        privateKey: string): Promise<Operation> {
         const pKey = Utils.privateKeyFromWif(privateKey);
 
         return new Promise((resolve, reject) => {
@@ -324,65 +326,67 @@ export class AccountApi {
             operations.add(ChainMethods.getAccount, toAccount);
             operations.add(ChainMethods.getAsset, ChainApi.asset);
 
-            this._chainApi.fetch(operations).then(result => {
-                const [senderAccount, receiverAccount, asset] = result;
-                if (!senderAccount) {
-                    reject(
-                        this.handleError(
-                            AccountError.transfer_sender_account_not_found,
-                            `${fromAccount}`
-                        )
-                    );
-                }
-                if (!receiverAccount) {
-                    reject(
-                        this.handleError(
-                            AccountError.transfer_receiver_account_not_found,
-                            `${toAccount}`
-                        )
-                    );
-                }
-
-                const nonce: string = ChainApi.generateNonce();
-                const fromPublicKey = senderAccount.get('options').get('memo_key');
-                const toPublicKey = receiverAccount.get('options').get('memo_key');
-
-                const pubKey = Utils.publicKeyFromString(toPublicKey);
-
-                const memo_object: Memo = {
-                    from: fromPublicKey,
-                    to: toPublicKey,
-                    nonce: nonce,
-                    message: CryptoUtils.encryptWithChecksum(
-                        memo,
-                        pKey,
-                        pubKey,
-                        nonce
-                    )
-                };
-
-                const transfer: TransferOperation = {
-                    from: senderAccount.get('id'),
-                    to: receiverAccount.get('id'),
-                    amount: Asset.createAsset(amount, asset.get('id')),
-                    memo: memo_object
-                };
-
-                const transaction = new Transaction();
-                transaction.addOperation({
-                    name: OperationName.transfer,
-                    operation: transfer
-                });
-                transaction.broadcast(privateKey)
-                    .then(() => {
-                        resolve(transaction.operations[0]);
-                    })
-                    .catch(err => {
+            this._chainApi.fetch(operations)
+                .then(result => {
+                    const [senderAccount, receiverAccount, asset] = result;
+                    if (!senderAccount) {
                         reject(
-                            this.handleError(AccountError.transaction_broadcast_failed, err)
+                            this.handleError(
+                                AccountError.transfer_sender_account_not_found,
+                                `${fromAccount}`
+                            )
                         );
+                    }
+                    if (!receiverAccount) {
+                        reject(
+                            this.handleError(
+                                AccountError.transfer_receiver_account_not_found,
+                                `${toAccount}`
+                            )
+                        );
+                    }
+
+                    const nonce: string = ChainApi.generateNonce();
+                    const fromPublicKey = senderAccount.get('options').get('memo_key');
+                    const toPublicKey = receiverAccount.get('options').get('memo_key');
+
+                    const pubKey = Utils.publicKeyFromString(toPublicKey);
+
+                    const memo_object: Memo = {
+                        from: fromPublicKey,
+                        to: toPublicKey,
+                        nonce: nonce,
+                        message: CryptoUtils.encryptWithChecksum(
+                            memo,
+                            pKey,
+                            pubKey,
+                            nonce
+                        )
+                    };
+
+                    const transfer: TransferOperation = {
+                        from: senderAccount.get('id'),
+                        to: receiverAccount.get('id'),
+                        amount: Asset.createAsset(amount, asset.get('id')),
+                        memo: memo_object
+                    };
+
+                    const transaction = new Transaction();
+                    transaction.addOperation({
+                        name: OperationName.transfer,
+                        operation: transfer
                     });
-            });
+                    transaction.broadcast(privateKey)
+                        .then(() => {
+                            resolve(transaction.operations[0]);
+                        })
+                        .catch(err => {
+                            reject(
+                                this.handleError(AccountError.transaction_broadcast_failed, err)
+                            );
+                        });
+                })
+                .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
         });
     }
 
@@ -451,7 +455,7 @@ export class AccountApi {
                         })
                         .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
                 })
-                .catch(err => console.log(err));
+                .catch(err => reject(this.handleError(AccountError.history_fetch_failed, err)));
         });
     }
 
@@ -477,6 +481,81 @@ export class AccountApi {
                     resolve(res);
                 })
                 .catch(err => reject(this.handleError(AccountError.transaction_history_fetch_failed, err)));
+        });
+    }
+
+    public voteForMiner(miner: string, account: string, privateKeyWif: string): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            const operations = new ChainMethods();
+            operations.add(ChainMethods.getAccount, account);
+            this._chainApi.fetch(operations)
+                .then(res => {
+                    const [voterAccount] = res;
+                    const voter: Account = JSON.parse(JSON.stringify(voterAccount));
+                    const operation = new DatabaseOperations.GetMiners([miner]);
+                    this._dbApi.execute(operation)
+                        .then(res => {
+                            const [minerAcc] = res;
+                            voter.options.votes.push(minerAcc.vote_id);
+                            voter.options['num_witness'] = voter.options.num_miner;
+                            delete voter.options.num_miner;
+                            const accountUpdateOperation: AccountUpdateOperation = {
+                                account: account,
+                                owner: voter.owner,
+                                active: voter.active,
+                                new_options: voter.options,
+                                extensions: {}
+                            };
+                            const transaction = new Transaction();
+                            transaction.addOperation({
+                                name: OperationName.account_update,
+                                operation: accountUpdateOperation
+                            });
+                            transaction.broadcast(privateKeyWif)
+                                .then(res => resolve(res))
+                                .catch(err => reject(err));
+                        })
+                        .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
+                })
+                .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
+        });
+    }
+
+    public unvoteMiner(miner: string, account: string, privateKeyWif: string): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            const operations = new ChainMethods();
+            operations.add(ChainMethods.getAccount, account);
+            this._chainApi.fetch(operations)
+                .then(res => {
+                    const [voterAccount] = res;
+                    const voter: Account = JSON.parse(JSON.stringify(voterAccount));
+                    const operation = new DatabaseOperations.GetMiners([miner]);
+                    this._dbApi.execute(operation)
+                        .then(res => {
+                            const [minerAcc] = res;
+                            const voteIndex = voter.options.votes.indexOf(minerAcc.vote_id);
+                            voter.options.votes.splice(voteIndex, 1);
+                            voter.options['num_witness'] = voter.options.num_miner;
+                            delete voter.options.num_miner;
+                            const accountUpdateOperation: AccountUpdateOperation = {
+                                account: account,
+                                owner: voter.owner,
+                                active: voter.active,
+                                new_options: voter.options,
+                                extensions: {}
+                            };
+                            const transaction = new Transaction();
+                            transaction.addOperation({
+                                name: OperationName.account_update,
+                                operation: accountUpdateOperation
+                            });
+                            transaction.broadcast(privateKeyWif)
+                                .then(res => resolve(res))
+                                .catch(err => reject(err));
+                        })
+                        .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
+                })
+                .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
         });
     }
 
