@@ -21,11 +21,11 @@ export enum ConnectionState {
 export class ApiConnector {
     private _connectionPromise: Promise<any>;
 
-    constructor(apiAddresses: string[], api: any, connectionStatusCallback: (ConnectionState) => void = null) {
+    constructor(apiAddresses: string[], api: any, connectionStatusCallback: (status: ConnectionState) => void = null) {
         this.initConnetion(apiAddresses, api, connectionStatusCallback);
     }
 
-    private initConnetion(addresses: string[], api: any, connectionStatusCallback: (string) => void = null): void {
+    private initConnetion(addresses: string[], api: any, connectionStatusCallback: (status: ConnectionState) => void = null): void {
         api.setRpcConnectionStatusCallback((status: string) => this.handleConnectionState(status, connectionStatusCallback));
         const promises: Promise<any>[] = [];
         addresses.forEach(address => {
@@ -34,12 +34,12 @@ export class ApiConnector {
 
         this._connectionPromise = new Promise((resolve, reject) => {
             BBPromise.any(promises)
-            .then((result) => {
-                resolve(result);
-            })
-            .catch(err => {
-                reject(this.handleError(ApiConnectorError.ws_connection_failed, err));
-            });
+                .then((result) => {
+                    resolve(result);
+                })
+                .catch(err => {
+                    reject(this.handleError(ApiConnectorError.ws_connection_failed, err));
+                });
         });
     }
 
@@ -51,7 +51,7 @@ export class ApiConnector {
         return this._connectionPromise;
     }
 
-    private handleConnectionState(state: string, callback: (ConnectionState) => void): void {
+    private handleConnectionState(state: string, callback: (status: ConnectionState) => void): void {
         if (callback === null) {
             return;
         }
