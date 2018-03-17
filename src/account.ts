@@ -497,6 +497,9 @@ export class AccountApi {
                         .then(res => {
                             const [minerAcc] = res;
                             voter.options.votes.push(minerAcc.vote_id);
+                            voter.options.votes.sort((e1: string, e2: string) => {
+                                return Number(e1.split(':')[1]) - Number(e2.split(':')[1]);
+                            });
                             voter.options['num_witness'] = voter.options.num_miner;
                             delete voter.options.num_miner;
                             const accountUpdateOperation: AccountUpdateOperation = {
