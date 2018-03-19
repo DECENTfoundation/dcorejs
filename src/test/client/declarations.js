@@ -7,4 +7,5 @@ const dcoreNetworkAddresses = ['wss://stage.decentgo.com:8090'];
 const bk = 'WORKBOX UPJERK GORBLE SPECULA SUCKLER FUNNEL INWRAP DOSIS DARNEL CATTABU FINGER MINARET TUCKER DENDRIC WOD CULMEN';
 const pub = 'DCT5dJjvk9k3yTsnJsAph6V8zEPxsAvJ7FCCzqYWiQQyVTiHvReLz';
 const priv = '5JDFQN3T8CFT1ynhgd5s574mTV9UPf9WamkHojBL4NgbhSBDmBj';
-const accountId = '1.2.30';
+const accountId = '1.2.18';
+dcorejs.setLibRef(dcorejs_lib);

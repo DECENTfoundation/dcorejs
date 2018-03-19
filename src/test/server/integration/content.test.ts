@@ -7,7 +7,7 @@ chai.config.showDiff = false;
 
 const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
 const dcoreNetworkAddresses = ['wss://stage.decentgo.com:8090'];
-const accountId = '1.2.30';
+const accountId = '1.2.18';
 const contentId = '2.13.240';
 
 // turn off unverified certificate rejection
@@ -45,30 +45,30 @@ describe('(server/integration) Content fetch', () => {
             });
     });
 
-    it('restore content keys', (done) => {
-        const elGamalPublic = '7317752633383033582159088' +
-            '0415095934922384683502050702002361917832276924025919' +
-            '7334324222430627661202908079769675760465400935084759' +
-            '1901976526778157668840202.';
-        const privateKey = '5JDFQN3T8CFT1ynhgd5s574mTV9UPf9WamkHojBL4NgbhSBDmBj';
-        const keyPair = new dcore_js.KeyPair(privateKey, elGamalPublic);
-        const buyContentId = '2.12.114';
-        dcore_js.content().restoreContentKeys(buyContentId, accountId, keyPair)
-            .then(res => {
-                expect(res).a('string');
-                done();
-            })
-            .catch(err => {
-                expect(err).to.be.a('array');
-                done();
-            });
-    }).timeout(5000);
+    // Test is commented due to testnet reset, therefore, no seeders and no content is on testnet yet
+    // it('restore content keys', (done) => {
+    //     const elGamalPublic = '7317752633383033582159088' +
+    //         '0415095934922384683502050702002361917832276924025919' +
+    //         '7334324222430627661202908079769675760465400935084759' +
+    //         '1901976526778157668840202.';
+    //     const privateKey = '5JdZfU9Ni7wopN8JPLPM2SJBkKWB19XJSR4mK27Ww7kyZAidJ1M';
+    //     const keyPair = new dcore_js.KeyPair(privateKey, elGamalPublic);
+    //     const buyContentId = '2.12.114';
+    //     dcore_js.content().restoreContentKeys(buyContentId, accountId, keyPair)
+    //         .then(res => {
+    //             expect(res).a('string');
+    //             done();
+    //         })
+    //         .catch(err => {
+    //             expect(err).to.be.a('array');
+    //             done();
+    //         });
+    // }).timeout(5000);
 
     it('get seeders', (done) => {
         dcore_js.content().getSeeders(2)
             .then(res => {
                 expect(res).to.be.a('array');
-                expect(res).to.have.lengthOf(2);
                 done();
             })
             .catch(err => {

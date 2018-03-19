@@ -1,7 +1,8 @@
+import { Account } from './account';
 import { Database, DatabaseApi, DatabaseOperations, SearchAccountHistoryOrder } from './api/database';
 import { ChainApi, ChainMethods } from './api/chain';
 import { CryptoUtils } from './crypt';
-import { Memo, Operation, OperationName, Transaction, TransferOperation } from './transaction';
+import {AccountUpdateOperation, Memo, Operation, OperationName, Transaction, TransferOperation} from './transaction';
 import { KeyPrivate, Utils } from './utils';
 import { HistoryApi, HistoryOperations } from './api/history';
 
@@ -480,6 +481,84 @@ export class AccountApi {
                     resolve(res);
                 })
                 .catch(err => reject(this.handleError(AccountError.transaction_history_fetch_failed, err)));
+        });
+    }
+
+    public voteForMiner(miner: string, account: string, privateKeyWif: string): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            const operations = new ChainMethods();
+            operations.add(ChainMethods.getAccount, account);
+            this._chainApi.fetch(operations)
+                .then(res => {
+                    const [voterAccount] = res;
+                    const voter: Account = JSON.parse(JSON.stringify(voterAccount));
+                    const operation = new DatabaseOperations.GetMiners([miner]);
+                    this._dbApi.execute(operation)
+                        .then(res => {
+                            const [minerAcc] = res;
+                            voter.options.votes.push(minerAcc.vote_id);
+                            voter.options.votes.sort((e1: string, e2: string) => {
+                                return Number(e1.split(':')[1]) - Number(e2.split(':')[1]);
+                            });
+                            voter.options['num_witness'] = voter.options.num_miner;
+                            delete voter.options.num_miner;
+                            const accountUpdateOperation: AccountUpdateOperation = {
+                                account: account,
+                                owner: voter.owner,
+                                active: voter.active,
+                                new_options: voter.options,
+                                extensions: {}
+                            };
+                            const transaction = new Transaction();
+                            transaction.addOperation({
+                                name: OperationName.account_update,
+                                operation: accountUpdateOperation
+                            });
+                            transaction.broadcast(privateKeyWif)
+                                .then(res => resolve(res))
+                                .catch(err => reject(err));
+                        })
+                        .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
+                })
+                .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
+        });
+    }
+
+    public unvoteMiner(miner: string, account: string, privateKeyWif: string): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            const operations = new ChainMethods();
+            operations.add(ChainMethods.getAccount, account);
+            this._chainApi.fetch(operations)
+                .then(res => {
+                    const [voterAccount] = res;
+                    const voter: Account = JSON.parse(JSON.stringify(voterAccount));
+                    const operation = new DatabaseOperations.GetMiners([miner]);
+                    this._dbApi.execute(operation)
+                        .then(res => {
+                            const [minerAcc] = res;
+                            const voteIndex = voter.options.votes.indexOf(minerAcc.vote_id);
+                            voter.options.votes.splice(voteIndex, 1);
+                            voter.options['num_witness'] = voter.options.num_miner;
+                            delete voter.options.num_miner;
+                            const accountUpdateOperation: AccountUpdateOperation = {
+                                account: account,
+                                owner: voter.owner,
+                                active: voter.active,
+                                new_options: voter.options,
+                                extensions: {}
+                            };
+                            const transaction = new Transaction();
+                            transaction.addOperation({
+                                name: OperationName.account_update,
+                                operation: accountUpdateOperation
+                            });
+                            transaction.broadcast(privateKeyWif)
+                                .then(res => resolve(res))
+                                .catch(err => reject(err));
+                        })
+                        .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
+                })
+                .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
         });
     }
 
