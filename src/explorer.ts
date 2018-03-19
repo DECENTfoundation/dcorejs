@@ -575,9 +575,9 @@ export class ExplorerModule {
         return this._database.execute(operation);
     }
 
-    listMiners(): Promise<Array<Miner>> {
+    listMiners(fromId: string = '0.0.0', limit: number = 100): Promise<Array<Miner>> {
         return new Promise((resolve, reject) => {
-            const operation = new DatabaseOperations.LookupMiners('0.0.0', 100);
+            const operation = new DatabaseOperations.LookupMiners(fromId, limit);
             this._database.execute(operation)
                 .then((res: [string, string][]) => {
                     const ids = res.map(el => Number(el[1].split('.')[2]));
