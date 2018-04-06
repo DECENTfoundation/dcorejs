@@ -571,6 +571,15 @@ export class AccountApi {
         });
     }
 
+    public getAccountCount(): Promise<number> {
+        return new Promise<number>((resolve, reject) => {
+            const operation = new DatabaseOperations.GetAccountCount();
+            this._dbApi.execute(operation)
+                .then(res => resolve(res))
+                .catch(err => reject(err));
+        });
+    }
+
     private handleError(message: string, err: any): Error {
         const error = new Error(message);
         error.stack = err;
