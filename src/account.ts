@@ -562,6 +562,15 @@ export class AccountApi {
         });
     }
 
+    public searchAccounts(searchTerm: string, order: string, id: string, limit: number = 100) {
+        return new Promise<any>((resolve, reject) => {
+            const operation = new DatabaseOperations.SearchAccounts(searchTerm, order, id, limit);
+            this._dbApi.execute(operation)
+                .then(res => resolve(res))
+                .catch(err => reject(err));
+        });
+    }
+
     private handleError(message: string, err: any): Error {
         const error = new Error(message);
         error.stack = err;
