@@ -1,7 +1,5 @@
 import { KeyPrivate, KeyPublic } from './utils';
 import { dcorejs_lib } from './helpers';
-import * as md5 from 'crypto-js/md5';
-import * as aes from 'crypto-js/aes';
 import * as cryptoJs from 'crypto-js';
 
 const RIPEMD160 = require('ripemd160');
@@ -64,32 +62,78 @@ export class CryptoUtils {
     }
 
     public static md5(message: string): string {
-        return md5(message).toString();
+        return cryptoJs.MD5(message).toString();
     }
 
+    /**
+     * Encrypt message using AES256-CBC.
+     * Encrypted text is in string representation of following type
+     * {
+     *  ct: string,
+     *  iv: string,
+     *  s: string
+     * }
+     * @param {string} message
+     * @param {string} password
+     * @returns {string}
+     */
     public static encrypt(message: string, password: string): string {
-        return aes.encrypt(message, password, {format: CryptoJSAesJson.prototype}).toString();
+        return cryptoJs.AES.encrypt(message, password, {format: CryptoJSAesJson.prototype}).toString();
     }
 
+    /**
+     * Decrypt AES256-CBC encrypted message in form of string representation of following type
+     * {
+     *  ct: string,
+     *  iv: string,
+     *  s: string
+     * }
+     * @param {string} message
+     * @param {string} password
+     * @returns {string | null}
+     */
     public static decrypt(message: string, password: string): string | null {
-        return aes.decrypt(message, password, {format: CryptoJSAesJson.prototype}).toString(cryptoJs.enc.Utf8) || null;
+        return cryptoJs.AES.decrypt(message, password, {format: CryptoJSAesJson.prototype}).toString(cryptoJs.enc.Utf8) || null;
     }
 
-    // decrypt(message: string, withPassword: string) {
-    //     return Observable.create(observer => {
-    //         this.messageSender = cryptoJS.AES
-    //             .decrypt(message, withPassword, {format: CryptoJSAesJson.prototype})
-    //             .toString(cryptoJS.enc.Utf8);
-    //         if (!this.messageSender) {
-    //             observer.error(this.messageSender);
-    //         }
-    //         observer.next(this.messageSender);
-    //     });
-    // }
-    //
-    // encrypt(message, password) {
-    //     return cryptoJS.AES
-    //         .encrypt(message, password, {format: CryptoJSAesJson.prototype})
-    //         .toString();
-    // }
+    /**
+     * Encrypt message with AES256-CBC. Result is encrypted hex string.
+      * This encryption is compatible with wallet-cli wallet file export key encryption format.
+     * @param {string | Buffer} message
+     * @param {string} password
+     * @returns {string}
+     */
+    public static encryptToHexString(message: string | Buffer, password: string): string {
+        const hash = cryptoJs.SHA512(password).toString(cryptoJs.enc.Hex);
+        const ivHex = hash.substr(64, 32);
+        const keyHex = hash.substr(0, 64);
+        const iv = cryptoJs.enc.Hex.parse(ivHex);
+        const key = cryptoJs.enc.Hex.parse(keyHex);
+
+        const msg: Buffer = typeof message === 'string' ? new Buffer(message, 'binary') : message;
+        const plainArr = cryptoJs.enc.Hex.parse(msg.toString('hex'));
+        const res = cryptoJs.AES.encrypt(plainArr, key, { iv: iv });
+        return cryptoJs.enc.Hex.stringify(res.ciphertext);
+    }
+
+    /**
+     * Decrypts AES256-CBC encrypted hex string message. Result is decrypted string.
+     * This decryption is compatible with wallet-cli wallet file export key encryption format.
+     * @param {string} message
+     * @param {string} password
+     * @returns {string}
+     */
+    public static decryptHexString(message: string, password: string): string {
+        const hash = cryptoJs.SHA512(password).toString(cryptoJs.enc.Hex);
+        const ivHex = hash.substr(64, 32);
+        const keyHex = hash.substr(0, 64);
+        const iv = cryptoJs.enc.Hex.parse(ivHex);
+        const key = cryptoJs.enc.Hex.parse(keyHex);
+
+        const cipher_array = cryptoJs.enc.Hex.parse(message);
+        const plainwords = cryptoJs.AES.decrypt({ ciphertext: cipher_array, salt: null,  iv: iv }, key, { iv: iv });
+        const plainHex = cryptoJs.enc.Hex.stringify(plainwords);
+        const buff = new Buffer(plainHex, 'hex');
+        return buff.toString();
+    }
 }
