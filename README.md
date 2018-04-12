@@ -257,3 +257,15 @@ listMiners(): Promise<Array<Miner>>
 getMiners(ids: number[]): Promise<Array<Miner>>
 getMiner(id: number): Promise<Miner|null>
 ```
+### Crypto utils
+
+```typescript
+encryptWithChecksum(message: string, privateKey: KeyPrivate, publicKey: KeyPublic,  nonce: string = ''): Buffer
+decryptWithChecksum(message: string, privateKey: KeyPrivate, publicKey: KeyPublic, nonce: string = ''): Buffer
+ripemdHash(fromBuffer: Buffer): string
+md5(message: string): string
+encrypt(message: string, password: string): string
+decrypt(message: string, password: string): string | null
+encryptToHexString(message: string | Buffer, password: string): string
+decryptHexString(message: string, password: string): string
+```
