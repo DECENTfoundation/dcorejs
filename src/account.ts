@@ -2,7 +2,7 @@ import {Account} from './account';
 import {Database, DatabaseApi, DatabaseOperations, SearchAccountHistoryOrder} from './api/database';
 import {ChainApi, ChainMethods} from './api/chain';
 import {CryptoUtils} from './crypt';
-import {AccountUpdateOperation, Memo, Operation, OperationName, Transaction, TransferOperation} from './transaction';
+import {Memo, Operation, Operations, Transaction} from './transaction';
 import {KeyPrivate, Utils} from './utils';
 import {HistoryApi, HistoryOperations} from './api/history';
 
@@ -392,18 +392,14 @@ export class AccountApi {
                         )
                     };
 
-                    const transfer: TransferOperation = {
-                        from: senderAccount.get('id'),
-                        to: receiverAccount.get('id'),
-                        amount: Asset.createAsset(amount, asset.get('id')),
-                        memo: memo_object
-                    };
-
                     const transaction = new Transaction();
-                    transaction.addOperation({
-                        name: OperationName.transfer,
-                        operation: transfer
-                    });
+                    const transferOperation = new Operations.TransferOperation(
+                        senderAccount.get('id'),
+                        receiverAccount.get('id'),
+                        Asset.createAsset(amount, asset.get('id')),
+                        memo_object
+                    );
+                    transaction.add(transferOperation);
                     transaction.broadcast(privateKey)
                         .then(() => {
                             resolve(transaction.operations[0]);
@@ -530,18 +526,15 @@ export class AccountApi {
                             });
                             voter.options['num_witness'] = voter.options.num_miner;
                             delete voter.options.num_miner;
-                            const accountUpdateOperation: AccountUpdateOperation = {
-                                account: account,
-                                owner: voter.owner,
-                                active: voter.active,
-                                new_options: voter.options,
-                                extensions: {}
-                            };
+                            const op = new Operations.AccountUpdateOperation(
+                                account,
+                                voter.owner,
+                                voter.active,
+                                voter.options,
+                                {}
+                            );
                             const transaction = new Transaction();
-                            transaction.addOperation({
-                                name: OperationName.account_update,
-                                operation: accountUpdateOperation
-                            });
+                            transaction.add(op);
                             transaction.broadcast(privateKeyWif)
                                 .then(res => resolve(res))
                                 .catch(err => reject(err));
@@ -568,18 +561,15 @@ export class AccountApi {
                             voter.options.votes.splice(voteIndex, 1);
                             voter.options['num_witness'] = voter.options.num_miner;
                             delete voter.options.num_miner;
-                            const accountUpdateOperation: AccountUpdateOperation = {
-                                account: account,
-                                owner: voter.owner,
-                                active: voter.active,
-                                new_options: voter.options,
-                                extensions: {}
-                            };
+                            const op = new Operations.AccountUpdateOperation(
+                                account,
+                                voter.owner,
+                                voter.active,
+                                voter.options,
+                                {}
+                            );
                             const transaction = new Transaction();
-                            transaction.addOperation({
-                                name: OperationName.account_update,
-                                operation: accountUpdateOperation
-                            });
+                            transaction.add(op);
                             transaction.broadcast(privateKeyWif)
                                 .then(res => resolve(res))
                                 .catch(err => reject(err));

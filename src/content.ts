@@ -1,10 +1,7 @@
-import { DatabaseApi, DatabaseOperations, SearchParams, SearchParamsOrder } from './api/database';
-import { ChainApi, ChainMethods } from './api/chain';
+import {DatabaseApi, DatabaseOperations, SearchParams, SearchParamsOrder} from './api/database';
+import {ChainApi, ChainMethods} from './api/chain';
 import {
-    BuyContentOperation,
-    ContentCancelOperation,
-    OperationName,
-    SubmitContentOperation,
+    Operations,
     Transaction
 } from './transaction';
 import {Asset} from './account';
@@ -236,15 +233,9 @@ export class ContentApi {
                     const methods = new ChainMethods();
                     methods.add(ChainMethods.getAccount, authorId);
 
-                    const cancellation: ContentCancelOperation = {
-                        author: authorId,
-                        URI: URI
-                    };
+                    const cancelOperation = new Operations.ContentCancelOperation(authorId, URI);
                     const transaction = new Transaction();
-                    transaction.addOperation({
-                        name: OperationName.content_cancellation,
-                        operation: cancellation
-                    });
+                    transaction.add(cancelOperation);
                     transaction
                         .broadcast(privateKey)
                         .then(() => {
@@ -336,36 +327,31 @@ export class ContentApi {
     public addContent(content: SubmitObject, privateKey: string): Promise<void> {
         return new Promise((resolve, reject) => {
             content.size = this.getFileSize(content.size);
-            const submitOperation: SubmitContentOperation = {
-                size: content.size,
-                author: content.authorId,
-                co_authors: [],
-                URI: content.URI,
-                quorum: content.seeders.length,
-                price: [
-                    {
-                        region: 1,
-                        price: {
-                            amount: content.price,
-                            asset_id: ChainApi.asset_id
-                        }
+            const submitOperation = new Operations.SubmitContentOperation(
+                content.size,
+                content.authorId,
+                [],
+                content.URI,
+                content.seeders.length,
+                [{
+                    region: 1,
+                    price: {
+                        amount: content.price,
+                        asset_id: ChainApi.asset_id
                     }
-                ],
-                hash: content.hash,
-                seeders: content.seeders.map(s => s.seeder),
-                key_parts: content.keyParts,
-                expiration: content.date.toString(),
-                publishing_fee: {
+                }],
+                content.hash,
+                content.seeders.map(s => s.seeder),
+                content.keyParts,
+                content.date.toString(),
+                {
                     amount: this.calculateFee(content),
                     asset_id: ChainApi.asset_id
                 },
-                synopsis: JSON.stringify(content.synopsis)
-            };
+                JSON.stringify(content.synopsis)
+            );
             const transaction = new Transaction();
-            transaction.addOperation({
-                name: OperationName.content_submit,
-                operation: submitOperation
-            });
+            transaction.add(submitOperation);
             transaction
                 .broadcast(privateKey)
                 .then(() => {
@@ -411,18 +397,15 @@ export class ContentApi {
         return new Promise((resolve, reject) => {
             this.getContent(contentId)
                 .then((content: Content) => {
-                    const buyOperation: BuyContentOperation = {
-                        URI: content.URI,
-                        consumer: buyerId,
-                        price: content.price,
-                        region_code_from: 1,
-                        pubKey: {s: elGammalPub}
-                    };
+                    const buyOperation = new Operations.BuyContentOperation(
+                        content.URI,
+                        buyerId,
+                        content.price,
+                        1,
+                        {s: elGammalPub}
+                    );
                     const transaction = new Transaction();
-                    transaction.addOperation({
-                        name: OperationName.requestToBuy,
-                        operation: buyOperation
-                    });
+                    transaction.add(buyOperation);
                     transaction
                         .broadcast(privateKey)
                         .then(() => {
