@@ -1,10 +1,10 @@
-import { Account } from './account';
-import { Database, DatabaseApi, DatabaseOperations, SearchAccountHistoryOrder } from './api/database';
-import { ChainApi, ChainMethods } from './api/chain';
-import { CryptoUtils } from './crypt';
+import {Account} from './account';
+import {Database, DatabaseApi, DatabaseOperations, SearchAccountHistoryOrder} from './api/database';
+import {ChainApi, ChainMethods} from './api/chain';
+import {CryptoUtils} from './crypt';
 import {AccountUpdateOperation, Memo, Operation, OperationName, Transaction, TransferOperation} from './transaction';
-import { KeyPrivate, Utils } from './utils';
-import { HistoryApi, HistoryOperations } from './api/history';
+import {KeyPrivate, Utils} from './utils';
+import {HistoryApi, HistoryOperations} from './api/history';
 
 export interface TransactionRaw {
     id: string;
@@ -245,18 +245,12 @@ export class AccountApi {
      * @return {Promise<TransactionRecord[]>}
      */
     public getTransactionHistory(accountId: string,
-        privateKeys: string[],
-        order: string = SearchAccountHistoryOrder.timeDesc,
-        startObjectId: string = '0.0.0',
-        resultLimit: number = 100): Promise<TransactionRecord[]> {
+                                 privateKeys: string[],
+                                 order: string = SearchAccountHistoryOrder.timeDesc,
+                                 startObjectId: string = '0.0.0',
+                                 resultLimit: number = 100): Promise<TransactionRecord[]> {
         return new Promise((resolve, reject) => {
-            const dbOperation = new DatabaseOperations.SearchAccountHistory(
-                accountId,
-                order,
-                startObjectId,
-                resultLimit
-            );
-            this._dbApi.execute(dbOperation)
+            this.searchAccountHistory(accountId, privateKeys, order, startObjectId, resultLimit)
                 .then((transactions: any[]) => {
                     const namePromises: Promise<string>[] = [];
                     const res = transactions.map((tr: any) => {
@@ -299,6 +293,40 @@ export class AccountApi {
     }
 
     /**
+     * Returns operations on given account.
+     *
+     * @param {string} accountId
+     * @param {string[]} privateKeys
+     * @param {string} order
+     * @param {string} startObjectId
+     * @param {number} resultLimit
+     * @returns {Promise<TransactionRecord[]>}
+     */
+    public searchAccountHistory(accountId: string,
+                                privateKeys: string[],
+                                order: string = SearchAccountHistoryOrder.timeDesc,
+                                startObjectId: string = '0.0.0',
+                                resultLimit: number = 100): Promise<TransactionRecord[]> {
+        return new Promise((resolve, reject) => {
+            const dbOperation = new DatabaseOperations.SearchAccountHistory(
+                accountId,
+                order,
+                startObjectId,
+                resultLimit
+            );
+            this._dbApi.execute(dbOperation)
+                .then((transactions: any[]) => {
+                    resolve(transactions);
+                })
+                .catch(err => {
+                    reject(
+                        this.handleError(AccountError.transaction_history_fetch_failed, err)
+                    );
+                });
+        });
+    }
+
+    /**
      * Transfers exact amount of DCT between accounts with optional
      * message for recipient
      *
@@ -310,10 +338,10 @@ export class AccountApi {
      * @return {Promise<Operation>}
      */
     public transfer(amount: number,
-        fromAccount: string,
-        toAccount: string,
-        memo: string,
-        privateKey: string): Promise<Operation> {
+                    fromAccount: string,
+                    toAccount: string,
+                    memo: string,
+                    privateKey: string): Promise<Operation> {
         const pKey = Utils.privateKeyFromWif(privateKey);
 
         return new Promise((resolve, reject) => {
