@@ -609,4 +609,12 @@ export class ExplorerModule {
                 .catch(err => reject(err));
         });
     }
+
+    getHeadBlockTime(): Promise<string> {
+        return new Promise<any>((resolve, reject) => {
+            this.getDynamicGlobalProperty()
+                .then(res => resolve(res.time))
+                .catch(err => reject(err));
+        });
+    }
 }
