@@ -6,10 +6,12 @@ import {AccountApi} from './account';
 import {HistoryApi} from './api/history';
 import {ApiConnector, ConnectionState} from './api/apiConnector';
 import {ExplorerModule} from './explorer';
+import {AssetModule} from './assetModule';
 
 let _content: ContentApi;
 let _account: AccountApi;
 let _explorer: ExplorerModule;
+let _assetModule: AssetModule;
 
 export class DcoreError {
     static app_not_initialized = 'app_not_initialized';
@@ -47,6 +49,7 @@ export function initialize(config: DcoreConfig,
     _content = new ContentApi(database, chain);
     _account = new AccountApi(database, chain, historyApi);
     _explorer = new ExplorerModule(database);
+    _assetModule = new AssetModule(database);
 }
 
 export function content(): ContentApi {
@@ -59,4 +62,8 @@ export function account(): AccountApi {
 
 export function explorer(): ExplorerModule {
     return _explorer;
+}
+
+export function asset(): AssetModule {
+    return _assetModule;
 }
