@@ -5,6 +5,7 @@ import {CryptoUtils} from './crypt';
 import {Memo, Operation, Operations, Transaction} from './transaction';
 import {KeyPrivate, Utils} from './utils';
 import {HistoryApi, HistoryOperations} from './api/history';
+import RegisterAccount = Operations.RegisterAccount;
 
 export interface TransactionRaw {
     id: string;
@@ -50,7 +51,7 @@ export class Asset {
 export interface Authority {
     weight_threshold: number;
     account_auths: any[];
-    key_auths: KeyAuth[];
+    key_auths: [[string, number]];
 }
 
 export class KeyAuth {
@@ -68,14 +69,15 @@ export class KeyAuth {
 }
 
 export interface Options {
-    memo_key: string;
-    voting_account: string;
-    num_miner: number;
-    votes: any[];
-    extensions: any[];
-    allow_subscription: boolean;
-    price_per_subscribe: Asset;
-    subscription_period: number;
+    memo_key?: string;
+    voting_account?: string;
+    num_miner?: number;
+    num_witness?: number;
+    votes?: any[];
+    extensions?: any[];
+    allow_subscription?: boolean;
+    price_per_subscribe?: Asset;
+    subscription_period?: number;
 }
 
 export class TransactionRecord {
@@ -595,6 +597,58 @@ export class AccountApi {
             this._dbApi.execute(operation)
                 .then(res => resolve(res))
                 .catch(err => reject(err));
+        });
+    }
+
+    public registerAccount(name: string,
+                           ownerKey: string,
+                           activeKey: string,
+                           memoKey: string,
+                           registrar: string,
+                           regisrarPrivateKey: string): Promise<boolean> {
+        const ownerKeyAuths: [[string, number]] = [] as [[string, number]];
+        ownerKeyAuths.push([ownerKey, 1]);
+        const activeKeyAuths: [[string, number]] = [] as [[string, number]];
+        ownerKeyAuths.push([activeKey, 1]);
+        const owner = {
+            weight_threshold: 1,
+            account_auths: [],
+            key_auths: ownerKeyAuths
+        };
+        const active = {
+            weight_threshold: 1,
+            account_auths: [],
+            key_auths: activeKeyAuths
+        };
+        return new Promise<boolean>((resolve, reject) => {
+            const operations = new ChainMethods();
+            operations.add(ChainMethods.getAccount, '1.2.244');
+            this._chainApi.fetch(operations)
+                .then(res => {
+                    const operation = new RegisterAccount({
+                        name,
+                        owner,
+                        active,
+                        registrar,
+                        options: {
+                            memo_key: memoKey,
+                            voting_account: '1.2.3',
+                            allow_subscription: false,
+                            price_per_subscribe: Asset.createAsset(0, '1.3.0'),
+                            num_witness: 0,
+                            votes: [],
+                            extensions: [],
+                            subscription_period: 0,
+                        }
+                    });
+
+                    const transaction = new Transaction();
+                    transaction.add(operation);
+                    transaction.broadcast(regisrarPrivateKey)
+                        .then(() => resolve(true))
+                        .catch(err => reject(err));
+                })
+                .catch(err => console.log(err));
         });
     }
 
