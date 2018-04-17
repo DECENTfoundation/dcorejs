@@ -3,7 +3,7 @@ import {Database, DatabaseApi, DatabaseOperations, SearchAccountHistoryOrder} fr
 import {ChainApi, ChainMethods} from './api/chain';
 import {CryptoUtils} from './crypt';
 import {Memo, Operation, Operations, Transaction} from './transaction';
-import {KeyPrivate, Utils} from './utils';
+import {KeyPrivate, KeyPublic, Utils} from './utils';
 import {HistoryApi, HistoryOperations} from './api/history';
 import RegisterAccount = Operations.RegisterAccount;
 
@@ -510,6 +510,15 @@ export class AccountApi {
         });
     }
 
+    /**
+     * Vote for selected miner.
+     * More information on https://devdocs.decent.ch/UseCases/#vote_for_a_miner_1
+     *
+     * @param {string} miner
+     * @param {string} account
+     * @param {string} privateKeyWif
+     * @returns {Promise<any>}
+     */
     public voteForMiner(miner: string, account: string, privateKeyWif: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             const operations = new ChainMethods();
@@ -547,6 +556,14 @@ export class AccountApi {
         });
     }
 
+    /**
+     * Remove youte vote from selected miner.
+     *
+     * @param {string} miner
+     * @param {string} account
+     * @param {string} privateKeyWif
+     * @returns {Promise<any>}
+     */
     public unvoteMiner(miner: string, account: string, privateKeyWif: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             const operations = new ChainMethods();
@@ -582,8 +599,17 @@ export class AccountApi {
         });
     }
 
-    public searchAccounts(searchTerm: string, order: string, id: string, limit: number = 100) {
-        return new Promise<any>((resolve, reject) => {
+    /**
+     * Search accounts based on given parameters
+     *
+     * @param {string} searchTerm
+     * @param {string} order
+     * @param {string} id
+     * @param {number} limit
+     * @returns {Promise<Account>}
+     */
+    public searchAccounts(searchTerm: string, order: string, id: string, limit: number = 100): Promise<Account> {
+        return new Promise<Account>((resolve, reject) => {
             const operation = new DatabaseOperations.SearchAccounts(searchTerm, order, id, limit);
             this._dbApi.execute(operation)
                 .then(res => resolve(res))
@@ -591,6 +617,11 @@ export class AccountApi {
         });
     }
 
+    /**
+     * Returns number of accounts created on network
+     *
+     * @returns {Promise<number>}
+     */
     public getAccountCount(): Promise<number> {
         return new Promise<number>((resolve, reject) => {
             const operation = new DatabaseOperations.GetAccountCount();
@@ -600,6 +631,17 @@ export class AccountApi {
         });
     }
 
+    /**
+     * Creates new account in network.
+     *
+     * @param {string} name                 Name of newly created account.
+     * @param {string} ownerKey             Public key to be used as owner key.
+     * @param {string} activeKey            Public key to be used as active key.
+     * @param {string} memoKey              Public key used to memo encryption.
+     * @param {string} registrar            Registrar account id who pay account creation transaction
+     * @param {string} regisrarPrivateKey   Registrar private key for account register transaction to be signed with
+     * @returns {Promise<boolean>}
+     */
     public registerAccount(name: string,
                            ownerKey: string,
                            activeKey: string,
@@ -609,7 +651,7 @@ export class AccountApi {
         const ownerKeyAuths: [[string, number]] = [] as [[string, number]];
         ownerKeyAuths.push([ownerKey, 1]);
         const activeKeyAuths: [[string, number]] = [] as [[string, number]];
-        ownerKeyAuths.push([activeKey, 1]);
+        activeKeyAuths.push([activeKey, 1]);
         const owner = {
             weight_threshold: 1,
             account_auths: [],
@@ -650,6 +692,43 @@ export class AccountApi {
                 })
                 .catch(err => console.log(err));
         });
+    }
+
+    /**
+     * Create account with keys derived from provided brain key.
+     *
+     * NOTE: This method create account with owner, active and memo key set to same value.
+     *       Use of helper methods from Utils to derive keys from brainkey and then register account
+     *       with option to set these keys to different values.
+     *
+     * @param {string} brainkey             Brain key for keys derivation
+     * @param {string} accountName          Name for new account
+     * @param {string} registrar            Registrar account id, who pay for account registration
+     * @param {string} registrarPrivateKey  Registrar private key in WIF
+     * @returns {Promise<boolean>}
+     */
+    public createAccountWithBrainkey(brainkey: string,
+                                     accountName: string,
+                                     registrar: string,
+                                     registrarPrivateKey: string): Promise<boolean> {
+        const normalizedBrainkey = this.normalize(brainkey);
+        const keyPair: [KeyPrivate, KeyPublic] = Utils.generateKeys(normalizedBrainkey);
+        return this.registerAccount(
+            accountName,
+            keyPair[1].stringKey,
+            keyPair[1].stringKey,
+            keyPair[1].stringKey,
+            registrar,
+            registrarPrivateKey);
+    }
+
+    private normalize(brainKey: string) {
+        if (typeof brainKey !== 'string') {
+            throw new Error('string required for brainKey');
+        }
+        brainKey = brainKey.trim();
+        brainKey = brainKey.toUpperCase();
+        return brainKey.split(/[\t\n\v\f\r ]+/).join(' ');
     }
 
     private handleError(message: string, err: any): Error {
