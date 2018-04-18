@@ -41,7 +41,6 @@ export function initialize(config: DcoreConfig,
     ChainApi.setupChain(config.chainId, dcore.ChainConfig);
 
     const connector = new ApiConnector(config.dcoreNetworkWSPaths, dcore.Apis, connectionStatusCallback);
-
     const database = new DatabaseApi(dcore.Apis, connector);
     const historyApi = new HistoryApi(dcore.Apis, connector);
 
@@ -49,7 +48,7 @@ export function initialize(config: DcoreConfig,
     _content = new ContentApi(database, chain);
     _account = new AccountApi(database, chain, historyApi);
     _explorer = new ExplorerModule(database);
-    _assetModule = new AssetModule(database);
+    _assetModule = new AssetModule(database, connector);
 }
 
 export function content(): ContentApi {

@@ -3,6 +3,10 @@ import {KeyPrivate, KeyPublic, Utils} from './utils';
 
 import {Key, KeyParts} from './content';
 import {Authority, Options} from './account';
+import {AssetOptions} from './assetModule';
+import {Block} from './explorer';
+
+const DEFAULT_PRICE_FEED_LIFETIME = 60 * 60 * 24;
 
 /**
  * OperationType to be broadcasted to blockchain
@@ -10,9 +14,9 @@ import {Authority, Options} from './account';
  */
 export class Operation {
     name: OperationName;
-    operation: OperationType;
+    operation: object;
 
-    constructor(name: OperationName, type: OperationType) {
+    constructor(name: OperationName, type: object) {
         this.name = name;
         this.operation = type;
     }
@@ -21,13 +25,13 @@ export class Operation {
 /**
  * Class contains available transaction operation names constants
  */
-export class OperationName {
-    static transfer = 'transfer';
-    static content_cancellation = 'content_cancellation';
-    static requestToBuy = 'request_to_buy';
-    static content_submit = 'content_submit';
-    static account_update = 'account_update';
-    static asset_create = 'asset_create';
+export enum OperationName {
+    transfer = 'transfer',
+    content_cancellation = 'content_cancellation',
+    requestToBuy = 'request_to_buy',
+    content_submit = 'content_submit',
+    account_update = 'account_update',
+    asset_create = 'asset_create',
 }
 
 /**
@@ -53,6 +57,8 @@ export interface Memo {
  * Operations collection which can be constructed and send to blockchain network
  */
 export namespace Operations {
+    import AssetExchangeRate = Block.AssetExchangeRate;
+
     export class TransferOperation extends Operation {
         constructor(from: string, to: string, amount: Asset, memo: Memo) {
             super(
@@ -151,13 +157,32 @@ export namespace Operations {
             );
         }
     }
+
+    export class AssetCreateOperation extends Operation {
+        constructor(issuer: string,
+                    symbol: string,
+                    precision: number,
+                    description: string,
+                    max_supply: number,
+                    core_exchange_rate: AssetExchangeRate,
+                    is_exchangable: boolean,
+                    options: AssetOptions) {
+            super(
+                OperationName.asset_create,
+                {
+                    issuer,
+                    symbol,
+                    precision,
+                    description,
+                    max_supply,
+                    core_exchange_rate,
+                    is_exchangable,
+                    feed_lifetime_sec: DEFAULT_PRICE_FEED_LIFETIME,
+                    minimum_feeds: 1,
+                });
+        }
+    }
 }
-
-
-/**
- * OperationType operations generalization
- */
-export interface OperationType {}
 
 export interface RegionalPrice {
     region: number;

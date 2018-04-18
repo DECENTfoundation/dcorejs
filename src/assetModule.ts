@@ -1,5 +1,8 @@
 import {DatabaseApi, DatabaseOperations} from './api/database';
-import {Asset} from './account';
+import {Operations, Transaction} from './transaction';
+import {Block} from './explorer';
+import AssetExchangeRate = Block.AssetExchangeRate;
+import {ApiConnector} from './api/apiConnector';
 
 export interface AssetObject {
     id: string;
@@ -22,25 +25,23 @@ export interface MonitoredAssetOptions {
 
 export interface AssetOptions {
     max_supply: number;
-    core_exchange_rate: ExchangeRate;
+    core_exchange_rate: AssetExchangeRate;
     is_exchangeable: boolean;
-    extensions: any[];
+    extensions?: any[];
 }
 
 export interface AssetCurrentFeed {
-    core_exchange_rate: ExchangeRate;
-}
-
-export interface ExchangeRate {
-    base: Asset;
-    quote: Asset;
+    core_exchange_rate: AssetExchangeRate;
 }
 
 export class AssetModule {
+    public MAX_SHARED_SUPPLY = 7319777577456890;
     private dbApi: DatabaseApi;
+    private connector: ApiConnector;
 
-    constructor(dbApi: DatabaseApi) {
-        this.dbApi = dbApi;
+    constructor(dbApi: DatabaseApi, connector: ApiConnector) {
+        this.dbApi = dbApi
+        this.connector = connector;
     }
 
     public listAssets(lowerBoundSymbol: string, limit: number = 100): Promise<AssetObject[]> {
@@ -56,13 +57,38 @@ export class AssetModule {
         });
     }
 
-    public createMonitoredAsset(issuer: string,
+    public createUserIssuedAsset(issuer: string,
                                 symbol: string,
                                 precision: number,
                                 description: string,
-                                feedLifetimeSec: string,
-                                minimumFeeds: string): Promise<boolean> {
-        const operation = new
-        return new Promise<boolean>((resolve, reject) => {});
+                                maxSupply: number,
+                                coreExchangeRate: AssetExchangeRate,
+                                isExchangable: boolean,
+                                issuerPrivateKey: string): Promise<boolean> {
+        const options: AssetOptions = {
+            max_supply: maxSupply,
+            is_exchangeable: isExchangable,
+            core_exchange_rate: coreExchangeRate
+        };
+        const operation = new Operations.AssetCreateOperation(
+            issuer, symbol, precision, description, maxSupply, coreExchangeRate, isExchangable, options
+        );
+
+        const transaction = new Transaction();
+        transaction.add(operation);
+
+        return new Promise<boolean>((resolve, reject) => {
+            this.connector.connect()
+                .then(() => {
+                    transaction.broadcast(issuerPrivateKey)
+                        .then(() => resolve(true))
+                        .catch(err => reject(err));
+                })
+                .catch(err => {
+                    console.log(err);
+                    reject(err);
+                });
+
+        });
     }
 }
