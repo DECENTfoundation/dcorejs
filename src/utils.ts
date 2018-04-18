@@ -29,7 +29,7 @@ export class Utils {
      * @param {string} fromBrainKey
      * @return {any[]} [privateKey: KeyPrivate, publicKey: KeyPublic]
      */
-    public static generateKeys(fromBrainKey: string): (KeyPrivate | KeyPublic)[] {
+    public static generateKeys(fromBrainKey: string): [KeyPrivate, KeyPublic] {
 
         const pkey: KeyPrivate = Utils.generatePrivateKey(fromBrainKey);
         const pubKey: KeyPublic = Utils.getPublicKey(pkey);

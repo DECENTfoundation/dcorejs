@@ -10,9 +10,9 @@ import {Authority, Options} from './account';
  */
 export class Operation {
     name: OperationName;
-    operation: OperationType;
+    operation: object;
 
-    constructor(name: OperationName, type: OperationType) {
+    constructor(name: OperationName, type: object) {
         this.name = name;
         this.operation = type;
     }
@@ -27,6 +27,7 @@ export enum OperationName {
     requestToBuy = 'request_to_buy',
     content_submit = 'content_submit',
     account_update = 'account_update',
+    account_create = 'account_create',
 }
 
 /**
@@ -150,13 +151,22 @@ export namespace Operations {
             );
         }
     }
+
+    export interface CreateAccountParameters {
+        fee?: Asset,
+        name?: string,
+        owner?: Authority,
+        active?: Authority,
+        options?: Options,
+        registrar?: string,
+        extensions?: any
+    }
+    export class RegisterAccount extends Operation {
+        constructor(params: CreateAccountParameters) {
+            super(OperationName.account_create, params);
+        }
+    }
 }
-
-
-/**
- * OperationType operations generalization
- */
-export interface OperationType {}
 
 export interface RegionalPrice {
     region: number;
