@@ -109,5 +109,22 @@ describe('(server/integration) Account fetch', () => {
             });
     }).timeout(10000);
 
+    it('search accounts', (done) => {
+        dcore_js.account().searchAccounts('', '', '0.0.0')
+            .then(res => {
+                expect(res).to.be.a('array');
+                expect(res).to.have.length.above(0);
+                done();
+            });
+    });
+
+    it('get accounts count', (done) => {
+        dcore_js.account().getAccountCount()
+            .then(res => {
+                expect(res).to.be.a('number');
+                expect(res).to.be.above(0);
+                done();
+            });
+    });
 });
 
