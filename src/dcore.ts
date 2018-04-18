@@ -45,7 +45,7 @@ export function initialize(config: DcoreConfig,
 
     const chain = new ChainApi(connector, dcore.ChainStore);
     _content = new ContentApi(database, chain);
-    _account = new AccountApi(database, chain, historyApi);
+    _account = new AccountApi(database, chain, historyApi, connector);
     _explorer = new ExplorerModule(database);
 }
 

@@ -6,6 +6,7 @@ import {Memo, Operation, Operations, Transaction} from './transaction';
 import {KeyPrivate, KeyPublic, Utils} from './utils';
 import {HistoryApi, HistoryOperations} from './api/history';
 import RegisterAccount = Operations.RegisterAccount;
+import {ApiConnector} from './api/apiConnector';
 
 export interface TransactionRaw {
     id: string;
@@ -181,11 +182,13 @@ export class AccountApi {
     private _dbApi: DatabaseApi;
     private _chainApi: ChainApi;
     private _historyApi: HistoryApi;
+    private _connector: ApiConnector;
 
-    constructor(dbApi: Database, chainApi: ChainApi, historyApi: HistoryApi) {
+    constructor(dbApi: Database, chainApi: ChainApi, historyApi: HistoryApi, connector: ApiConnector) {
         this._dbApi = dbApi as DatabaseApi;
         this._chainApi = chainApi;
         this._historyApi = historyApi;
+        this._connector = connector;
     }
 
     /**
@@ -663,10 +666,8 @@ export class AccountApi {
             key_auths: activeKeyAuths
         };
         return new Promise<boolean>((resolve, reject) => {
-            const operations = new ChainMethods();
-            operations.add(ChainMethods.getAccount, '1.2.244');
-            this._chainApi.fetch(operations)
-                .then(res => {
+            this._connector.connect()
+                .then(() => {
                     const operation = new RegisterAccount({
                         name,
                         owner,
