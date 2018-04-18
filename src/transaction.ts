@@ -21,12 +21,13 @@ export class Operation {
 /**
  * Class contains available transaction operation names constants
  */
-export enum OperationName {
-    transfer = 'transfer',
-    content_cancellation = 'content_cancellation',
-    requestToBuy = 'request_to_buy',
-    content_submit = 'content_submit',
-    account_update = 'account_update',
+export class OperationName {
+    static transfer = 'transfer';
+    static content_cancellation = 'content_cancellation';
+    static requestToBuy = 'request_to_buy';
+    static content_submit = 'content_submit';
+    static account_update = 'account_update';
+    static asset_create = 'asset_create';
 }
 
 /**

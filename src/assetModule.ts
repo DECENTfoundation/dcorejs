@@ -55,4 +55,14 @@ export class AssetModule {
                 });
         });
     }
+
+    public createMonitoredAsset(issuer: string,
+                                symbol: string,
+                                precision: number,
+                                description: string,
+                                feedLifetimeSec: string,
+                                minimumFeeds: string): Promise<boolean> {
+        const operation = new
+        return new Promise<boolean>((resolve, reject) => {});
+    }
 }
