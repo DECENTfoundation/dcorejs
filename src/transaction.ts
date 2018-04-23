@@ -4,9 +4,6 @@ import {KeyPrivate, KeyPublic, Utils} from './utils';
 import {Key, KeyParts} from './content';
 import {Authority, Options} from './account';
 import {AssetOptions} from './assetModule';
-import {Block} from './explorer';
-
-const DEFAULT_PRICE_FEED_LIFETIME = 60 * 60 * 24;
 
 /**
  * OperationType to be broadcasted to blockchain
@@ -57,8 +54,6 @@ export interface Memo {
  * Operations collection which can be constructed and send to blockchain network
  */
 export namespace Operations {
-    import AssetExchangeRate = Block.AssetExchangeRate;
-
     export class TransferOperation extends Operation {
         constructor(from: string, to: string, amount: Asset, memo: Memo) {
             super(
@@ -163,9 +158,6 @@ export namespace Operations {
                     symbol: string,
                     precision: number,
                     description: string,
-                    max_supply: number,
-                    core_exchange_rate: AssetExchangeRate,
-                    is_exchangable: boolean,
                     options: AssetOptions) {
             super(
                 OperationName.asset_create,
@@ -174,11 +166,7 @@ export namespace Operations {
                     symbol,
                     precision,
                     description,
-                    max_supply,
-                    core_exchange_rate,
-                    is_exchangable,
-                    feed_lifetime_sec: DEFAULT_PRICE_FEED_LIFETIME,
-                    minimum_feeds: 1,
+                    options
                 });
         }
     }
