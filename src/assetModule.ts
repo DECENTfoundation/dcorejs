@@ -68,10 +68,11 @@ export class AssetModule {
         const options: AssetOptions = {
             max_supply: maxSupply,
             is_exchangeable: isExchangable,
-            core_exchange_rate: coreExchangeRate
+            core_exchange_rate: coreExchangeRate,
+            extensions: []
         };
         const operation = new Operations.AssetCreateOperation(
-            issuer, symbol, precision, description, maxSupply, coreExchangeRate, isExchangable, options
+            issuer, symbol, precision, description, options
         );
 
         const transaction = new Transaction();
