@@ -715,7 +715,7 @@ export class AccountApi {
                                      accountName: string,
                                      registrar: string,
                                      registrarPrivateKey: string): Promise<boolean> {
-        const normalizedBrainkey = this.normalize(brainkey);
+        const normalizedBrainkey = Utils.normalize(brainkey);
         const keyPair: [KeyPrivate, KeyPublic] = Utils.generateKeys(normalizedBrainkey);
         return this.registerAccount(
             accountName,
@@ -743,22 +743,19 @@ export class AccountApi {
         });
     }
 
-    public listAccountBalances(id: string): Promise<any> {
-        return new Promise<any>((resolve, reject) => {
+    /**
+     * Returns account's balances in all assets account have non-zero amount in.
+     *
+     * @param {string} id           Account id
+     * @returns {Promise<Asset[]>}  List of balances
+     */
+    public listAccountBalances(id: string): Promise<Asset[]> {
+        return new Promise<Asset[]>((resolve, reject) => {
             const operation = new DatabaseOperations.GetAccountBalances(id, []);
             this._dbApi.execute(operation)
                 .then(res => resolve(res))
                 .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
         });
-    }
-
-    private normalize(brainKey: string) {
-        if (typeof brainKey !== 'string') {
-            throw new Error('string required for brainKey');
-        }
-        brainKey = brainKey.trim();
-        brainKey = brainKey.toUpperCase();
-        return brainKey.split(/[\t\n\v\f\r ]+/).join(' ');
     }
 
     private handleError(message: string, err: any): Error {
