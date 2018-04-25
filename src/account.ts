@@ -1,5 +1,5 @@
 import {Account} from './account';
-import {Database, DatabaseApi, DatabaseOperations, SearchAccountHistoryOrder} from './api/database';
+import {Database, DatabaseApi} from './api/database';
 import {ChainApi, ChainMethods} from './api/chain';
 import {CryptoUtils} from './crypt';
 import {Memo, Operation, Operations, Transaction} from './transaction';
@@ -7,6 +7,7 @@ import {KeyPrivate, KeyPublic, Utils} from './utils';
 import {HistoryApi, HistoryOperations} from './api/history';
 import RegisterAccount = Operations.RegisterAccount;
 import {ApiConnector} from './api/apiConnector';
+import {DatabaseOperations, SearchAccountHistoryOrder} from './api/model/database';
 
 export type AccountNameIdPair = [string, string];
 
@@ -736,6 +737,15 @@ export class AccountApi {
     public listAccounts(loweBound: string = '', limit: number = 100): Promise<AccountNameIdPair> {
         return new Promise<AccountNameIdPair>((resolve, reject) => {
             const operation = new DatabaseOperations.LookupAccounts(loweBound, limit);
+            this._dbApi.execute(operation)
+                .then(res => resolve(res))
+                .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
+        });
+    }
+
+    public listAccountBalances(id: string): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            const operation = new DatabaseOperations.GetAccountBalances(id, []);
             this._dbApi.execute(operation)
                 .then(res => resolve(res))
                 .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));

@@ -1,4 +1,4 @@
-import {DatabaseApi, DatabaseOperations, SearchParams, SearchParamsOrder} from './api/database';
+import {DatabaseApi} from './api/database';
 import {ChainApi, ChainMethods} from './api/chain';
 import {
     Operations,
@@ -6,6 +6,7 @@ import {
 } from './transaction';
 import {Asset} from './account';
 import {isUndefined} from 'util';
+import {DatabaseOperations, SearchParams, SearchParamsOrder} from './api/model/database';
 
 const moment = require('moment');
 
@@ -158,11 +159,9 @@ export interface Seeder {
  */
 export class ContentApi {
     private _dbApi: DatabaseApi;
-    private _chainApi: ChainApi;
 
     constructor(dbApi: DatabaseApi, chainApi: ChainApi) {
         this._dbApi = dbApi;
-        this._chainApi = chainApi;
     }
 
     /**
