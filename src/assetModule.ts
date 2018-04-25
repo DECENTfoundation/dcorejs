@@ -98,10 +98,30 @@ export class AssetModule {
     }
 
     public getAsset(assetId: string): Promise<DCoreAssetObject[]> {
-        const operation = new DatabaseOperations.GetAssets(assetId);
+        const operation = new DatabaseOperations.GetAssets([assetId]);
         return new Promise<DCoreAssetObject[]>((resolve, reject) => {
             this.dbApi.execute(operation)
                 .then(res => resolve(res))
+                .catch(err => reject(err));
+        });
+    }
+
+    public getMonitoredAssetData(assetId: string): Promise<MonitoredAssetOptions | null> {
+        const operation = new DatabaseOperations.GetAssets([assetId]);
+        return new Promise<MonitoredAssetOptions>((resolve, reject) => {
+            this.dbApi.execute(operation)
+                .then((res: AssetObject[]) => {
+                    if (res.length === 0) {
+                        resolve(null);
+                        return;
+                    }
+
+                    if (!('monitored_asset_opts' in res[0])) {
+                        resolve(null);
+                        return;
+                    }
+                    resolve(res[0].monitored_asset_opts);
+                })
                 .catch(err => reject(err));
         });
     }

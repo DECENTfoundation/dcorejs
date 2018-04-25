@@ -286,8 +286,8 @@ export namespace DatabaseOperations {
     }
 
     export class GetAssets extends DatabaseOperation {
-        constructor(assetId: string) {
-            super(DatabaseOperationName.getAssets, [assetId]);
+        constructor(assetIds: string[]) {
+            super(DatabaseOperationName.getAssets, assetIds);
         }
     }
 }
