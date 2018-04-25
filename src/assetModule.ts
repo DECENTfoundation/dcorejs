@@ -4,6 +4,10 @@ import {Block} from './explorer';
 import AssetExchangeRate = Block.AssetExchangeRate;
 import {ApiConnector} from './api/apiConnector';
 
+export interface DCoreAssetObject extends AssetObject {
+    dynamic_asset_data_id: string;
+}
+
 export interface AssetObject {
     id: string;
     symbol: string;
@@ -40,7 +44,7 @@ export class AssetModule {
     private connector: ApiConnector;
 
     constructor(dbApi: DatabaseApi, connector: ApiConnector) {
-        this.dbApi = dbApi
+        this.dbApi = dbApi;
         this.connector = connector;
     }
 
@@ -58,13 +62,13 @@ export class AssetModule {
     }
 
     public createUserIssuedAsset(issuer: string,
-                                symbol: string,
-                                precision: number,
-                                description: string,
-                                maxSupply: number,
-                                coreExchangeRate: AssetExchangeRate,
-                                isExchangable: boolean,
-                                issuerPrivateKey: string): Promise<boolean> {
+                                 symbol: string,
+                                 precision: number,
+                                 description: string,
+                                 maxSupply: number,
+                                 coreExchangeRate: AssetExchangeRate,
+                                 isExchangable: boolean,
+                                 issuerPrivateKey: string): Promise<boolean> {
         const options: AssetOptions = {
             max_supply: maxSupply,
             is_exchangeable: isExchangable,
@@ -93,9 +97,9 @@ export class AssetModule {
         });
     }
 
-    public getAsset(assetId: string): Promise<any> {
+    public getAsset(assetId: string): Promise<DCoreAssetObject[]> {
         const operation = new DatabaseOperations.GetAssets(assetId);
-        return new Promise<any>((resolve, reject) => {
+        return new Promise<DCoreAssetObject[]>((resolve, reject) => {
             this.dbApi.execute(operation)
                 .then(res => resolve(res))
                 .catch(err => reject(err));
