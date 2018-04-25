@@ -1,6 +1,7 @@
 import { dcorejs_lib } from './helpers';
 import { CryptoUtils } from './crypt';
 import { ChainApi } from './api/chain';
+import dictionary from './resources/dictionary';
 
 
 export class Utils {
@@ -67,6 +68,10 @@ export class Utils {
     public static publicKeyFromString(pubKeyString: string): KeyPublic {
         const pubKey = dcorejs_lib.PublicKey.fromPublicKeyString(pubKeyString);
         return new KeyPublic(pubKey);
+    }
+
+    public static suggestBrainKey(): string {
+        return dcorejs_lib.key.suggest_brain_key(dictionary.en);
     }
 
     private static generatePrivateKey(brainKey: string): KeyPrivate {
