@@ -107,6 +107,7 @@ class DatabaseOperationName {
     static getMiners = 'get_miners';
     static searchFeedback = 'search_feedback';
     static listAssets = 'list_assets';
+    static getAssets = 'get_assets';
 }
 
 export class DatabaseOperation {
@@ -281,6 +282,12 @@ export namespace DatabaseOperations {
     export class ListAssets extends DatabaseOperation {
         constructor(lowerBoundSymbol: string, limit: number) {
             super(DatabaseOperationName.listAssets, lowerBoundSymbol, limit);
+        }
+    }
+
+    export class GetAssets extends DatabaseOperation {
+        constructor(assetId: string) {
+            super(DatabaseOperationName.getAssets, [assetId]);
         }
     }
 }

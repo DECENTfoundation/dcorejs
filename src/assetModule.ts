@@ -92,4 +92,15 @@ export class AssetModule {
 
         });
     }
+
+    public getAsset(assetId: string): Promise<any> {
+        const operation = new DatabaseOperations.GetAssets(assetId);
+        return new Promise<any>((resolve, reject) => {
+            this.dbApi.execute(operation)
+                .then(res => resolve(res))
+                .catch(err => reject(err));
+        });
+    }
+
+    // TODO: add error handling
 }
