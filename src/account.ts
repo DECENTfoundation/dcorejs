@@ -8,6 +8,8 @@ import {HistoryApi, HistoryOperations} from './api/history';
 import RegisterAccount = Operations.RegisterAccount;
 import {ApiConnector} from './api/apiConnector';
 
+export type AccountNameIdPair = [string, string];
+
 export interface TransactionRaw {
     id: string;
     m_from_account: string;
@@ -721,6 +723,23 @@ export class AccountApi {
             keyPair[1].stringKey,
             registrar,
             registrarPrivateKey);
+    }
+
+    /**
+     * Fetch list of an accounts that begins from lower bound account id.
+     * If empty string or '1.2.0' is entered, account are listed from the beginning.
+     *
+     * @param {string} loweBound                Account id from which accounts are listed.
+     * @param {number} limit                    Number of returned accounts
+     * @returns {Promise<AccountNameIdPair>}    Listed accounts.
+     */
+    public listAccounts(loweBound: string = '', limit: number = 100): Promise<AccountNameIdPair> {
+        return new Promise<AccountNameIdPair>((resolve, reject) => {
+            const operation = new DatabaseOperations.LookupAccounts(loweBound, limit);
+            this._dbApi.execute(operation)
+                .then(res => resolve(res))
+                .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
+        });
     }
 
     private normalize(brainKey: string) {

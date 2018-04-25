@@ -107,6 +107,7 @@ class DatabaseOperationName {
     static getMiners = 'get_miners';
     static searchFeedback = 'search_feedback';
     static searchAccounts = 'search_accounts';
+    static lookupAccounts = 'lookup_accounts';
 }
 
 export class DatabaseOperation {
@@ -281,6 +282,12 @@ export namespace DatabaseOperations {
     export class SearchAccounts extends DatabaseOperation {
         constructor(searchTerm: string, order: string, id: string, limit: number) {
             super(DatabaseOperationName.searchAccounts, searchTerm, order, id, limit);
+        }
+    }
+
+    export class LookupAccounts extends DatabaseOperation {
+        constructor(lowerBound: string, limit: number) {
+            super(DatabaseOperationName.lookupAccounts, lowerBound, limit);
         }
     }
 }
