@@ -26,7 +26,17 @@ describe('(client/unit) Crypt helper test', () => {
     it('create md5 hash', () => {
         const hash = dcorejs.CryptoUtils.md5('dd.duskis+st14@gmail.com');
         expect(`u${hash}`).to.equal('u5d42a7b0b5713396aac58019eed01d53');
-    }).timeout(5000);
+    });
+
+    it('create sha256 hash', () => {
+        const hash = dcorejs.CryptoUtils.sha256('dd.duskis+st14@gmail.com');
+        expect(hash).to.equal('462b25ab8691e689b8b7fc6d2193d3db868b65fcdd293d118aa39cb1414df449');
+    });
+
+    it('create sha512 hash', () => {
+        const hash = dcorejs.CryptoUtils.sha512('dd.duskis+st14@gmail.com');
+        expect(hash).to.equal('93c6499a86f6891c00b47f1dc17d8400922bc3887c4b33485d853793df59863245aad895763bddc1ceb1e2bff95a2f8b29f8cc019d3c9a72385929780a88e285');
+    });
 
     it('encrypt with password', () => {
         const encrypted = dcorejs.CryptoUtils.encrypt(email, 'Password1');

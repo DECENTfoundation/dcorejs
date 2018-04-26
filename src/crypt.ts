@@ -65,6 +65,14 @@ export class CryptoUtils {
         return cryptoJs.MD5(message).toString();
     }
 
+    public static sha512(message: string): string {
+        return cryptoJs.SHA512(message).toString(cryptoJs.enc.Hex);
+    }
+
+    public static sha256(message: string): string {
+        return cryptoJs.SHA256(message).toString(cryptoJs.enc.Hex);
+    }
+
     /**
      * Encrypt message using AES256-CBC.
      * Encrypted text is in string representation of following type
@@ -104,7 +112,7 @@ export class CryptoUtils {
      * @returns {string}
      */
     public static encryptToHexString(message: string | Buffer, password: string): string {
-        const hash = cryptoJs.SHA512(password).toString(cryptoJs.enc.Hex);
+        const hash = CryptoUtils.sha512(password);
         const ivHex = hash.substr(64, 32);
         const keyHex = hash.substr(0, 64);
         const iv = cryptoJs.enc.Hex.parse(ivHex);
@@ -124,7 +132,7 @@ export class CryptoUtils {
      * @returns {string}
      */
     public static decryptHexString(message: string, password: string): string {
-        const hash = cryptoJs.SHA512(password).toString(cryptoJs.enc.Hex);
+        const hash = CryptoUtils.sha512(password);
         const ivHex = hash.substr(64, 32);
         const keyHex = hash.substr(0, 64);
         const iv = cryptoJs.enc.Hex.parse(ivHex);
