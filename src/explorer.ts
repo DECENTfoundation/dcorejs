@@ -611,6 +611,15 @@ export class ExplorerModule {
         });
     }
 
+    getMinerCount(): Promise<number> {
+        return new Promise<number>((resolve, reject) => {
+            const operation = new DatabaseOperations.GetMinerCount();
+            this._database.execute(operation)
+                .then(res => resolve(res))
+                .catch(err => reject(err));
+        });
+    }
+
     getHeadBlockTime(): Promise<string> {
         return new Promise<any>((resolve, reject) => {
             this.getDynamicGlobalProperty()

@@ -27,6 +27,7 @@ class DatabaseOperationName {
     static searchAccounts = 'search_accounts';
     static lookupAccounts = 'lookup_accounts';
     static searchMinerVoting = 'search_miner_voting';
+    static getMinerCount = 'get_miner_count';
 }
 
 export class DatabaseOperation {
@@ -296,6 +297,12 @@ export namespace DatabaseOperations {
     export class SearchMinerVoting extends DatabaseOperation {
         constructor(accountName: string, keyword: string, myVotes: boolean, sort: MinerOrder, fromMinerId: string, limit: number) {
             super(DatabaseOperationName.searchMinerVoting, accountName, keyword, myVotes, sort, fromMinerId, limit);
+        }
+    }
+
+    export class GetMinerCount extends DatabaseOperation {
+        constructor() {
+            super(DatabaseOperationName.getMinerCount);
         }
     }
 }
