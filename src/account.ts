@@ -7,7 +7,7 @@ import {KeyPrivate, KeyPublic, Utils} from './utils';
 import {HistoryApi, HistoryOperations} from './api/history';
 import RegisterAccount = Operations.RegisterAccount;
 import {ApiConnector} from './api/apiConnector';
-import {DatabaseOperations, SearchAccountHistoryOrder} from './api/model/database';
+import {DatabaseOperations, SearchAccountHistoryOrder, MinerOrder, DatabaseError} from './api/model/database';
 
 export type AccountNameIdPair = [string, string];
 
@@ -162,6 +162,14 @@ export interface HistoryRecord {
     trx_in_block: number
     op_in_trx: number
     virtual_op: number
+}
+
+export interface MinerInfo {
+    id: string;
+    name: string;
+    url: string;
+    total_votes: number;
+    voted: boolean;
 }
 
 export class AccountError {
@@ -755,6 +763,39 @@ export class AccountApi {
             this._dbApi.execute(operation)
                 .then(res => resolve(res))
                 .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
+        });
+    }
+
+    /**
+     * Search for miners with parameters.
+     *
+     * @param {string} accountName          Account name to search miners for. If not using myVotes, searching in all miners
+     * @param {string} keyword              Search keyword.
+     * @param {boolean} myVotes             Flag to search within account's voted miners.
+     * @param {MinerOrder} sort             Sorting parameter of search results.
+     * @param {string} fromMinerId          Miner id to start form. Use for paging.
+     * @param {number} limit                Result count. Default and max is 1000
+     * @returns {Promise<MinerInfo[]>}
+     */
+    public searchMinerVoting(accountName: string,
+                             keyword: string,
+                             myVotes: boolean,
+                             sort: MinerOrder,
+                             fromMinerId: string,
+                             limit: number = 1000): Promise<MinerInfo[]> {
+        return new Promise<MinerInfo[]>((resolve, reject) => {
+            const operation = new DatabaseOperations.SearchMinerVoting(
+                accountName,
+                keyword,
+                myVotes,
+                sort,
+                fromMinerId,
+                limit);
+            this._dbApi.execute(operation)
+                .then(res => resolve(res))
+                .catch(err => {
+                    reject(this.handleError(DatabaseError.database_execution_failed, err));
+                });
         });
     }
 

@@ -26,6 +26,7 @@ class DatabaseOperationName {
     static searchFeedback = 'search_feedback';
     static searchAccounts = 'search_accounts';
     static lookupAccounts = 'lookup_accounts';
+    static searchMinerVoting = 'search_miner_voting';
 }
 
 export class DatabaseOperation {
@@ -76,6 +77,13 @@ export class SearchAccountHistoryOrder {
     static feeDesc = '-fee';
     static descriptionDesc = '-description';
     static timeDesc = '-time';
+}
+
+export enum MinerOrder {
+    name = 'name',
+    url = 'url',
+    votes = 'votes',
+    none = ''
 }
 
 /**
@@ -282,6 +290,12 @@ export namespace DatabaseOperations {
     export class LookupAccounts extends DatabaseOperation {
         constructor(lowerBound: string, limit: number) {
             super(DatabaseOperationName.lookupAccounts, lowerBound, limit);
+        }
+    }
+
+    export class SearchMinerVoting extends DatabaseOperation {
+        constructor(accountName: string, keyword: string, myVotes: boolean, sort: MinerOrder, fromMinerId: string, limit: number) {
+            super(DatabaseOperationName.searchMinerVoting, accountName, keyword, myVotes, sort, fromMinerId, limit);
         }
     }
 }
