@@ -1,13 +1,13 @@
-import {Account} from './account';
-import {Database, DatabaseApi} from './api/database';
-import {ChainApi, ChainMethods} from './api/chain';
-import {CryptoUtils} from './crypt';
-import {Memo, Operation, Operations, Transaction} from './transaction';
-import {KeyPrivate, KeyPublic, Utils} from './utils';
-import {HistoryApi, HistoryOperations} from './api/history';
+import { Account } from './account';
+import { Database, DatabaseApi } from './api/database';
+import { ChainApi, ChainMethods } from './api/chain';
+import { CryptoUtils } from './crypt';
+import { Memo, Operation, Operations, Transaction } from './transaction';
+import { KeyPrivate, KeyPublic, Utils } from './utils';
+import { HistoryApi, HistoryOperations } from './api/history';
 import RegisterAccount = Operations.RegisterAccount;
-import {ApiConnector} from './api/apiConnector';
-import {DatabaseOperations, SearchAccountHistoryOrder} from './api/model/database';
+import { ApiConnector } from './api/apiConnector';
+import { DatabaseOperations, SearchAccountHistoryOrder, MinerOrder, DatabaseError } from './api/model/database';
 
 export type AccountNameIdPair = [string, string];
 
@@ -164,6 +164,14 @@ export interface HistoryRecord {
     virtual_op: number
 }
 
+export interface MinerInfo {
+    id: string;
+    name: string;
+    url: string;
+    total_votes: number;
+    voted: boolean;
+}
+
 export class AccountError {
     static account_does_not_exist = 'account_does_not_exist';
     static account_fetch_failed = 'account_fetch_failed';
@@ -253,10 +261,10 @@ export class AccountApi {
      * @return {Promise<TransactionRecord[]>}
      */
     public getTransactionHistory(accountId: string,
-                                 privateKeys: string[],
-                                 order: string = SearchAccountHistoryOrder.timeDesc,
-                                 startObjectId: string = '0.0.0',
-                                 resultLimit: number = 100): Promise<TransactionRecord[]> {
+        privateKeys: string[],
+        order: string = SearchAccountHistoryOrder.timeDesc,
+        startObjectId: string = '0.0.0',
+        resultLimit: number = 100): Promise<TransactionRecord[]> {
         return new Promise((resolve, reject) => {
             this.searchAccountHistory(accountId, privateKeys, order, startObjectId, resultLimit)
                 .then((transactions: any[]) => {
@@ -311,10 +319,10 @@ export class AccountApi {
      * @returns {Promise<TransactionRecord[]>}
      */
     public searchAccountHistory(accountId: string,
-                                privateKeys: string[],
-                                order: string = SearchAccountHistoryOrder.timeDesc,
-                                startObjectId: string = '0.0.0',
-                                resultLimit: number = 100): Promise<TransactionRecord[]> {
+        privateKeys: string[],
+        order: string = SearchAccountHistoryOrder.timeDesc,
+        startObjectId: string = '0.0.0',
+        resultLimit: number = 100): Promise<TransactionRecord[]> {
         return new Promise((resolve, reject) => {
             const dbOperation = new DatabaseOperations.SearchAccountHistory(
                 accountId,
@@ -346,10 +354,10 @@ export class AccountApi {
      * @return {Promise<Operation>}
      */
     public transfer(amount: number,
-                    fromAccount: string,
-                    toAccount: string,
-                    memo: string,
-                    privateKey: string): Promise<Operation> {
+        fromAccount: string,
+        toAccount: string,
+        memo: string,
+        privateKey: string): Promise<Operation> {
         const pKey = Utils.privateKeyFromWif(privateKey);
 
         return new Promise((resolve, reject) => {
@@ -649,11 +657,11 @@ export class AccountApi {
      * @returns {Promise<boolean>}
      */
     public registerAccount(name: string,
-                           ownerKey: string,
-                           activeKey: string,
-                           memoKey: string,
-                           registrar: string,
-                           regisrarPrivateKey: string): Promise<boolean> {
+        ownerKey: string,
+        activeKey: string,
+        memoKey: string,
+        registrar: string,
+        regisrarPrivateKey: string): Promise<boolean> {
         const ownerKeyAuths: [[string, number]] = [] as [[string, number]];
         ownerKeyAuths.push([ownerKey, 1]);
         const activeKeyAuths: [[string, number]] = [] as [[string, number]];
@@ -712,9 +720,9 @@ export class AccountApi {
      * @returns {Promise<boolean>}
      */
     public createAccountWithBrainkey(brainkey: string,
-                                     accountName: string,
-                                     registrar: string,
-                                     registrarPrivateKey: string): Promise<boolean> {
+        accountName: string,
+        registrar: string,
+        registrarPrivateKey: string): Promise<boolean> {
         const normalizedBrainkey = Utils.normalize(brainkey);
         const keyPair: [KeyPrivate, KeyPublic] = Utils.generateKeys(normalizedBrainkey);
         return this.registerAccount(
@@ -755,6 +763,39 @@ export class AccountApi {
             this._dbApi.execute(operation)
                 .then(res => resolve(res))
                 .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
+        });
+    }
+
+    /**
+     * Search for miners with parameters.
+     *
+     * @param {string} accountName          Account name to search miners for. If not using myVotes, searching in all miners
+     * @param {string} keyword              Search keyword.
+     * @param {boolean} myVotes             Flag to search within account's voted miners.
+     * @param {MinerOrder} sort             Sorting parameter of search results.
+     * @param {string} fromMinerId          Miner id to start form. Use for paging.
+     * @param {number} limit                Result count. Default and max is 1000
+     * @returns {Promise<MinerInfo[]>}
+     */
+    public searchMinerVoting(accountName: string,
+        keyword: string,
+        myVotes: boolean,
+        sort: MinerOrder,
+        fromMinerId: string,
+        limit: number = 1000): Promise<MinerInfo[]> {
+        return new Promise<MinerInfo[]>((resolve, reject) => {
+            const operation = new DatabaseOperations.SearchMinerVoting(
+                accountName,
+                keyword,
+                myVotes,
+                sort,
+                fromMinerId,
+                limit);
+            this._dbApi.execute(operation)
+                .then(res => resolve(res))
+                .catch(err => {
+                    reject(this.handleError(DatabaseError.database_execution_failed, err));
+                });
         });
     }
 
