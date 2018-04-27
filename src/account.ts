@@ -1,13 +1,13 @@
-import { Account } from './account';
-import { Database, DatabaseApi } from './api/database';
-import { ChainApi, ChainMethods } from './api/chain';
-import { CryptoUtils } from './crypt';
-import { Memo, Operation, Operations, Transaction } from './transaction';
-import { KeyPrivate, KeyPublic, Utils } from './utils';
-import { HistoryApi, HistoryOperations } from './api/history';
+import {Account} from './account';
+import {Database, DatabaseApi} from './api/database';
+import {ChainApi, ChainMethods} from './api/chain';
+import {CryptoUtils} from './crypt';
+import {Memo, Operation, Operations, Transaction} from './transaction';
+import {KeyPrivate, KeyPublic, Utils} from './utils';
+import {HistoryApi, HistoryOperations} from './api/history';
 import RegisterAccount = Operations.RegisterAccount;
-import { ApiConnector } from './api/apiConnector';
-import { DatabaseOperations, SearchAccountHistoryOrder, MinerOrder, DatabaseError } from './api/model/database';
+import {ApiConnector} from './api/apiConnector';
+import {DatabaseOperations, SearchAccountHistoryOrder, MinerOrder, DatabaseError} from './api/model/database';
 
 export type AccountNameIdPair = [string, string];
 
@@ -261,10 +261,10 @@ export class AccountApi {
      * @return {Promise<TransactionRecord[]>}
      */
     public getTransactionHistory(accountId: string,
-        privateKeys: string[],
-        order: string = SearchAccountHistoryOrder.timeDesc,
-        startObjectId: string = '0.0.0',
-        resultLimit: number = 100): Promise<TransactionRecord[]> {
+                                 privateKeys: string[],
+                                 order: string = SearchAccountHistoryOrder.timeDesc,
+                                 startObjectId: string = '0.0.0',
+                                 resultLimit: number = 100): Promise<TransactionRecord[]> {
         return new Promise((resolve, reject) => {
             this.searchAccountHistory(accountId, privateKeys, order, startObjectId, resultLimit)
                 .then((transactions: any[]) => {
@@ -319,10 +319,10 @@ export class AccountApi {
      * @returns {Promise<TransactionRecord[]>}
      */
     public searchAccountHistory(accountId: string,
-        privateKeys: string[],
-        order: string = SearchAccountHistoryOrder.timeDesc,
-        startObjectId: string = '0.0.0',
-        resultLimit: number = 100): Promise<TransactionRecord[]> {
+                                privateKeys: string[],
+                                order: string = SearchAccountHistoryOrder.timeDesc,
+                                startObjectId: string = '0.0.0',
+                                resultLimit: number = 100): Promise<TransactionRecord[]> {
         return new Promise((resolve, reject) => {
             const dbOperation = new DatabaseOperations.SearchAccountHistory(
                 accountId,
@@ -354,10 +354,10 @@ export class AccountApi {
      * @return {Promise<Operation>}
      */
     public transfer(amount: number,
-        fromAccount: string,
-        toAccount: string,
-        memo: string,
-        privateKey: string): Promise<Operation> {
+                    fromAccount: string,
+                    toAccount: string,
+                    memo: string,
+                    privateKey: string): Promise<Operation> {
         const pKey = Utils.privateKeyFromWif(privateKey);
 
         return new Promise((resolve, reject) => {
@@ -657,11 +657,11 @@ export class AccountApi {
      * @returns {Promise<boolean>}
      */
     public registerAccount(name: string,
-        ownerKey: string,
-        activeKey: string,
-        memoKey: string,
-        registrar: string,
-        regisrarPrivateKey: string): Promise<boolean> {
+                           ownerKey: string,
+                           activeKey: string,
+                           memoKey: string,
+                           registrar: string,
+                           regisrarPrivateKey: string): Promise<boolean> {
         const ownerKeyAuths: [[string, number]] = [] as [[string, number]];
         ownerKeyAuths.push([ownerKey, 1]);
         const activeKeyAuths: [[string, number]] = [] as [[string, number]];
@@ -720,9 +720,9 @@ export class AccountApi {
      * @returns {Promise<boolean>}
      */
     public createAccountWithBrainkey(brainkey: string,
-        accountName: string,
-        registrar: string,
-        registrarPrivateKey: string): Promise<boolean> {
+                                     accountName: string,
+                                     registrar: string,
+                                     registrarPrivateKey: string): Promise<boolean> {
         const normalizedBrainkey = Utils.normalize(brainkey);
         const keyPair: [KeyPrivate, KeyPublic] = Utils.generateKeys(normalizedBrainkey);
         return this.registerAccount(
@@ -778,11 +778,11 @@ export class AccountApi {
      * @returns {Promise<MinerInfo[]>}
      */
     public searchMinerVoting(accountName: string,
-        keyword: string,
-        myVotes: boolean,
-        sort: MinerOrder,
-        fromMinerId: string,
-        limit: number = 1000): Promise<MinerInfo[]> {
+                             keyword: string,
+                             myVotes: boolean,
+                             sort: MinerOrder,
+                             fromMinerId: string,
+                             limit: number = 1000): Promise<MinerInfo[]> {
         return new Promise<MinerInfo[]>((resolve, reject) => {
             const operation = new DatabaseOperations.SearchMinerVoting(
                 accountName,
