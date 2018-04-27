@@ -1,5 +1,5 @@
 import {Account} from './account';
-import {Database, DatabaseApi, DatabaseOperations, SearchAccountHistoryOrder} from './api/database';
+import {Database, DatabaseApi} from './api/database';
 import {ChainApi, ChainMethods} from './api/chain';
 import {CryptoUtils} from './crypt';
 import {Memo, Operation, Operations, Transaction} from './transaction';
@@ -7,6 +7,9 @@ import {KeyPrivate, KeyPublic, Utils} from './utils';
 import {HistoryApi, HistoryOperations} from './api/history';
 import RegisterAccount = Operations.RegisterAccount;
 import {ApiConnector} from './api/apiConnector';
+import {DatabaseOperations, SearchAccountHistoryOrder} from './api/model/database';
+
+export type AccountNameIdPair = [string, string];
 
 export interface TransactionRaw {
     id: string;
@@ -712,7 +715,7 @@ export class AccountApi {
                                      accountName: string,
                                      registrar: string,
                                      registrarPrivateKey: string): Promise<boolean> {
-        const normalizedBrainkey = this.normalize(brainkey);
+        const normalizedBrainkey = Utils.normalize(brainkey);
         const keyPair: [KeyPrivate, KeyPublic] = Utils.generateKeys(normalizedBrainkey);
         return this.registerAccount(
             accountName,
@@ -723,13 +726,36 @@ export class AccountApi {
             registrarPrivateKey);
     }
 
-    private normalize(brainKey: string) {
-        if (typeof brainKey !== 'string') {
-            throw new Error('string required for brainKey');
-        }
-        brainKey = brainKey.trim();
-        brainKey = brainKey.toUpperCase();
-        return brainKey.split(/[\t\n\v\f\r ]+/).join(' ');
+    /**
+     * Fetch list of an accounts that begins from lower bound account id.
+     * If empty string or '1.2.0' is entered, account are listed from the beginning.
+     *
+     * @param {string} loweBound                Account id from which accounts are listed.
+     * @param {number} limit                    Number of returned accounts
+     * @returns {Promise<AccountNameIdPair>}    Listed accounts.
+     */
+    public listAccounts(loweBound: string = '', limit: number = 100): Promise<AccountNameIdPair> {
+        return new Promise<AccountNameIdPair>((resolve, reject) => {
+            const operation = new DatabaseOperations.LookupAccounts(loweBound, limit);
+            this._dbApi.execute(operation)
+                .then(res => resolve(res))
+                .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
+        });
+    }
+
+    /**
+     * Returns account's balances in all assets account have non-zero amount in.
+     *
+     * @param {string} id           Account id
+     * @returns {Promise<Asset[]>}  List of balances
+     */
+    public listAccountBalances(id: string): Promise<Asset[]> {
+        return new Promise<Asset[]>((resolve, reject) => {
+            const operation = new DatabaseOperations.GetAccountBalances(id, []);
+            this._dbApi.execute(operation)
+                .then(res => resolve(res))
+                .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
+        });
     }
 
     private handleError(message: string, err: any): Error {

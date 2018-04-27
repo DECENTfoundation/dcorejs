@@ -1,7 +1,8 @@
-import {DatabaseApi, DatabaseOperations} from './api/database';
+import {DatabaseApi} from './api/database';
 import {Account, Authority, Options} from './account';
 import {Asset as TransactionAsset} from './transaction';
 import {Key} from './content';
+import {DatabaseOperations} from './api/model/database';
 
 export class ErrorExplorer {
     static get_object_error = 'get_object_error';
