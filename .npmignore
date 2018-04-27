@@ -7,3 +7,4 @@ test/
 tools/
 *.json
 rollup.config.ts
+test.*
