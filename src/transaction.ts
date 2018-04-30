@@ -1,26 +1,33 @@
-import { dcorejs_lib } from './helpers';
-import { KeyPrivate, KeyPublic, Utils } from './utils';
+import {dcorejs_lib} from './helpers';
+import {KeyPrivate, KeyPublic, Utils} from './utils';
 
 import {Key, KeyParts} from './content';
-import { Authority, Options } from './account';
+import {Authority, Options} from './account';
+
 /**
  * OperationType to be broadcasted to blockchain
  * internal representation
  */
-export interface Operation {
-    name: string;
-    operation: OperationType;
+export class Operation {
+    name: OperationName;
+    operation: object;
+
+    constructor(name: OperationName, type: object) {
+        this.name = name;
+        this.operation = type;
+    }
 }
 
 /**
  * Class contains available transaction operation names constants
  */
-export class OperationName {
-    static transfer = 'transfer';
-    static content_cancellation = 'content_cancellation';
-    static requestToBuy = 'request_to_buy';
-    static content_submit = 'content_submit';
-    static account_update = 'account_update';
+export enum OperationName {
+    transfer = 'transfer',
+    content_cancellation = 'content_cancellation',
+    requestToBuy = 'request_to_buy',
+    content_submit = 'content_submit',
+    account_update = 'account_update',
+    account_create = 'account_create',
 }
 
 /**
@@ -43,57 +50,122 @@ export interface Memo {
 }
 
 /**
- * OperationType operations generalization
+ * Operations collection which can be constructed and send to blockchain network
  */
-export interface OperationType {}
+export namespace Operations {
+    export class TransferOperation extends Operation {
+        constructor(from: string, to: string, amount: Asset, memo: Memo) {
+            super(
+                OperationName.transfer,
+                {
+                    from,
+                    to,
+                    amount,
+                    memo
+                });
+        }
+    }
 
-/**
- * Transfer operation between two accounts
- * represented by from/to string ids
- *
- * !Important: asset need to be calculated to specific asset
- */
-export interface TransferOperation extends OperationType {
-    from: string;
-    to: string;
-    amount: Asset;
-    memo: Memo;
-}
+    export class ContentCancelOperation extends Operation {
+        constructor(author: string, URI: string) {
+            super(
+                OperationName.content_cancellation,
+                {
+                    author,
+                    URI
+                });
+        }
+    }
 
-export interface ContentCancelOperation extends OperationType {
-    author: string;
-    URI: string;
-}
+    export class BuyContentOperation extends Operation {
+        constructor(
+            URI: string,
+            consumer: string,
+            price: Asset,
+            region_code_from: number,
+            pubKey: Key
+        ) {
+            super(
+                OperationName.requestToBuy,
+                {
+                    URI,
+                    consumer,
+                    price,
+                    region_code_from,
+                    pubKey
+                }
+            );
+        }
+    }
 
-export interface BuyContentOperation extends OperationType {
-    URI: string;
-    consumer: string;
-    price: Asset;
-    region_code_from: number;
-    pubKey: Key;
-}
+    export class SubmitContentOperation extends Operation {
+        constructor(
+            size: number,
+            author: string,
+            co_authors: any[],
+            URI: string,
+            quorum: number,
+            price: RegionalPrice[],
+            hash: string,
+            seeders: string[],
+            key_parts: KeyParts[],
+            expiration: string,
+            publishing_fee: Asset,
+            synopsis: string
+        ) {
+            super(
+                OperationName.content_submit,
+                {
+                    size,
+                    author,
+                    co_authors,
+                    URI,
+                    quorum,
+                    price,
+                    hash,
+                    seeders,
+                    key_parts,
+                    expiration,
+                    publishing_fee,
+                    synopsis,
+                });
+        }
+    }
 
-export interface SubmitContentOperation extends OperationType {
-    size: number;
-    author: string;
-    co_authors: any[];
-    URI: string;
-    quorum: number;
-    price: RegionalPrice[];
-    hash: string;
-    seeders: string[];
-    key_parts: KeyParts[];
-    expiration: string;
-    publishing_fee: Asset;
-    synopsis: string;
-}
+    export class AccountUpdateOperation extends Operation {
+        constructor(account: string,
+                    owner: Authority,
+                    active: Authority,
+                    new_options: Options,
+                    extensions: {}
+        ) {
+            super(
+                OperationName.account_update,
+                {
+                    account,
+                    owner,
+                    active,
+                    new_options,
+                    extensions
+                }
+            );
+        }
+    }
 
-export interface AccountUpdateOperation extends OperationType {
-    account: string;
-    owner: Authority;
-    active: Authority;
-    new_options: Options;
-    extensions: {};
+    export interface CreateAccountParameters {
+        fee?: Asset,
+        name?: string,
+        owner?: Authority,
+        active?: Authority,
+        options?: Options,
+        registrar?: string,
+        extensions?: any
+    }
+    export class RegisterAccount extends Operation {
+        constructor(params: CreateAccountParameters) {
+            super(OperationName.account_create, params);
+        }
+    }
 }
 
 export interface RegionalPrice {
@@ -126,13 +198,7 @@ export class Transaction {
      * @param {Operation} operation
      * @return {boolean}
      */
-    public addOperation(operation: Operation): boolean {
-        if (!dcorejs_lib.ops.hasOwnProperty(operation.name)) {
-            return false;
-        }
-        dcorejs_lib.ops[operation.name].keys.forEach((key: string) => {
-            return operation.operation.hasOwnProperty(key);
-        });
+    public add(operation: Operation): boolean {
         this._transaction.add_type_operation(operation.name, operation.operation);
         this._operations.push(operation);
         return true;

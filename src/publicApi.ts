@@ -1,8 +1,8 @@
-export { SearchParams, SearchParamsOrder } from './api/database';
+export { SearchParams, SearchParamsOrder } from './api/model/database';
 
 export { ContentApi, Content, Price, Synopsis, SubmitObject, KeyPair, ContentKeys } from './content';
 
-export { Account, TransactionRecord } from './account';
+export * from './account';
 
 export * from './explorer';
 
