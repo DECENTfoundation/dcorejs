@@ -1,10 +1,15 @@
-import { Account } from './account';
-import { Database, DatabaseApi, DatabaseOperations, SearchAccountHistoryOrder } from './api/database';
-import { ChainApi, ChainMethods } from './api/chain';
-import { CryptoUtils } from './crypt';
-import {AccountUpdateOperation, Memo, Operation, OperationName, Transaction, TransferOperation} from './transaction';
-import { KeyPrivate, Utils } from './utils';
-import { HistoryApi, HistoryOperations } from './api/history';
+import {Account} from './account';
+import {Database, DatabaseApi} from './api/database';
+import {ChainApi, ChainMethods} from './api/chain';
+import {CryptoUtils} from './crypt';
+import {Memo, Operation, Operations, Transaction} from './transaction';
+import {KeyPrivate, KeyPublic, Utils} from './utils';
+import {HistoryApi, HistoryOperations} from './api/history';
+import RegisterAccount = Operations.RegisterAccount;
+import {ApiConnector} from './api/apiConnector';
+import {DatabaseOperations, SearchAccountHistoryOrder, MinerOrder, DatabaseError} from './api/model/database';
+
+export type AccountNameIdPair = [string, string];
 
 export interface TransactionRaw {
     id: string;
@@ -50,7 +55,7 @@ export class Asset {
 export interface Authority {
     weight_threshold: number;
     account_auths: any[];
-    key_auths: KeyAuth[];
+    key_auths: [[string, number]];
 }
 
 export class KeyAuth {
@@ -68,14 +73,15 @@ export class KeyAuth {
 }
 
 export interface Options {
-    memo_key: string;
-    voting_account: string;
-    num_miner: number;
-    votes: any[];
-    extensions: any[];
-    allow_subscription: boolean;
-    price_per_subscribe: Asset;
-    subscription_period: number;
+    memo_key?: string;
+    voting_account?: string;
+    num_miner?: number;
+    num_witness?: number;
+    votes?: any[];
+    extensions?: any[];
+    allow_subscription?: boolean;
+    price_per_subscribe?: Asset;
+    subscription_period?: number;
 }
 
 export class TransactionRecord {
@@ -158,6 +164,14 @@ export interface HistoryRecord {
     virtual_op: number
 }
 
+export interface MinerInfo {
+    id: string;
+    name: string;
+    url: string;
+    total_votes: number;
+    voted: boolean;
+}
+
 export class AccountError {
     static account_does_not_exist = 'account_does_not_exist';
     static account_fetch_failed = 'account_fetch_failed';
@@ -179,11 +193,13 @@ export class AccountApi {
     private _dbApi: DatabaseApi;
     private _chainApi: ChainApi;
     private _historyApi: HistoryApi;
+    private _connector: ApiConnector;
 
-    constructor(dbApi: Database, chainApi: ChainApi, historyApi: HistoryApi) {
+    constructor(dbApi: Database, chainApi: ChainApi, historyApi: HistoryApi, connector: ApiConnector) {
         this._dbApi = dbApi as DatabaseApi;
         this._chainApi = chainApi;
         this._historyApi = historyApi;
+        this._connector = connector;
     }
 
     /**
@@ -245,18 +261,12 @@ export class AccountApi {
      * @return {Promise<TransactionRecord[]>}
      */
     public getTransactionHistory(accountId: string,
-        privateKeys: string[],
-        order: string = SearchAccountHistoryOrder.timeDesc,
-        startObjectId: string = '0.0.0',
-        resultLimit: number = 100): Promise<TransactionRecord[]> {
+                                 privateKeys: string[],
+                                 order: string = SearchAccountHistoryOrder.timeDesc,
+                                 startObjectId: string = '0.0.0',
+                                 resultLimit: number = 100): Promise<TransactionRecord[]> {
         return new Promise((resolve, reject) => {
-            const dbOperation = new DatabaseOperations.SearchAccountHistory(
-                accountId,
-                order,
-                startObjectId,
-                resultLimit
-            );
-            this._dbApi.execute(dbOperation)
+            this.searchAccountHistory(accountId, privateKeys, order, startObjectId, resultLimit)
                 .then((transactions: any[]) => {
                     const namePromises: Promise<string>[] = [];
                     const res = transactions.map((tr: any) => {
@@ -299,6 +309,40 @@ export class AccountApi {
     }
 
     /**
+     * Returns operations on given account.
+     *
+     * @param {string} accountId
+     * @param {string[]} privateKeys
+     * @param {string} order
+     * @param {string} startObjectId
+     * @param {number} resultLimit
+     * @returns {Promise<TransactionRecord[]>}
+     */
+    public searchAccountHistory(accountId: string,
+                                privateKeys: string[],
+                                order: string = SearchAccountHistoryOrder.timeDesc,
+                                startObjectId: string = '0.0.0',
+                                resultLimit: number = 100): Promise<TransactionRecord[]> {
+        return new Promise((resolve, reject) => {
+            const dbOperation = new DatabaseOperations.SearchAccountHistory(
+                accountId,
+                order,
+                startObjectId,
+                resultLimit
+            );
+            this._dbApi.execute(dbOperation)
+                .then((transactions: any[]) => {
+                    resolve(transactions);
+                })
+                .catch(err => {
+                    reject(
+                        this.handleError(AccountError.transaction_history_fetch_failed, err)
+                    );
+                });
+        });
+    }
+
+    /**
      * Transfers exact amount of DCT between accounts with optional
      * message for recipient
      *
@@ -310,10 +354,10 @@ export class AccountApi {
      * @return {Promise<Operation>}
      */
     public transfer(amount: number,
-        fromAccount: string,
-        toAccount: string,
-        memo: string,
-        privateKey: string): Promise<Operation> {
+                    fromAccount: string,
+                    toAccount: string,
+                    memo: string,
+                    privateKey: string): Promise<Operation> {
         const pKey = Utils.privateKeyFromWif(privateKey);
 
         return new Promise((resolve, reject) => {
@@ -364,18 +408,14 @@ export class AccountApi {
                         )
                     };
 
-                    const transfer: TransferOperation = {
-                        from: senderAccount.get('id'),
-                        to: receiverAccount.get('id'),
-                        amount: Asset.createAsset(amount, asset.get('id')),
-                        memo: memo_object
-                    };
-
                     const transaction = new Transaction();
-                    transaction.addOperation({
-                        name: OperationName.transfer,
-                        operation: transfer
-                    });
+                    const transferOperation = new Operations.TransferOperation(
+                        senderAccount.get('id'),
+                        receiverAccount.get('id'),
+                        Asset.createAsset(amount, asset.get('id')),
+                        memo_object
+                    );
+                    transaction.add(transferOperation);
                     transaction.broadcast(privateKey)
                         .then(() => {
                             resolve(transaction.operations[0]);
@@ -484,6 +524,15 @@ export class AccountApi {
         });
     }
 
+    /**
+     * Vote for selected miner.
+     * More information on https://devdocs.decent.ch/UseCases/#vote_for_a_miner_1
+     *
+     * @param {string} miner
+     * @param {string} account
+     * @param {string} privateKeyWif
+     * @returns {Promise<any>}
+     */
     public voteForMiner(miner: string, account: string, privateKeyWif: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             const operations = new ChainMethods();
@@ -502,18 +551,15 @@ export class AccountApi {
                             });
                             voter.options['num_witness'] = voter.options.num_miner;
                             delete voter.options.num_miner;
-                            const accountUpdateOperation: AccountUpdateOperation = {
-                                account: account,
-                                owner: voter.owner,
-                                active: voter.active,
-                                new_options: voter.options,
-                                extensions: {}
-                            };
+                            const op = new Operations.AccountUpdateOperation(
+                                account,
+                                voter.owner,
+                                voter.active,
+                                voter.options,
+                                {}
+                            );
                             const transaction = new Transaction();
-                            transaction.addOperation({
-                                name: OperationName.account_update,
-                                operation: accountUpdateOperation
-                            });
+                            transaction.add(op);
                             transaction.broadcast(privateKeyWif)
                                 .then(res => resolve(res))
                                 .catch(err => reject(err));
@@ -524,6 +570,14 @@ export class AccountApi {
         });
     }
 
+    /**
+     * Remove youte vote from selected miner.
+     *
+     * @param {string} miner
+     * @param {string} account
+     * @param {string} privateKeyWif
+     * @returns {Promise<any>}
+     */
     public unvoteMiner(miner: string, account: string, privateKeyWif: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             const operations = new ChainMethods();
@@ -540,18 +594,15 @@ export class AccountApi {
                             voter.options.votes.splice(voteIndex, 1);
                             voter.options['num_witness'] = voter.options.num_miner;
                             delete voter.options.num_miner;
-                            const accountUpdateOperation: AccountUpdateOperation = {
-                                account: account,
-                                owner: voter.owner,
-                                active: voter.active,
-                                new_options: voter.options,
-                                extensions: {}
-                            };
+                            const op = new Operations.AccountUpdateOperation(
+                                account,
+                                voter.owner,
+                                voter.active,
+                                voter.options,
+                                {}
+                            );
                             const transaction = new Transaction();
-                            transaction.addOperation({
-                                name: OperationName.account_update,
-                                operation: accountUpdateOperation
-                            });
+                            transaction.add(op);
                             transaction.broadcast(privateKeyWif)
                                 .then(res => resolve(res))
                                 .catch(err => reject(err));
@@ -559,6 +610,192 @@ export class AccountApi {
                         .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
                 })
                 .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
+        });
+    }
+
+    /**
+     * Search accounts based on given parameters
+     *
+     * @param {string} searchTerm
+     * @param {string} order
+     * @param {string} id
+     * @param {number} limit
+     * @returns {Promise<Account>}
+     */
+    public searchAccounts(searchTerm: string, order: string, id: string, limit: number = 100): Promise<Account> {
+        return new Promise<Account>((resolve, reject) => {
+            const operation = new DatabaseOperations.SearchAccounts(searchTerm, order, id, limit);
+            this._dbApi.execute(operation)
+                .then(res => resolve(res))
+                .catch(err => reject(err));
+        });
+    }
+
+    /**
+     * Returns number of accounts created on network
+     *
+     * @returns {Promise<number>}
+     */
+    public getAccountCount(): Promise<number> {
+        return new Promise<number>((resolve, reject) => {
+            const operation = new DatabaseOperations.GetAccountCount();
+            this._dbApi.execute(operation)
+                .then(res => resolve(res))
+                .catch(err => reject(err));
+        });
+    }
+
+    /**
+     * Creates new account in network.
+     *
+     * @param {string} name                 Name of newly created account.
+     * @param {string} ownerKey             Public key to be used as owner key.
+     * @param {string} activeKey            Public key to be used as active key.
+     * @param {string} memoKey              Public key used to memo encryption.
+     * @param {string} registrar            Registrar account id who pay account creation transaction
+     * @param {string} regisrarPrivateKey   Registrar private key for account register transaction to be signed with
+     * @returns {Promise<boolean>}
+     */
+    public registerAccount(name: string,
+                           ownerKey: string,
+                           activeKey: string,
+                           memoKey: string,
+                           registrar: string,
+                           regisrarPrivateKey: string): Promise<boolean> {
+        const ownerKeyAuths: [[string, number]] = [] as [[string, number]];
+        ownerKeyAuths.push([ownerKey, 1]);
+        const activeKeyAuths: [[string, number]] = [] as [[string, number]];
+        activeKeyAuths.push([activeKey, 1]);
+        const owner = {
+            weight_threshold: 1,
+            account_auths: [],
+            key_auths: ownerKeyAuths
+        };
+        const active = {
+            weight_threshold: 1,
+            account_auths: [],
+            key_auths: activeKeyAuths
+        };
+        return new Promise<boolean>((resolve, reject) => {
+            this._connector.connect()
+                .then(() => {
+                    const operation = new RegisterAccount({
+                        name,
+                        owner,
+                        active,
+                        registrar,
+                        options: {
+                            memo_key: memoKey,
+                            voting_account: '1.2.3',
+                            allow_subscription: false,
+                            price_per_subscribe: Asset.createAsset(0, '1.3.0'),
+                            num_witness: 0,
+                            votes: [],
+                            extensions: [],
+                            subscription_period: 0,
+                        }
+                    });
+
+                    const transaction = new Transaction();
+                    transaction.add(operation);
+                    transaction.broadcast(regisrarPrivateKey)
+                        .then(() => resolve(true))
+                        .catch(err => reject(err));
+                })
+                .catch(err => console.log(err));
+        });
+    }
+
+    /**
+     * Create account with keys derived from provided brain key.
+     *
+     * NOTE: This method create account with owner, active and memo key set to same value.
+     *       Use of helper methods from Utils to derive keys from brainkey and then register account
+     *       with option to set these keys to different values.
+     *
+     * @param {string} brainkey             Brain key for keys derivation
+     * @param {string} accountName          Name for new account
+     * @param {string} registrar            Registrar account id, who pay for account registration
+     * @param {string} registrarPrivateKey  Registrar private key in WIF
+     * @returns {Promise<boolean>}
+     */
+    public createAccountWithBrainkey(brainkey: string,
+                                     accountName: string,
+                                     registrar: string,
+                                     registrarPrivateKey: string): Promise<boolean> {
+        const normalizedBrainkey = Utils.normalize(brainkey);
+        const keyPair: [KeyPrivate, KeyPublic] = Utils.generateKeys(normalizedBrainkey);
+        return this.registerAccount(
+            accountName,
+            keyPair[1].stringKey,
+            keyPair[1].stringKey,
+            keyPair[1].stringKey,
+            registrar,
+            registrarPrivateKey);
+    }
+
+    /**
+     * Fetch list of an accounts that begins from lower bound account id.
+     * If empty string or '1.2.0' is entered, account are listed from the beginning.
+     *
+     * @param {string} loweBound                Account id from which accounts are listed.
+     * @param {number} limit                    Number of returned accounts
+     * @returns {Promise<AccountNameIdPair>}    Listed accounts.
+     */
+    public listAccounts(loweBound: string = '', limit: number = 100): Promise<AccountNameIdPair> {
+        return new Promise<AccountNameIdPair>((resolve, reject) => {
+            const operation = new DatabaseOperations.LookupAccounts(loweBound, limit);
+            this._dbApi.execute(operation)
+                .then(res => resolve(res))
+                .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
+        });
+    }
+
+    /**
+     * Returns account's balances in all assets account have non-zero amount in.
+     *
+     * @param {string} id           Account id
+     * @returns {Promise<Asset[]>}  List of balances
+     */
+    public listAccountBalances(id: string): Promise<Asset[]> {
+        return new Promise<Asset[]>((resolve, reject) => {
+            const operation = new DatabaseOperations.GetAccountBalances(id, []);
+            this._dbApi.execute(operation)
+                .then(res => resolve(res))
+                .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
+        });
+    }
+
+    /**
+     * Search for miners with parameters.
+     *
+     * @param {string} accountName          Account name to search miners for. If not using myVotes, searching in all miners
+     * @param {string} keyword              Search keyword.
+     * @param {boolean} myVotes             Flag to search within account's voted miners.
+     * @param {MinerOrder} sort             Sorting parameter of search results.
+     * @param {string} fromMinerId          Miner id to start form. Use for paging.
+     * @param {number} limit                Result count. Default and max is 1000
+     * @returns {Promise<MinerInfo[]>}
+     */
+    public searchMinerVoting(accountName: string,
+                             keyword: string,
+                             myVotes: boolean,
+                             sort: MinerOrder,
+                             fromMinerId: string,
+                             limit: number = 1000): Promise<MinerInfo[]> {
+        return new Promise<MinerInfo[]>((resolve, reject) => {
+            const operation = new DatabaseOperations.SearchMinerVoting(
+                accountName,
+                keyword,
+                myVotes,
+                sort,
+                fromMinerId,
+                limit);
+            this._dbApi.execute(operation)
+                .then(res => resolve(res))
+                .catch(err => {
+                    reject(this.handleError(DatabaseError.database_execution_failed, err));
+                });
         });
     }
 

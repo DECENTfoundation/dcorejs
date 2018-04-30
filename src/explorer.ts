@@ -1,7 +1,8 @@
-import {DatabaseApi, DatabaseOperations} from './api/database';
+import {DatabaseApi} from './api/database';
 import {Account, Authority, Options} from './account';
 import {Asset as TransactionAsset} from './transaction';
 import {Key} from './content';
+import {DatabaseOperations} from './api/model/database';
 
 export class ErrorExplorer {
     static get_object_error = 'get_object_error';
@@ -606,6 +607,23 @@ export class ExplorerModule {
                 .then(res => {
                     resolve(res.length > 0 ? res[0] : null);
                 })
+                .catch(err => reject(err));
+        });
+    }
+
+    getMinerCount(): Promise<number> {
+        return new Promise<number>((resolve, reject) => {
+            const operation = new DatabaseOperations.GetMinerCount();
+            this._database.execute(operation)
+                .then(res => resolve(res))
+                .catch(err => reject(err));
+        });
+    }
+
+    getHeadBlockTime(): Promise<string> {
+        return new Promise<any>((resolve, reject) => {
+            this.getDynamicGlobalProperty()
+                .then(res => resolve(res.time))
                 .catch(err => reject(err));
         });
     }

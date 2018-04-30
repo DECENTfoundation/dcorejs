@@ -96,5 +96,22 @@ describe('(client/integration) Account module', () => {
             });
     }).timeout(15000);
 
+    it('search accounts', (done) => {
+        dcorejs.account().searchAccounts('', '', '0.0.0')
+            .then(res => {
+                expect(res).to.be.a('array');
+                expect(res).to.have.length.above(0);
+                done();
+            });
+    });
+
+    it('get accounts count', (done) => {
+        dcorejs.account().getAccountCount()
+            .then(res => {
+                expect(res).to.be.a('number');
+                expect(res).to.be.above(0);
+                done();
+            });
+    });
 });
 
