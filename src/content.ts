@@ -2,7 +2,7 @@ import {DatabaseApi} from './api/database';
 import {ChainApi, ChainMethods} from './api/chain';
 import {Operations, Transaction} from './transaction';
 import {isUndefined} from 'util';
-import {DatabaseOperations, SearchParams, SearchParamsOrder} from './api/model/database';
+import {DatabaseOperations, SearchParameters, SearchParams, SearchParamsOrder} from './api/model/database';
 import {BuyingContent, Content, ContentKeys, KeyPair, Rating, Seeder, SubmitObject} from './model/content';
 
 const moment = require('moment');

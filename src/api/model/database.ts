@@ -98,66 +98,32 @@ export enum MinerOrder {
  * Order parameter options can be found in SearchParamsOrder class, Default: SearchParamsOrder.createdDesc
  * Region code is ISO 3166-1 alpha-2 two-letter region code.
  */
-export class SearchParams {
-    term = '';
-    order = '';
+export interface SearchParams {
+    term?: string;
+    order?: string;
     /**
      * Content owner
      * @memberof SearchParams
      */
-    user = '';
-    region_code = '';
-    itemId = '';
-    category = '';
-    count: number;
-
-    constructor(term = '',
-                order = '',
-                user = '',
-                region_code = '',
-                itemId = '',
-                category: string = '',
-                count: number = 6) {
-        this.term = term || '';
-        this.order = order || SearchParamsOrder.createdDesc;
-        this.user = user || '';
-        this.region_code = region_code || '';
-        this.itemId = itemId || '0.0.0';
-        this.category = category || '1';
-        this.count = count || 6;
-    }
-
-    get params(): any[] {
-        let params: any[] = [];
-        params = Object.values(this).reduce((previousValue, currentValue) => {
-            previousValue.push(currentValue);
-            return previousValue;
-        }, params);
-        return params;
-    }
+    user?: string;
+    region_code?: string;
+    itemId?: string;
+    category?: string;
+    count?: number;
 }
 
 export namespace DatabaseOperations {
     export class SearchContent extends DatabaseOperation {
         constructor(searchParams: SearchParams) {
-            const [
-                term,
-                order,
-                user,
-                region_code,
-                itemId,
-                category,
-                count
-            ] = searchParams.params;
             super(
                 DatabaseOperationName.searchContent,
-                term,
-                order,
-                user,
-                region_code,
-                itemId,
-                category,
-                count
+                searchParams.term || '',
+                searchParams.order || '',
+                searchParams.user || '',
+                searchParams.region_code || '',
+                searchParams.itemId || '0.0.0',
+                searchParams.category || '1',
+                searchParams.count || 100
             );
         }
     }
