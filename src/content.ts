@@ -75,6 +75,31 @@ export class ContentApi {
         });
     }
 
+    public getContentURI(URI: string): Promise<Content | null> {
+        return new Promise((resolve, reject) => {
+            const dbOperation = new DatabaseOperations.GetContent(URI);
+            this._dbApi
+                .execute(dbOperation)
+                .then(contents => {
+                    if (!contents) {
+                        resolve(null);
+                        return;
+                    }
+                    const [content] = contents;
+                    const stringidied = JSON.stringify(content);
+                    const objectified = JSON.parse(stringidied);
+                    objectified.synopsis = JSON.parse(objectified.synopsis);
+                    if (isUndefined(objectified.price['amount'])) {
+                        objectified.price = objectified.price['map_price'][0][1];
+                    }
+                    resolve(objectified as Content);
+                })
+                .catch(err => {
+                    reject(this.handleError(ContentError.database_operation_failed, err));
+                });
+        });
+    }
+
     /**
      * Cancel submitted content record from blockchain.
      *

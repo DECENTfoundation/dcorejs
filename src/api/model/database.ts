@@ -16,6 +16,7 @@ class DatabaseOperationName {
     static getBuyingObjectsByConsumer = 'get_buying_objects_by_consumer';
     static listPublishers = 'list_seeders_by_price';
     static getObjects = 'get_objects';
+    static getContent = 'get_content';
     static getBuyingHistoryObjects = 'get_buying_by_consumer_URI';
     static getDynamicGlobalProperties = 'get_dynamic_global_properties';
     static getBlock = 'get_block';
@@ -236,6 +237,12 @@ export namespace DatabaseOperations {
     export class GetObjects extends DatabaseOperation {
         constructor(ids: string[]) {
             super(DatabaseOperationName.getObjects, ids);
+        }
+    }
+
+    export class GetContent extends DatabaseOperation {
+        constructor(URI: string) {
+            super(DatabaseOperationName.getContent, URI);
         }
     }
 
