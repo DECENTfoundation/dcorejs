@@ -2,7 +2,7 @@ import {DatabaseApi} from './api/database';
 import {ChainApi, ChainMethods} from './api/chain';
 import {Operations, Transaction} from './transaction';
 import {isUndefined} from 'util';
-import {DatabaseOperations, SearchParameters, SearchParams, SearchParamsOrder} from './api/model/database';
+import {DatabaseOperations, SearchParams, SearchParamsOrder} from './api/model/database';
 import {BuyingContent, Content, ContentKeys, KeyPair, Rating, Seeder, SubmitObject} from './model/content';
 
 const moment = require('moment');
@@ -393,9 +393,7 @@ export class ContentApi {
                 reject('missing_parameter');
                 return;
             }
-            const searchParams = new SearchParams();
-            searchParams.count = resultSize;
-            this.searchContent(searchParams)
+            this.searchContent({count: resultSize})
                 .then(allContent => {
                     const dbOperation = new DatabaseOperations.GetBoughtObjectsByCustomer(
                         accountId,
