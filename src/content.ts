@@ -420,17 +420,25 @@ export class ContentApi {
         return new Promise<Array<Rating>>((resolve, reject) => {
             this.getContent(contentId)
                 .then(res => {
-                    const operation = new DatabaseOperations.SearchFeedback(forUser, res.URI, ratingStartId, count);
-                    this._dbApi.execute(operation)
-                        .then(res => {
-                            resolve(res);
-                        })
-                        .catch(err => {
-                            reject(this.handleError(ContentError.database_operation_failed, err));
-                        });
+                    this.searchFeedback(forUser, res.URI, ratingStartId, count)
+                        .then(res => resolve(res))
+                        .catch(err => reject(this.handleError(ContentError.database_operation_failed, err)));
                 })
                 .catch(err => {
                     reject(this.handleError(ContentError.fetch_content_failed, err));
+                });
+        });
+    }
+
+    searchFeedback(accountId: string, contentURI: string, ratingStartId: string, count: number = 100): Promise<Array<Rating>> {
+        return new Promise<Array<Rating>>((resolve, reject) => {
+            const operation = new DatabaseOperations.SearchFeedback(accountId, contentURI, ratingStartId, count);
+            this._dbApi.execute(operation)
+                .then(res => {
+                    resolve(res);
+                })
+                .catch(err => {
+                    reject(this.handleError(ContentError.database_operation_failed, err));
                 });
         });
     }
