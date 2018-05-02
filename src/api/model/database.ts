@@ -28,6 +28,7 @@ class DatabaseOperationName {
     static lookupAccounts = 'lookup_accounts';
     static searchMinerVoting = 'search_miner_voting';
     static getMinerCount = 'get_miner_count';
+    static getOpenBuyings = 'get_open_buyings';
 }
 
 export class DatabaseOperation {
@@ -303,6 +304,12 @@ export namespace DatabaseOperations {
     export class GetMinerCount extends DatabaseOperation {
         constructor() {
             super(DatabaseOperationName.getMinerCount);
+        }
+    }
+
+    export class GetOpenBuyings extends DatabaseOperation {
+        constructor() {
+            super(DatabaseOperationName.getOpenBuyings);
         }
     }
 }

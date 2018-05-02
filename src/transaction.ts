@@ -1,8 +1,9 @@
 import {dcorejs_lib} from './helpers';
 import {KeyPrivate, KeyPublic, Utils} from './utils';
 
-import {Key, KeyParts} from './content';
+import {KeyParts} from './model/content';
 import {Authority, Options} from './account';
+import {Key} from './model/content';
 
 /**
  * OperationType to be broadcasted to blockchain
