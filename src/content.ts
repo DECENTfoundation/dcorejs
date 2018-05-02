@@ -1,6 +1,6 @@
 import {DatabaseApi} from './api/database';
 import {ChainApi, ChainMethods} from './api/chain';
-import {Operations, Transaction} from './transaction';
+import {ContentObject, Operations, Transaction} from './transaction';
 import {isUndefined} from 'util';
 import {DatabaseOperations, SearchParams, SearchParamsOrder} from './api/model/database';
 import {BuyingContent, Content, ContentKeys, KeyPair, Rating, Seeder, SubmitObject} from './model/content';
@@ -463,6 +463,21 @@ export class ContentApi {
                 .catch(err => {
                     reject(this.handleError(ContentError.database_operation_failed, err));
                 });
+        });
+    }
+
+    getAuthorCoAuthors(URI: string): Promise<[string, string[]] | null> {
+        return new Promise<[string, string[]]>((resolve, reject) => {
+            const operation = new DatabaseOperations.GetContent(URI);
+            this._dbApi.execute<ContentObject>(operation)
+                .then((content: ContentObject) => {
+                    if (!content) {
+                        resolve(null);
+                        return;
+                    }
+                    resolve([content.author, content.co_authors.map(ca => ca[0])]);
+                })
+                .catch(err => reject(this.handleError(ContentError.database_operation_failed, err)));
         });
     }
 

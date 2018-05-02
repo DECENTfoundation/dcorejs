@@ -162,6 +162,7 @@ export namespace Operations {
         registrar?: string,
         extensions?: any
     }
+
     export class RegisterAccount extends Operation {
         constructor(params: CreateAccountParameters) {
             super(OperationName.account_create, params);
@@ -172,6 +173,29 @@ export namespace Operations {
 export interface RegionalPrice {
     region: number;
     price: Asset;
+}
+
+export interface ContentObject {
+    author: string;
+    co_authors: [string, number];
+    expiration: number;
+    created: number;
+    price: RegionalPrice;
+    synopsis: string;
+    size: number;
+    quorum: number;
+    URI: string;
+    key_parts: [string, string];
+    last_proof: [string, number];
+    seeder_price: [string, any];
+    is_blocked: boolean;
+    ripemd160
+    _hash: string;
+    AVG_rating: number;
+    num_of_ratings: number;
+    times_bought: number;
+    publishing_fee_escrow: Asset;
+    cd: any;
 }
 
 export class Transaction {
