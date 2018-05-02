@@ -252,6 +252,15 @@ export class ContentApi {
         }));
     }
 
+    public getBuyingsByConsumerURI(accountId: string, URI: string): Promise<BuyingContent[] | null> {
+        return new Promise<BuyingContent[]>(((resolve, reject) => {
+            const operation = new DatabaseOperations.GetBuyingByConsumerURI(accountId, URI);
+            this._dbApi.execute(operation)
+                .then(res => resolve(res))
+                .catch(err => reject(this.handleError(ContentError.database_operation_failed, err)));
+        }));
+    }
+
     public getBuyingHistoryObjectsByConsumer(accountId: string): Promise<BuyingContent[]> {
         return new Promise<BuyingContent[]>((resolve, reject) => {
             const operation = new DatabaseOperations.GetBuyingsHistoryObjectsByConsumer(accountId);
