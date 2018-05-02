@@ -252,6 +252,15 @@ export class ContentApi {
         }));
     }
 
+    public getBuyingHistoryObjectsByConsumer(accountId: string): Promise<BuyingContent[]> {
+        return new Promise<BuyingContent[]>((resolve, reject) => {
+            const operation = new DatabaseOperations.GetBuyingsHistoryObjectsByConsumer(accountId);
+            this._dbApi.execute(operation)
+                .then(res => resolve(res))
+                .catch(err => reject(this.handleError(ContentError.database_operation_failed, err)));
+        });
+    }
+
     private getFileSize(fileSize: number): number {
         return Math.ceil(fileSize / (1024 * 1024));
     }

@@ -31,6 +31,7 @@ class DatabaseOperationName {
     static getOpenBuyings = 'get_open_buyings';
     static getOpenBuyingsByURI = 'get_open_buyings_by_URI';
     static getOpenBuyingsByConsumer = 'get_open_buyings_by_consumer';
+    static getBuyingHistoryObjectsByConsumer = 'get_buying_history_objects_by_consumer';
 }
 
 export class DatabaseOperation {
@@ -324,6 +325,12 @@ export namespace DatabaseOperations {
     export class GetOpenBuyingsByConsumer extends DatabaseOperation {
         constructor(accountId: string) {
             super(DatabaseOperationName.getOpenBuyingsByConsumer, accountId);
+        }
+    }
+
+    export class GetBuyingsHistoryObjectsByConsumer extends DatabaseOperation {
+        constructor(accountId: string) {
+            super(DatabaseOperationName.getBuyingHistoryObjectsByConsumer, accountId);
         }
     }
 }
