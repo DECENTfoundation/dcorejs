@@ -234,6 +234,15 @@ export class ContentApi {
         }));
     }
 
+    public getOpenBuyingsByURI(URI: string): Promise<BuyingContent[]> {
+        return new Promise<BuyingContent[]>(((resolve, reject) => {
+            const operation = new DatabaseOperations.GetOpenBuyingsByURI(URI);
+            this._dbApi.execute(operation)
+                .then(res => resolve(res))
+                .catch(err => reject(this.handleError(ContentError.database_operation_failed, err)));
+        }));
+    }
+
     private getFileSize(fileSize: number): number {
         return Math.ceil(fileSize / (1024 * 1024));
     }
