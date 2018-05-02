@@ -30,6 +30,7 @@ class DatabaseOperationName {
     static getMinerCount = 'get_miner_count';
     static getOpenBuyings = 'get_open_buyings';
     static getOpenBuyingsByURI = 'get_open_buyings_by_URI';
+    static getOpenBuyingsByConsumer = 'get_open_buyings_by_consumer';
 }
 
 export class DatabaseOperation {
@@ -316,7 +317,13 @@ export namespace DatabaseOperations {
 
     export class GetOpenBuyingsByURI extends DatabaseOperation {
         constructor(URI: string) {
-            super(DatabaseOperationName.getOpenBuyings, URI);
+            super(DatabaseOperationName.getOpenBuyingsByURI, URI);
+        }
+    }
+
+    export class GetOpenBuyingsByConsumer extends DatabaseOperation {
+        constructor(accountId: string) {
+            super(DatabaseOperationName.getOpenBuyingsByConsumer, accountId);
         }
     }
 }
