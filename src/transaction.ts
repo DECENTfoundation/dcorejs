@@ -3,7 +3,7 @@ import {KeyPrivate, KeyPublic, Utils} from './utils';
 
 import {Key, KeyParts} from './content';
 import {Authority, Options} from './account';
-import {AssetOptions} from './assetModule';
+import {AssetOptions, MonitoredAssetOptions} from './assetModule';
 
 /**
  * OperationType to be broadcasted to blockchain
@@ -158,16 +158,19 @@ export namespace Operations {
                     symbol: string,
                     precision: number,
                     description: string,
-                    options: AssetOptions) {
-            super(
-                OperationName.asset_create,
-                {
-                    issuer,
-                    symbol,
-                    precision,
-                    description,
-                    options
-                });
+                    options: AssetOptions,
+                    monitoredOptions: MonitoredAssetOptions = null) {
+            const data = {
+                issuer,
+                symbol,
+                precision,
+                description,
+                options
+            };
+            if (monitoredOptions) {
+                data['monitored_asset_opts'] = monitoredOptions;
+            }
+            super(OperationName.asset_create, data);
         }
     }
 }

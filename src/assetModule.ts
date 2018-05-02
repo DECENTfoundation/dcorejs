@@ -20,16 +20,16 @@ export interface AssetObject {
 }
 
 export interface MonitoredAssetOptions {
-    feeds: any[];
-    current_feed: AssetCurrentFeed;
-    current_feed_publication_time: string;
+    feeds?: any[];
+    current_feed?: AssetCurrentFeed;
+    current_feed_publication_time?: string;
     feed_lifetime_sec: number;
     minimum_feeds: number;
 }
 
 export interface AssetOptions {
     max_supply: number;
-    core_exchange_rate: AssetExchangeRate;
+    core_exchange_rate?: AssetExchangeRate;
     is_exchangeable: boolean;
     extensions?: any[];
 }
@@ -94,6 +94,34 @@ export class AssetModule {
                     reject(err);
                 });
 
+        });
+    }
+
+    createMonitoredAsset(issuer: string,
+                         symbol: string,
+                         precision: number,
+                         description: string,
+                         feedLifetimeSec: number,
+                         minimumFeeds: number,
+                         issuerPrivateKey: string): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            const options: AssetOptions = {
+                max_supply: 7319777577456890,
+                is_exchangeable: true,
+                extensions: []
+            };
+            const monitoredOpts: MonitoredAssetOptions = {
+                feed_lifetime_sec: feedLifetimeSec,
+                minimum_feeds: minimumFeeds
+            }
+            const operation = new Operations.AssetCreateOperation(
+                issuer, symbol, precision, description, options, monitoredOpts
+            );
+            const transaction = new Transaction();
+            transaction.add(operation);
+            transaction.broadcast(issuerPrivateKey)
+                .then(res => resolve(true))
+                .catch(err => reject(err));
         });
     }
 
