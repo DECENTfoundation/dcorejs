@@ -1,9 +1,9 @@
 import {DatabaseApi, DatabaseOperations} from './api/database';
-import {Operations, Transaction} from './transaction';
+import {Transaction} from './transaction';
 import {Block} from './explorer';
 import AssetExchangeRate = Block.AssetExchangeRate;
 import {ApiConnector} from './api/apiConnector';
-import {Asset} from './model/transaction';
+import {Asset, Operations} from './model/transaction';
 
 export interface DCoreAssetObject extends AssetObject {
     dynamic_asset_data_id: string;
