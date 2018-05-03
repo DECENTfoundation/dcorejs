@@ -97,6 +97,19 @@ export class AssetModule {
         });
     }
 
+    /**
+     * NOTE: only miner can create monitored asset.
+     * @requires dcorejs-lib@1.1.0
+     *
+     * @param {string} issuer
+     * @param {string} symbol
+     * @param {number} precision
+     * @param {string} description
+     * @param {number} feedLifetimeSec
+     * @param {number} minimumFeeds
+     * @param {string} issuerPrivateKey
+     * @returns {Promise<any>}
+     */
     createMonitoredAsset(issuer: string,
                          symbol: string,
                          precision: number,
