@@ -201,7 +201,7 @@ export class AssetModule {
                 this.listAssets(dctSymbol, 1)
             ])
                 .then(res => {
-                    const [ uia, dct ] = res;
+                    const [uia, dct] = res;
                     if (!(uia[0].symbol === uiaSymbol && dct[0].symbol === dctSymbol) || res.length !== 2) {
                         reject('asset_not_found');
                         return;
@@ -223,7 +223,32 @@ export class AssetModule {
                         .then(res => resolve(res))
                         .catch(err => reject('failed_to_broadcast_transaction'));
                 })
-                .catch(err => reject('failed_loading_assets'));
+                .catch(err => reject('failed_load_assets'));
+        });
+    }
+
+    public assetReserve(payer: string, symbol: string, amountToReserve: number, privateKey: string): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            this.listAssets(symbol, 1)
+                .then(res => {
+                    if (res[0].symbol !== symbol || res.length !== 1) {
+                        reject('asset_not_found');
+                        return;
+                    }
+                    const operation = new Operations.AssetReserve(
+                        payer,
+                        {
+                            asset_id: res[0].id,
+                            amount: amountToReserve
+                        }
+                    );
+                    const transaction = new Transaction();
+                    transaction.add(operation);
+                    transaction.broadcast(privateKey)
+                        .then(res => resolve(res))
+                        .catch(err => reject('failed_to_broadcast_transaction'));
+                })
+                .catch(err => reject('failed_load_assets'));
         });
     }
 

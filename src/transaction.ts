@@ -33,6 +33,7 @@ export enum OperationName {
     issue_asset = 'issue_asset',
     update_monitored_asset_operation = 'update_monitored_asset_operation',
     asset_fund_pools_operation = 'asset_fund_pools_operation',
+    asset_reserve_operation = 'asset_reserve_operation',
 }
 
 /**
@@ -222,6 +223,19 @@ export namespace Operations {
                     from_account: fromAccountId,
                     uia_asset: uiaAsset,
                     dct_asset: dctAsset
+                }
+            );
+        }
+    }
+
+    export class AssetReserve extends Operation {
+        constructor(payer: string, assetToReserve: Asset) {
+            super(
+                OperationName.asset_reserve_operation,
+                {
+                    payer,
+                    amount_to_reserve: assetToReserve,
+                    extensions: {}
                 }
             );
         }
