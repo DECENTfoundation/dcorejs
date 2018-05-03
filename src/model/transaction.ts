@@ -1,5 +1,8 @@
 import {Key, KeyParts} from '../content';
 import {Authority, Options} from '../account';
+import {AssetOptions, MonitoredAssetOptions} from '../assetModule';
+import {Block} from '../explorer';
+import AssetExchangeRate = Block.AssetExchangeRate;
 
 /**
  * OperationType to be broadcasted to blockchain
@@ -15,14 +18,33 @@ export class Operation {
     }
 }
 
+/**
+ * Memo message object representation
+ */
+export interface Memo {
+    from: string;
+    to: string;
+    nonce: string;
+    message: Buffer;
+}
+
+/**
+ * Class contains available transaction operation names constants
+ */
 export enum OperationName {
     transfer = 'transfer',
     content_cancellation = 'content_cancellation',
     requestToBuy = 'request_to_buy',
     content_submit = 'content_submit',
     account_update = 'account_update',
-    account_create = 'account_create',
+    asset_create = 'asset_create',
+    issue_asset = 'issue_asset',
+    update_monitored_asset_operation = 'update_monitored_asset_operation',
+    asset_fund_pools_operation = 'asset_fund_pools_operation',
+    asset_reserve_operation = 'asset_reserve_operation',
+    asset_claim_fees_operation = 'asset_claim_fees_operation',
     leave_rating_and_comment = 'leave_rating_and_comment',
+    account_create = 'account_create',
 }
 
 /**
@@ -142,6 +164,105 @@ export namespace Operations {
                     active,
                     new_options,
                     extensions
+                }
+            );
+        }
+    }
+
+    export class AssetCreateOperation extends Operation {
+        constructor(issuer: string,
+                    symbol: string,
+                    precision: number,
+                    description: string,
+                    options: AssetOptions,
+                    monitoredOptions: MonitoredAssetOptions = null) {
+            const data = {
+                issuer,
+                symbol,
+                precision,
+                description,
+                options,
+                extensions: {}
+            };
+            if (monitoredOptions) {
+                data['monitored_asset_opts'] = monitoredOptions;
+            }
+            super(OperationName.asset_create, data);
+        }
+    }
+
+    export class IssueAssetOperation extends Operation {
+        constructor(issuer: string, assetToIssue: Asset, issueToAccount: string, memo: string) {
+            super(OperationName.issue_asset, {
+                issuer,
+                asset_to_issue: assetToIssue,
+                issue_to_account: issueToAccount,
+                memo,
+                extensions: {}
+            });
+        }
+    }
+
+    export class UpdateAssetIssuedOperation extends Operation {
+        constructor(issuer: string,
+                    asset_to_update: string,
+                    new_description: string,
+                    max_supply: number,
+                    core_exchange_rate: AssetExchangeRate,
+                    is_exchangeable: boolean,
+                    new_issuer?: string) {
+            super(
+                OperationName.update_monitored_asset_operation,
+                {
+                    issuer,
+                    asset_to_update,
+                    new_description,
+                    max_supply,
+                    core_exchange_rate,
+                    is_exchangeable,
+                    new_issuer,
+                    extensions: {}
+                }
+            );
+        }
+    }
+
+    export class AssetFundPools extends Operation {
+        constructor(fromAccountId: string, uiaAsset: Asset, dctAsset: Asset) {
+            super(
+                OperationName.asset_fund_pools_operation,
+                {
+                    from_account: fromAccountId,
+                    uia_asset: uiaAsset,
+                    dct_asset: dctAsset,
+                    extensions: {}
+                }
+            );
+        }
+    }
+
+    export class AssetReserve extends Operation {
+        constructor(payer: string, assetToReserve: Asset) {
+            super(
+                OperationName.asset_reserve_operation,
+                {
+                    payer,
+                    amount_to_reserve: assetToReserve,
+                    extensions: {}
+                }
+            );
+        }
+    }
+
+    export class AssetClaimFeesOperation extends Operation {
+        constructor(issuer: string, uiaAsset: Asset, dctAsset: Asset) {
+            super(
+                OperationName.asset_claim_fees_operation,
+                {
+                    issuer,
+                    uia_asset: uiaAsset,
+                    dct_asset: dctAsset,
+                    extensions: {}
                 }
             );
         }
