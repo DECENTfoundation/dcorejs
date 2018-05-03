@@ -1,11 +1,9 @@
 import {DatabaseApi, DatabaseOperations, SearchParams, SearchParamsOrder} from './api/database';
 import {ChainApi, ChainMethods} from './api/chain';
-import {
-    Operations,
-    Transaction
-} from './transaction';
+import {Transaction} from './transaction';
 import {Asset} from './account';
 import {isUndefined} from 'util';
+import {Operations} from './model/transaction';
 
 const moment = require('moment');
 

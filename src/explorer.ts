@@ -1,6 +1,6 @@
 import {DatabaseApi, DatabaseOperations} from './api/database';
 import {Account, Authority, Options} from './account';
-import {Asset as TransactionAsset} from './transaction';
+import {Asset as TransactionAsset} from './model/transaction';
 import {Key} from './content';
 
 export class ErrorExplorer {

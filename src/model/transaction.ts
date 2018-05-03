@@ -57,16 +57,6 @@ export class Asset {
 }
 
 /**
- * Memo message object representation
- */
-export interface Memo {
-    from: string;
-    to: string;
-    nonce: string;
-    message: Buffer;
-}
-
-/**
  * Operations collection which can be constructed and send to blockchain network
  */
 export namespace Operations {

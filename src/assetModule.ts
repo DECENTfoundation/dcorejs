@@ -306,6 +306,26 @@ export class AssetModule {
                 .catch(err => reject(err));
         });
     }
+    public priceToDCT(symbol: string, amount: number): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            this.listAssets(symbol, 1)
+                .then(res => {
+                    if (res[0].symbol !== symbol || res.length !== 1) {
+                        reject('asset_not_found');
+                        return;
+                    }
+                    const operation = new DatabaseOperations.PriceToDCT(
+                        {
+                            asset_id: res[0].id,
+                            amount: amount
+                        }
+                    );
+                    this.dbApi.execute(operation)
+                        .then(res => resolve(res))
+                        .catch(err => reject('database_operation_failed'));
+                });
+        });
+    }
 
     public getMonitoredAssetData(assetId: string): Promise<MonitoredAssetOptions | null> {
         const operation = new DatabaseOperations.GetAssets([assetId]);

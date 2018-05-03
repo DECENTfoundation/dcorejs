@@ -1,4 +1,5 @@
 import {ApiConnector} from './apiConnector';
+import {Asset} from '../model/transaction';
 
 export class ConnectionStatus {
     static open = 'open';
@@ -108,6 +109,7 @@ class DatabaseOperationName {
     static searchFeedback = 'search_feedback';
     static listAssets = 'list_assets';
     static getAssets = 'get_assets';
+    static priceToDct = 'price_to_dct';
 }
 
 export class DatabaseOperation {
@@ -288,6 +290,12 @@ export namespace DatabaseOperations {
     export class GetAssets extends DatabaseOperation {
         constructor(assetIds: string[]) {
             super(DatabaseOperationName.getAssets, assetIds);
+        }
+    }
+
+    export class PriceToDCT extends DatabaseOperation {
+        constructor(asset: Asset) {
+            super(DatabaseOperationName.priceToDct, asset);
         }
     }
 }

@@ -2,9 +2,10 @@ import {Account} from './account';
 import {Database, DatabaseApi, DatabaseOperations, SearchAccountHistoryOrder} from './api/database';
 import {ChainApi, ChainMethods} from './api/chain';
 import {CryptoUtils} from './crypt';
-import { Memo, Operation, Operations, Transaction} from './transaction';
+import {Transaction} from './transaction';
 import {KeyPrivate, Utils} from './utils';
 import {HistoryApi, HistoryOperations} from './api/history';
+import {Memo, Operation, Operations} from './model/transaction';
 
 export interface TransactionRaw {
     id: string;
