@@ -126,7 +126,7 @@ export class AssetModule {
             const monitoredOpts: MonitoredAssetOptions = {
                 feed_lifetime_sec: feedLifetimeSec,
                 minimum_feeds: minimumFeeds
-            }
+            };
             const operation = new Operations.AssetCreateOperation(
                 issuer, symbol, precision, description, options, monitoredOpts
             );
@@ -135,6 +135,57 @@ export class AssetModule {
             transaction.broadcast(issuerPrivateKey)
                 .then(res => resolve(true))
                 .catch(err => reject(err));
+        });
+    }
+
+    /**
+     * @requires dcorejs-lib@1.1.0
+     * @returns {Promise<any>}
+     */
+    public issueAsset(issuer: string, assetToIssue: string, issueToAccount: string, memo: string, issuerPKey: string): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            const operation = new Operations.IssueAssetOperation(
+                issuer,
+                {
+                    asset_id: assetToIssue,
+                    amount: 0
+                },
+                issueToAccount,
+                memo || ''
+            );
+            const transaction = new Transaction();
+            transaction.add(operation);
+            transaction.broadcast(issuerPKey)
+                .then(res => resolve())
+                .catch(err => reject(new Error('asset_issue_failure')));
+        });
+    }
+
+    public updateUserIssuedAsset(issuer: string,
+                                 symbol: string,
+                                 newIssuer: string,
+                                 description: string,
+                                 maxSupply: number,
+                                 coreExchange: AssetExchangeRate,
+                                 isExchangable: boolean,
+                                 issuerPKey: string): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            this.listAssets(symbol, 1)
+                .then((assetToUpdate: AssetObject[]) => {
+                    if (assetToUpdate.length === 0) {
+                        reject('unable_to_find_asset');
+                        return;
+                    }
+                    const operation = new Operations.UpdateAssetIssuedOperation(
+                        issuer, assetToUpdate[0].id, description, maxSupply, coreExchange, isExchangable, newIssuer
+                    );
+                    const transaction = new Transaction();
+                    transaction.add(operation);
+                    transaction.broadcast(issuerPKey)
+                        .then(res => resolve(res))
+                        .catch(err => reject('failed_to_broadcast_transaction'));
+                })
+                .catch(err => reject('failed_updating_asset'));
         });
     }
 

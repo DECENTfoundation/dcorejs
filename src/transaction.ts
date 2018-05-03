@@ -4,6 +4,7 @@ import {KeyPrivate, KeyPublic, Utils} from './utils';
 import {Key, KeyParts} from './content';
 import {Authority, Options} from './account';
 import {AssetOptions, MonitoredAssetOptions} from './assetModule';
+import {Block} from './explorer';
 
 /**
  * OperationType to be broadcasted to blockchain
@@ -29,6 +30,8 @@ export enum OperationName {
     content_submit = 'content_submit',
     account_update = 'account_update',
     asset_create = 'asset_create',
+    issue_asset = 'issue_asset',
+    update_monitored_asset_operation = 'update_monitored_asset_operation',
 }
 
 /**
@@ -54,6 +57,8 @@ export interface Memo {
  * Operations collection which can be constructed and send to blockchain network
  */
 export namespace Operations {
+    import AssetExchangeRate = Block.AssetExchangeRate;
+
     export class TransferOperation extends Operation {
         constructor(from: string, to: string, amount: Asset, memo: Memo) {
             super(
@@ -171,6 +176,40 @@ export namespace Operations {
                 data['monitored_asset_opts'] = monitoredOptions;
             }
             super(OperationName.asset_create, data);
+        }
+    }
+
+    export class IssueAssetOperation extends Operation {
+        constructor(issuer: string, assetToIssue: Asset, issueToAccount: string, memo: string) {
+            super(OperationName.issue_asset, {
+                issuer,
+                asset_to_issue: assetToIssue,
+                issue_to_account: issueToAccount,
+                memo
+            });
+        }
+    }
+
+    export class UpdateAssetIssuedOperation extends Operation {
+        constructor(issuer: string,
+                    asset_to_update: string,
+                    new_description: string,
+                    max_supply: number,
+                    core_exchange_rate: AssetExchangeRate,
+                    is_exchangeable: boolean,
+                    new_issuer?: string) {
+            super(
+                OperationName.update_monitored_asset_operation,
+                {
+                    issuer,
+                    asset_to_update,
+                    new_description,
+                    max_supply,
+                    core_exchange_rate,
+                    is_exchangeable,
+                    new_issuer
+                }
+            );
         }
     }
 }
