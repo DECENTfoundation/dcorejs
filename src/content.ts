@@ -1,9 +1,10 @@
 import {DatabaseApi} from './api/database';
 import {ChainApi, ChainMethods} from './api/chain';
-import {ContentObject, Operations, Transaction} from './transaction';
+import {Transaction} from './transaction';
 import {isUndefined} from 'util';
 import {DatabaseOperations, SearchParams, SearchParamsOrder} from './api/model/database';
 import {BuyingContent, Content, ContentKeys, KeyPair, Rating, Seeder, SubmitObject} from './model/content';
+import {ContentObject, Operations} from './model/transaction';
 
 const moment = require('moment');
 
@@ -31,7 +32,7 @@ export class ContentApi {
      * @param {SearchParams} searchParams
      * @return {Promise<Content[]>}
      */
-    public searchContent(searchParams: SearchParams): Promise<Content[]> {
+    public searchContent(searchParams?: SearchParams): Promise<Content[]> {
         const dbOperation = new DatabaseOperations.SearchContent(searchParams);
         return new Promise((resolve, reject) => {
             this._dbApi
@@ -478,6 +479,17 @@ export class ContentApi {
                     resolve([content.author, content.co_authors.map(ca => ca[0])]);
                 })
                 .catch(err => reject(this.handleError(ContentError.database_operation_failed, err)));
+        });
+    }
+
+    leaveCommentAndRating(contentURI: string, consumer: string, comment: string, rating: number, consumerPKey: string): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            const operation = new Operations.LeaveRatingAndComment(contentURI, consumer, comment, rating);
+            const transaction = new Transaction();
+            transaction.add(operation);
+            transaction.broadcast(consumerPKey)
+                .then(res => resolve(res))
+                .catch(err => reject(this.handleError(ContentError.transaction_broadcast_failed, err)));
         });
     }
 

@@ -1,6 +1,6 @@
 import {DatabaseApi} from './api/database';
 import {Account, Authority, Options} from './account';
-import {Asset as TransactionAsset} from './transaction';
+import {Asset as TransactionAsset} from './model/transaction';
 import {Key} from './model/content';
 import {DatabaseOperations} from './api/model/database';
 
