@@ -69,12 +69,17 @@ export class AssetModule {
                                  maxSupply: number,
                                  coreExchangeRate: AssetExchangeRate,
                                  isExchangable: boolean,
+                                 isSupplyFixed: boolean,
                                  issuerPrivateKey: string): Promise<boolean> {
         const options: AssetOptions = {
             max_supply: maxSupply,
             is_exchangeable: isExchangable,
             core_exchange_rate: coreExchangeRate,
-            extensions: []
+            extensions: [[
+                1, {
+                    'is_fixed_max_supply': false
+                }
+            ]]
         };
         const operation = new Operations.AssetCreateOperation(
             issuer, symbol, precision, description, options
@@ -306,6 +311,7 @@ export class AssetModule {
                 .catch(err => reject(err));
         });
     }
+
     public priceToDCT(symbol: string, amount: number): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             this.listAssets(symbol, 1)
@@ -323,9 +329,33 @@ export class AssetModule {
                     this.dbApi.execute(operation)
                         .then(res => resolve(res))
                         .catch(err => reject('database_operation_failed'));
-                });
+                })
+                .catch(err => reject('failed_load_assets'));
         });
     }
+
+    // public publishAssetFeed(publishingAccount: string,
+    //                         symbol: string,
+    //                         exchangeBaseAmount: number,
+    //                         exchangeQuoteAmount: number,
+    //                         privateKey: string): Promise<any> {
+    //     return new Promise<any>((resolve, reject) => {
+    //         this.listAssets(symbol, 1)
+    //             .then(res => {
+    //                 const coreExchangeRate: AssetExchangeRate = {
+    //                     quote: {
+    //                         amount: exchangeQuoteAmount,
+    //                         asset_id: '1.3.0'
+    //                     },
+    //                     base: {
+    //                         asset_id: '',
+    //                         amount: exchangeBaseAmount
+    //                     }
+    //                 };
+    //             })
+    //             .catch(err => reject('failed_load_assets'));
+    //     });
+    // }
 
     public getMonitoredAssetData(assetId: string): Promise<MonitoredAssetOptions | null> {
         const operation = new DatabaseOperations.GetAssets([assetId]);

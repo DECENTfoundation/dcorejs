@@ -45,6 +45,7 @@ export enum OperationName {
     asset_claim_fees_operation = 'asset_claim_fees_operation',
     leave_rating_and_comment = 'leave_rating_and_comment',
     account_create = 'account_create',
+    asset_publish_feed = 'asset_publish_feed',
 }
 
 /**
@@ -272,6 +273,20 @@ export namespace Operations {
         }
     }
 
+    export class AssetPublishFeed extends Operation {
+        constructor(publisher: string, assetId: string, feed: PriceFeed) {
+            super(
+                OperationName.asset_publish_feed,
+                {
+                    publisher,
+                    asset_id: assetId,
+                    feed,
+                    extensions: {}
+                }
+            );
+        }
+    }
+
     export interface CreateAccountParameters {
         fee?: Asset,
         name?: string,
@@ -292,6 +307,10 @@ export namespace Operations {
 export interface RegionalPrice {
     region: number;
     price: Asset;
+}
+
+export interface PriceFeed {
+    core_exchange_rate: AssetExchangeRate
 }
 
 export interface ContentObject {
