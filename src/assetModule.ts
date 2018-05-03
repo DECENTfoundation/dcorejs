@@ -3,6 +3,7 @@ import {Operations, Transaction} from './transaction';
 import {Block} from './explorer';
 import AssetExchangeRate = Block.AssetExchangeRate;
 import {ApiConnector} from './api/apiConnector';
+import {Asset} from './model/transaction';
 
 export interface DCoreAssetObject extends AssetObject {
     dynamic_asset_data_id: string;
@@ -242,6 +243,42 @@ export class AssetModule {
                             amount: amountToReserve
                         }
                     );
+                    const transaction = new Transaction();
+                    transaction.add(operation);
+                    transaction.broadcast(privateKey)
+                        .then(res => resolve(res))
+                        .catch(err => reject('failed_to_broadcast_transaction'));
+                })
+                .catch(err => reject('failed_load_assets'));
+        });
+    }
+
+    public assetClaimFees(issuer: string,
+                          uiaSymbol: string,
+                          uiaAmount: number,
+                          dctSymbol: string,
+                          dctAmount: number,
+                          privateKey: string): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            Promise.all([
+                this.listAssets(uiaSymbol, 1),
+                this.listAssets(dctSymbol, 1)
+            ])
+                .then(res => {
+                    const [uia, dct] = res;
+                    if (!(uia[0].symbol === uiaSymbol && dct[0].symbol === dctSymbol) || res.length !== 2) {
+                        reject('asset_not_found');
+                        return;
+                    }
+                    const uiaAsset: Asset = {
+                        asset_id: uia[0].id,
+                        amount: uiaAmount
+                    };
+                    const dctAsset: Asset = {
+                        asset_id: dct[0].id,
+                        amount: dctAmount
+                    };
+                    const operation = new Operations.AssetClaimFeesOperation(issuer, uiaAsset, dctAsset);
                     const transaction = new Transaction();
                     transaction.add(operation);
                     transaction.broadcast(privateKey)

@@ -34,6 +34,7 @@ export enum OperationName {
     update_monitored_asset_operation = 'update_monitored_asset_operation',
     asset_fund_pools_operation = 'asset_fund_pools_operation',
     asset_reserve_operation = 'asset_reserve_operation',
+    asset_claim_fees_operation = 'asset_claim_fees_operation',
 }
 
 /**
@@ -172,7 +173,8 @@ export namespace Operations {
                 symbol,
                 precision,
                 description,
-                options
+                options,
+                extensions: {}
             };
             if (monitoredOptions) {
                 data['monitored_asset_opts'] = monitoredOptions;
@@ -187,7 +189,8 @@ export namespace Operations {
                 issuer,
                 asset_to_issue: assetToIssue,
                 issue_to_account: issueToAccount,
-                memo
+                memo,
+                extensions: {}
             });
         }
     }
@@ -209,7 +212,8 @@ export namespace Operations {
                     max_supply,
                     core_exchange_rate,
                     is_exchangeable,
-                    new_issuer
+                    new_issuer,
+                    extensions: {}
                 }
             );
         }
@@ -222,7 +226,8 @@ export namespace Operations {
                 {
                     from_account: fromAccountId,
                     uia_asset: uiaAsset,
-                    dct_asset: dctAsset
+                    dct_asset: dctAsset,
+                    extensions: {}
                 }
             );
         }
@@ -235,6 +240,20 @@ export namespace Operations {
                 {
                     payer,
                     amount_to_reserve: assetToReserve,
+                    extensions: {}
+                }
+            );
+        }
+    }
+
+    export class AssetClaimFeesOperation extends Operation {
+        constructor(issuer: string, uiaAsset: Asset, dctAsset: Asset) {
+            super(
+                OperationName.asset_claim_fees_operation,
+                {
+                    issuer,
+                    uia_asset: uiaAsset,
+                    dct_asset: dctAsset,
                     extensions: {}
                 }
             );
