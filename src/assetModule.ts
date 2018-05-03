@@ -189,8 +189,55 @@ export class AssetModule {
         });
     }
 
+    public fundAssetPools(fromAccountId: string,
+                          uiaAmount: number,
+                          uiaSymbol: string,
+                          dctAmount: number,
+                          dctSymbol: string,
+                          privateKey: string): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            Promise.all([
+                this.listAssets(uiaSymbol, 1),
+                this.listAssets(dctSymbol, 1)
+            ])
+                .then(res => {
+                    const [ uia, dct ] = res;
+                    if (!(uia[0].symbol === uiaSymbol && dct[0].symbol === dctSymbol) || res.length !== 2) {
+                        reject('asset_not_found');
+                        return;
+                    }
+                    const operation = new Operations.AssetFundPools(
+                        fromAccountId,
+                        {
+                            asset_id: uia[0].id,
+                            amount: uiaAmount
+                        },
+                        {
+                            asset_id: dct[0].id,
+                            amount: dctAmount
+                        }
+                    );
+                    const transaction = new Transaction();
+                    transaction.add(operation);
+                    transaction.broadcast(privateKey)
+                        .then(res => resolve(res))
+                        .catch(err => reject('failed_to_broadcast_transaction'));
+                })
+                .catch(err => reject('failed_loading_assets'));
+        });
+    }
+
     public getAsset(assetId: string): Promise<DCoreAssetObject[]> {
         const operation = new DatabaseOperations.GetAssets([assetId]);
+        return new Promise<DCoreAssetObject[]>((resolve, reject) => {
+            this.dbApi.execute(operation)
+                .then(res => resolve(res))
+                .catch(err => reject(err));
+        });
+    }
+
+    public getAssets(...assetIds: string[]): Promise<DCoreAssetObject[]> {
+        const operation = new DatabaseOperations.GetAssets(assetIds);
         return new Promise<DCoreAssetObject[]>((resolve, reject) => {
             this.dbApi.execute(operation)
                 .then(res => resolve(res))

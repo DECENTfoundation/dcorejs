@@ -32,6 +32,7 @@ export enum OperationName {
     asset_create = 'asset_create',
     issue_asset = 'issue_asset',
     update_monitored_asset_operation = 'update_monitored_asset_operation',
+    asset_fund_pools_operation = 'asset_fund_pools_operation',
 }
 
 /**
@@ -208,6 +209,19 @@ export namespace Operations {
                     core_exchange_rate,
                     is_exchangeable,
                     new_issuer
+                }
+            );
+        }
+    }
+
+    export class AssetFundPools extends Operation {
+        constructor(fromAccountId: string, uiaAsset: Asset, dctAsset: Asset) {
+            super(
+                OperationName.asset_fund_pools_operation,
+                {
+                    from_account: fromAccountId,
+                    uia_asset: uiaAsset,
+                    dct_asset: dctAsset
                 }
             );
         }
