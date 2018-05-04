@@ -16,6 +16,7 @@ class DatabaseOperationName {
     static getBuyingObjectsByConsumer = 'get_buying_objects_by_consumer';
     static listPublishers = 'list_seeders_by_price';
     static getObjects = 'get_objects';
+    static getContent = 'get_content';
     static getBuyingHistoryObjects = 'get_buying_by_consumer_URI';
     static getDynamicGlobalProperties = 'get_dynamic_global_properties';
     static getBlock = 'get_block';
@@ -28,6 +29,11 @@ class DatabaseOperationName {
     static lookupAccounts = 'lookup_accounts';
     static searchMinerVoting = 'search_miner_voting';
     static getMinerCount = 'get_miner_count';
+    static getOpenBuyings = 'get_open_buyings';
+    static getOpenBuyingsByURI = 'get_open_buyings_by_URI';
+    static getOpenBuyingsByConsumer = 'get_open_buyings_by_consumer';
+    static getBuyingHistoryObjectsByConsumer = 'get_buying_history_objects_by_consumer';
+    static getBuyingByConsumerURI = 'get_buying_by_consumer_URI';
 }
 
 export class DatabaseOperation {
@@ -95,66 +101,32 @@ export enum MinerOrder {
  * Order parameter options can be found in SearchParamsOrder class, Default: SearchParamsOrder.createdDesc
  * Region code is ISO 3166-1 alpha-2 two-letter region code.
  */
-export class SearchParams {
-    term = '';
-    order = '';
+export interface SearchParams {
+    term?: string;
+    order?: string;
     /**
      * Content owner
      * @memberof SearchParams
      */
-    user = '';
-    region_code = '';
-    itemId = '';
-    category = '';
-    count: number;
-
-    constructor(term = '',
-                order = '',
-                user = '',
-                region_code = '',
-                itemId = '',
-                category: string = '',
-                count: number = 6) {
-        this.term = term || '';
-        this.order = order || SearchParamsOrder.createdDesc;
-        this.user = user || '';
-        this.region_code = region_code || '';
-        this.itemId = itemId || '0.0.0';
-        this.category = category || '1';
-        this.count = count || 6;
-    }
-
-    get params(): any[] {
-        let params: any[] = [];
-        params = Object.values(this).reduce((previousValue, currentValue) => {
-            previousValue.push(currentValue);
-            return previousValue;
-        }, params);
-        return params;
-    }
+    user?: string;
+    region_code?: string;
+    itemId?: string;
+    category?: string;
+    count?: number;
 }
 
 export namespace DatabaseOperations {
     export class SearchContent extends DatabaseOperation {
         constructor(searchParams: SearchParams) {
-            const [
-                term,
-                order,
-                user,
-                region_code,
-                itemId,
-                category,
-                count
-            ] = searchParams.params;
             super(
                 DatabaseOperationName.searchContent,
-                term,
-                order,
-                user,
-                region_code,
-                itemId,
-                category,
-                count
+                searchParams.term || '',
+                searchParams.order || '',
+                searchParams.user || '',
+                searchParams.region_code || '',
+                searchParams.itemId || '0.0.0',
+                searchParams.category || '1',
+                searchParams.count || 100
             );
         }
     }
@@ -237,6 +209,12 @@ export namespace DatabaseOperations {
         }
     }
 
+    export class GetContent extends DatabaseOperation {
+        constructor(URI: string) {
+            super(DatabaseOperationName.getContent, URI);
+        }
+    }
+
     export class GetBuyingHistoryObjects extends DatabaseOperation {
         constructor(accountId: string, contentURI: string) {
             super(DatabaseOperationName.getBuyingHistoryObjects, accountId, contentURI);
@@ -306,6 +284,36 @@ export namespace DatabaseOperations {
     export class GetMinerCount extends DatabaseOperation {
         constructor() {
             super(DatabaseOperationName.getMinerCount);
+        }
+    }
+
+    export class GetOpenBuyings extends DatabaseOperation {
+        constructor() {
+            super(DatabaseOperationName.getOpenBuyings);
+        }
+    }
+
+    export class GetOpenBuyingsByURI extends DatabaseOperation {
+        constructor(URI: string) {
+            super(DatabaseOperationName.getOpenBuyingsByURI, URI);
+        }
+    }
+
+    export class GetOpenBuyingsByConsumer extends DatabaseOperation {
+        constructor(accountId: string) {
+            super(DatabaseOperationName.getOpenBuyingsByConsumer, accountId);
+        }
+    }
+
+    export class GetBuyingsHistoryObjectsByConsumer extends DatabaseOperation {
+        constructor(accountId: string) {
+            super(DatabaseOperationName.getBuyingHistoryObjectsByConsumer, accountId);
+        }
+    }
+
+    export class GetBuyingByConsumerURI extends DatabaseOperation {
+        constructor(accountId: string, URI: string) {
+            super(DatabaseOperationName.getBuyingByConsumerURI, accountId, URI);
         }
     }
 }

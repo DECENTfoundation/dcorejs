@@ -2,12 +2,12 @@ import {Account} from './account';
 import {Database, DatabaseApi} from './api/database';
 import {ChainApi, ChainMethods} from './api/chain';
 import {CryptoUtils} from './crypt';
-import {Memo, Operation, Operations, Transaction} from './transaction';
+import {Transaction} from './transaction';
 import {KeyPrivate, KeyPublic, Utils} from './utils';
 import {HistoryApi, HistoryOperations} from './api/history';
-import RegisterAccount = Operations.RegisterAccount;
 import {ApiConnector} from './api/apiConnector';
 import {DatabaseOperations, SearchAccountHistoryOrder, MinerOrder, DatabaseError} from './api/model/database';
+import {Memo, Operation, Operations} from './model/transaction';
 import {Miner} from './explorer';
 
 export type AccountNameIdPair = [string, string];
@@ -688,7 +688,7 @@ export class AccountApi {
         return new Promise<boolean>((resolve, reject) => {
             this._connector.connect()
                 .then(() => {
-                    const operation = new RegisterAccount({
+                    const operation = new Operations.RegisterAccount({
                         name,
                         owner,
                         active,
