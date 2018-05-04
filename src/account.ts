@@ -8,6 +8,7 @@ import {HistoryApi, HistoryOperations} from './api/history';
 import {ApiConnector} from './api/apiConnector';
 import {DatabaseOperations, SearchAccountHistoryOrder, MinerOrder, DatabaseError} from './api/model/database';
 import {Memo, Operation, Operations} from './model/transaction';
+import {Miner} from './explorer';
 
 export type AccountNameIdPair = [string, string];
 
@@ -534,6 +535,22 @@ export class AccountApi {
      * @returns {Promise<any>}
      */
     public voteForMiner(miner: string, account: string, privateKeyWif: string): Promise<any> {
+        return this.voteForMiners([miner], account, privateKeyWif);
+    }
+
+    /**
+     * Remove youte vote from selected miner.
+     *
+     * @param {string} miner
+     * @param {string} account
+     * @param {string} privateKeyWif
+     * @returns {Promise<any>}
+     */
+    public unvoteMiner(miner: string, account: string, privateKeyWif: string): Promise<any> {
+        return this.unvoteMiners([miner], account, privateKeyWif);
+    }
+
+    public voteForMiners(miners: string[], account: string, privateKeyWif: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             const operations = new ChainMethods();
             operations.add(ChainMethods.getAccount, account);
@@ -541,11 +558,10 @@ export class AccountApi {
                 .then(res => {
                     const [voterAccount] = res;
                     const voter: Account = JSON.parse(JSON.stringify(voterAccount));
-                    const operation = new DatabaseOperations.GetMiners([miner]);
+                    const operation = new DatabaseOperations.GetMiners(miners);
                     this._dbApi.execute(operation)
-                        .then(res => {
-                            const [minerAcc] = res;
-                            voter.options.votes.push(minerAcc.vote_id);
+                        .then((res: Miner[]) => {
+                            voter.options.votes.push(...res.map(miner => miner.vote_id));
                             voter.options.votes.sort((e1: string, e2: string) => {
                                 return Number(e1.split(':')[1]) - Number(e2.split(':')[1]);
                             });
@@ -570,15 +586,7 @@ export class AccountApi {
         });
     }
 
-    /**
-     * Remove youte vote from selected miner.
-     *
-     * @param {string} miner
-     * @param {string} account
-     * @param {string} privateKeyWif
-     * @returns {Promise<any>}
-     */
-    public unvoteMiner(miner: string, account: string, privateKeyWif: string): Promise<any> {
+    public unvoteMiners(miners: string[], account: string, privateKeyWif: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             const operations = new ChainMethods();
             operations.add(ChainMethods.getAccount, account);
@@ -586,12 +594,13 @@ export class AccountApi {
                 .then(res => {
                     const [voterAccount] = res;
                     const voter: Account = JSON.parse(JSON.stringify(voterAccount));
-                    const operation = new DatabaseOperations.GetMiners([miner]);
+                    const operation = new DatabaseOperations.GetMiners(miners);
                     this._dbApi.execute(operation)
-                        .then(res => {
-                            const [minerAcc] = res;
-                            const voteIndex = voter.options.votes.indexOf(minerAcc.vote_id);
-                            voter.options.votes.splice(voteIndex, 1);
+                        .then((res: Miner[]) => {
+                            res.forEach(miner => {
+                                const voteIndex = voter.options.votes.indexOf(miner.vote_id);
+                                voter.options.votes.splice(voteIndex, 1);
+                            });
                             voter.options['num_witness'] = voter.options.num_miner;
                             delete voter.options.num_miner;
                             const op = new Operations.AccountUpdateOperation(

@@ -1,4 +1,4 @@
-export { SearchParams, SearchParamsOrder } from './api/model/database';
+export * from './api/model/database';
 
 export { ContentApi} from './content';
 
