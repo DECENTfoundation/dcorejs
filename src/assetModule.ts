@@ -3,7 +3,7 @@ import {Transaction} from './transaction';
 import {Block} from './explorer';
 import AssetExchangeRate = Block.AssetExchangeRate;
 import {ApiConnector} from './api/apiConnector';
-import {Asset, Operations} from './model/transaction';
+import {Asset, Operations, PriceFeed} from './model/transaction';
 
 export interface DCoreAssetObject extends AssetObject {
     dynamic_asset_data_id: string;
@@ -316,7 +316,7 @@ export class AssetModule {
         return new Promise<any>((resolve, reject) => {
             this.listAssets(symbol, 1)
                 .then(res => {
-                    if (res[0].symbol !== symbol || res.length !== 1) {
+                    if (res.length !== 1 || res[0].symbol !== symbol) {
                         reject('asset_not_found');
                         return;
                     }
@@ -334,28 +334,40 @@ export class AssetModule {
         });
     }
 
-    // public publishAssetFeed(publishingAccount: string,
-    //                         symbol: string,
-    //                         exchangeBaseAmount: number,
-    //                         exchangeQuoteAmount: number,
-    //                         privateKey: string): Promise<any> {
-    //     return new Promise<any>((resolve, reject) => {
-    //         this.listAssets(symbol, 1)
-    //             .then(res => {
-    //                 const coreExchangeRate: AssetExchangeRate = {
-    //                     quote: {
-    //                         amount: exchangeQuoteAmount,
-    //                         asset_id: '1.3.0'
-    //                     },
-    //                     base: {
-    //                         asset_id: '',
-    //                         amount: exchangeBaseAmount
-    //                     }
-    //                 };
-    //             })
-    //             .catch(err => reject('failed_load_assets'));
-    //     });
-    // }
+    public publishAssetFeed(publishingAccount: string,
+                            symbol: string,
+                            exchangeBaseAmount: number,
+                            exchangeQuoteAmount: number,
+                            privateKey: string): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            this.listAssets(symbol, 1)
+                .then((asset: AssetObject[]) => {
+                    if (asset.length !== 1 || asset[0].symbol !== symbol) {
+                        reject('asset_not_found');
+                        return;
+                    }
+                    const feed: PriceFeed = {
+                        core_exchange_rate: {
+                            quote: {
+                                amount: exchangeQuoteAmount,
+                                asset_id: '1.3.0'
+                            },
+                            base: {
+                                asset_id: '',
+                                amount: exchangeBaseAmount
+                            }
+                        }
+                    };
+                    const operation = new Operations.AssetPublishFeed(publishingAccount, asset[0].id, feed);
+                    const transaction = new Transaction();
+                    transaction.add(operation);
+                    transaction.broadcast(privateKey)
+                        .then(res => resolve(res))
+                        .catch(err => reject('failed_to_broadcast_transaction'));
+                })
+                .catch(err => reject('failed_load_assets'));
+        });
+    }
 
     public getMonitoredAssetData(assetId: string): Promise<MonitoredAssetOptions | null> {
         const operation = new DatabaseOperations.GetAssets([assetId]);
