@@ -369,6 +369,15 @@ export class AssetModule {
         });
     }
 
+    public getFeedsByMiner(accountId: string, limit: number = 100): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            const operation = new DatabaseOperations.GetFeedsByMiner(accountId, limit);
+            this.dbApi.execute(operation)
+                .then(res => resolve(res))
+                .catch(err => reject('database_operation_failed'));
+        });
+    }
+
     public getMonitoredAssetData(assetId: string): Promise<MonitoredAssetOptions | null> {
         const operation = new DatabaseOperations.GetAssets([assetId]);
         return new Promise<MonitoredAssetOptions>((resolve, reject) => {

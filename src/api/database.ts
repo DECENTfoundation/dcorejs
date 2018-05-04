@@ -110,6 +110,7 @@ class DatabaseOperationName {
     static listAssets = 'list_assets';
     static getAssets = 'get_assets';
     static priceToDct = 'price_to_dct';
+    static getFeedsByMiner = 'get_feeds_by_miner';
 }
 
 export class DatabaseOperation {
@@ -296,6 +297,12 @@ export namespace DatabaseOperations {
     export class PriceToDCT extends DatabaseOperation {
         constructor(asset: Asset) {
             super(DatabaseOperationName.priceToDct, asset);
+        }
+    }
+
+    export class GetFeedsByMiner extends DatabaseOperation {
+        constructor(accountId: string, limit: number) {
+            super(DatabaseOperationName.getFeedsByMiner, accountId, limit);
         }
     }
 }
