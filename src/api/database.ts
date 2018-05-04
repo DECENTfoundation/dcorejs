@@ -23,7 +23,7 @@ export class DatabaseApi extends Database {
         this._apiConnector = apiConnector;
     }
 
-    public execute(operation: DatabaseOperation): Promise<any> {
+    public execute<T = any>(operation: DatabaseOperation): Promise<T> {
         return new Promise((resolve, reject) => {
             this._apiConnector.connect()
                 .then(() => {
