@@ -143,6 +143,7 @@ export interface Seeder {
 
 export interface SubmitObject {
     authorId: string;
+    coAuthors: string[];
     seeders: Seeder[];
     fileName: string;
     date: Date;

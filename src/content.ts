@@ -216,7 +216,7 @@ export class ContentApi {
             const submitOperation = new Operations.SubmitContentOperation(
                 content.size,
                 content.authorId,
-                [],
+                content.coAuthors,
                 content.URI,
                 content.seeders.length,
                 [{
