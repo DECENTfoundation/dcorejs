@@ -111,6 +111,7 @@ class DatabaseOperationName {
     static getAssets = 'get_assets';
     static priceToDct = 'price_to_dct';
     static getFeedsByMiner = 'get_feeds_by_miner';
+    static getRealSupply = 'get_real_supply';
 }
 
 export class DatabaseOperation {
@@ -303,6 +304,12 @@ export namespace DatabaseOperations {
     export class GetFeedsByMiner extends DatabaseOperation {
         constructor(accountId: string, limit: number) {
             super(DatabaseOperationName.getFeedsByMiner, accountId, limit);
+        }
+    }
+
+    export class GetRealSupply extends DatabaseOperation {
+        constructor() {
+            super(DatabaseOperationName.getRealSupply);
         }
     }
 }

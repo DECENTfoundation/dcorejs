@@ -369,9 +369,18 @@ export class AssetModule {
         });
     }
 
-    public getFeedsByMiner(accountId: string, limit: number = 100): Promise<any> {
+    public getFeedsByMiner(minerId: string, limit: number = 100): Promise<any> {
         return new Promise<any>((resolve, reject) => {
-            const operation = new DatabaseOperations.GetFeedsByMiner(accountId, limit);
+            const operation = new DatabaseOperations.GetFeedsByMiner(minerId, limit);
+            this.dbApi.execute(operation)
+                .then(res => resolve(res))
+                .catch(err => reject('database_operation_failed'));
+        });
+    }
+
+    public getRealSupply(): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            const operation = new DatabaseOperations.GetRealSupply();
             this.dbApi.execute(operation)
                 .then(res => resolve(res))
                 .catch(err => reject('database_operation_failed'));
