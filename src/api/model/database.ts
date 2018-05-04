@@ -81,9 +81,12 @@ export class SearchAccountHistoryOrder {
 }
 
 export enum MinerOrder {
-    name = 'name',
-    url = 'url',
-    votes = 'votes',
+    nameAsc = '+name',
+    urlAsc = '+url',
+    votesAsc = '+votes',
+    nameDesc = '-name',
+    urlDesc = '-url',
+    votesDesc = '-votes',
     none = ''
 }
 
