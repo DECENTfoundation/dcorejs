@@ -5,6 +5,7 @@ import {Options} from '../model/account';
 import {Transaction} from '../transaction';
 import {ApiModule} from './ApiModule';
 import {Account} from '../model/account';
+import { Utils } from '../utils';
 
 export class MiningModule extends ApiModule {
     constructor(dbApi: DatabaseApi) {
@@ -34,6 +35,18 @@ export class MiningModule extends ApiModule {
                         .catch(err => reject(this.handleError('transaction_broadcast_failed', err)));
                 })
                 .catch(err => reject('database_fetch_failed'));
+        });
+    }
+
+    public createMiner(minerAccountId: string, proposalURL: string, privateKey: string): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            const publicKey = Utils.getPublicKey(Utils.privateKeyFromWif(privateKey));
+            const operation = new Operations.MinerCreate(minerAccountId, proposalURL, publicKey.stringKey);
+            const transaction = new Transaction();
+            transaction.add(operation);
+            transaction.broadcast(privateKey)
+                .then(res => resolve(transaction))
+                .catch(err => reject(this.handleError('transaction_broadcast_failed', err)));
         });
     }
 }

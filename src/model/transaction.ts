@@ -45,6 +45,7 @@ export enum OperationName {
     asset_claim_fees_operation = 'asset_claim_fees_operation',
     leave_rating_and_comment = 'leave_rating_and_comment',
     account_create = 'account_create',
+    miner_create = 'miner_create',
 }
 
 /**
@@ -245,6 +246,19 @@ export namespace Operations {
                     consumer,
                     comment,
                     rating
+                }
+            );
+        }
+    }
+
+    export class MinerCreate extends Operation {
+        constructor(miner_account: string, url: string, block_signing_key: string) {
+            super(
+                OperationName.miner_create,
+                {
+                    miner_account,
+                    url,
+                    block_signing_key
                 }
             );
         }
