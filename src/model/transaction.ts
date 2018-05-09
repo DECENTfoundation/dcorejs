@@ -46,6 +46,7 @@ export enum OperationName {
     leave_rating_and_comment = 'leave_rating_and_comment',
     account_create = 'account_create',
     miner_create = 'miner_create',
+    miner_update = 'miner_update',
 }
 
 /**
@@ -260,6 +261,14 @@ export namespace Operations {
                     url,
                     block_signing_key
                 }
+            );
+        }
+    }
+
+    export class MinerUpdate extends Operation {
+        constructor(miner: string, minerAccount: string, newURL: string, newSigningKey: string) {
+            super(
+                OperationName.miner_create
             );
         }
     }

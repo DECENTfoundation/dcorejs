@@ -49,4 +49,10 @@ export class MiningModule extends ApiModule {
                 .catch(err => reject(this.handleError('transaction_broadcast_failed', err)));
         });
     }
+
+    public updateMiner(): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            
+        });
+    }
 }
