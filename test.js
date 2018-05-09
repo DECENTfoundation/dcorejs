@@ -130,28 +130,28 @@ function nehe() {
 //         '5KcA6ky4Hs9VoDUSdTF4o3a7QDgiiG5gkpLLysRWR8dy6EAgTnZ')
 //         .then(r => console.log(r));
 //     dcorejs.account().getAccountById('1.2.27').then(r => console.log(r));
-//     dcorejs.asset().createUserIssuedAsset(
-//         '1.2.27',
-//         'DUS',
-//         0,
-//         'duski token',
-//         10000,
-//         {
-//             base:
-//                 {
-//                     amount: 200000000,
-//                     asset_id: '1.3.0'
-//                 },
-//             quote:
-//                 {
-//                     amount: 1,
-//                     asset_id: '1.3.1'
-//                 }
-//         },
-//         true,
-//         false,
-//         '5KcA6ky4Hs9VoDUSdTF4o3a7QDgiiG5gkpLLysRWR8dy6EAgTnZ'
-//     )
+    // dcorejs.asset().createUserIssuedAsset(
+    //     '1.2.27',
+    //     'DUS',
+    //     0,
+    //     'duski token',
+    //     10000,
+    //     {
+    //         base:
+    //             {
+    //                 amount: 200000000,
+    //                 asset_id: '1.3.0'
+    //             },
+    //         quote:
+    //             {
+    //                 amount: 1,
+    //                 asset_id: '1.3.1'
+    //             }
+    //     },
+    //     true,
+    //     false,
+    //     '5KcA6ky4Hs9VoDUSdTF4o3a7QDgiiG5gkpLLysRWR8dy6EAgTnZ'
+    // )
 //         .then(res => console.log(res))
 //         .catch(err => console.log(err));
 //     dcorejs.asset().getRealSupply()

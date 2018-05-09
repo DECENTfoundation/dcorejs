@@ -268,7 +268,13 @@ export namespace Operations {
     export class MinerUpdate extends Operation {
         constructor(miner: string, minerAccount: string, newURL: string, newSigningKey: string) {
             super(
-                OperationName.miner_create
+                OperationName.miner_update,
+                {
+                    miner,
+                    miner_account: minerAccount,
+                    new_url: newURL,
+                    new_
+                }
             );
         }
     }
