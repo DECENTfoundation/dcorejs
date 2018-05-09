@@ -1,4 +1,4 @@
-import {Asset} from '../account';
+import {Asset} from './account';
 
 
 export interface BuyingContent {

@@ -1,7 +1,8 @@
 import {Key, KeyParts} from './content';
-import {Authority, Options} from '../account';
-import {Block} from '../explorer';
+import {Options} from './account';
+import {Block} from './explorer';
 import AssetExchangeRate = Block.AssetExchangeRate;
+import {Authority} from './account';
 
 /**
  * OperationType to be broadcasted to blockchain

@@ -1,15 +1,17 @@
 import {getLibRef} from './helpers';
-import {ContentApi} from './content';
+import {ContentApi} from './modules/content';
 import {ChainApi} from './api/chain';
 import {DatabaseApi} from './api/database';
-import {AccountApi} from './account';
+import {AccountApi} from './modules/account';
 import {HistoryApi} from './api/history';
 import {ApiConnector, ConnectionState} from './api/apiConnector';
-import {ExplorerModule} from './explorer';
+import {ExplorerModule} from './modules/explorer';
+import {MiningModule} from './modules/mining';
 
 let _content: ContentApi;
 let _account: AccountApi;
 let _explorer: ExplorerModule;
+let _mining: MiningModule;
 
 export class DcoreError {
     static app_not_initialized = 'app_not_initialized';
@@ -44,9 +46,10 @@ export function initialize(config: DcoreConfig,
     const historyApi = new HistoryApi(dcore.Apis, connector);
 
     const chain = new ChainApi(connector, dcore.ChainStore);
-    _content = new ContentApi(database, chain);
+    _content = new ContentApi(database);
     _account = new AccountApi(database, chain, historyApi, connector);
     _explorer = new ExplorerModule(database);
+    _mining = new MiningModule(database);
 }
 
 export function content(): ContentApi {
@@ -59,4 +62,8 @@ export function account(): AccountApi {
 
 export function explorer(): ExplorerModule {
     return _explorer;
+}
+
+export function mining(): MiningModule {
+    return _mining;
 }

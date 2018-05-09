@@ -5,11 +5,7 @@ export class ConnectionStatus {
     static open = 'open';
 }
 
-export class Database {
-    protected _api: any;
-}
-
-export class DatabaseApi extends Database {
+export class DatabaseApi {
     protected _api: any;
     private _apiConnector: ApiConnector;
 
@@ -18,7 +14,6 @@ export class DatabaseApi extends Database {
     }
 
     constructor(api: any, apiConnector: ApiConnector) {
-        super();
         this._api = api;
         this._apiConnector = apiConnector;
     }
