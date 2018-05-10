@@ -165,6 +165,18 @@ export interface HistoryRecord {
     virtual_op: number
 }
 
+export interface WalletExport {
+    chain_id: string;
+    my_accounts: Account[];
+    cipher_keys: string;
+    extra_keys: [string, string[]][];
+    pending_account_registrations: any[];
+    pending_miner_registrations: any[];
+    ws_server: string;
+    ws_user: string;
+    ws_password: string;
+}
+
 export interface MinerInfo {
     id: string;
     name: string;
@@ -744,6 +756,57 @@ export class AccountApi {
     }
 
     /**
+
+     * Exports wallet-cli compatible wallet file.
+     *
+     * @param {string} accountId
+     * @param {string} password
+     * @param {string} elGamalPrivateKey
+     * @param {string} elGamalPublicKey
+     * @param {string} privateKeys
+     * @returns {Promise<any>}
+     */
+    exportWallet(accountId: string,
+                 password: string,
+                 elGamalPrivateKey: string,
+                 elGamalPublicKey: string,
+                 ...privateKeys: string[]): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.getAccountById(accountId)
+                .then((acc) => {
+                    if (!acc) {
+                        reject(this.handleError(AccountError.account_does_not_exist, ''));
+                        return;
+                    }
+                    const walletExport: WalletExport = {
+                        chain_id: this._chainApi.chainId,
+                        my_accounts: [acc],
+                        cipher_keys: '',
+                        extra_keys: [],
+                        pending_account_registrations: [],
+                        pending_miner_registrations: [],
+                        ws_server: this._connector.apiAddresses[0],
+                        ws_user: '',
+                        ws_password: '',
+                    };
+                    const keys = {
+                        ec_keys: privateKeys.map(pk => {
+                            const pubKey = Utils.getPublicKey(Utils.privateKeyFromWif(pk));
+                            return [pubKey.stringKey, pk];
+                        }),
+                        el_gamal_keys: [
+                            [{s: elGamalPrivateKey}, {s: elGamalPublicKey}]
+                        ],
+                        checksum: CryptoUtils.sha512(password)
+                    };
+                    console.log(keys);
+                    walletExport.cipher_keys = CryptoUtils.encryptToHexString(JSON.stringify(keys), password);
+                    resolve(walletExport);
+                })
+                .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
+        });
+    }
+          
      * Fetch list of an accounts that begins from lower bound account id.
      * If empty string or '1.2.0' is entered, account are listed from the beginning.
      *
@@ -760,6 +823,14 @@ export class AccountApi {
         });
     }
 
+    private normalize(brainKey: string) {
+        if (typeof brainKey !== 'string') {
+            throw new Error('string required for brainKey');
+        }
+        brainKey = brainKey.trim();
+        brainKey = brainKey.toUpperCase();
+        return brainKey.split(/[\t\n\v\f\r ]+/).join(' ');
+    }
     /**
      * Returns account's balances in all assets account have non-zero amount in.
      *
