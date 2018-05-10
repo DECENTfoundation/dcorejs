@@ -756,7 +756,6 @@ export class AccountApi {
     }
 
     /**
-
      * Exports wallet-cli compatible wallet file.
      *
      * @param {string} accountId
@@ -806,7 +805,8 @@ export class AccountApi {
                 .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
         });
     }
-          
+
+    /**
      * Fetch list of an accounts that begins from lower bound account id.
      * If empty string or '1.2.0' is entered, account are listed from the beginning.
      *
@@ -823,14 +823,6 @@ export class AccountApi {
         });
     }
 
-    private normalize(brainKey: string) {
-        if (typeof brainKey !== 'string') {
-            throw new Error('string required for brainKey');
-        }
-        brainKey = brainKey.trim();
-        brainKey = brainKey.toUpperCase();
-        return brainKey.split(/[\t\n\v\f\r ]+/).join(' ');
-    }
     /**
      * Returns account's balances in all assets account have non-zero amount in.
      *
