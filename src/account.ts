@@ -165,6 +165,18 @@ export interface HistoryRecord {
     virtual_op: number
 }
 
+export interface WalletExport {
+    chain_id: string;
+    my_accounts: Account[];
+    cipher_keys: string;
+    extra_keys: [string, string[]][];
+    pending_account_registrations: any[];
+    pending_miner_registrations: any[];
+    ws_server: string;
+    ws_user: string;
+    ws_password: string;
+}
+
 export interface MinerInfo {
     id: string;
     name: string;
@@ -185,6 +197,13 @@ export class AccountError {
     static account_keys_incorrect = 'account_keys_incorrect';
     static bad_parameter = 'bad_parameter';
     static history_fetch_failed = 'history_fetch_failed';
+}
+
+export enum AccountOrder {
+    nameAsc = '+name',
+    idAsc = '+id',
+    nameDesc = '-name',
+    idDesc = '-id',
 }
 
 /**
@@ -631,7 +650,7 @@ export class AccountApi {
      * @param {number} limit
      * @returns {Promise<Account>}
      */
-    public searchAccounts(searchTerm: string, order: string, id: string, limit: number = 100): Promise<Account> {
+    public searchAccounts(searchTerm: string, order: AccountOrder, id: string, limit: number = 100): Promise<Account> {
         return new Promise<Account>((resolve, reject) => {
             const operation = new DatabaseOperations.SearchAccounts(searchTerm, order, id, limit);
             this._dbApi.execute(operation)
@@ -741,6 +760,57 @@ export class AccountApi {
             keyPair[1].stringKey,
             registrar,
             registrarPrivateKey);
+    }
+
+    /**
+     * Exports wallet-cli compatible wallet file.
+     *
+     * @param {string} accountId
+     * @param {string} password
+     * @param {string} elGamalPrivateKey
+     * @param {string} elGamalPublicKey
+     * @param {string} privateKeys
+     * @returns {Promise<any>}
+     */
+    exportWallet(accountId: string,
+                 password: string,
+                 elGamalPrivateKey: string,
+                 elGamalPublicKey: string,
+                 ...privateKeys: string[]): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.getAccountById(accountId)
+                .then((acc) => {
+                    if (!acc) {
+                        reject(this.handleError(AccountError.account_does_not_exist, ''));
+                        return;
+                    }
+                    const walletExport: WalletExport = {
+                        chain_id: this._chainApi.chainId,
+                        my_accounts: [acc],
+                        cipher_keys: '',
+                        extra_keys: [],
+                        pending_account_registrations: [],
+                        pending_miner_registrations: [],
+                        ws_server: this._connector.apiAddresses[0],
+                        ws_user: '',
+                        ws_password: '',
+                    };
+                    const keys = {
+                        ec_keys: privateKeys.map(pk => {
+                            const pubKey = Utils.getPublicKey(Utils.privateKeyFromWif(pk));
+                            return [pubKey.stringKey, pk];
+                        }),
+                        el_gamal_keys: [
+                            [{s: elGamalPrivateKey}, {s: elGamalPublicKey}]
+                        ],
+                        checksum: CryptoUtils.sha512(password)
+                    };
+                    console.log(keys);
+                    walletExport.cipher_keys = CryptoUtils.encryptToHexString(JSON.stringify(keys), password);
+                    resolve(walletExport);
+                })
+                .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
+        });
     }
 
     /**

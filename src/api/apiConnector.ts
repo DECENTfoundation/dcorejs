@@ -20,9 +20,15 @@ export enum ConnectionState {
  */
 export class ApiConnector {
     private _connectionPromise: Promise<any>;
+    private _apiAddresses: string[];
+
+    public get apiAddresses(): string[] {
+        return this._apiAddresses;
+    }
 
     constructor(apiAddresses: string[], api: any, connectionStatusCallback: (status: ConnectionState) => void = null) {
         this.initConnetion(apiAddresses, api, connectionStatusCallback);
+        this._apiAddresses = apiAddresses;
     }
 
     private initConnetion(addresses: string[], api: any, connectionStatusCallback: (status: ConnectionState) => void = null): void {
