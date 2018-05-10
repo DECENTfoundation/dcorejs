@@ -73,8 +73,8 @@ export class AssetModule {
                                  issuerPrivateKey: string): Promise<boolean> {
         const options: AssetOptions = {
             max_supply: maxSupply,
-            is_exchangeable: isExchangable,
             core_exchange_rate: coreExchangeRate,
+            is_exchangeable: isExchangable,
             extensions: [[
                 1, {
                     'is_fixed_max_supply': false
@@ -136,6 +136,7 @@ export class AssetModule {
             const operation = new Operations.AssetCreateOperation(
                 issuer, symbol, precision, description, options, monitoredOpts
             );
+            console.log(operation);
             const transaction = new Transaction();
             transaction.add(operation);
             transaction.broadcast(issuerPrivateKey)

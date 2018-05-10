@@ -173,7 +173,8 @@ export namespace Operations {
                 precision,
                 description,
                 options,
-                extensions: {}
+                is_exchangeable: options.is_exchangeable,
+                extensions: []
             };
             if (monitoredOptions) {
                 data['monitored_asset_opts'] = monitoredOptions;
