@@ -199,6 +199,13 @@ export class AccountError {
     static history_fetch_failed = 'history_fetch_failed';
 }
 
+export enum AccountOrder {
+    nameAsc = '+name',
+    idAsc = '+id',
+    nameDesc = '-name',
+    idDesc = '-id',
+}
+
 /**
  * API class provides wrapper for account information.
  */
@@ -643,7 +650,7 @@ export class AccountApi {
      * @param {number} limit
      * @returns {Promise<Account>}
      */
-    public searchAccounts(searchTerm: string, order: string, id: string, limit: number = 100): Promise<Account> {
+    public searchAccounts(searchTerm: string, order: AccountOrder, id: string, limit: number = 100): Promise<Account> {
         return new Promise<Account>((resolve, reject) => {
             const operation = new DatabaseOperations.SearchAccounts(searchTerm, order, id, limit);
             this._dbApi.execute(operation)
