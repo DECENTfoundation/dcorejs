@@ -1,12 +1,16 @@
 import {Account} from './account';
-import {Database, DatabaseApi, DatabaseOperations, SearchAccountHistoryOrder} from './api/database';
+import {Database, DatabaseApi} from './api/database';
 import {ChainApi, ChainMethods} from './api/chain';
 import {CryptoUtils} from './crypt';
-import {Memo, Operation, Operations, Transaction} from './transaction';
+import {Transaction} from './transaction';
 import {KeyPrivate, KeyPublic, Utils} from './utils';
 import {HistoryApi, HistoryOperations} from './api/history';
-import RegisterAccount = Operations.RegisterAccount;
 import {ApiConnector} from './api/apiConnector';
+import {DatabaseOperations, SearchAccountHistoryOrder, MinerOrder, DatabaseError} from './api/model/database';
+import {Memo, Operation, Operations} from './model/transaction';
+import {Miner} from './explorer';
+
+export type AccountNameIdPair = [string, string];
 
 export interface TransactionRaw {
     id: string;
@@ -171,6 +175,14 @@ export interface WalletExport {
     ws_server: string;
     ws_user: string;
     ws_password: string;
+}
+
+export interface MinerInfo {
+    id: string;
+    name: string;
+    url: string;
+    total_votes: number;
+    voted: boolean;
 }
 
 export class AccountError {
@@ -535,6 +547,22 @@ export class AccountApi {
      * @returns {Promise<any>}
      */
     public voteForMiner(miner: string, account: string, privateKeyWif: string): Promise<any> {
+        return this.voteForMiners([miner], account, privateKeyWif);
+    }
+
+    /**
+     * Remove youte vote from selected miner.
+     *
+     * @param {string} miner
+     * @param {string} account
+     * @param {string} privateKeyWif
+     * @returns {Promise<any>}
+     */
+    public unvoteMiner(miner: string, account: string, privateKeyWif: string): Promise<any> {
+        return this.unvoteMiners([miner], account, privateKeyWif);
+    }
+
+    public voteForMiners(miners: string[], account: string, privateKeyWif: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             const operations = new ChainMethods();
             operations.add(ChainMethods.getAccount, account);
@@ -542,11 +570,10 @@ export class AccountApi {
                 .then(res => {
                     const [voterAccount] = res;
                     const voter: Account = JSON.parse(JSON.stringify(voterAccount));
-                    const operation = new DatabaseOperations.GetMiners([miner]);
+                    const operation = new DatabaseOperations.GetMiners(miners);
                     this._dbApi.execute(operation)
-                        .then(res => {
-                            const [minerAcc] = res;
-                            voter.options.votes.push(minerAcc.vote_id);
+                        .then((res: Miner[]) => {
+                            voter.options.votes.push(...res.map(miner => miner.vote_id));
                             voter.options.votes.sort((e1: string, e2: string) => {
                                 return Number(e1.split(':')[1]) - Number(e2.split(':')[1]);
                             });
@@ -571,15 +598,7 @@ export class AccountApi {
         });
     }
 
-    /**
-     * Remove youte vote from selected miner.
-     *
-     * @param {string} miner
-     * @param {string} account
-     * @param {string} privateKeyWif
-     * @returns {Promise<any>}
-     */
-    public unvoteMiner(miner: string, account: string, privateKeyWif: string): Promise<any> {
+    public unvoteMiners(miners: string[], account: string, privateKeyWif: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             const operations = new ChainMethods();
             operations.add(ChainMethods.getAccount, account);
@@ -587,12 +606,13 @@ export class AccountApi {
                 .then(res => {
                     const [voterAccount] = res;
                     const voter: Account = JSON.parse(JSON.stringify(voterAccount));
-                    const operation = new DatabaseOperations.GetMiners([miner]);
+                    const operation = new DatabaseOperations.GetMiners(miners);
                     this._dbApi.execute(operation)
-                        .then(res => {
-                            const [minerAcc] = res;
-                            const voteIndex = voter.options.votes.indexOf(minerAcc.vote_id);
-                            voter.options.votes.splice(voteIndex, 1);
+                        .then((res: Miner[]) => {
+                            res.forEach(miner => {
+                                const voteIndex = voter.options.votes.indexOf(miner.vote_id);
+                                voter.options.votes.splice(voteIndex, 1);
+                            });
                             voter.options['num_witness'] = voter.options.num_miner;
                             delete voter.options.num_miner;
                             const op = new Operations.AccountUpdateOperation(
@@ -680,7 +700,7 @@ export class AccountApi {
         return new Promise<boolean>((resolve, reject) => {
             this._connector.connect()
                 .then(() => {
-                    const operation = new RegisterAccount({
+                    const operation = new Operations.RegisterAccount({
                         name,
                         owner,
                         active,
@@ -724,7 +744,7 @@ export class AccountApi {
                                      accountName: string,
                                      registrar: string,
                                      registrarPrivateKey: string): Promise<boolean> {
-        const normalizedBrainkey = this.normalize(brainkey);
+        const normalizedBrainkey = Utils.normalize(brainkey);
         const keyPair: [KeyPrivate, KeyPublic] = Utils.generateKeys(normalizedBrainkey);
         return this.registerAccount(
             accountName,
@@ -736,6 +756,7 @@ export class AccountApi {
     }
 
     /**
+
      * Exports wallet-cli compatible wallet file.
      *
      * @param {string} accountId
@@ -785,6 +806,22 @@ export class AccountApi {
                 .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
         });
     }
+          
+     * Fetch list of an accounts that begins from lower bound account id.
+     * If empty string or '1.2.0' is entered, account are listed from the beginning.
+     *
+     * @param {string} loweBound                Account id from which accounts are listed.
+     * @param {number} limit                    Number of returned accounts
+     * @returns {Promise<AccountNameIdPair>}    Listed accounts.
+     */
+    public listAccounts(loweBound: string = '', limit: number = 100): Promise<AccountNameIdPair> {
+        return new Promise<AccountNameIdPair>((resolve, reject) => {
+            const operation = new DatabaseOperations.LookupAccounts(loweBound, limit);
+            this._dbApi.execute(operation)
+                .then(res => resolve(res))
+                .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
+        });
+    }
 
     private normalize(brainKey: string) {
         if (typeof brainKey !== 'string') {
@@ -793,6 +830,53 @@ export class AccountApi {
         brainKey = brainKey.trim();
         brainKey = brainKey.toUpperCase();
         return brainKey.split(/[\t\n\v\f\r ]+/).join(' ');
+    }
+    /**
+     * Returns account's balances in all assets account have non-zero amount in.
+     *
+     * @param {string} id           Account id
+     * @returns {Promise<Asset[]>}  List of balances
+     */
+    public listAccountBalances(id: string): Promise<Asset[]> {
+        return new Promise<Asset[]>((resolve, reject) => {
+            const operation = new DatabaseOperations.GetAccountBalances(id, []);
+            this._dbApi.execute(operation)
+                .then(res => resolve(res))
+                .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
+        });
+    }
+
+    /**
+     * Search for miners with parameters.
+     *
+     * @param {string} accountName          Account name to search miners for. If not using myVotes, searching in all miners
+     * @param {string} keyword              Search keyword.
+     * @param {boolean} myVotes             Flag to search within account's voted miners.
+     * @param {MinerOrder} sort             Sorting parameter of search results.
+     * @param {string} fromMinerId          Miner id to start form. Use for paging.
+     * @param {number} limit                Result count. Default and max is 1000
+     * @returns {Promise<MinerInfo[]>}
+     */
+    public searchMinerVoting(accountName: string,
+                             keyword: string,
+                             myVotes: boolean,
+                             sort: MinerOrder,
+                             fromMinerId: string,
+                             limit: number = 1000): Promise<MinerInfo[]> {
+        return new Promise<MinerInfo[]>((resolve, reject) => {
+            const operation = new DatabaseOperations.SearchMinerVoting(
+                accountName,
+                keyword,
+                myVotes,
+                sort,
+                fromMinerId,
+                limit);
+            this._dbApi.execute(operation)
+                .then(res => resolve(res))
+                .catch(err => {
+                    reject(this.handleError(DatabaseError.database_execution_failed, err));
+                });
+        });
     }
 
     private handleError(message: string, err: any): Error {

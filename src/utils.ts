@@ -1,7 +1,13 @@
-import { dcorejs_lib } from './helpers';
-import { CryptoUtils } from './crypt';
-import { ChainApi } from './api/chain';
+import {dcorejs_lib} from './helpers';
+import {CryptoUtils} from './crypt';
+import {ChainApi} from './api/chain';
+import dictionary from './resources/dictionary';
 
+export interface BrainKeyInfo {
+    brain_priv_key: string;
+    wif_priv_key: string;
+    pub_key: string;
+}
 
 export class Utils {
 
@@ -30,8 +36,8 @@ export class Utils {
      * @return {any[]} [privateKey: KeyPrivate, publicKey: KeyPublic]
      */
     public static generateKeys(fromBrainKey: string): [KeyPrivate, KeyPublic] {
-
-        const pkey: KeyPrivate = Utils.generatePrivateKey(fromBrainKey);
+        const normalizedBk = Utils.normalize(fromBrainKey);
+        const pkey: KeyPrivate = Utils.generatePrivateKey(normalizedBk);
         const pubKey: KeyPublic = Utils.getPublicKey(pkey);
         return [pkey, pubKey];
     }
@@ -67,6 +73,30 @@ export class Utils {
     public static publicKeyFromString(pubKeyString: string): KeyPublic {
         const pubKey = dcorejs_lib.PublicKey.fromPublicKeyString(pubKeyString);
         return new KeyPublic(pubKey);
+    }
+
+    public static suggestBrainKey(): string {
+        return dcorejs_lib.key.suggest_brain_key(dictionary.en);
+    }
+
+    public static getBrainKeyInfo(brainKey: string): BrainKeyInfo {
+        const normalizedBK = Utils.normalize(brainKey);
+        const keys = Utils.generateKeys(normalizedBK);
+        const result: BrainKeyInfo = {
+            brain_priv_key: normalizedBK,
+            pub_key: keys[1].stringKey,
+            wif_priv_key: keys[0].stringKey
+        };
+        return result;
+    }
+
+    public static normalize(brainKey: string) {
+        if (typeof brainKey !== 'string') {
+            throw new Error('string required for brainKey');
+        }
+        brainKey = brainKey.trim();
+        brainKey = brainKey.toUpperCase();
+        return brainKey.split(/[\t\n\v\f\r ]+/).join(' ');
     }
 
     private static generatePrivateKey(brainKey: string): KeyPrivate {

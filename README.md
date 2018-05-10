@@ -41,6 +41,11 @@ Supported browsers versions:
  3. Change directory to project root dir
 
  4. Install `npm install dcorejs`
+ 
+ ### Customization
+ 
+ In case you want to customize library and generate documentation for code use command `npm run generate-docs`.
+ Documentation will be generated in `./dist/docs` folder.
 
 ### Initialize library
 
