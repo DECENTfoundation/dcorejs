@@ -273,7 +273,7 @@ export namespace Operations {
                     miner,
                     miner_account: minerAccount,
                     new_url: newURL,
-                    new_
+                    new_signing_key: newSigningKey
                 }
             );
         }

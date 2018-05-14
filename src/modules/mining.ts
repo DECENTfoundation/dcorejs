@@ -23,8 +23,9 @@ export class MiningModule extends ApiModule {
                     }
                     const account = accounts[0];
                     const options: Options = account.options;
-                    options.num_witness = desiredNumOfMiners;
-                    delete options.num_miner;
+                    // options.num_witness = desiredNumOfMiners;
+                    options.num_miner = desiredNumOfMiners;
+                    delete options.num_witness;
                     const operation =  new Operations.AccountUpdateOperation(
                         accountId, account.owner, account.active, options, {}
                     );
