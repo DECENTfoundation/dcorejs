@@ -69,7 +69,6 @@ export interface Options {
     memo_key?: string;
     voting_account?: string;
     num_miner?: number;
-    num_witness?: number;
     votes?: any[];
     extensions?: any[];
     allow_subscription?: boolean;

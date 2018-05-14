@@ -23,6 +23,10 @@ export class MiningModule extends ApiModule {
      */
     public setDesiredMinerCount(accountId: string, desiredNumOfMiners: number, privateKey: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
+            if (!accountId || desiredNumOfMiners === undefined || !privateKey) {
+                reject('missing_parameter');
+                return;
+            }
             const operation = new DatabaseOperations.GetAccounts([accountId]);
             this.dbApi.execute(operation)
                 .then((accounts: Account[]) => {
@@ -31,10 +35,15 @@ export class MiningModule extends ApiModule {
                         return;
                     }
                     const account = accounts[0];
+                    if (account.options.votes.length < desiredNumOfMiners) {
+                        reject(this.handleError(
+                            'unable_to_place_vote',
+                            'Number of desired miners cannot be higher than number of voted miners.'
+                        ));
+                        return;
+                    }
                     const options: Options = account.options;
-                    // options.num_witness = desiredNumOfMiners;
                     options.num_miner = desiredNumOfMiners;
-                    delete options.num_witness;
                     const operation =  new Operations.AccountUpdateOperation(
                         accountId, account.owner, account.active, options, {}
                     );
