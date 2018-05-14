@@ -79,6 +79,10 @@ export class ChainApi {
     private _apiConnector: ApiConnector;
     private _chainStore: any;
 
+    public get chainId(): string {
+        return dcorejs_lib.ChainConfig.networks.decent.chain_id;
+    }
+
     /**
      * Generates random sequence of bytes
      */

@@ -165,6 +165,18 @@ export interface MinerInfo {
     voted: boolean;
 }
 
+export interface WalletExport {
+    chain_id: string;
+    my_accounts: Account[];
+    cipher_keys: string;
+    extra_keys: [string, string[]][];
+    pending_account_registrations: any[];
+    pending_miner_registrations: any[];
+    ws_server: string;
+    ws_user: string;
+    ws_password: string;
+}
+
 export class AccountError {
     static account_does_not_exist = 'account_does_not_exist';
     static account_fetch_failed = 'account_fetch_failed';
