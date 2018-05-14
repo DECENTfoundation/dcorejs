@@ -8,7 +8,7 @@ import {HistoryApi, HistoryOperations} from './api/history';
 import {ApiConnector} from './api/apiConnector';
 import {DatabaseOperations, SearchAccountHistoryOrder, MinerOrder, DatabaseError} from './api/model/database';
 import {Memo, Operation, Operations} from './model/transaction';
-import {Miner} from './explorer';
+import {Miner, Space, Type} from './explorer';
 
 export type AccountNameIdPair = [string, string];
 
@@ -197,6 +197,8 @@ export class AccountError {
     static account_keys_incorrect = 'account_keys_incorrect';
     static bad_parameter = 'bad_parameter';
     static history_fetch_failed = 'history_fetch_failed';
+    static start_object_id_not_defined = 'start_object_id_not_defined';
+    static account_id_invalid_format = 'account_id_invalid_format';
 }
 
 export enum AccountOrder {
@@ -282,7 +284,7 @@ export class AccountApi {
      */
     public getTransactionHistory(accountId: string,
                                  privateKeys: string[],
-                                 order: string = SearchAccountHistoryOrder.timeDesc,
+                                 order: SearchAccountHistoryOrder = SearchAccountHistoryOrder.timeDesc,
                                  startObjectId: string = '0.0.0',
                                  resultLimit: number = 100): Promise<TransactionRecord[]> {
         return new Promise((resolve, reject) => {
@@ -340,10 +342,19 @@ export class AccountApi {
      */
     public searchAccountHistory(accountId: string,
                                 privateKeys: string[],
-                                order: string = SearchAccountHistoryOrder.timeDesc,
+                                order: SearchAccountHistoryOrder = SearchAccountHistoryOrder.timeDesc,
                                 startObjectId: string = '0.0.0',
                                 resultLimit: number = 100): Promise<TransactionRecord[]> {
         return new Promise((resolve, reject) => {
+            const [space, typeProtocol, id] = accountId.split('.');
+            if (!(Number(space) === Space.protocol_ids && Number(typeProtocol) === Type.Protocol.account && id)) {
+                reject(this.handleError(AccountError.account_id_invalid_format));
+                return;
+            }
+            if (!startObjectId) {
+                reject(this.handleError(AccountError.start_object_id_not_defined));
+                return;
+            }
             const dbOperation = new DatabaseOperations.SearchAccountHistory(
                 accountId,
                 order,
@@ -878,7 +889,7 @@ export class AccountApi {
         });
     }
 
-    private handleError(message: string, err: any): Error {
+    private handleError(message: string, err?: any): Error {
         const error = new Error(message);
         error.stack = err;
         return error;

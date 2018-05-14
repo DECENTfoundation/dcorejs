@@ -69,21 +69,21 @@ export class SearchParamsOrder {
     static expirationDesc = '-expiration';
 }
 
-export class SearchAccountHistoryOrder {
-    static typeAsc = '+type';
-    static toAsc = '+to';
-    static fromAsc = '+from';
-    static priceAsc = '+price';
-    static feeAsc = '+fee';
-    static descriptionAsc = '+description';
-    static timeAsc = '+time';
-    static typeDesc = '-type';
-    static toDesc = '-to';
-    static fromDesc = '-from';
-    static priceDesc = '-price';
-    static feeDesc = '-fee';
-    static descriptionDesc = '-description';
-    static timeDesc = '-time';
+export enum SearchAccountHistoryOrder {
+    typeAsc = '+type',
+    toAsc = '+to',
+    fromAsc = '+from',
+    priceAsc = '+price',
+    feeAsc = '+fee',
+    descriptionAsc = '+description',
+    timeAsc = '+time',
+    typeDesc = '-type',
+    toDesc = '-to',
+    fromDesc = '-from',
+    priceDesc = '-price',
+    feeDesc = '-fee',
+    descriptionDesc = '-description',
+    timeDesc = '-time',
 }
 
 export enum MinerOrder {
@@ -145,7 +145,7 @@ export namespace DatabaseOperations {
 
     export class SearchAccountHistory extends DatabaseOperation {
         constructor(accountId: string,
-                    order: string,
+                    order: SearchAccountHistoryOrder,
                     startObjecId: string = '0.0.0',
                     limit = 100) {
             super(
