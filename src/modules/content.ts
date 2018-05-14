@@ -1,10 +1,10 @@
-import {DatabaseApi} from './api/database';
-import {ChainApi, ChainMethods} from './api/chain';
-import {Transaction} from './transaction';
+import {DatabaseApi} from '../api/database';
+import {ChainApi, ChainMethods} from '../api/chain';
+import {Transaction} from '../transaction';
 import {isUndefined} from 'util';
-import {DatabaseOperations, SearchParams, SearchParamsOrder} from './api/model/database';
-import {BuyingContent, Content, ContentKeys, KeyPair, Rating, Seeder, SubmitObject} from './model/content';
-import {ContentObject, Operations} from './model/transaction';
+import {DatabaseOperations, SearchParams, SearchParamsOrder} from '../api/model/database';
+import {BuyingContent, Content, ContentKeys, KeyPair, Rating, Seeder, SubmitObject} from '../model/content';
+import {ContentObject, Operations} from '../model/transaction';
 
 const moment = require('moment');
 
@@ -22,7 +22,7 @@ export enum ContentError {
 export class ContentApi {
     private _dbApi: DatabaseApi;
 
-    constructor(dbApi: DatabaseApi, chainApi: ChainApi) {
+    constructor(dbApi: DatabaseApi) {
         this._dbApi = dbApi;
     }
 
