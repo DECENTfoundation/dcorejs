@@ -436,6 +436,15 @@ export class AccountApi extends ApiModule {
                                 const voteIndex = voter.options.votes.indexOf(miner.vote_id);
                                 voter.options.votes.splice(voteIndex, 1);
                             });
+                            if (voter.options.votes.length < voter.options.num_miner) {
+                                reject(
+                                    this.handleError(
+                                        AccountError.cannot_update_miner_votes,
+                                        'Number of votes cannot be lower as desired miners number'
+                                    )
+                                );
+                                return;
+                            }
                             const op = new Operations.AccountUpdateOperation(
                                 account,
                                 voter.owner,
