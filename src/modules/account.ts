@@ -1,203 +1,15 @@
-import {Account} from './account';
-import {Database, DatabaseApi} from './api/database';
-import {ChainApi, ChainMethods} from './api/chain';
-import {CryptoUtils} from './crypt';
-import {Transaction} from './transaction';
-import {KeyPrivate, KeyPublic, Utils} from './utils';
-import {HistoryApi, HistoryOperations} from './api/history';
-import {ApiConnector} from './api/apiConnector';
-import {DatabaseOperations, SearchAccountHistoryOrder, MinerOrder, DatabaseError} from './api/model/database';
-import {Memo, Operation, Operations} from './model/transaction';
-import {Miner} from './explorer';
-
-export type AccountNameIdPair = [string, string];
-
-export interface TransactionRaw {
-    id: string;
-    m_from_account: string;
-    m_operation_type: number;
-    m_str_description: string;
-    m_timestamp: string;
-    m_to_account: string;
-    m_transaction_amount: Asset;
-    m_transaction_fee: Asset;
-}
-
-export interface Account {
-    id: string;
-    registrar: string;
-    name: string;
-    owner: Authority;
-    active: Authority;
-    options: Options;
-    rights_to_publish: PublishRights;
-    statistics: string;
-    top_n_control_flags: number;
-}
-
-export interface PublishRights {
-    is_publishing_manager: boolean;
-    publishing_rights_received: any[];
-    publishing_rights_forwarded: any[];
-}
-
-export class Asset {
-    amount: number;
-    asset_id: string;
-
-    public static createAsset(amount: number, assetId: string): Asset {
-        return {
-            amount: Math.floor(amount * ChainApi.DCTPower),
-            asset_id: assetId
-        };
-    }
-}
-
-export interface Authority {
-    weight_threshold: number;
-    account_auths: any[];
-    key_auths: [[string, number]];
-}
-
-export class KeyAuth {
-    private _key: string;
-    private _value: number;
-
-    constructor(key: string, value: number = 1) {
-        this._key = key;
-        this._value = value;
-    }
-
-    public keyAuthFormat(): any[] {
-        return [this._key, this._value];
-    }
-}
-
-export interface Options {
-    memo_key?: string;
-    voting_account?: string;
-    num_miner?: number;
-    num_witness?: number;
-    votes?: any[];
-    extensions?: any[];
-    allow_subscription?: boolean;
-    price_per_subscribe?: Asset;
-    subscription_period?: number;
-}
-
-export class TransactionRecord {
-    id: string;
-    fromAccountName: string;
-    toAccountName: string;
-    fromAccountId: string;
-    toAccountId: string;
-    operationType: number;
-    transactionAmount: number;
-    transactionFee: number;
-    description: string;
-    timestamp: string;
-    memo: TransactionMemo;
-    memoString: string;
-
-    constructor(transaction: any, privateKeys: string[]) {
-        this.id = transaction.id;
-        this.fromAccountId = transaction.m_from_account;
-        this.toAccountId = transaction.m_to_account;
-        this.operationType = transaction.m_operation_type;
-        this.transactionAmount = transaction.m_transaction_amount.amount;
-        this.transactionFee = transaction.m_transaction_fee.amount;
-        this.description = transaction.m_str_description;
-        this.timestamp = transaction.m_timestamp;
-        this.memo = new TransactionMemo(transaction);
-        this.memoString = this.memo.decryptedMessage(privateKeys);
-    }
-}
-
-export class TransactionMemo {
-    valid: boolean;
-    from: string;
-    message: string;
-    nonce: string;
-    to: string;
-
-    constructor(transaction: any) {
-        if (!transaction.m_transaction_encrypted_memo) {
-            this.valid = false;
-        } else {
-            this.valid = true;
-            this.from = transaction.m_transaction_encrypted_memo.from;
-            this.message = transaction.m_transaction_encrypted_memo.message;
-            this.nonce = transaction.m_transaction_encrypted_memo.nonce;
-            this.to = transaction.m_transaction_encrypted_memo.to;
-        }
-    }
-
-    decryptedMessage(privateKeys: string[]): string {
-        if (!this.valid) {
-            return '';
-        }
-        const pubKey = Utils.publicKeyFromString(this.to);
-        let decrypted = '';
-
-        privateKeys.forEach(pk => {
-            let pKey: KeyPrivate;
-            try {
-                pKey = Utils.privateKeyFromWif(pk);
-                try {
-                    decrypted = CryptoUtils.decryptWithChecksum(this.message, pKey, pubKey, this.nonce).toString();
-                } catch (err) {
-                    throw new Error(AccountError.account_keys_incorrect);
-                }
-            } catch (err) {
-            }
-        });
-        return decrypted;
-    }
-}
-
-export interface HistoryRecord {
-    id: string
-    op: any[]
-    result: any[]
-    block_num: number
-    trx_in_block: number
-    op_in_trx: number
-    virtual_op: number
-}
-
-export interface WalletExport {
-    chain_id: string;
-    my_accounts: Account[];
-    cipher_keys: string;
-    extra_keys: [string, string[]][];
-    pending_account_registrations: any[];
-    pending_miner_registrations: any[];
-    ws_server: string;
-    ws_user: string;
-    ws_password: string;
-}
-
-export interface MinerInfo {
-    id: string;
-    name: string;
-    url: string;
-    total_votes: number;
-    voted: boolean;
-}
-
-export class AccountError {
-    static account_does_not_exist = 'account_does_not_exist';
-    static account_fetch_failed = 'account_fetch_failed';
-    static transaction_history_fetch_failed = 'transaction_history_fetch_failed';
-    static transfer_missing_pkey = 'transfer_missing_pkey';
-    static transfer_sender_account_not_found = 'transfer_sender_account_not_found';
-    static transfer_receiver_account_not_found = 'transfer_receiver_account_not_found';
-    static database_operation_failed = 'database_operation_failed';
-    static transaction_broadcast_failed = 'transaction_broadcast_failed';
-    static account_keys_incorrect = 'account_keys_incorrect';
-    static bad_parameter = 'bad_parameter';
-    static history_fetch_failed = 'history_fetch_failed';
-}
+import {Account, AccountError, AccountNameIdPair, Asset, HistoryRecord, MinerInfo, TransactionRecord, WalletExport} from '../model/account';
+import {DatabaseApi} from '../api/database';
+import {ChainApi, ChainMethods} from '../api/chain';
+import {CryptoUtils} from '../crypt';
+import {Transaction} from '../transaction';
+import {KeyPrivate, KeyPublic, Utils} from '../utils';
+import {HistoryApi, HistoryOperations} from '../api/history';
+import {ApiConnector} from '../api/apiConnector';
+import {DatabaseError, DatabaseOperations, MinerOrder, SearchAccountHistoryOrder} from '../api/model/database';
+import {Memo, Operation, Operations} from '../model/transaction';
+import {Miner} from '../model/explorer';
+import {ApiModule} from './ApiModule';
 
 export enum AccountOrder {
     nameAsc = '+name',
@@ -209,14 +21,13 @@ export enum AccountOrder {
 /**
  * API class provides wrapper for account information.
  */
-export class AccountApi {
-    private _dbApi: DatabaseApi;
+export class AccountApi extends ApiModule {
     private _chainApi: ChainApi;
     private _historyApi: HistoryApi;
     private _connector: ApiConnector;
 
-    constructor(dbApi: Database, chainApi: ChainApi, historyApi: HistoryApi, connector: ApiConnector) {
-        this._dbApi = dbApi as DatabaseApi;
+    constructor(dbApi: DatabaseApi, chainApi: ChainApi, historyApi: HistoryApi, connector: ApiConnector) {
+        super(dbApi);
         this._chainApi = chainApi;
         this._historyApi = historyApi;
         this._connector = connector;
@@ -231,7 +42,7 @@ export class AccountApi {
     public getAccountByName(name: string): Promise<Account> {
         const dbOperation = new DatabaseOperations.GetAccountByName(name);
         return new Promise((resolve, reject) => {
-            this._dbApi.execute(dbOperation)
+            this.dbApi.execute(dbOperation)
                 .then((account: Account) => {
                     resolve(account as Account);
                 })
@@ -250,7 +61,7 @@ export class AccountApi {
     public getAccountById(id: string): Promise<Account> {
         const dbOperation = new DatabaseOperations.GetAccounts([id]);
         return new Promise((resolve, reject) => {
-            this._dbApi.execute(dbOperation)
+            this.dbApi.execute(dbOperation)
                 .then((accounts: Account[]) => {
                     if (accounts.length === 0) {
                         reject(
@@ -350,7 +161,7 @@ export class AccountApi {
                 startObjectId,
                 resultLimit
             );
-            this._dbApi.execute(dbOperation)
+            this.dbApi.execute(dbOperation)
                 .then((transactions: any[]) => {
                     resolve(transactions);
                 })
@@ -465,7 +276,7 @@ export class AccountApi {
             const dbOperation = new DatabaseOperations.GetAccountBalances(accountId, [
                 ChainApi.asset_id
             ]);
-            this._dbApi.execute(dbOperation)
+            this.dbApi.execute(dbOperation)
                 .then(res => {
                     resolve(res[0].amount / ChainApi.DCTPower);
                 })
@@ -509,7 +320,7 @@ export class AccountApi {
                         reject(this.handleError(AccountError.transaction_history_fetch_failed, ''));
                     }
                     const dbOp = new DatabaseOperations.GetDynamicGlobalProperties();
-                    this._dbApi.execute(dbOp)
+                    this.dbApi.execute(dbOp)
                         .then(props => {
                             resolve(res[0].block_num <= props.last_irreversible_block_num);
                         })
@@ -578,14 +389,12 @@ export class AccountApi {
                     const [voterAccount] = res;
                     const voter: Account = JSON.parse(JSON.stringify(voterAccount));
                     const operation = new DatabaseOperations.GetMiners(miners);
-                    this._dbApi.execute(operation)
+                    this.dbApi.execute(operation)
                         .then((res: Miner[]) => {
                             voter.options.votes.push(...res.map(miner => miner.vote_id));
                             voter.options.votes.sort((e1: string, e2: string) => {
                                 return Number(e1.split(':')[1]) - Number(e2.split(':')[1]);
                             });
-                            voter.options['num_witness'] = voter.options.num_miner;
-                            delete voter.options.num_miner;
                             const op = new Operations.AccountUpdateOperation(
                                 account,
                                 voter.owner,
@@ -596,8 +405,15 @@ export class AccountApi {
                             const transaction = new Transaction();
                             transaction.add(op);
                             transaction.broadcast(privateKeyWif)
-                                .then(res => resolve(res))
-                                .catch(err => reject(err));
+                                .then(res => resolve(transaction))
+                                .catch((err: Error) => {
+                                    console.log(err);
+                                    let errorMessage = 'transaction_broadcast_failed';
+                                    if (err.stack.indexOf('duplicate') >= 0) {
+                                        errorMessage = 'duplicate_parameter_set';
+                                    }
+                                    reject(errorMessage);
+                                });
                         })
                         .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
                 })
@@ -614,14 +430,21 @@ export class AccountApi {
                     const [voterAccount] = res;
                     const voter: Account = JSON.parse(JSON.stringify(voterAccount));
                     const operation = new DatabaseOperations.GetMiners(miners);
-                    this._dbApi.execute(operation)
+                    this.dbApi.execute(operation)
                         .then((res: Miner[]) => {
                             res.forEach(miner => {
                                 const voteIndex = voter.options.votes.indexOf(miner.vote_id);
                                 voter.options.votes.splice(voteIndex, 1);
                             });
-                            voter.options['num_witness'] = voter.options.num_miner;
-                            delete voter.options.num_miner;
+                            if (voter.options.votes.length < voter.options.num_miner) {
+                                reject(
+                                    this.handleError(
+                                        AccountError.cannot_update_miner_votes,
+                                        'Number of votes cannot be lower as desired miners number'
+                                    )
+                                );
+                                return;
+                            }
                             const op = new Operations.AccountUpdateOperation(
                                 account,
                                 voter.owner,
@@ -653,7 +476,7 @@ export class AccountApi {
     public searchAccounts(searchTerm: string, order: AccountOrder, id: string, limit: number = 100): Promise<Account> {
         return new Promise<Account>((resolve, reject) => {
             const operation = new DatabaseOperations.SearchAccounts(searchTerm, order, id, limit);
-            this._dbApi.execute(operation)
+            this.dbApi.execute(operation)
                 .then(res => resolve(res))
                 .catch(err => reject(err));
         });
@@ -667,7 +490,7 @@ export class AccountApi {
     public getAccountCount(): Promise<number> {
         return new Promise<number>((resolve, reject) => {
             const operation = new DatabaseOperations.GetAccountCount();
-            this._dbApi.execute(operation)
+            this.dbApi.execute(operation)
                 .then(res => resolve(res))
                 .catch(err => reject(err));
         });
@@ -717,7 +540,7 @@ export class AccountApi {
                             voting_account: '1.2.3',
                             allow_subscription: false,
                             price_per_subscribe: Asset.createAsset(0, '1.3.0'),
-                            num_witness: 0,
+                            num_miner: 0,
                             votes: [],
                             extensions: [],
                             subscription_period: 0,
@@ -824,7 +647,7 @@ export class AccountApi {
     public listAccounts(loweBound: string = '', limit: number = 100): Promise<AccountNameIdPair> {
         return new Promise<AccountNameIdPair>((resolve, reject) => {
             const operation = new DatabaseOperations.LookupAccounts(loweBound, limit);
-            this._dbApi.execute(operation)
+            this.dbApi.execute(operation)
                 .then(res => resolve(res))
                 .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
         });
@@ -839,7 +662,7 @@ export class AccountApi {
     public listAccountBalances(id: string): Promise<Asset[]> {
         return new Promise<Asset[]>((resolve, reject) => {
             const operation = new DatabaseOperations.GetAccountBalances(id, []);
-            this._dbApi.execute(operation)
+            this.dbApi.execute(operation)
                 .then(res => resolve(res))
                 .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
         });
@@ -870,17 +693,11 @@ export class AccountApi {
                 sort,
                 fromMinerId,
                 limit);
-            this._dbApi.execute(operation)
+            this.dbApi.execute(operation)
                 .then(res => resolve(res))
                 .catch(err => {
                     reject(this.handleError(DatabaseError.database_execution_failed, err));
                 });
         });
-    }
-
-    private handleError(message: string, err: any): Error {
-        const error = new Error(message);
-        error.stack = err;
-        return error;
     }
 }
