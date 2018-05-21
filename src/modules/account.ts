@@ -644,8 +644,8 @@ export class AccountApi extends ApiModule {
      * @param {number} limit                    Number of returned accounts
      * @returns {Promise<AccountNameIdPair>}    Listed accounts.
      */
-    public listAccounts(loweBound: string = '', limit: number = 100): Promise<AccountNameIdPair> {
-        return new Promise<AccountNameIdPair>((resolve, reject) => {
+    public listAccounts(loweBound: string = '', limit: number = 100): Promise<AccountNameIdPair[]> {
+        return new Promise<AccountNameIdPair[]>((resolve, reject) => {
             const operation = new DatabaseOperations.LookupAccounts(loweBound, limit);
             this.dbApi.execute(operation)
                 .then(res => resolve(res))
