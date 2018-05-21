@@ -395,8 +395,6 @@ export class AccountApi extends ApiModule {
                             voter.options.votes.sort((e1: string, e2: string) => {
                                 return Number(e1.split(':')[1]) - Number(e2.split(':')[1]);
                             });
-                            voter.options['num_witness'] = voter.options.num_miner;
-                            delete voter.options.num_miner;
                             const op = new Operations.AccountUpdateOperation(
                                 account,
                                 voter.owner,
@@ -409,6 +407,7 @@ export class AccountApi extends ApiModule {
                             transaction.broadcast(privateKeyWif)
                                 .then(res => resolve(transaction))
                                 .catch((err: Error) => {
+                                    console.log(err);
                                     let errorMessage = 'transaction_broadcast_failed';
                                     if (err.stack.indexOf('duplicate') >= 0) {
                                         errorMessage = 'duplicate_parameter_set';
@@ -437,8 +436,15 @@ export class AccountApi extends ApiModule {
                                 const voteIndex = voter.options.votes.indexOf(miner.vote_id);
                                 voter.options.votes.splice(voteIndex, 1);
                             });
-                            voter.options['num_witness'] = voter.options.num_miner;
-                            delete voter.options.num_miner;
+                            if (voter.options.votes.length < voter.options.num_miner) {
+                                reject(
+                                    this.handleError(
+                                        AccountError.cannot_update_miner_votes,
+                                        'Number of votes cannot be lower as desired miners number'
+                                    )
+                                );
+                                return;
+                            }
                             const op = new Operations.AccountUpdateOperation(
                                 account,
                                 voter.owner,
@@ -534,7 +540,7 @@ export class AccountApi extends ApiModule {
                             voting_account: '1.2.3',
                             allow_subscription: false,
                             price_per_subscribe: Asset.createAsset(0, '1.3.0'),
-                            num_witness: 0,
+                            num_miner: 0,
                             votes: [],
                             extensions: [],
                             subscription_period: 0,
