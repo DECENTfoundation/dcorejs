@@ -1,6 +1,7 @@
-import {DatabaseApi, DatabaseOperations} from './api/database';
+import {DatabaseApi} from './api/database';
+import {DatabaseOperations} from './api/model/database';
 import {Transaction} from './transaction';
-import {Block} from './explorer';
+import {Block} from './model/explorer';
 import AssetExchangeRate = Block.AssetExchangeRate;
 import {ApiConnector} from './api/apiConnector';
 import {Asset, Operations, PriceFeed} from './model/transaction';

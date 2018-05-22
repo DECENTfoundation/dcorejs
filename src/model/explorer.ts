@@ -1,4 +1,4 @@
-import {Account, Authority, Options} from './account';
+import {Authority, Options} from './account';
 import {Asset as TransactionAsset} from './transaction';
 
 import {Key} from './content';

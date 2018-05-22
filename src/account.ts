@@ -3,7 +3,7 @@ import {DatabaseOperations, SearchAccountHistoryOrder} from './api/model/databas
 import {ChainApi, ChainMethods} from './api/chain';
 import {CryptoUtils} from './crypt';
 import {Transaction} from './transaction';
-import {KeyPrivate, Utils} from './utils';
+import {Utils} from './utils';
 import {HistoryApi, HistoryOperations} from './api/history';
 import {Memo, Operation, Operations} from './model/transaction';
 import { DatabaseApi } from './api/database';
