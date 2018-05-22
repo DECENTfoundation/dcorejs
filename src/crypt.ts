@@ -1,8 +1,9 @@
-import { KeyPrivate, KeyPublic } from './utils';
+import {KeyPrivate, KeyPublic, Utils} from './utils';
 import { dcorejs_lib } from './helpers';
 import * as md5 from 'crypto-js/md5';
 import * as aes from 'crypto-js/aes';
 import * as cryptoJs from 'crypto-js';
+import * as BigInteger from 'big-integer';
 
 const RIPEMD160 = require('ripemd160');
 
@@ -145,5 +146,19 @@ export class CryptoUtils {
         const plainHex = cryptoJs.enc.Hex.stringify(plainwords);
         const buff = new Buffer(plainHex, 'hex');
         return buff.toString();
+    }
+
+    public static elGamalPublic(elGamalPrivate: string): any {
+        const elgPriv = BigInteger(elGamalPrivate);
+        const modulus = BigInteger('11760620558671662461946567396662025495126946227619472274' +
+            '601251081547302009186313201119191293557856181195016058359990840577430081932807832465057884143546419');
+        const generator = BigInteger(3);
+        return generator.modPow(elgPriv, modulus);
+    }
+
+    public static elGamalPrivate(privateKeyWif: string): any {
+        const pKey = Utils.privateKeyFromWif(privateKeyWif);
+        const hash = CryptoUtils.sha512(pKey.key.toHex());
+        return BigInteger(hash, 16);
     }
 }
