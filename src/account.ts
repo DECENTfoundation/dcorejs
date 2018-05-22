@@ -1,11 +1,12 @@
 import {Account} from './account';
-import {Database, DatabaseApi, DatabaseOperations, SearchAccountHistoryOrder} from './api/database';
+import {DatabaseOperations, SearchAccountHistoryOrder} from './api/model/database';
 import {ChainApi, ChainMethods} from './api/chain';
 import {CryptoUtils} from './crypt';
 import {Transaction} from './transaction';
 import {KeyPrivate, Utils} from './utils';
 import {HistoryApi, HistoryOperations} from './api/history';
 import {Memo, Operation, Operations} from './model/transaction';
+import { DatabaseApi } from './api/database';
 
 export interface TransactionRaw {
     id: string;
@@ -181,8 +182,8 @@ export class AccountApi {
     private _chainApi: ChainApi;
     private _historyApi: HistoryApi;
 
-    constructor(dbApi: Database, chainApi: ChainApi, historyApi: HistoryApi) {
-        this._dbApi = dbApi as DatabaseApi;
+    constructor(dbApi: DatabaseApi, chainApi: ChainApi, historyApi: HistoryApi) {
+        this._dbApi = dbApi;
         this._chainApi = chainApi;
         this._historyApi = historyApi;
     }

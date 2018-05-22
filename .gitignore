@@ -7,5 +7,6 @@ lib/
 .idea/
 .DS_Store
 .editorconfig
+.vscode/
 
 \.vscode/

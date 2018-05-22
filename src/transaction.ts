@@ -2,6 +2,9 @@ import {dcorejs_lib} from './helpers';
 import {KeyPrivate, KeyPublic, Utils} from './utils';
 import {Operation} from './model/transaction';
 
+/**
+ * Class contains available transaction operation names constants
+ */
 export class Transaction {
     /**
      * dcore_jsjs.lib/lib - TransactionBuilder

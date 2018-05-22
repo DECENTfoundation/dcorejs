@@ -1,8 +1,8 @@
-import {Key, KeyParts} from '../content';
-import {Authority, Options} from '../account';
 import {AssetOptions, MonitoredAssetOptions} from '../assetModule';
-import {Block} from '../explorer';
+import {Key, KeyParts} from './content';
+import {Block} from './explorer';
 import AssetExchangeRate = Block.AssetExchangeRate;
+import {Authority, Options} from './account';
 
 /**
  * OperationType to be broadcasted to blockchain
@@ -46,6 +46,8 @@ export enum OperationName {
     leave_rating_and_comment = 'leave_rating_and_comment',
     account_create = 'account_create',
     asset_publish_feed = 'asset_publish_feed',
+    miner_create = 'miner_create',
+    miner_update = 'miner_update',
 }
 
 /**
@@ -283,6 +285,33 @@ export namespace Operations {
                     asset_id: assetId,
                     feed,
                     extensions: {}
+                }
+            );
+        }
+    }
+
+    export class MinerCreate extends Operation {
+        constructor(miner_account: string, url: string, block_signing_key: string) {
+            super(
+                OperationName.miner_create,
+                {
+                    miner_account,
+                    url,
+                    block_signing_key
+                }
+            );
+        }
+    }
+
+    export class MinerUpdate extends Operation {
+        constructor(miner: string, minerAccount: string, newURL: string, newSigningKey: string) {
+            super(
+                OperationName.miner_update,
+                {
+                    miner,
+                    miner_account: minerAccount,
+                    new_url: newURL,
+                    new_signing_key: newSigningKey
                 }
             );
         }

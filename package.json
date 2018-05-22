@@ -27,7 +27,7 @@
         "start": "tsc -w & webpack --config webpack.config.js --watch",
         "prebuild": "rimraf dist && rimraf lib",
         "build": "tsc && webpack --config webpack.config.js && npm run generate-docs",
-        "generate-docs": "typedoc --out dist/docs --target es6 --theme minimal --excludeExternals --includeDeclarations --excludePrivate --exclude \"{**/{api,mocks}/*.ts,**/crypt.ts}\" src",
+        "generate-docs": "rimraf dist/docs && typedoc --out dist/docs --target es6 --theme minimal --excludeExternals --includeDeclarations --excludePrivate --exclude \"**/*+(test|api)/**/*.*\" src",
         "test": "npm-run-parallel test:unit:server test:unit:client",
         "test:int": "npm-run-parallel test:integ:client test:integ:server",
         "test:unit:server": "mocha --exit -r ts-node/register ./src/test/server/unit/*.test.ts",
@@ -71,7 +71,7 @@
     "dependencies": {
         "bluebird": "3.5.1",
         "crypto-js": "3.1.9-1",
-        "dcorejs-lib": "^1.0.0",
+        "dcorejs-lib": "1.1.1",
         "ipfs-api": "15.0.1",
         "moment": "2.18.1",
         "ripemd160": "2.0.1",

@@ -1,13 +1,10 @@
-export { SearchParams, SearchParamsOrder } from './api/database';
-
-export { ContentApi, Content, Price, Synopsis, SubmitObject, KeyPair, ContentKeys } from './content';
-
-export { Account, TransactionRecord } from './account';
-
-export * from './explorer';
-
+export * from './api/model/database';
+export { ContentApi} from './modules/content';
+export * from './modules/account';
+export * from './modules/explorer';
 export { ConnectionState } from './api/apiConnector';
-
 export { setLibRef, getLibRef } from './helpers';
-
 export { CryptoUtils } from './crypt';
+export * from './model/content';
+export * from './model/account';
+export * from './model/explorer';

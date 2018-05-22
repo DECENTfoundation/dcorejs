@@ -41,6 +41,11 @@ Supported browsers versions:
  3. Change directory to project root dir
 
  4. Install `npm install dcorejs`
+ 
+ ### Customization
+ 
+ In case you want to customize library and generate documentation for code use command `npm run generate-docs`.
+ Documentation will be generated in `./dist/docs` folder.
 
 ### Initialize library
 
@@ -191,6 +196,10 @@ getPurchasedContent(accountId: string,
                     startObjectId: string,
                     term: string,
                     resultSize: number): Promise<Content[]>
+getRating(contentId: string, forUser: string, ratingStartId: string, count: number = 100): Promise<Array<Rating>>
+searchFeedback(accountId: string, contentURI: string, ratingStartId: string, count: number = 100): Promise<Array<Rating>>
+getAuthorCoAuthors(URI: string): Promise<[string, string[]] | null>
+leaveCommentAndRating(contentURI: string, consumer: string, comment: string, rating: number, consumerPKey: string): Promise<any>
 ```
 
 ### Account
@@ -211,17 +220,33 @@ transfer(amount: number,
 getBalance(account: string): Promise<number>
 voteForMiner(miner: string, account: string, privateKeyWif: string): Promise<any>
 unvoteMiner(miner: string, account: string, privateKeyWif: string): Promise<any>
-```
-
-### Utils
-
-```typescript
-formatToReadiblePrice(dctAmount: number): string
-ripemdHash(fromBuffer: Buffer): string
-generateKeys(fromBrainKey: string): (KeyPrivate | KeyPublic)[]
-getPublicKey(privkey: KeyPrivate): KeyPublic
-privateKeyFromWif(pkWif: string): KeyPrivate
-publicKeyFromString(pubKeyString: string): KeyPublic
+voteForMiners(miners: string[], account: string, privateKeyWif: string): Promise<any>
+unvoteMiners(miners: string[], account: string, privateKeyWif: string): Promise<any>
+searchAccounts(searchTerm: string, order: AccountOrder, id: string, limit: number = 100): Promise<Account>
+getAccountCount(): Promise<number>
+registerAccount(name: string,
+                           ownerKey: string,
+                           activeKey: string,
+                           memoKey: string,
+                           registrar: string,
+                           regisrarPrivateKey: string): Promise<boolean>
+createAccountWithBrainkey(brainkey: string,
+                                     accountName: string,
+                                     registrar: string,
+                                     registrarPrivateKey: string): Promise<boolean>
+exportWallet(accountId: string,
+                 password: string,
+                 elGamalPrivateKey: string,
+                 elGamalPublicKey: string,
+                 ...privateKeys: string[]): Promise<any>
+listAccounts(loweBound: string = '', limit: number = 100): Promise<AccountNameIdPair[]>
+listAccountBalances(id: string): Promise<Asset[]>
+searchMinerVoting(accountName: string,
+                             keyword: string,
+                             myVotes: boolean,
+                             sort: MinerOrder,
+                             fromMinerId: string,
+                             limit: number = 1000): Promise<MinerInfo[]>
 ```
 
 ### Explorer 
@@ -257,6 +282,24 @@ listMiners(): Promise<Array<Miner>>
 getMiners(ids: number[]): Promise<Array<Miner>>
 getMiner(id: number): Promise<Miner|null>
 ```
+
+### Mining
+
+```typescript
+setDesiredMinerCount(accountId: string, desiredNumOfMiners: number, privateKey: string): Promise<any>
+```
+
+### Utils
+
+```typescript
+formatToReadiblePrice(dctAmount: number): string
+ripemdHash(fromBuffer: Buffer): string
+generateKeys(fromBrainKey: string): (KeyPrivate | KeyPublic)[]
+getPublicKey(privkey: KeyPrivate): KeyPublic
+privateKeyFromWif(pkWif: string): KeyPrivate
+publicKeyFromString(pubKeyString: string): KeyPublic
+```
+
 ### Crypto utils
 
 ```typescript

@@ -1,5 +1,7 @@
 import { KeyPrivate, KeyPublic } from './utils';
 import { dcorejs_lib } from './helpers';
+import * as md5 from 'crypto-js/md5';
+import * as aes from 'crypto-js/aes';
 import * as cryptoJs from 'crypto-js';
 
 const RIPEMD160 = require('ripemd160');
@@ -62,7 +64,15 @@ export class CryptoUtils {
     }
 
     public static md5(message: string): string {
-        return cryptoJs.MD5(message).toString();
+        return md5(message).toString();
+    }
+
+    public static sha512(message: string): string {
+        return cryptoJs.SHA512(message).toString(cryptoJs.enc.Hex);
+    }
+
+    public static sha256(message: string): string {
+        return cryptoJs.SHA256(message).toString(cryptoJs.enc.Hex);
     }
 
     /**
@@ -78,7 +88,7 @@ export class CryptoUtils {
      * @returns {string}
      */
     public static encrypt(message: string, password: string): string {
-        return cryptoJs.AES.encrypt(message, password, {format: CryptoJSAesJson.prototype}).toString();
+        return aes.encrypt(message, password, {format: CryptoJSAesJson.prototype}).toString();
     }
 
     /**
@@ -93,7 +103,7 @@ export class CryptoUtils {
      * @returns {string | null}
      */
     public static decrypt(message: string, password: string): string | null {
-        return cryptoJs.AES.decrypt(message, password, {format: CryptoJSAesJson.prototype}).toString(cryptoJs.enc.Utf8) || null;
+        return aes.decrypt(message, password, {format: CryptoJSAesJson.prototype}).toString(cryptoJs.enc.Utf8) || null;
     }
 
     /**
@@ -104,7 +114,7 @@ export class CryptoUtils {
      * @returns {string}
      */
     public static encryptToHexString(message: string | Buffer, password: string): string {
-        const hash = cryptoJs.SHA512(password).toString(cryptoJs.enc.Hex);
+        const hash = CryptoUtils.sha512(password);
         const ivHex = hash.substr(64, 32);
         const keyHex = hash.substr(0, 64);
         const iv = cryptoJs.enc.Hex.parse(ivHex);
@@ -112,7 +122,7 @@ export class CryptoUtils {
 
         const msg: Buffer = typeof message === 'string' ? new Buffer(message, 'binary') : message;
         const plainArr = cryptoJs.enc.Hex.parse(msg.toString('hex'));
-        const res = cryptoJs.AES.encrypt(plainArr, key, { iv: iv });
+        const res = aes.encrypt(plainArr, key, { iv: iv });
         return cryptoJs.enc.Hex.stringify(res.ciphertext);
     }
 
@@ -124,14 +134,14 @@ export class CryptoUtils {
      * @returns {string}
      */
     public static decryptHexString(message: string, password: string): string {
-        const hash = cryptoJs.SHA512(password).toString(cryptoJs.enc.Hex);
+        const hash = CryptoUtils.sha512(password);
         const ivHex = hash.substr(64, 32);
         const keyHex = hash.substr(0, 64);
         const iv = cryptoJs.enc.Hex.parse(ivHex);
         const key = cryptoJs.enc.Hex.parse(keyHex);
 
         const cipher_array = cryptoJs.enc.Hex.parse(message);
-        const plainwords = cryptoJs.AES.decrypt({ ciphertext: cipher_array, salt: null,  iv: iv }, key, { iv: iv });
+        const plainwords = aes.decrypt({ ciphertext: cipher_array, salt: null,  iv: iv }, key, { iv: iv });
         const plainHex = cryptoJs.enc.Hex.stringify(plainwords);
         const buff = new Buffer(plainHex, 'hex');
         return buff.toString();
