@@ -147,17 +147,17 @@ export class CryptoUtils {
         return buff.toString();
     }
 
-    public static elGamalPublic(elGamalPrivate: string): any {
+    public static elGamalPublic(elGamalPrivate: string): string {
         const elgPriv = BigInteger(elGamalPrivate);
         const modulus = BigInteger('11760620558671662461946567396662025495126946227619472274' +
             '601251081547302009186313201119191293557856181195016058359990840577430081932807832465057884143546419');
         const generator = BigInteger(3);
-        return generator.modPow(elgPriv, modulus);
+        return generator.modPow(elgPriv, modulus).toString();
     }
 
-    public static elGamalPrivate(privateKeyWif: string): any {
+    public static elGamalPrivate(privateKeyWif: string): string {
         const pKey = Utils.privateKeyFromWif(privateKeyWif);
         const hash = sha512(pKey.key.d.toBuffer());
-        return BigInteger(hash, 16);
+        return BigInteger(hash, 16).toString();
     }
 }
