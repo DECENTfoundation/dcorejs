@@ -106,7 +106,7 @@ export class AssetModule {
 
     /**
      * NOTE: only miner can create monitored asset.
-     * @requires dcorejs-lib@1.1.0
+     * @requires dcorejs-lib@1.2.1 - support for asset creation
      *
      * @param {string} issuer
      * @param {string} symbol
@@ -137,7 +137,6 @@ export class AssetModule {
             const operation = new Operations.AssetCreateOperation(
                 issuer, symbol, precision, description, options, monitoredOpts
             );
-            console.log(operation);
             const transaction = new Transaction();
             transaction.add(operation);
             transaction.broadcast(issuerPrivateKey)
@@ -147,25 +146,37 @@ export class AssetModule {
     }
 
     /**
-     * @requires dcorejs-lib@1.1.0
+     * @requires dcorejs-lib@1.2.1 - support for asset creation
      * @returns {Promise<any>}
      */
-    public issueAsset(issuer: string, assetToIssue: string, issueToAccount: string, memo: string, issuerPKey: string): Promise<any> {
+    public issueAsset(assetSymbol: string, amount: number, issueToAccount: string, memo: string, issuerPKey: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
-            const operation = new Operations.IssueAssetOperation(
-                issuer,
-                {
-                    asset_id: assetToIssue,
-                    amount: 0
-                },
-                issueToAccount,
-                memo || ''
-            );
-            const transaction = new Transaction();
-            transaction.add(operation);
-            transaction.broadcast(issuerPKey)
-                .then(res => resolve())
-                .catch(err => reject(new Error('asset_issue_failure')));
+            this.listAssets(assetSymbol, 1)
+                .then((assets: AssetObject[]) => {
+                    if (!assets || assets.length === 0) {
+                        reject('asset_not_found');
+                        return;
+                    }
+                    const asset = assets[0];
+                    const issuer = asset.issuer;
+                    const operation = new Operations.IssueAssetOperation(
+                        issuer,
+                        {
+                            asset_id: asset.id,
+                            amount: amount
+                        },
+                        issueToAccount,
+                        memo || ''
+                    );
+                    const transaction = new Transaction();
+                    transaction.add(operation);
+                    transaction.broadcast(issuerPKey)
+                        .then(res => resolve())
+                        .catch(err => {
+                            reject(new Error('asset_issue_failure'));
+                        });
+                })
+                .catch(err => reject(err));
         });
     }
 
