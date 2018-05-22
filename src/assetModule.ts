@@ -4,7 +4,8 @@ import {Transaction} from './transaction';
 import {Block} from './model/explorer';
 import AssetExchangeRate = Block.AssetExchangeRate;
 import {ApiConnector} from './api/apiConnector';
-import {Asset, Operations, PriceFeed} from './model/transaction';
+import {Asset, Memo, Operations, PriceFeed} from './model/transaction';
+import {Utils} from './utils';
 
 export interface DCoreAssetObject extends AssetObject {
     dynamic_asset_data_id: string;
@@ -159,6 +160,14 @@ export class AssetModule {
                     }
                     const asset = assets[0];
                     const issuer = asset.issuer;
+                    // TODO: correct memo object
+                    const pubKey = Utils.getPublicKey(Utils.privateKeyFromWif(issuerPKey));
+                    const memoObject: Memo = {
+                        from: pubKey.stringKey,
+                        to: pubKey.stringKey,
+                        nonce: Utils.generateNonce(),
+                        message: new Buffer(memo || '')
+                    };
                     const operation = new Operations.IssueAssetOperation(
                         issuer,
                         {
@@ -166,7 +175,7 @@ export class AssetModule {
                             amount: amount
                         },
                         issueToAccount,
-                        memo || ''
+                        memoObject
                     );
                     const transaction = new Transaction();
                     transaction.add(operation);

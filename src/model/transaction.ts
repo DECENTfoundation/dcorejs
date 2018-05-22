@@ -38,7 +38,7 @@ export enum OperationName {
     content_submit = 'content_submit',
     account_update = 'account_update',
     asset_create = 'asset_create',
-    issue_asset = 'issue_asset',
+    issue_asset = 'asset_issue',
     update_monitored_asset_operation = 'update_monitored_asset_operation',
     asset_fund_pools_operation = 'asset_fund_pools_operation',
     asset_reserve_operation = 'asset_reserve_operation',
@@ -186,7 +186,7 @@ export namespace Operations {
     }
 
     export class IssueAssetOperation extends Operation {
-        constructor(issuer: string, assetToIssue: Asset, issueToAccount: string, memo: string) {
+        constructor(issuer: string, assetToIssue: Asset, issueToAccount: string, memo: Memo) {
             super(OperationName.issue_asset, {
                 issuer,
                 asset_to_issue: assetToIssue,

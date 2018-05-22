@@ -99,6 +99,10 @@ export class Utils {
         return brainKey.split(/[\t\n\v\f\r ]+/).join(' ');
     }
 
+    public static generateNonce(): string {
+        return dcorejs_lib.TransactionHelper.unique_nonce_uint64();
+    }
+
     private static generatePrivateKey(brainKey: string): KeyPrivate {
         const pKey = dcorejs_lib.key.get_brainPrivateKey(brainKey);
         return new KeyPrivate(pKey);
