@@ -1,11 +1,11 @@
-import {DatabaseApi} from './api/database';
-import {DatabaseOperations} from './api/model/database';
-import {Transaction} from './transaction';
-import {Block} from './model/explorer';
+import { DatabaseApi } from './api/database';
+import { DatabaseOperations } from './api/model/database';
+import { Transaction } from './transaction';
+import { Block } from './model/explorer';
 import AssetExchangeRate = Block.AssetExchangeRate;
-import {ApiConnector} from './api/apiConnector';
-import {Asset, Memo, Operations, PriceFeed} from './model/transaction';
-import {Utils} from './utils';
+import { ApiConnector } from './api/apiConnector';
+import { Asset, Memo, Operations, PriceFeed } from './model/transaction';
+import { Utils } from './utils';
 
 export interface DCoreAssetObject extends AssetObject {
     dynamic_asset_data_id: string;
@@ -39,6 +39,14 @@ export interface AssetOptions {
 
 export interface AssetCurrentFeed {
     core_exchange_rate: AssetExchangeRate;
+}
+
+export interface UserIssuedAssetInfo {
+    newIssuer?: string;
+    description?: string;
+    maxSupply?: number;
+    coreExchange?: AssetExchangeRate;
+    isExchangable?: boolean;
 }
 
 export class AssetModule {
@@ -180,7 +188,7 @@ export class AssetModule {
                     const transaction = new Transaction();
                     transaction.add(operation);
                     transaction.broadcast(issuerPKey)
-                        .then(res => resolve())
+                        .then(res => resolve(true))
                         .catch(err => {
                             reject(new Error('asset_issue_failure'));
                         });
@@ -189,28 +197,28 @@ export class AssetModule {
         });
     }
 
-    public updateUserIssuedAsset(issuer: string,
-                                 symbol: string,
-                                 newIssuer: string,
-                                 description: string,
-                                 maxSupply: number,
-                                 coreExchange: AssetExchangeRate,
-                                 isExchangable: boolean,
-                                 issuerPKey: string): Promise<any> {
+    public updateUserIssuedAsset(symbol: string, newInfo: UserIssuedAssetInfo, issuerPKey: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             this.listAssets(symbol, 1)
-                .then((assetToUpdate: AssetObject[]) => {
-                    if (assetToUpdate.length === 0) {
+                .then((assets: AssetObject[]) => {
+                    if (assets.length === 0) {
                         reject('unable_to_find_asset');
                         return;
                     }
+                    const asset = assets[0];
                     const operation = new Operations.UpdateAssetIssuedOperation(
-                        issuer, assetToUpdate[0].id, description, maxSupply, coreExchange, isExchangable, newIssuer
+                        asset.issuer,
+                        asset.id,
+                        newInfo.description || asset.description,
+                        newInfo.maxSupply || asset.options.max_supply,
+                        newInfo.coreExchange || asset.options.core_exchange_rate,
+                        newInfo.isExchangable || asset.options.is_exchangeable,
+                        newInfo.newIssuer
                     );
                     const transaction = new Transaction();
                     transaction.add(operation);
                     transaction.broadcast(issuerPKey)
-                        .then(res => resolve(res))
+                        .then(res => resolve(true))
                         .catch(err => reject('failed_to_broadcast_transaction'));
                 })
                 .catch(err => reject('failed_updating_asset'));

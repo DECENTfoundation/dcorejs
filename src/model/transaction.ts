@@ -39,7 +39,7 @@ export enum OperationName {
     account_update = 'account_update',
     asset_create = 'asset_create',
     issue_asset = 'asset_issue',
-    update_monitored_asset_operation = 'update_monitored_asset_operation',
+    update_user_issued_asset = 'update_user_issued_asset',
     asset_fund_pools_operation = 'asset_fund_pools_operation',
     asset_reserve_operation = 'asset_reserve_operation',
     asset_claim_fees_operation = 'asset_claim_fees_operation',
@@ -206,7 +206,7 @@ export namespace Operations {
                     is_exchangeable: boolean,
                     new_issuer?: string) {
             super(
-                OperationName.update_monitored_asset_operation,
+                OperationName.update_user_issued_asset,
                 {
                     issuer,
                     asset_to_update,
