@@ -135,7 +135,7 @@ export class AssetModule {
                          issuerPrivateKey: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             const options: AssetOptions = {
-                max_supply: 7319777577456890,
+                max_supply: 0,
                 is_exchangeable: true,
                 extensions: []
             };
@@ -148,9 +148,16 @@ export class AssetModule {
             );
             const transaction = new Transaction();
             transaction.add(operation);
-            transaction.broadcast(issuerPrivateKey)
-                .then(res => resolve(true))
-                .catch(err => reject(err));
+            this.connector.connect()
+                .then(() => {
+                    transaction.broadcast(issuerPrivateKey)
+                        .then(() => resolve(true))
+                        .catch(err => reject(err));
+                })
+                .catch(err => {
+                    console.log(err);
+                    reject(err);
+                });
         });
     }
 
