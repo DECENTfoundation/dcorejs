@@ -1,8 +1,9 @@
-import {AssetOptions, MonitoredAssetOptions} from '../assetModule';
+import {AssetOptions} from './asset';
 import {Key, KeyParts} from './content';
 import {Block} from './explorer';
 import AssetExchangeRate = Block.AssetExchangeRate;
 import {Authority, Options} from './account';
+import {MonitoredAssetOptions} from './asset';
 
 /**
  * OperationType to be broadcasted to blockchain
@@ -186,7 +187,7 @@ export namespace Operations {
     }
 
     export class IssueAssetOperation extends Operation {
-        constructor(issuer: string, assetToIssue: Asset, issueToAccount: string, memo: Memo) {
+        constructor(issuer: string, assetToIssue: Asset, issueToAccount: string, memo?: Memo) {
             super(OperationName.issue_asset, {
                 issuer,
                 asset_to_issue: assetToIssue,
@@ -228,8 +229,7 @@ export namespace Operations {
                 {
                     from_account: fromAccountId,
                     uia_asset: uiaAsset,
-                    dct_asset: dctAsset,
-                    extensions: {}
+                    dct_asset: dctAsset
                 }
             );
         }

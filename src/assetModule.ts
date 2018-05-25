@@ -146,26 +146,48 @@ export class AssetModule extends ApiModule {
                     const asset = assets[0];
                     const issuer = asset.issuer;
                     // TODO: correct memo object
-                    const pubKey = Utils.getPublicKey(Utils.privateKeyFromWif(issuerPKey));
-                    const memoObject: Memo = {
-                        from: pubKey.stringKey,
-                        to: pubKey.stringKey,
-                        nonce: Utils.generateNonce(),
-                        message: new Buffer(memo || '')
-                    };
-                    const operation = new Operations.IssueAssetOperation(
-                        issuer,
-                        {
-                            asset_id: asset.id,
-                            amount: amount
-                        },
-                        issueToAccount,
-                        memoObject
-                    );
-                    const transaction = new Transaction();
-                    transaction.add(operation);
-                    transaction.broadcast(issuerPKey)
-                        .then(res => resolve(true))
+
+                    const operations = new ChainMethods();
+                    operations.add(ChainMethods.getAccount, issueToAccount);
+                    operations.add(ChainMethods.getAccount, issuer);
+                    this.chainApi.fetch(operations)
+                        .then(res => {
+                            const [issueToAcc, issuerAcc] = res;
+                            const privateKeyIssuer = Utils.privateKeyFromWif(issuerPKey);
+                            const pubKeyIssuer = Utils.publicKeyFromString(issuerAcc.get('options').get('memo_key'));
+                            const pubKeyIssueTo = Utils.publicKeyFromString(issueToAcc.get('options').get('memo_key'));
+
+                            let memoObject: Memo = undefined;
+                            if (memo) {
+                                memoObject = {
+                                    from: pubKeyIssuer.stringKey,
+                                    to: pubKeyIssueTo.stringKey,
+                                    nonce: Utils.generateNonce(),
+                                    message: CryptoUtils.encryptWithChecksum(
+                                        memo,
+                                        privateKeyIssuer,
+                                        pubKeyIssueTo,
+                                        Utils.generateNonce()
+                                    )
+                                };
+                            }
+                            const operation = new Operations.IssueAssetOperation(
+                                issuer,
+                                {
+                                    asset_id: asset.id,
+                                    amount: amount
+                                },
+                                issueToAccount,
+                                memoObject
+                            );
+                            const transaction = new Transaction();
+                            transaction.add(operation);
+                            transaction.broadcast(issuerPKey)
+                                .then(res => resolve(true))
+                                .catch(err => {
+                                    reject(this.handleError(AssetError.asset_issue_failure, err));
+                                });
+                        })
                         .catch(err => {
                             reject(this.handleError(AssetError.failed_to_fetch_account, err));
                         });
