@@ -306,10 +306,10 @@ export class AssetModule {
     }
 
     public assetClaimFees(issuer: string,
-                          uiaSymbol: string,
                           uiaAmount: number,
-                          dctSymbol: string,
+                          uiaSymbol: string,
                           dctAmount: number,
+                          dctSymbol: string,
                           privateKey: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             Promise.all([
