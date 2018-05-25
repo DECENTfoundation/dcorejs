@@ -50,7 +50,7 @@ export function initialize(config: DcoreConfig,
     _content = new ContentApi(database);
     _account = new AccountApi(database, chain, historyApi, connector);
     _explorer = new ExplorerModule(database);
-    _assetModule = new AssetModule(database, connector);
+    _assetModule = new AssetModule(database, connector, chain);
     _mining = new MiningModule(database);
 }
 
