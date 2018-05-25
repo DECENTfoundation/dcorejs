@@ -1,14 +1,28 @@
 import {DatabaseApi} from '../api/database';
 import {DatabaseOperations} from '../api/model/database';
 import {Operations} from '../model/transaction';
-import {Options} from '../model/account';
+import {AccountError, Options} from '../model/account';
 import {Transaction} from '../transaction';
 import {ApiModule} from './ApiModule';
 import {Account} from '../model/account';
+import {ApiConnector} from '../api/apiConnector';
+import {ChainApi, ChainMethods} from '../api/chain';
+import {Miner} from '../model/explorer';
+
+export enum MiningError {
+    transaction_broadcast_failed = 'transaction_broadcast_failed',
+    database_fetch_failed = 'database_fetch_failed',
+    connection_failed = 'connection_failed'
+}
 
 export class MiningModule extends ApiModule {
-    constructor(dbApi: DatabaseApi) {
+    private connector: ApiConnector;
+    private chainApi: ChainApi;
+
+    constructor(dbApi: DatabaseApi, apiConnector: ApiConnector, chainApi: ChainApi) {
         super(dbApi);
+        this.connector = apiConnector;
+        this.chainApi = chainApi;
     }
 
     /**
@@ -44,14 +58,18 @@ export class MiningModule extends ApiModule {
                     }
                     const options: Options = account.options;
                     options.num_miner = desiredNumOfMiners;
-                    const operation =  new Operations.AccountUpdateOperation(
+                    const operation = new Operations.AccountUpdateOperation(
                         accountId, account.owner, account.active, options, {}
                     );
                     const transaction = new Transaction();
                     transaction.add(operation);
                     transaction.broadcast(privateKey)
                         .then(res => resolve(res))
-                        .catch(err => reject(this.handleError('transaction_broadcast_failed', err)));
+                        .catch(err => reject(this.handleError(MiningError.transaction_broadcast_failed, err)));
+                })
+                .catch(err => reject(this.handleError(MiningError.database_fetch_failed, err)));
+        });
+    }
 
     public createMiner(minerAccountId: string, URL: string, signingPublicKey: string, privateKey: string): Promise<any> {
         return new Promise<any>(((resolve, reject) => {
