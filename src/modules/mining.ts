@@ -52,6 +52,21 @@ export class MiningModule extends ApiModule {
                     transaction.broadcast(privateKey)
                         .then(res => resolve(res))
                         .catch(err => reject(this.handleError('transaction_broadcast_failed', err)));
+
+    public createMiner(minerAccountId: string, URL: string, signingPublicKey: string, privateKey: string): Promise<any> {
+        return new Promise<any>(((resolve, reject) => {
+            this.connector.connect()
+                .then(res => {
+                    const operation = new Operations.MinerCreate(minerAccountId, URL, signingPublicKey);
+                    const transaction = new Transaction();
+                    transaction.add(operation);
+                    transaction.broadcast(privateKey)
+                        .then(res => resolve(true))
+                        .catch(err => reject(this.handleError(MiningError.transaction_broadcast_failed, err)));
+                })
+                .catch(err => reject(this.handleError(MiningError.connection_failed, err)));
+        }));
+    }
                 })
                 .catch(err => reject('database_fetch_failed'));
         });
