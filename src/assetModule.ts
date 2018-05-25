@@ -29,7 +29,7 @@ export class AssetModule extends ApiModule {
                     resolve(res);
                 })
                 .catch(err => {
-                    reject(err);
+                    reject(this.handleError(AssetError.unable_to_list_assets, err));
                 });
         });
     }
@@ -75,11 +75,10 @@ export class AssetModule extends ApiModule {
                 .then(() => {
                     transaction.broadcast(issuerPrivateKey)
                         .then(() => resolve(true))
-                        .catch(err => reject(err));
+                        .catch(err => reject(this.handleError(AssetError.transaction_broadcast_failed, err)));
                 })
                 .catch(err => {
-                    console.log(err);
-                    reject(err);
+                    reject(this.handleError(AssetError.connection_failed, err));
                 });
 
         });
@@ -124,11 +123,10 @@ export class AssetModule extends ApiModule {
                 .then(() => {
                     transaction.broadcast(issuerPrivateKey)
                         .then(() => resolve(true))
-                        .catch(err => reject(err));
+                        .catch(err => reject(this.handleError(AssetError.transaction_broadcast_failed, err)));
                 })
                 .catch(err => {
-                    console.log(err);
-                    reject(err);
+                    reject(this.handleError(AssetError.connection_failed, err));
                 });
         });
     }
