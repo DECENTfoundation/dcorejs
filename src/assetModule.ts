@@ -77,17 +77,27 @@ export class AssetModule {
                                  precision: number,
                                  description: string,
                                  maxSupply: number,
-                                 coreExchangeRate: AssetExchangeRate,
+                                 baseExchangeAmount: number,
+                                 quoteExchangeAmount: number,
                                  isExchangable: boolean,
                                  isSupplyFixed: boolean,
                                  issuerPrivateKey: string): Promise<boolean> {
         const options: AssetOptions = {
             max_supply: maxSupply,
-            core_exchange_rate: coreExchangeRate,
+            core_exchange_rate: {
+                base: {
+                    amount: baseExchangeAmount,
+                    asset_id: '1.3.0'
+                },
+                quote: {
+                    amount: quoteExchangeAmount,
+                    asset_id: '1.3.1'
+                }
+            },
             is_exchangeable: isExchangable,
             extensions: [[
                 1, {
-                    'is_fixed_max_supply': false
+                    'is_fixed_max_supply': isSupplyFixed
                 }
             ]]
         };
