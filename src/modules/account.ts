@@ -359,7 +359,7 @@ export class AccountApi extends ApiModule {
     /**
      * Vote for selected miner.
      * More information on https://devdocs.decent.ch/UseCases/#vote_for_a_miner_1
-     *
+     * @deprecated                      Use method from mining module instead
      * @param {string} miner
      * @param {string} account
      * @param {string} privateKeyWif
@@ -371,7 +371,7 @@ export class AccountApi extends ApiModule {
 
     /**
      * Remove youte vote from selected miner.
-     *
+     * @deprecated                      Use method from mining module instead
      * @param {string} miner
      * @param {string} account
      * @param {string} privateKeyWif
@@ -381,6 +381,13 @@ export class AccountApi extends ApiModule {
         return this.unvoteMiners([miner], account, privateKeyWif);
     }
 
+    /**
+     * @deprecated                      Use method from mining module instead
+     * @param {string[]} miners
+     * @param {string} account
+     * @param {string} privateKeyWif
+     * @returns {Promise<any>}
+     */
     public voteForMiners(miners: string[], account: string, privateKeyWif: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             const operations = new ChainMethods();
@@ -422,6 +429,13 @@ export class AccountApi extends ApiModule {
         });
     }
 
+    /**
+     * @deprecated                      Use method from mining module instead
+     * @param {string[]} miners
+     * @param {string} account
+     * @param {string} privateKeyWif
+     * @returns {Promise<any>}
+     */
     public unvoteMiners(miners: string[], account: string, privateKeyWif: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             const operations = new ChainMethods();

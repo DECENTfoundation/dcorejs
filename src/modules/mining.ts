@@ -85,8 +85,131 @@ export class MiningModule extends ApiModule {
                 .catch(err => reject(this.handleError(MiningError.connection_failed, err)));
         }));
     }
+
+    /**
+     * Remove your vote from selected miner.
+     *
+     * @param {string} miner
+     * @param {string} account
+     * @param {string} privateKeyWif
+     * @returns {Promise<any>}
+     */
+    public unvoteMiner(miner: string, account: string, privateKeyWif: string): Promise<any> {
+        return this.unvoteMiners([miner], account, privateKeyWif);
+    }
+
+    /**
+     * Remove your votes from multiple miners.
+     * This method is also called on unvoteMiner.
+     *
+     * @param {string} miner
+     * @param {string} account
+     * @param {string} privateKeyWif
+     * @returns {Promise<any>}
+     */
+    public unvoteMiners(miners: string[], account: string, privateKeyWif: string): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            const operations = new ChainMethods();
+            operations.add(ChainMethods.getAccount, account);
+            this.chainApi.fetch(operations)
+                .then(res => {
+                    const [voterAccount] = res;
+                    const voter: Account = JSON.parse(JSON.stringify(voterAccount));
+                    const operation = new DatabaseOperations.GetMiners(miners);
+                    this.dbApi.execute(operation)
+                        .then((res: Miner[]) => {
+                            res.forEach(miner => {
+                                const voteIndex = voter.options.votes.indexOf(miner.vote_id);
+                                voter.options.votes.splice(voteIndex, 1);
+                            });
+                            if (voter.options.votes.length < voter.options.num_miner) {
+                                reject(
+                                    this.handleError(
+                                        AccountError.cannot_update_miner_votes,
+                                        'Number of votes cannot be lower as desired miners number'
+                                    )
+                                );
+                                return;
+                            }
+                            const op = new Operations.AccountUpdateOperation(
+                                account,
+                                voter.owner,
+                                voter.active,
+                                voter.options,
+                                {}
+                            );
+                            const transaction = new Transaction();
+                            transaction.add(op);
+                            transaction.broadcast(privateKeyWif)
+                                .then(res => resolve(res))
+                                .catch(err => reject(err));
+                        })
+                        .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
                 })
-                .catch(err => reject('database_fetch_failed'));
+                .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
+        });
+    }
+
+    /**
+     * Vote for selected miner.
+     * More information on https://devdocs.decent.ch/UseCases/#vote_for_a_miner_1
+     *
+     * @param {string} miner
+     * @param {string} account
+     * @param {string} privateKeyWif
+     * @returns {Promise<any>}
+     */
+    public voteForMiner(miner: string, account: string, privateKeyWif: string): Promise<any> {
+        return this.voteForMiners([miner], account, privateKeyWif);
+    }
+
+    /**
+     * Add votes to multiple miners.
+     * This method is also called on voteForMiner.
+     *
+     * @param {string[]} miners
+     * @param {string} account
+     * @param {string} privateKeyWif
+     * @returns {Promise<any>}
+     */
+    public voteForMiners(miners: string[], account: string, privateKeyWif: string): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            const operations = new ChainMethods();
+            operations.add(ChainMethods.getAccount, account);
+            this.chainApi.fetch(operations)
+                .then(res => {
+                    const [voterAccount] = res;
+                    const voter: Account = JSON.parse(JSON.stringify(voterAccount));
+                    const operation = new DatabaseOperations.GetMiners(miners);
+                    this.dbApi.execute(operation)
+                        .then((res: Miner[]) => {
+                            voter.options.votes.push(...res.map(miner => miner.vote_id));
+                            voter.options.votes.sort((e1: string, e2: string) => {
+                                return Number(e1.split(':')[1]) - Number(e2.split(':')[1]);
+                            });
+                            const op = new Operations.AccountUpdateOperation(
+                                account,
+                                voter.owner,
+                                voter.active,
+                                voter.options,
+                                {}
+                            );
+                            const transaction = new Transaction();
+                            transaction.add(op);
+                            transaction.broadcast(privateKeyWif)
+                                .then(res => resolve(transaction))
+                                .catch((err: Error) => {
+                                    console.log(err);
+                                    let errorMessage = 'transaction_broadcast_failed';
+                                    if (err.stack.indexOf('duplicate') >= 0) {
+                                        errorMessage = 'duplicate_parameter_set';
+                                    }
+                                    reject(errorMessage);
+                                });
+                        })
+                        .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
+                })
+                .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
         });
     }
 }
