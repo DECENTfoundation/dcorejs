@@ -1,61 +1,23 @@
-import { DatabaseApi } from './api/database';
-import { DatabaseOperations } from './api/model/database';
-import { Transaction } from './transaction';
-import { Block } from './model/explorer';
-import AssetExchangeRate = Block.AssetExchangeRate;
-import { ApiConnector } from './api/apiConnector';
-import { Asset, Memo, Operations, PriceFeed } from './model/transaction';
-import { Utils } from './utils';
+import {ApiConnector} from './api/apiConnector';
+import {DatabaseApi} from './api/database';
+import {DatabaseOperations} from './api/model/database';
+import {CryptoUtils} from './crypt';
+import {Asset, Memo, Operations, PriceFeed} from './model/transaction';
+import {Transaction} from './transaction';
+import {Utils} from './utils';
 
-export interface DCoreAssetObject extends AssetObject {
-    dynamic_asset_data_id: string;
-}
+import {ChainApi, ChainMethods} from './api/chain';
+import {ApiModule} from './modules/ApiModule';
+import {AssetError, AssetObject, AssetOptions, DCoreAssetObject, MonitoredAssetOptions, UserIssuedAssetInfo} from './model/asset';
 
-export interface AssetObject {
-    id: string;
-    symbol: string;
-    precision: number;
-    issuer: string;
-    description: string;
-    monitored_asset_opts: MonitoredAssetOptions;
-    options: AssetOptions;
-    dynamic_asset_data_id: string;
-}
-
-export interface MonitoredAssetOptions {
-    feeds?: any[];
-    current_feed?: AssetCurrentFeed;
-    current_feed_publication_time?: string;
-    feed_lifetime_sec: number;
-    minimum_feeds: number;
-}
-
-export interface AssetOptions {
-    max_supply: number;
-    core_exchange_rate?: AssetExchangeRate;
-    is_exchangeable: boolean;
-    extensions?: any[];
-}
-
-export interface AssetCurrentFeed {
-    core_exchange_rate: AssetExchangeRate;
-}
-
-export interface UserIssuedAssetInfo {
-    newIssuer?: string;
-    description?: string;
-    maxSupply?: number;
-    coreExchange?: AssetExchangeRate;
-    isExchangable?: boolean;
-}
-
-export class AssetModule {
+export class AssetModule extends ApiModule {
     public MAX_SHARED_SUPPLY = 7319777577456890;
-    private dbApi: DatabaseApi;
+    private chainApi: ChainApi;
     private connector: ApiConnector;
 
-    constructor(dbApi: DatabaseApi, connector: ApiConnector) {
-        this.dbApi = dbApi;
+    constructor(dbApi: DatabaseApi, connector: ApiConnector, chainApi: ChainApi) {
+        super(dbApi);
+        this.chainApi = chainApi;
         this.connector = connector;
     }
 
