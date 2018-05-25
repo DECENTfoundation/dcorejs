@@ -169,10 +169,10 @@ export class AssetModule extends ApiModule {
                     transaction.broadcast(issuerPKey)
                         .then(res => resolve(true))
                         .catch(err => {
-                            reject(new Error('asset_issue_failure'));
+                            reject(this.handleError(AssetError.failed_to_fetch_account, err));
                         });
                 })
-                .catch(err => reject(err));
+                .catch(err => reject(this.handleError(AssetError.unable_to_list_assets, err)));
         });
     }
 
@@ -181,7 +181,7 @@ export class AssetModule extends ApiModule {
             this.listAssets(symbol, 1)
                 .then((assets: AssetObject[]) => {
                     if (assets.length === 0) {
-                        reject('unable_to_find_asset');
+                        reject(this.handleError(AssetError.asset_not_found));
                         return;
                     }
                     const asset = assets[0];
@@ -198,9 +198,9 @@ export class AssetModule extends ApiModule {
                     transaction.add(operation);
                     transaction.broadcast(issuerPKey)
                         .then(res => resolve(true))
-                        .catch(err => reject('failed_to_broadcast_transaction'));
+                        .catch(err => reject(this.handleError(AssetError.transaction_broadcast_failed, err)));
                 })
-                .catch(err => reject('failed_updating_asset'));
+                .catch(err => reject(this.handleError(AssetError.unable_to_list_assets, err)));
         });
     }
 
@@ -218,7 +218,7 @@ export class AssetModule extends ApiModule {
                 .then(res => {
                     const [uia, dct] = res;
                     if (!(uia[0].symbol === uiaSymbol && dct[0].symbol === dctSymbol) || res.length !== 2) {
-                        reject('asset_not_found');
+                        reject(this.handleError(AssetError.asset_not_found));
                         return;
                     }
                     const operation = new Operations.AssetFundPools(
@@ -235,10 +235,10 @@ export class AssetModule extends ApiModule {
                     const transaction = new Transaction();
                     transaction.add(operation);
                     transaction.broadcast(privateKey)
-                        .then(res => resolve(res))
-                        .catch(err => reject('failed_to_broadcast_transaction'));
+                        .then(res => resolve(true))
+                        .catch(err => reject(this.handleError(AssetError.transaction_broadcast_failed, err)));
                 })
-                .catch(err => reject('failed_load_assets'));
+                .catch(err => reject(this.handleError(AssetError.unable_to_list_assets, err)));
         });
     }
 
@@ -247,7 +247,7 @@ export class AssetModule extends ApiModule {
             this.listAssets(symbol, 1)
                 .then(res => {
                     if (res[0].symbol !== symbol || res.length !== 1) {
-                        reject('asset_not_found');
+                        reject(this.handleError(AssetError.asset_not_found));
                         return;
                     }
                     const operation = new Operations.AssetReserve(
@@ -261,9 +261,9 @@ export class AssetModule extends ApiModule {
                     transaction.add(operation);
                     transaction.broadcast(privateKey)
                         .then(res => resolve(res))
-                        .catch(err => reject('failed_to_broadcast_transaction'));
+                        .catch(err => reject(this.handleError(AssetError.transaction_broadcast_failed, err)));
                 })
-                .catch(err => reject('failed_load_assets'));
+                .catch(err => reject(this.handleError(AssetError.unable_to_list_assets, err)));
         });
     }
 
@@ -281,7 +281,7 @@ export class AssetModule extends ApiModule {
                 .then(res => {
                     const [uia, dct] = res;
                     if (!(uia[0].symbol === uiaSymbol && dct[0].symbol === dctSymbol) || res.length !== 2) {
-                        reject('asset_not_found');
+                        reject(this.handleError(AssetError.asset_not_found));
                         return;
                     }
                     const uiaAsset: Asset = {
@@ -296,10 +296,12 @@ export class AssetModule extends ApiModule {
                     const transaction = new Transaction();
                     transaction.add(operation);
                     transaction.broadcast(privateKey)
-                        .then(res => resolve(res))
+                        .then(res => resolve(true))
                         .catch(err => reject('failed_to_broadcast_transaction'));
                 })
-                .catch(err => reject('failed_load_assets'));
+                .catch(err => {
+                    reject('failed_load_assets');
+                });
         });
     }
 
@@ -326,7 +328,7 @@ export class AssetModule extends ApiModule {
             this.listAssets(symbol, 1)
                 .then(res => {
                     if (res.length !== 1 || res[0].symbol !== symbol) {
-                        reject('asset_not_found');
+                        reject(this.handleError(AssetError.asset_not_found));
                         return;
                     }
                     const operation = new DatabaseOperations.PriceToDCT(
@@ -337,9 +339,9 @@ export class AssetModule extends ApiModule {
                     );
                     this.dbApi.execute(operation)
                         .then(res => resolve(res))
-                        .catch(err => reject('database_operation_failed'));
+                        .catch(err => reject(this.handleError(AssetError.database_operation_failed, err)));
                 })
-                .catch(err => reject('failed_load_assets'));
+                .catch(err => reject(this.handleError(AssetError.unable_to_list_assets, err)));
         });
     }
 
@@ -350,11 +352,12 @@ export class AssetModule extends ApiModule {
                             privateKey: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             this.listAssets(symbol, 1)
-                .then((asset: AssetObject[]) => {
-                    if (asset.length !== 1 || asset[0].symbol !== symbol) {
+                .then((assets: AssetObject[]) => {
+                    if (assets.length !== 1 || assets[0].symbol !== symbol) {
                         reject('asset_not_found');
                         return;
                     }
+                    const asset = assets[0];
                     const feed: PriceFeed = {
                         core_exchange_rate: {
                             quote: {
@@ -362,28 +365,30 @@ export class AssetModule extends ApiModule {
                                 asset_id: '1.3.0'
                             },
                             base: {
-                                asset_id: '',
+                                asset_id: asset.id,
                                 amount: exchangeBaseAmount
                             }
                         }
                     };
-                    const operation = new Operations.AssetPublishFeed(publishingAccount, asset[0].id, feed);
+                    const operation = new Operations.AssetPublishFeed(publishingAccount, asset.id, feed);
                     const transaction = new Transaction();
                     transaction.add(operation);
                     transaction.broadcast(privateKey)
                         .then(res => resolve(res))
-                        .catch(err => reject('failed_to_broadcast_transaction'));
+                        .catch(err => reject(this.handleError(AssetError.transaction_broadcast_failed, err)));
                 })
-                .catch(err => reject('failed_load_assets'));
+                .catch(err => {
+                    reject(this.handleError(AssetError.unable_to_list_assets, err));
+                });
         });
     }
 
-    public getFeedsByMiner(minerId: string, limit: number = 100): Promise<any> {
+    public getFeedsByMiner(minerAccountId: string, limit: number = 100): Promise<any> {
         return new Promise<any>((resolve, reject) => {
-            const operation = new DatabaseOperations.GetFeedsByMiner(minerId, limit);
+            const operation = new DatabaseOperations.GetFeedsByMiner(minerAccountId, limit);
             this.dbApi.execute(operation)
                 .then(res => resolve(res))
-                .catch(err => reject('database_operation_failed'));
+                .catch(err => reject(this.handleError(AssetError.database_operation_failed, err)));
         });
     }
 
@@ -392,7 +397,7 @@ export class AssetModule extends ApiModule {
             const operation = new DatabaseOperations.GetRealSupply();
             this.dbApi.execute(operation)
                 .then(res => resolve(res))
-                .catch(err => reject('database_operation_failed'));
+                .catch(err => reject(this.handleError(AssetError.database_operation_failed, err)));
         });
     }
 
@@ -412,9 +417,7 @@ export class AssetModule extends ApiModule {
                     }
                     resolve(res[0].monitored_asset_opts);
                 })
-                .catch(err => reject(err));
+                .catch(err => reject(this.handleError(AssetError.unable_to_list_assets, err)));
         });
     }
-
-    // TODO: add error handling
 }
