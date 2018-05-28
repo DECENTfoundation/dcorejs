@@ -108,7 +108,17 @@ export class AssetModule extends ApiModule {
             const options: AssetOptions = {
                 max_supply: 0,
                 is_exchangeable: true,
-                extensions: []
+                extensions: [],
+                core_exchange_rate: {
+                    base: {
+                        amount: 0,
+                        asset_id: '1.3.0'
+                    },
+                    quote: {
+                        amount: 0,
+                        asset_id: '1.3.1'
+                    }
+                }
             };
             const monitoredOpts: MonitoredAssetOptions = {
                 feed_lifetime_sec: feedLifetimeSec,
