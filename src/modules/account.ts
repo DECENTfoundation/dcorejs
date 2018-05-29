@@ -93,7 +93,7 @@ export class AccountApi extends ApiModule {
      */
     public getTransactionHistory(accountId: string,
                                  privateKeys: string[],
-                                 order: string = SearchAccountHistoryOrder.timeDesc,
+                                 order: SearchAccountHistoryOrder = SearchAccountHistoryOrder.timeDesc,
                                  startObjectId: string = '0.0.0',
                                  resultLimit: number = 100): Promise<TransactionRecord[]> {
         return new Promise((resolve, reject) => {
@@ -151,7 +151,7 @@ export class AccountApi extends ApiModule {
      */
     public searchAccountHistory(accountId: string,
                                 privateKeys: string[],
-                                order: string = SearchAccountHistoryOrder.timeDesc,
+                                order: SearchAccountHistoryOrder = SearchAccountHistoryOrder.timeDesc,
                                 startObjectId: string = '0.0.0',
                                 resultLimit: number = 100): Promise<TransactionRecord[]> {
         return new Promise((resolve, reject) => {
