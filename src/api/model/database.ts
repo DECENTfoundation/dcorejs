@@ -35,6 +35,9 @@ export enum DatabaseOperationName {
     getBuyingHistoryObjectsByConsumer = 'get_buying_history_objects_by_consumer',
     getBuyingByConsumerURI = 'get_buying_by_consumer_URI',
     listActiveSubscriptionsByConsumer = 'list_active_subscriptions_by_consumer',
+    listSubscriptionsByConsumer = 'list_subscriptions_by_consumer',
+    listActiveSubscriptionsByAuthor = 'list_active_subscriptions_by_author',
+    listSubscriptionsByAuthor = 'list_subscriptions_by_author',
     listSeedersByUpload = 'list_seeders_by_upload',
     listSeedersByRegion = 'list_seeders_by_region',
     listSeedersByRating = 'list_seeders_by_rating',
@@ -334,6 +337,24 @@ export namespace DatabaseOperations {
         }
     }
 
+    export class ListSubscriptionsByConsumer extends DatabaseOperation {
+        constructor(accountId: string, limit: number) {
+            super(DatabaseOperationName.listSubscriptionsByConsumer, accountId, limit);
+        }
+    }
+
+    export class ListActiveSubscriptionsByAuthor extends DatabaseOperation {
+        constructor(accountId: string, limit: number) {
+            super(DatabaseOperationName.listActiveSubscriptionsByAuthor, accountId, limit);
+        }
+    }
+
+    export class ListSubscriptionsByAuthor extends DatabaseOperation {
+        constructor(accountId: string, limit: number) {
+            super(DatabaseOperationName.listSubscriptionsByAuthor, accountId, limit);
+        }
+    }
+  
     export class ListSeedersByUpload extends DatabaseOperation {
         constructor(limit: number) {
             super(DatabaseOperationName.listSeedersByUpload, limit);

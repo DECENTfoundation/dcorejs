@@ -7,12 +7,14 @@ import {HistoryApi} from './api/history';
 import {ApiConnector, ConnectionState} from './api/apiConnector';
 import {ExplorerModule} from './modules/explorer';
 import {MiningModule} from './modules/mining';
+import {SubscriptionModule} from './modules/subscription';
 import {SeedingModule} from './modules/seeding';
 
 let _content: ContentApi;
 let _account: AccountApi;
 let _explorer: ExplorerModule;
 let _mining: MiningModule;
+let _subscription: SubscriptionModule;
 let _seeding: SeedingModule;
 
 export class DcoreError {
@@ -51,6 +53,7 @@ export function initialize(config: DcoreConfig,
     _content = new ContentApi(database);
     _account = new AccountApi(database, chain, historyApi, connector);
     _explorer = new ExplorerModule(database);
+    _subscription = new SubscriptionModule(database);
     _seeding = new SeedingModule(database);
     _mining = new MiningModule(database, connector, chain);
 }
@@ -69,6 +72,10 @@ export function explorer(): ExplorerModule {
 
 export function mining(): MiningModule {
     return _mining;
+}
+
+export function subscription(): SubscriptionModule {
+    return _subscription;
 }
 
 export function seeding(): SeedingModule {
