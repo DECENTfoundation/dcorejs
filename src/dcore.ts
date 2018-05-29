@@ -7,11 +7,13 @@ import {HistoryApi} from './api/history';
 import {ApiConnector, ConnectionState} from './api/apiConnector';
 import {ExplorerModule} from './modules/explorer';
 import {MiningModule} from './modules/mining';
+import {SubscriptionModule} from './modules/subscription';
 
 let _content: ContentApi;
 let _account: AccountApi;
 let _explorer: ExplorerModule;
 let _mining: MiningModule;
+let _subscription: SubscriptionModule;
 
 export class DcoreError {
     static app_not_initialized = 'app_not_initialized';
@@ -50,6 +52,7 @@ export function initialize(config: DcoreConfig,
     _account = new AccountApi(database, chain, historyApi, connector);
     _explorer = new ExplorerModule(database);
     _mining = new MiningModule(database);
+    _subscription = new SubscriptionModule(database);
 }
 
 export function content(): ContentApi {
@@ -66,4 +69,8 @@ export function explorer(): ExplorerModule {
 
 export function mining(): MiningModule {
     return _mining;
+}
+
+export function subscription(): SubscriptionModule {
+    return _subscription;
 }
