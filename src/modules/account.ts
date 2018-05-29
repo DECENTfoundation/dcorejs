@@ -94,7 +94,7 @@ export class AccountApi extends ApiModule {
      */
     public getTransactionHistory(accountId: string,
                                  privateKeys: string[],
-                                 order: string = SearchAccountHistoryOrder.timeDesc,
+                                 order: SearchAccountHistoryOrder = SearchAccountHistoryOrder.timeDesc,
                                  startObjectId: string = '0.0.0',
                                  resultLimit: number = 100): Promise<TransactionRecord[]> {
         return new Promise((resolve, reject) => {
@@ -152,7 +152,7 @@ export class AccountApi extends ApiModule {
      */
     public searchAccountHistory(accountId: string,
                                 privateKeys: string[],
-                                order: string = SearchAccountHistoryOrder.timeDesc,
+                                order: SearchAccountHistoryOrder = SearchAccountHistoryOrder.timeDesc,
                                 startObjectId: string = '0.0.0',
                                 resultLimit: number = 100): Promise<TransactionRecord[]> {
         return new Promise((resolve, reject) => {
@@ -394,26 +394,29 @@ export class AccountApi extends ApiModule {
             operations.add(ChainMethods.getAccount, account);
             this._chainApi.fetch(operations)
                 .then(res => {
+                    if (!res[0]) {
+                        reject(this.handleError(AccountError.account_does_not_exist, ''));
+                        return;
+                    }
                     const [voterAccount] = res;
                     const voter: Account = JSON.parse(JSON.stringify(voterAccount));
                     const operation = new DatabaseOperations.GetMiners(miners);
                     this.dbApi.execute(operation)
                         .then((res: Miner[]) => {
-                            voter.options.votes.push(...res.map(miner => miner.vote_id));
-                            voter.options.votes.sort((e1: string, e2: string) => {
-                                return Number(e1.split(':')[1]) - Number(e2.split(':')[1]);
-                            });
+                            const newOptions = Object.assign({}, voter.options);
+                            newOptions.votes.push(...res.map(miner => miner.vote_id));
+                            newOptions.votes = this.getSortedMiners(voter.options.votes);
                             const op = new Operations.AccountUpdateOperation(
                                 account,
                                 voter.owner,
                                 voter.active,
-                                voter.options,
+                                newOptions,
                                 {}
                             );
                             const transaction = new Transaction();
                             transaction.add(op);
                             transaction.broadcast(privateKeyWif)
-                                .then(res => resolve(transaction))
+                                .then(res => resolve(true))
                                 .catch((err: Error) => {
                                     console.log(err);
                                     let errorMessage = 'transaction_broadcast_failed';
@@ -442,16 +445,19 @@ export class AccountApi extends ApiModule {
             operations.add(ChainMethods.getAccount, account);
             this._chainApi.fetch(operations)
                 .then(res => {
+                    if (!res[0]) {
+                        reject(this.handleError(AccountError.account_does_not_exist, ''));
+                        return;
+                    }
                     const [voterAccount] = res;
                     const voter: Account = JSON.parse(JSON.stringify(voterAccount));
                     const operation = new DatabaseOperations.GetMiners(miners);
                     this.dbApi.execute(operation)
                         .then((res: Miner[]) => {
-                            res.forEach(miner => {
-                                const voteIndex = voter.options.votes.indexOf(miner.vote_id);
-                                voter.options.votes.splice(voteIndex, 1);
-                            });
-                            if (voter.options.votes.length < voter.options.num_miner) {
+                            const minersToUnvote = this.createVoteIdList(miners, res);
+                            const newOptions = Object.assign({}, voter.options);
+                            newOptions.votes = this.removeVotedMiners(voter.options.votes, minersToUnvote);
+                            if (newOptions.votes.length < voter.options.num_miner) {
                                 reject(
                                     this.handleError(
                                         AccountError.cannot_update_miner_votes,
@@ -460,23 +466,110 @@ export class AccountApi extends ApiModule {
                                 );
                                 return;
                             }
+                            if (voter.options.votes === newOptions.votes) {
+                                reject(
+                                    this.handleError(
+                                    AccountError.votes_does_not_changed,
+                                    'Miners sent to unvote are already unvoted.'
+                                ));
+                            }
                             const op = new Operations.AccountUpdateOperation(
                                 account,
                                 voter.owner,
                                 voter.active,
-                                voter.options,
+                                newOptions,
                                 {}
                             );
                             const transaction = new Transaction();
                             transaction.add(op);
                             transaction.broadcast(privateKeyWif)
-                                .then(res => resolve(res))
+                                .then(res => resolve(true))
                                 .catch(err => reject(err));
                         })
                         .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
                 })
                 .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
         });
+    }
+
+    public voteUnvoteMiners(voteMiners: string[], unvoteMiners: string[], accountId: string, privateKey: string): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            const operations = new ChainMethods();
+            operations.add(ChainMethods.getAccount, accountId);
+            this._chainApi.fetch(operations)
+                .then(res => {
+                    if (!res[0]) {
+                        reject(this.handleError(AccountError.account_does_not_exist, ''));
+                        return;
+                    }
+                    const [voterAcc] = res;
+                    const voter: Account = JSON.parse(JSON.stringify(voterAcc));
+
+                    const miners = [].concat(...voteMiners, ...unvoteMiners);
+                    const operation = new DatabaseOperations.GetMiners(miners);
+                    this.dbApi.execute(operation)
+                        .then((res: any[]) => {
+                            const minersToVote: string[] = this.createVoteIdList(voteMiners, res);
+                            const minersToUnvote: string[] = this.createVoteIdList(unvoteMiners, res);
+
+                            const finalMiners = this.removeVotedMiners(voter.options.votes, minersToUnvote);
+                            finalMiners.push(...minersToVote);
+                            if (finalMiners.length < voter.options.num_miner) {
+                                reject(
+                                    this.handleError(
+                                        AccountError.cannot_update_miner_votes,
+                                        'Number of votes cannot be lower as desired miners number'
+                                    )
+                                );
+                                return;
+                            }
+                            const newOptions = Object.assign({}, voter.options);
+                            newOptions.votes = this.getSortedMiners(finalMiners);
+                            const accountUpdateOp = new Operations.AccountUpdateOperation(
+                                accountId,
+                                voter.owner,
+                                voter.active,
+                                newOptions,
+                                {}
+                            );
+                            const transaction = new Transaction();
+                            transaction.add(accountUpdateOp);
+                            transaction.broadcast(privateKey)
+                                .then(res => resolve(true))
+                                .catch(err => reject(this.handleError(AccountError.transaction_broadcast_failed, err)));
+                        })
+                        .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
+                })
+                .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
+        });
+    }
+
+    private getSortedMiners(minersVoteIds: string[]): string[] {
+        const res = [].concat(...minersVoteIds);
+        res.sort((e1: string, e2: string) => {
+            return Number(e1.split(':')[1]) - Number(e2.split(':')[1]);
+        });
+        return res;
+    }
+
+    private removeVotedMiners(voted: string[], toUnvote: string[]): string[] {
+        const res: string[] = [].concat(...voted);
+        toUnvote.forEach(u => {
+            const index = res.indexOf(u);
+            if (index > 0) {
+                res.splice(index, 1);
+            }
+        });
+        return res;
+    }
+
+    private createVoteIdList(ids: string[], objects: any[]): string[] {
+        const res: string[] = [];
+        ids.forEach(m => {
+            const miner = objects.find(el => el.id === m);
+            res.push(miner.vote_id);
+        });
+        return res;
     }
 
     /**
@@ -659,8 +752,8 @@ export class AccountApi extends ApiModule {
      * @param {number} limit                    Number of returned accounts
      * @returns {Promise<AccountNameIdPair>}    Listed accounts.
      */
-    public listAccounts(loweBound: string = '', limit: number = 100): Promise<AccountNameIdPair> {
-        return new Promise<AccountNameIdPair>((resolve, reject) => {
+    public listAccounts(loweBound: string = '', limit: number = 100): Promise<AccountNameIdPair[]> {
+        return new Promise<AccountNameIdPair[]>((resolve, reject) => {
             const operation = new DatabaseOperations.LookupAccounts(loweBound, limit);
             this.dbApi.execute(operation)
                 .then(res => resolve(res))
