@@ -385,7 +385,7 @@ export class ContentApi {
      * @return {Promise<Content[]>}
      */
     public getPurchasedContent(accountId: string,
-                               order: string = SearchParamsOrder.createdDesc,
+                               order: SearchParamsOrder = SearchParamsOrder.createdDesc,
                                startObjectId: string = '0.0.0',
                                term: string = '',
                                resultSize: number = 100): Promise<Content[]> {
