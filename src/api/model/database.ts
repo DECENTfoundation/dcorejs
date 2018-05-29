@@ -37,6 +37,7 @@ export enum DatabaseOperationName {
     listActiveSubscriptionsByConsumer = 'list_active_subscriptions_by_consumer',
     listSeedersByUpload = 'list_seeders_by_upload',
     listSeedersByRegion = 'list_seeders_by_region',
+    listSeedersByRating = 'list_seeders_by_rating',
 }
 
 export class DatabaseOperation {
@@ -335,6 +336,12 @@ export namespace DatabaseOperations {
     export class ListSeedersByRegion extends DatabaseOperation {
         constructor(region: string) {
             super(DatabaseOperationName.listSeedersByRegion, region);
+        }
+    }
+
+    export class ListSeedersByRating extends DatabaseOperation {
+        constructor(limit: number) {
+            super(DatabaseOperationName.listSeedersByRating, limit);
         }
     }
 }
