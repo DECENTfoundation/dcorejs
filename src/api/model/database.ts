@@ -38,6 +38,7 @@ export enum DatabaseOperationName {
     listSeedersByUpload = 'list_seeders_by_upload',
     listSeedersByRegion = 'list_seeders_by_region',
     listSeedersByRating = 'list_seeders_by_rating',
+    getVestingBalances = 'get_vesting_balances',
 }
 
 export class DatabaseOperation {
@@ -318,6 +319,12 @@ export namespace DatabaseOperations {
     export class GetBuyingByConsumerURI extends DatabaseOperation {
         constructor(accountId: string, URI: string) {
             super(DatabaseOperationName.getBuyingByConsumerURI, accountId, URI);
+        }
+    }
+
+    export class GetVestingBalances extends DatabaseOperation {
+        constructor(accountId: string) {
+            super(DatabaseOperationName.getVestingBalances, accountId);
         }
     }
 

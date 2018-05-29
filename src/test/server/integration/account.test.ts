@@ -1,5 +1,6 @@
 import * as dcore_js from '../../../../';
 import * as chai from 'chai';
+import {AccountOrder} from '../../../modules/account';
 
 const expect = chai.expect;
 chai.should();
@@ -110,7 +111,7 @@ describe('(server/integration) Account fetch', () => {
     }).timeout(10000);
 
     it('search accounts', (done) => {
-        dcore_js.account().searchAccounts('', '', '0.0.0')
+        dcore_js.account().searchAccounts('', AccountOrder.none, '0.0.0')
             .then(res => {
                 expect(res).to.be.a('array');
                 expect(res).to.have.length.above(0);

@@ -51,8 +51,8 @@ export function initialize(config: DcoreConfig,
     _content = new ContentApi(database);
     _account = new AccountApi(database, chain, historyApi, connector);
     _explorer = new ExplorerModule(database);
-    _mining = new MiningModule(database);
     _seeding = new SeedingModule(database);
+    _mining = new MiningModule(database, connector, chain);
 }
 
 export function content(): ContentApi {
