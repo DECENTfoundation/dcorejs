@@ -29,4 +29,15 @@ export class SubscriptionModule extends ApiModule {
                 .catch(err => reject(this.handleError(SubscriptionError.database_operation_failed, err)));
         });
     }
+
+    public listActiveSubscriptionsByAuthor(authorId: string, count: number = 100): Promise<SubscriptionObject[]> {
+        return new Promise<SubscriptionObject[]>((resolve, reject) => {
+            const operation = new DatabaseOperations.ListActiveSubscriptionsByAuthor(authorId, count);
+            this.dbApi.execute(operation)
+                .then(res => {
+                    resolve(res);
+                })
+                .catch(err => reject(this.handleError(SubscriptionError.database_operation_failed, err)));
+        });
+    }
 }
