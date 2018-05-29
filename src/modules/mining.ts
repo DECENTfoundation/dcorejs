@@ -7,7 +7,8 @@ import {ApiModule} from './ApiModule';
 import {Account} from '../model/account';
 import {ApiConnector} from '../api/apiConnector';
 import {ChainApi, ChainMethods} from '../api/chain';
-import {Miner} from '../model/explorer';
+import {Block, Miner} from '../model/explorer';
+import VestingBalance = Block.VestingBalance;
 
 export enum MiningError {
     transaction_broadcast_failed = 'transaction_broadcast_failed',
@@ -210,6 +211,15 @@ export class MiningModule extends ApiModule {
                         .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
                 })
                 .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
+        });
+    }
+
+    public getVestingBalances(accountId: string): Promise<VestingBalance[]> {
+        return new Promise<VestingBalance[]>((resolve, reject) => {
+            const operation = new DatabaseOperations.GetVestingBalances(accountId);
+            this.dbApi.execute(operation)
+                .then(res => resolve(res))
+                .catch(err => reject(this.handleError(MiningError.database_fetch_failed, err)));
         });
     }
 }
