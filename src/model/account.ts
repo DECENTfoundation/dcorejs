@@ -176,18 +176,18 @@ export interface WalletExport {
     ws_password: string;
 }
 
-export class AccountError {
-    static account_does_not_exist = 'account_does_not_exist';
-    static account_fetch_failed = 'account_fetch_failed';
-    static transaction_history_fetch_failed = 'transaction_history_fetch_failed';
-    static transfer_missing_pkey = 'transfer_missing_pkey';
-    static transfer_sender_account_not_found = 'transfer_sender_account_not_found';
-    static transfer_receiver_account_not_found = 'transfer_receiver_account_not_found';
-    static database_operation_failed = 'database_operation_failed';
-    static transaction_broadcast_failed = 'transaction_broadcast_failed';
-    static account_keys_incorrect = 'account_keys_incorrect';
-    static bad_parameter = 'bad_parameter';
-    static history_fetch_failed = 'history_fetch_failed';
-    static cannot_update_miner_votes = 'cannot_update_miner_votes';
-    static votes_does_not_changed = 'votes_does_not_changed';
+export enum AccountError {
+    account_does_not_exist = 'account_does_not_exist',
+    account_fetch_failed = 'account_fetch_failed',
+    transaction_history_fetch_failed = 'transaction_history_fetch_failed',
+    transfer_missing_pkey = 'transfer_missing_pkey',
+    transfer_sender_account_not_found = 'transfer_sender_account_not_found',
+    transfer_receiver_account_not_found = 'transfer_receiver_account_not_found',
+    database_operation_failed = 'database_operation_failed',
+    transaction_broadcast_failed = 'transaction_broadcast_failed',
+    account_keys_incorrect = 'account_keys_incorrect',
+    bad_parameter = 'bad_parameter',
+    history_fetch_failed = 'history_fetch_failed',
+    cannot_update_miner_votes = 'cannot_update_miner_votes',
+    votes_does_not_changed = 'votes_does_not_changed',
 }
