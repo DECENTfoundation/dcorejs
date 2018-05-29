@@ -38,6 +38,10 @@ export enum DatabaseOperationName {
     listSubscriptionsByConsumer = 'list_subscriptions_by_consumer',
     listActiveSubscriptionsByAuthor = 'list_active_subscriptions_by_author',
     listSubscriptionsByAuthor = 'list_subscriptions_by_author',
+    listSeedersByUpload = 'list_seeders_by_upload',
+    listSeedersByRegion = 'list_seeders_by_region',
+    listSeedersByRating = 'list_seeders_by_rating',
+    getVestingBalances = 'get_vesting_balances',
 }
 
 export class DatabaseOperation {
@@ -321,6 +325,12 @@ export namespace DatabaseOperations {
         }
     }
 
+    export class GetVestingBalances extends DatabaseOperation {
+        constructor(accountId: string) {
+            super(DatabaseOperationName.getVestingBalances, accountId);
+        }
+    }
+
     export class ListActiveSubscriptionsByConsumer extends DatabaseOperation {
         constructor(accountId: string, limit: number) {
             super(DatabaseOperationName.listActiveSubscriptionsByConsumer, accountId, limit);
@@ -342,6 +352,24 @@ export namespace DatabaseOperations {
     export class ListSubscriptionsByAuthor extends DatabaseOperation {
         constructor(accountId: string, limit: number) {
             super(DatabaseOperationName.listSubscriptionsByAuthor, accountId, limit);
+        }
+    }
+  
+    export class ListSeedersByUpload extends DatabaseOperation {
+        constructor(limit: number) {
+            super(DatabaseOperationName.listSeedersByUpload, limit);
+        }
+    }
+
+    export class ListSeedersByRegion extends DatabaseOperation {
+        constructor(region: string) {
+            super(DatabaseOperationName.listSeedersByRegion, region);
+        }
+    }
+
+    export class ListSeedersByRating extends DatabaseOperation {
+        constructor(limit: number) {
+            super(DatabaseOperationName.listSeedersByRating, limit);
         }
     }
 }
