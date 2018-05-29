@@ -4,3 +4,7 @@ export interface SubscriptionObject {
     expiration: number;
     automatic_renewal: boolean;
 }
+
+export enum SubscriptionError {
+    database_operation_failed = 'database_operation_failed',
+}

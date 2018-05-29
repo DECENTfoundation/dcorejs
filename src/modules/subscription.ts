@@ -1,7 +1,7 @@
 import {ApiModule} from './ApiModule';
 import {DatabaseApi} from '../api/database';
 import {DatabaseOperations} from '../api/model/database';
-import {SubscriptionObject} from '../model/subscription';
+import {SubscriptionError, SubscriptionObject} from '../model/subscription';
 
 export class SubscriptionModule extends ApiModule {
     constructor(dbApi: DatabaseApi) {
@@ -15,7 +15,7 @@ export class SubscriptionModule extends ApiModule {
                 .then(res => {
                     console.log(res);
                 })
-                .catch(err => reject('databse_execurion_failed'));
+                .catch(err => reject(this.handleError(SubscriptionError.database_operation_failed, err)));
         });
     }
 }
