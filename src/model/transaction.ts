@@ -49,6 +49,8 @@ export enum OperationName {
     asset_publish_feed = 'asset_publish_feed',
     miner_create = 'miner_create',
     miner_update = 'miner_update',
+    proposal_create = 'proposal_create',
+    operation_wrapper = 'op_wrapper',
 }
 
 /**
@@ -312,6 +314,35 @@ export namespace Operations {
                     miner_account: minerAccount,
                     new_url: newURL,
                     new_signing_key: newSigningKey
+                }
+            );
+        }
+    }
+
+    export class ProposalCreate extends Operation {
+        constructor(feePayingAccount: string,
+                    proposedOperations: object[],
+                    expirationTime: number,
+                    reviewPeriodSeconds: number = null) {
+            super(
+                OperationName.proposal_create,
+                {
+                    fee_paying_account: feePayingAccount,
+                    proposed_ops: proposedOperations,
+                    expiration_time: expirationTime,
+                    review_period_seconds: reviewPeriodSeconds,
+                    extensions: []
+                }
+            );
+        }
+    }
+
+    export class OperationWrapper extends Operation {
+        constructor(operation: Operation) {
+            super(
+                OperationName.operation_wrapper,
+                {
+                    op: operation
                 }
             );
         }

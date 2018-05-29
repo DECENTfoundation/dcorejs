@@ -124,16 +124,27 @@ export class AssetModule extends ApiModule {
                 feed_lifetime_sec: feedLifetimeSec,
                 minimum_feeds: minimumFeeds
             };
-            const operation = new Operations.AssetCreateOperation(
+            const assetCreateOpeartionoperation = new Operations.AssetCreateOperation(
                 issuer, symbol, precision, description, options, monitoredOpts
             );
             const transaction = new Transaction();
-            transaction.add(operation);
+            transaction.add(assetCreateOpeartionoperation);
+
+            const proposalParams = {
+                fee_paying_account: issuer,
+                proposed_ops: [],
+                expiration_time: 60 * 60 * 24,
+                review_period_seconds: null,
+                extension: []
+            };
+            transaction.propose(proposalParams);
             this.connector.connect()
                 .then(() => {
-                    transaction.broadcast(issuerPrivateKey)
+                    transaction.broadcast(issuerPrivateKey, true)
                         .then(() => resolve(true))
-                        .catch(err => reject(this.handleError(AssetError.transaction_broadcast_failed, err)));
+                        .catch(err => {
+                            reject(this.handleError(AssetError.transaction_broadcast_failed, err));
+                        });
                 })
                 .catch(err => {
                     reject(this.handleError(AssetError.connection_failed, err));
