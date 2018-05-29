@@ -189,4 +189,5 @@ export class AccountError {
     static bad_parameter = 'bad_parameter';
     static history_fetch_failed = 'history_fetch_failed';
     static cannot_update_miner_votes = 'cannot_update_miner_votes';
+    static votes_does_not_changed = 'votes_does_not_changed';
 }
