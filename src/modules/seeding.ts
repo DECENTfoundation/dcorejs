@@ -26,4 +26,13 @@ export class SeedingModule extends ApiModule {
                 .catch(err => reject(this.handleError(SeedingError.database_operation_failed, err)));
         });
     }
+
+    public listSeedersByRegion(region: string): Promise<Seeder[]> {
+        return new Promise<Seeder[]>((resolve, reject) => {
+            const operation = new DatabaseOperations.ListSeedersByRegion(region);
+            this.dbApi.execute(operation)
+                .then(res => resolve(res))
+                .catch(err => reject(this.handleError(SeedingError.database_operation_failed, err)));
+        });
+    }
 }
