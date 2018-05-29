@@ -35,6 +35,7 @@ export enum DatabaseOperationName {
     getBuyingHistoryObjectsByConsumer = 'get_buying_history_objects_by_consumer',
     getBuyingByConsumerURI = 'get_buying_by_consumer_URI',
     listActiveSubscriptionsByConsumer = 'list_active_subscriptions_by_consumer',
+    getVestingBalances = 'get_vesting_balances',
 }
 
 export class DatabaseOperation {
@@ -315,6 +316,12 @@ export namespace DatabaseOperations {
     export class GetBuyingByConsumerURI extends DatabaseOperation {
         constructor(accountId: string, URI: string) {
             super(DatabaseOperationName.getBuyingByConsumerURI, accountId, URI);
+        }
+    }
+
+    export class GetVestingBalances extends DatabaseOperation {
+        constructor(accountId: string) {
+            super(DatabaseOperationName.getVestingBalances, accountId);
         }
     }
 
