@@ -44,4 +44,11 @@ describe('(client/unit) Utils methods test', () => {
         const formated = dcorejs.Utils.formatToReadiblePrice(1);
         expect(formated).to.equal('0.00000001');
     }).timeout(5000);
+
+    it('generates El Gamal keys', () => {
+        const elGamalPrivate = dcorejs.Utils.elGamalPrivate(refPrivateKey);
+        const elGamalPublic = dcorejs.Utils.elGamalPublic(elGamalPrivate);
+        expect(elGamalPrivate).to.equal(refElGamalPrivate);
+        expect(elGamalPublic).to.equal(refElGamalPublic);
+    });
 });

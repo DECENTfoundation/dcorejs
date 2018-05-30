@@ -2,6 +2,7 @@ import { Utils } from '../../../utils';
 import * as dcorejs_lib from 'dcorejs-lib';
 import { setLibRef } from '../../../helpers';
 import { expect } from 'chai';
+import {CryptoUtils} from '../../../crypt';
 
 const bk = 'WORKBOX UPJERK GORBLE SPECULA SUCKLER FUNNEL INWRAP DOSIS DARNEL CATTABU FINGER MINARET TUCKER DENDRIC WOD CULMEN';
 const pub = 'DCT5dJjvk9k3yTsnJsAph6V8zEPxsAvJ7FCCzqYWiQQyVTiHvReLz';
@@ -23,6 +24,11 @@ const refPriv = {
             's': 0
         }
 };
+const refElGamalPrivate = '995148271311054691065477011654988113333995189557838160534771306325983453509632335555982804728847520959577' +
+    '6035312706007755854990617069594416307472971521354';
+const refElGamalPublic = '1476592897265129256906985148863834019333244843526837587739241973266771272616315012971707289842820560922634' +
+    '174697696963038593504885326978206069960938313296';
+const refPrivateKey = '5KfaSt8mWyGcZXRk4HKmt77ERJsBQz8QXintiAvUFCMasL2KYTL';
 
 function initLib() {
     setLibRef(dcorejs_lib);
@@ -57,5 +63,12 @@ describe('(server/unit) Utils methods test', () => {
     it('change amount format', () => {
         const formated = Utils.formatToReadiblePrice(1);
         expect(formated).to.equal('0.00000001');
+    });
+
+    it('generates El Gamal keys', () => {
+        const elGamalPrivate = Utils.elGamalPrivate(refPrivateKey);
+        const elGamalPublic = Utils.elGamalPublic(elGamalPrivate);
+        expect(elGamalPrivate).to.equal(refElGamalPrivate);
+        expect(elGamalPublic).to.equal(refElGamalPublic);
     });
 });

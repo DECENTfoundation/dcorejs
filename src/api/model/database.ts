@@ -1,3 +1,5 @@
+import { Asset } from '../../model/transaction';
+
 export enum DatabaseError {
     chain_connection_failed = 'chain_connection_failed',
     chain_connecting = 'chain_connecting',
@@ -5,39 +7,52 @@ export enum DatabaseError {
     api_connection_failed = 'api_connection_failed'
 }
 
-class DatabaseOperationName {
-    static searchContent = 'search_content';
-    static getAccountByName = 'get_account_by_name';
-    static getAccounts = 'get_accounts';
-    static searchAccountHistory = 'search_account_history';
-    static getAccountBalances = 'get_account_balances';
-    static generateContentKeys = 'generate_content_keys';
-    static restoreEncryptionKey = 'restore_encryption_key';
-    static getBuyingObjectsByConsumer = 'get_buying_objects_by_consumer';
-    static listPublishers = 'list_seeders_by_price';
-    static getObjects = 'get_objects';
-    static getContent = 'get_content';
-    static getBuyingHistoryObjects = 'get_buying_by_consumer_URI';
-    static getDynamicGlobalProperties = 'get_dynamic_global_properties';
-    static getBlock = 'get_block';
-    static getTransaction = 'get_transaction';
-    static getAccountCount = 'get_account_count';
-    static lookupMiners = 'lookup_miner_accounts';
-    static getMiners = 'get_miners';
-    static searchFeedback = 'search_feedback';
-    static searchAccounts = 'search_accounts';
-    static lookupAccounts = 'lookup_accounts';
-    static searchMinerVoting = 'search_miner_voting';
-    static getMinerCount = 'get_miner_count';
-    static getOpenBuyings = 'get_open_buyings';
-    static getOpenBuyingsByURI = 'get_open_buyings_by_URI';
-    static getOpenBuyingsByConsumer = 'get_open_buyings_by_consumer';
-    static getBuyingHistoryObjectsByConsumer = 'get_buying_history_objects_by_consumer';
-    static getBuyingByConsumerURI = 'get_buying_by_consumer_URI';
+export enum DatabaseOperationName {
+    getAccountByName = 'get_account_by_name',
+    searchContent = 'search_content',
+    getAccounts = 'get_accounts',
+    searchAccountHistory = 'search_account_history',
+    getAccountBalances = 'get_account_balances',
+    generateContentKeys = 'generate_content_keys',
+    restoreEncryptionKey = 'restore_encryption_key',
+    getBuyingObjectsByConsumer = 'get_buying_objects_by_consumer',
+    listPublishers = 'list_seeders_by_price',
+    getObjects = 'get_objects',
+    getContent = 'get_content',
+    getBuyingHistoryObjects = 'get_buying_by_consumer_URI',
+    getDynamicGlobalProperties = 'get_dynamic_global_properties',
+    getBlock = 'get_block',
+    getTransaction = 'get_transaction',
+    getAccountCount = 'get_account_count',
+    lookupMiners = 'lookup_miner_accounts',
+    getMiners = 'get_miners',
+    searchFeedback = 'search_feedback',
+    searchAccounts = 'search_accounts',
+    lookupAccounts = 'lookup_accounts',
+    searchMinerVoting = 'search_miner_voting',
+    getMinerCount = 'get_miner_count',
+    getOpenBuyings = 'get_open_buyings',
+    getOpenBuyingsByURI = 'get_open_buyings_by_URI',
+    getOpenBuyingsByConsumer = 'get_open_buyings_by_consumer',
+    getBuyingHistoryObjectsByConsumer = 'get_buying_history_objects_by_consumer',
+    getBuyingByConsumerURI = 'get_buying_by_consumer_URI',
+    listActiveSubscriptionsByConsumer = 'list_active_subscriptions_by_consumer',
+    listSubscriptionsByConsumer = 'list_subscriptions_by_consumer',
+    listActiveSubscriptionsByAuthor = 'list_active_subscriptions_by_author',
+    listSubscriptionsByAuthor = 'list_subscriptions_by_author',
+    listSeedersByUpload = 'list_seeders_by_upload',
+    listSeedersByRegion = 'list_seeders_by_region',
+    listSeedersByRating = 'list_seeders_by_rating',
+    getVestingBalances = 'get_vesting_balances',
+    listAssets = 'list_assets',
+    getAssets = 'get_assets',
+    priceToDct = 'price_to_dct',
+    getFeedsByMiner = 'get_feeds_by_miner',
+    getRealSupply = 'get_real_supply',
 }
 
 export class DatabaseOperation {
-    protected _name: string;
+    protected _name: DatabaseOperationName;
     protected _parameters: any[];
 
     get name(): string {
@@ -48,42 +63,42 @@ export class DatabaseOperation {
         return this._parameters;
     }
 
-    constructor(name: string, ...params: any[]) {
+    constructor(name: DatabaseOperationName, ...params: any[]) {
         this._name = name;
         this._parameters = params;
     }
 }
 
-export class SearchParamsOrder {
-    static authorAsc = '+author';
-    static ratingAsc = '+rating';
-    static sizeAsc = '+size';
-    static priceAsc = '+price';
-    static createdAsc = '+created';
-    static expirationAsc = '+expiration';
-    static authorDesc = '-author';
-    static ratingDesc = '-rating';
-    static sizeDesc = '-size';
-    static priceDesc = '-price';
-    static createdDesc = '-created';
-    static expirationDesc = '-expiration';
+export enum SearchParamsOrder {
+    authorAsc = '+author',
+    ratingAsc = '+rating',
+    sizeAsc = '+size',
+    priceAsc = '+price',
+    createdAsc = '+created',
+    expirationAsc = '+expiration',
+    authorDesc = '-author',
+    ratingDesc = '-rating',
+    sizeDesc = '-size',
+    priceDesc = '-price',
+    createdDesc = '-created',
+    expirationDesc = '-expiration',
 }
 
-export class SearchAccountHistoryOrder {
-    static typeAsc = '+type';
-    static toAsc = '+to';
-    static fromAsc = '+from';
-    static priceAsc = '+price';
-    static feeAsc = '+fee';
-    static descriptionAsc = '+description';
-    static timeAsc = '+time';
-    static typeDesc = '-type';
-    static toDesc = '-to';
-    static fromDesc = '-from';
-    static priceDesc = '-price';
-    static feeDesc = '-fee';
-    static descriptionDesc = '-description';
-    static timeDesc = '-time';
+export enum SearchAccountHistoryOrder {
+    typeAsc = '+type',
+    toAsc = '+to',
+    fromAsc = '+from',
+    priceAsc = '+price',
+    feeAsc = '+fee',
+    descriptionAsc = '+description',
+    timeAsc = '+time',
+    typeDesc = '-type',
+    toDesc = '-to',
+    fromDesc = '-from',
+    priceDesc = '-price',
+    feeDesc = '-fee',
+    descriptionDesc = '-description',
+    timeDesc = '-time',
 }
 
 export enum MinerOrder {
@@ -314,6 +329,84 @@ export namespace DatabaseOperations {
     export class GetBuyingByConsumerURI extends DatabaseOperation {
         constructor(accountId: string, URI: string) {
             super(DatabaseOperationName.getBuyingByConsumerURI, accountId, URI);
+        }
+    }
+
+    export class ListAssets extends DatabaseOperation {
+        constructor(lowerBoundSymbol: string, limit: number) {
+            super(DatabaseOperationName.listAssets, lowerBoundSymbol, limit);
+        }
+    }
+
+    export class GetAssets extends DatabaseOperation {
+        constructor(assetIds: string[]) {
+            super(DatabaseOperationName.getAssets, assetIds);
+        }
+    }
+
+    export class PriceToDCT extends DatabaseOperation {
+        constructor(asset: Asset) {
+            super(DatabaseOperationName.priceToDct, asset);
+        }
+    }
+
+    export class GetFeedsByMiner extends DatabaseOperation {
+        constructor(accountId: string, limit: number) {
+            super(DatabaseOperationName.getFeedsByMiner, accountId, limit);
+        }
+    }
+
+    export class GetRealSupply extends DatabaseOperation {
+        constructor() {
+            super(DatabaseOperationName.getRealSupply);
+        }
+    }
+
+    export class GetVestingBalances extends DatabaseOperation {
+        constructor(accountId: string) {
+            super(DatabaseOperationName.getVestingBalances, accountId);
+        }
+    }
+
+    export class ListActiveSubscriptionsByConsumer extends DatabaseOperation {
+        constructor(accountId: string, limit: number) {
+            super(DatabaseOperationName.listActiveSubscriptionsByConsumer, accountId, limit);
+        }
+    }
+
+    export class ListSubscriptionsByConsumer extends DatabaseOperation {
+        constructor(accountId: string, limit: number) {
+            super(DatabaseOperationName.listSubscriptionsByConsumer, accountId, limit);
+        }
+    }
+
+    export class ListActiveSubscriptionsByAuthor extends DatabaseOperation {
+        constructor(accountId: string, limit: number) {
+            super(DatabaseOperationName.listActiveSubscriptionsByAuthor, accountId, limit);
+        }
+    }
+
+    export class ListSubscriptionsByAuthor extends DatabaseOperation {
+        constructor(accountId: string, limit: number) {
+            super(DatabaseOperationName.listSubscriptionsByAuthor, accountId, limit);
+        }
+    }
+  
+    export class ListSeedersByUpload extends DatabaseOperation {
+        constructor(limit: number) {
+            super(DatabaseOperationName.listSeedersByUpload, limit);
+        }
+    }
+
+    export class ListSeedersByRegion extends DatabaseOperation {
+        constructor(region: string) {
+            super(DatabaseOperationName.listSeedersByRegion, region);
+        }
+    }
+
+    export class ListSeedersByRating extends DatabaseOperation {
+        constructor(limit: number) {
+            super(DatabaseOperationName.listSeedersByRating, limit);
         }
     }
 }

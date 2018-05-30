@@ -6,7 +6,7 @@ export class ApiModule {
         this.dbApi = dbApi;
     }
 
-    protected handleError(message: string, err: any): Error {
+    protected handleError(message: string, err?: any): Error {
         const error = new Error(message);
         error.stack = err;
         return error;

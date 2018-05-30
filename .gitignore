@@ -8,3 +8,5 @@ lib/
 .DS_Store
 .editorconfig
 .vscode/
+
+\.vscode/

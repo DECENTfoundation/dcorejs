@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>dcorejs - Mining example</title>
+    <style>
+        .vote-button {
+            margin-left: 32px;
+        }
+        .function-block {
+            padding: 42px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Mining example</h1>
+    <div>
+        <h5>NOTE: Account id is already selected.</h5>
+        <div class="function-block">
+            <form action="javascript:void(0)">
+                <h5>NOTE: Number of miners you vote for must be higher or equal to number of miners voted already.</h5>
+                <label for="desired-miner-number">Desired miner number:</label>
+                <input id="desired-miner-number" type="number"/>
+                <button type="submit" onclick="setDesiredMinerNumber()">Submit</button>
+            </form>
+        </div>
+        <div class="function-block">
+            <label for="miner-list">Miners: </label>
+            <ul id="miner-list"></ul>
+        </div>
+        <div id="output"></div>
+    </div>
+    <script src="./../../../dist/dcorejs.umd.js" type="text/javascript"></script>
+    <script type="text/javascript" src="./mining.js"></script>
+</body>
+
+</html>

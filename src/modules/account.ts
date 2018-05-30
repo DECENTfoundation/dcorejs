@@ -10,12 +10,14 @@ import {DatabaseError, DatabaseOperations, MinerOrder, SearchAccountHistoryOrder
 import {Memo, Operation, Operations} from '../model/transaction';
 import {Miner} from '../model/explorer';
 import {ApiModule} from './ApiModule';
+import {MiningModule} from './mining';
 
 export enum AccountOrder {
     nameAsc = '+name',
     idAsc = '+id',
     nameDesc = '-name',
     idDesc = '-id',
+    none = ''
 }
 
 /**
@@ -93,7 +95,7 @@ export class AccountApi extends ApiModule {
      */
     public getTransactionHistory(accountId: string,
                                  privateKeys: string[],
-                                 order: string = SearchAccountHistoryOrder.timeDesc,
+                                 order: SearchAccountHistoryOrder = SearchAccountHistoryOrder.timeDesc,
                                  startObjectId: string = '0.0.0',
                                  resultLimit: number = 100): Promise<TransactionRecord[]> {
         return new Promise((resolve, reject) => {
@@ -151,7 +153,7 @@ export class AccountApi extends ApiModule {
      */
     public searchAccountHistory(accountId: string,
                                 privateKeys: string[],
-                                order: string = SearchAccountHistoryOrder.timeDesc,
+                                order: SearchAccountHistoryOrder = SearchAccountHistoryOrder.timeDesc,
                                 startObjectId: string = '0.0.0',
                                 resultLimit: number = 100): Promise<TransactionRecord[]> {
         return new Promise((resolve, reject) => {
@@ -358,7 +360,7 @@ export class AccountApi extends ApiModule {
     /**
      * Vote for selected miner.
      * More information on https://devdocs.decent.ch/UseCases/#vote_for_a_miner_1
-     *
+     * @deprecated                      Use method from mining module instead. Method will be removed in future releases
      * @param {string} miner
      * @param {string} account
      * @param {string} privateKeyWif
@@ -370,7 +372,7 @@ export class AccountApi extends ApiModule {
 
     /**
      * Remove youte vote from selected miner.
-     *
+     * @deprecated                      Use method from mining module instead. Method will be removed in future releases
      * @param {string} miner
      * @param {string} account
      * @param {string} privateKeyWif
@@ -380,32 +382,42 @@ export class AccountApi extends ApiModule {
         return this.unvoteMiners([miner], account, privateKeyWif);
     }
 
+    /**
+     * @deprecated                      Use method from mining module instead. Method will be removed in future releases
+     * @param {string[]} miners
+     * @param {string} account
+     * @param {string} privateKeyWif
+     * @returns {Promise<any>}
+     */
     public voteForMiners(miners: string[], account: string, privateKeyWif: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             const operations = new ChainMethods();
             operations.add(ChainMethods.getAccount, account);
             this._chainApi.fetch(operations)
                 .then(res => {
+                    if (!res[0]) {
+                        reject(this.handleError(AccountError.account_does_not_exist, ''));
+                        return;
+                    }
                     const [voterAccount] = res;
                     const voter: Account = JSON.parse(JSON.stringify(voterAccount));
                     const operation = new DatabaseOperations.GetMiners(miners);
                     this.dbApi.execute(operation)
                         .then((res: Miner[]) => {
-                            voter.options.votes.push(...res.map(miner => miner.vote_id));
-                            voter.options.votes.sort((e1: string, e2: string) => {
-                                return Number(e1.split(':')[1]) - Number(e2.split(':')[1]);
-                            });
+                            const newOptions = Object.assign({}, voter.options);
+                            newOptions.votes.push(...res.map(miner => miner.vote_id));
+                            newOptions.votes = MiningModule.getSortedMiners(voter.options.votes);
                             const op = new Operations.AccountUpdateOperation(
                                 account,
                                 voter.owner,
                                 voter.active,
-                                voter.options,
+                                newOptions,
                                 {}
                             );
                             const transaction = new Transaction();
                             transaction.add(op);
                             transaction.broadcast(privateKeyWif)
-                                .then(res => resolve(transaction))
+                                .then(res => resolve(true))
                                 .catch((err: Error) => {
                                     console.log(err);
                                     let errorMessage = 'transaction_broadcast_failed';
@@ -421,22 +433,32 @@ export class AccountApi extends ApiModule {
         });
     }
 
+    /**
+     * @deprecated                      Use method from mining module instead. Method will be removed in future releases
+     * @param {string[]} miners
+     * @param {string} account
+     * @param {string} privateKeyWif
+     * @returns {Promise<any>}
+     */
     public unvoteMiners(miners: string[], account: string, privateKeyWif: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             const operations = new ChainMethods();
             operations.add(ChainMethods.getAccount, account);
             this._chainApi.fetch(operations)
                 .then(res => {
+                    if (!res[0]) {
+                        reject(this.handleError(AccountError.account_does_not_exist, ''));
+                        return;
+                    }
                     const [voterAccount] = res;
                     const voter: Account = JSON.parse(JSON.stringify(voterAccount));
                     const operation = new DatabaseOperations.GetMiners(miners);
                     this.dbApi.execute(operation)
                         .then((res: Miner[]) => {
-                            res.forEach(miner => {
-                                const voteIndex = voter.options.votes.indexOf(miner.vote_id);
-                                voter.options.votes.splice(voteIndex, 1);
-                            });
-                            if (voter.options.votes.length < voter.options.num_miner) {
+                            const minersToUnvote = MiningModule.createVoteIdList(miners, res);
+                            const newOptions = Object.assign({}, voter.options);
+                            newOptions.votes = MiningModule.removeVotedMiners(voter.options.votes, minersToUnvote);
+                            if (newOptions.votes.length < voter.options.num_miner) {
                                 reject(
                                     this.handleError(
                                         AccountError.cannot_update_miner_votes,
@@ -445,17 +467,24 @@ export class AccountApi extends ApiModule {
                                 );
                                 return;
                             }
+                            if (voter.options.votes === newOptions.votes) {
+                                reject(
+                                    this.handleError(
+                                    AccountError.votes_does_not_changed,
+                                    'Miners sent to unvote are already unvoted.'
+                                ));
+                            }
                             const op = new Operations.AccountUpdateOperation(
                                 account,
                                 voter.owner,
                                 voter.active,
-                                voter.options,
+                                newOptions,
                                 {}
                             );
                             const transaction = new Transaction();
                             transaction.add(op);
                             transaction.broadcast(privateKeyWif)
-                                .then(res => resolve(res))
+                                .then(res => resolve(true))
                                 .catch(err => reject(err));
                         })
                         .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
