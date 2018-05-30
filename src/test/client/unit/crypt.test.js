@@ -58,11 +58,4 @@ describe('(client/unit) Crypt helper test', () => {
         const res = dcorejs.CryptoUtils.decryptHexString(plainMessageEnc, 'Password1');
         expect(res).to.equal(JSON.stringify(messageObject));
     });
-
-    it('generates El Gamal keys', () => {
-        const elGamalPrivate = dcorejs.CryptoUtils.elGamalPrivate(refPrivateKey);
-        const elGamalPublic = dcorejs.CryptoUtils.elGamalPublic(elGamalPrivate);
-        expect(elGamalPrivate).to.equal(refElGamalPrivate);
-        expect(elGamalPublic).to.equal(refElGamalPublic);
-    });
 });
