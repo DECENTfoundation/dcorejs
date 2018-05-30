@@ -14,6 +14,37 @@ export class MiningModule extends ApiModule {
     private connector: ApiConnector;
     private chainApi: ChainApi;
 
+    // TODO: make private after vote/unvote methods deprecation from account module
+    public static getSortedMiners(minersVoteIds: string[]): string[] {
+        const res = [].concat(...minersVoteIds);
+        res.sort((e1: string, e2: string) => {
+            return Number(e1.split(':')[1]) - Number(e2.split(':')[1]);
+        });
+        return res;
+    }
+
+    // TODO: make private after vote/unvote methods deprecation from account module
+    public static removeVotedMiners(voted: string[], toUnvote: string[]): string[] {
+        const res: string[] = [].concat(...voted);
+        toUnvote.forEach(u => {
+            const index = res.indexOf(u);
+            if (index > 0) {
+                res.splice(index, 1);
+            }
+        });
+        return res;
+    }
+
+    // TODO: make private after vote/unvote methods deprecation from account module
+    public static createVoteIdList(ids: string[], objects: any[]): string[] {
+        const res: string[] = [];
+        ids.forEach(m => {
+            const miner = objects.find(el => el.id === m);
+            res.push(miner.vote_id);
+        });
+        return res;
+    }
+
     constructor(dbApi: DatabaseApi, apiConnector: ApiConnector, chainApi: ChainApi) {
         super(dbApi);
         this.connector = apiConnector;
@@ -201,6 +232,58 @@ export class MiningModule extends ApiModule {
                                     }
                                     reject(errorMessage);
                                 });
+                        })
+                        .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
+                })
+                .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
+        });
+    }
+
+    public voteUnvoteMiners(voteMiners: string[], unvoteMiners: string[], accountId: string, privateKey: string): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            const operations = new ChainMethods();
+            operations.add(ChainMethods.getAccount, accountId);
+            this.chainApi.fetch(operations)
+                .then(res => {
+                    if (!res[0]) {
+                        reject(this.handleError(AccountError.account_does_not_exist, ''));
+                        return;
+                    }
+                    const [voterAcc] = res;
+                    const voter: Account = JSON.parse(JSON.stringify(voterAcc));
+
+                    const miners = [].concat(...voteMiners, ...unvoteMiners);
+                    const operation = new DatabaseOperations.GetMiners(miners);
+                    this.dbApi.execute(operation)
+                        .then((res: any[]) => {
+                            const minersToVote: string[] = MiningModule.createVoteIdList(voteMiners, res);
+                            const minersToUnvote: string[] = MiningModule.createVoteIdList(unvoteMiners, res);
+
+                            const finalMiners = MiningModule.removeVotedMiners(voter.options.votes, minersToUnvote);
+                            finalMiners.push(...minersToVote);
+                            if (finalMiners.length < voter.options.num_miner) {
+                                reject(
+                                    this.handleError(
+                                        AccountError.cannot_update_miner_votes,
+                                        'Number of votes cannot be lower as desired miners number'
+                                    )
+                                );
+                                return;
+                            }
+                            const newOptions = Object.assign({}, voter.options);
+                            newOptions.votes = MiningModule.getSortedMiners(finalMiners);
+                            const accountUpdateOp = new Operations.AccountUpdateOperation(
+                                accountId,
+                                voter.owner,
+                                voter.active,
+                                newOptions,
+                                {}
+                            );
+                            const transaction = new Transaction();
+                            transaction.add(accountUpdateOp);
+                            transaction.broadcast(privateKey)
+                                .then(res => resolve(true))
+                                .catch(err => reject(this.handleError(AccountError.transaction_broadcast_failed, err)));
                         })
                         .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
                 })
