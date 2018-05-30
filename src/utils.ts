@@ -191,6 +191,11 @@ export class Utils {
         return result;
     }
 
+    /**
+     * Normalize brain key for futher usage in Utils's methods
+     * @param {string} brainKey         Brain key generated from Utils.suggestBrainKey or from wallet CLI
+     * @returns {string}                Normalized brain key
+     */
     public static normalize(brainKey: string) {
         if (typeof brainKey !== 'string') {
             throw new Error('string required for brainKey');
@@ -200,6 +205,11 @@ export class Utils {
         return brainKey.split(/[\t\n\v\f\r ]+/).join(' ');
     }
 
+    /**
+     * Generates El Gamal public key from given El Gamal private key
+     * @param {string} elGamalPrivate
+     * @returns {string}
+     */
     public static elGamalPublic(elGamalPrivate: string): string {
         const elgPriv = BigInteger(elGamalPrivate);
         const modulus = BigInteger('11760620558671662461946567396662025495126946227619472274' +
@@ -208,12 +218,22 @@ export class Utils {
         return generator.modPow(elgPriv, modulus).toString();
     }
 
+    /**
+     * Generates El Gamal key for content exchange from given private key WIF string
+     * @param {string} privateKeyWif        WIF formatted private key of account for which generating El Gamal key
+     * @returns {string}
+     */
     public static elGamalPrivate(privateKeyWif: string): string {
         const pKey = Utils.privateKeyFromWif(privateKeyWif);
         const hash = sha512(pKey.key.d.toBuffer());
         return BigInteger(hash, 16).toString();
     }
 
+    /**
+     * Generate El Gamal keys pair from WIF private key
+     * @param {string} privateKeyWif
+     * @returns {ElGamalKeys}
+     */
     public static generateElGamalKeys(privateKeyWif: string): ElGamalKeys {
         return ElGamalKeys.generate(privateKeyWif);
     }
