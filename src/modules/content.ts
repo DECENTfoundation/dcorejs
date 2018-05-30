@@ -1,9 +1,9 @@
+import { Rating, Content, Seeder, BuyingContent, SubmitObject, ContentKeys, KeyPair } from '../model/content';
 import {DatabaseApi} from '../api/database';
 import {ChainApi, ChainMethods} from '../api/chain';
 import {Transaction} from '../transaction';
 import {isUndefined} from 'util';
 import {DatabaseOperations, SearchParams, SearchParamsOrder} from '../api/model/database';
-import {BuyingContent, Content, ContentKeys, KeyPair, Rating, Seeder, SubmitObject} from '../model/content';
 import {ContentObject, Operations} from '../model/transaction';
 
 const moment = require('moment');

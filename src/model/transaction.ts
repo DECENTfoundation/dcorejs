@@ -1,8 +1,9 @@
+import {AssetOptions} from './asset';
 import {Key, KeyParts} from './content';
-import {Options} from './account';
 import {Block} from './explorer';
 import AssetExchangeRate = Block.AssetExchangeRate;
-import {Authority} from './account';
+import {Authority, Options} from './account';
+import {MonitoredAssetOptions} from './asset';
 
 /**
  * OperationType to be broadcasted to blockchain
@@ -38,15 +39,18 @@ export enum OperationName {
     content_submit = 'content_submit',
     account_update = 'account_update',
     asset_create = 'asset_create',
-    issue_asset = 'issue_asset',
-    update_monitored_asset_operation = 'update_monitored_asset_operation',
+    issue_asset = 'asset_issue',
+    update_user_issued_asset = 'update_user_issued_asset',
     asset_fund_pools_operation = 'asset_fund_pools_operation',
     asset_reserve_operation = 'asset_reserve_operation',
     asset_claim_fees_operation = 'asset_claim_fees_operation',
     leave_rating_and_comment = 'leave_rating_and_comment',
     account_create = 'account_create',
+    asset_publish_feed = 'asset_publish_feed',
     miner_create = 'miner_create',
     miner_update = 'miner_update',
+    proposal_create = 'proposal_create',
+    operation_wrapper = 'op_wrapper',
 }
 
 /**
@@ -160,9 +164,32 @@ export namespace Operations {
             );
         }
     }
-    
+
+    export class AssetCreateOperation extends Operation {
+        constructor(issuer: string,
+                    symbol: string,
+                    precision: number,
+                    description: string,
+                    options: AssetOptions,
+                    monitoredOptions: MonitoredAssetOptions = null) {
+            const data = {
+                issuer,
+                symbol,
+                precision,
+                description,
+                options,
+                is_exchangeable: options.is_exchangeable,
+                extensions: []
+            };
+            if (monitoredOptions) {
+                data['monitored_asset_opts'] = monitoredOptions;
+            }
+            super(OperationName.asset_create, data);
+        }
+    }
+
     export class IssueAssetOperation extends Operation {
-        constructor(issuer: string, assetToIssue: Asset, issueToAccount: string, memo: string) {
+        constructor(issuer: string, assetToIssue: Asset, issueToAccount: string, memo?: Memo) {
             super(OperationName.issue_asset, {
                 issuer,
                 asset_to_issue: assetToIssue,
@@ -182,7 +209,7 @@ export namespace Operations {
                     is_exchangeable: boolean,
                     new_issuer?: string) {
             super(
-                OperationName.update_monitored_asset_operation,
+                OperationName.update_user_issued_asset,
                 {
                     issuer,
                     asset_to_update,
@@ -204,8 +231,7 @@ export namespace Operations {
                 {
                     from_account: fromAccountId,
                     uia_asset: uiaAsset,
-                    dct_asset: dctAsset,
-                    extensions: {}
+                    dct_asset: dctAsset
                 }
             );
         }
@@ -252,6 +278,20 @@ export namespace Operations {
         }
     }
 
+    export class AssetPublishFeed extends Operation {
+        constructor(publisher: string, assetId: string, feed: PriceFeed) {
+            super(
+                OperationName.asset_publish_feed,
+                {
+                    publisher,
+                    asset_id: assetId,
+                    feed,
+                    extensions: {}
+                }
+            );
+        }
+    }
+
     export class MinerCreate extends Operation {
         constructor(miner_account: string, url: string, block_signing_key: string) {
             super(
@@ -279,6 +319,35 @@ export namespace Operations {
         }
     }
 
+    export class ProposalCreate extends Operation {
+        constructor(feePayingAccount: string,
+                    proposedOperations: object[],
+                    expirationTime: number,
+                    reviewPeriodSeconds: number = null) {
+            super(
+                OperationName.proposal_create,
+                {
+                    fee_paying_account: feePayingAccount,
+                    proposed_ops: proposedOperations,
+                    expiration_time: expirationTime,
+                    review_period_seconds: reviewPeriodSeconds,
+                    extensions: []
+                }
+            );
+        }
+    }
+
+    export class OperationWrapper extends Operation {
+        constructor(operation: Operation) {
+            super(
+                OperationName.operation_wrapper,
+                {
+                    op: operation
+                }
+            );
+        }
+    }
+
     export interface CreateAccountParameters {
         fee?: Asset,
         name?: string,
@@ -299,6 +368,10 @@ export namespace Operations {
 export interface RegionalPrice {
     region: number;
     price: Asset;
+}
+
+export interface PriceFeed {
+    core_exchange_rate: AssetExchangeRate
 }
 
 export interface ContentObject {

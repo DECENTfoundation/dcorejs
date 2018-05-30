@@ -1,5 +1,6 @@
-import {Asset as TransactionAsset} from './transaction';
 import {Authority, Options} from './account';
+import {Asset as TransactionAsset} from './transaction';
+
 import {Key} from './content';
 
 export class ErrorExplorer {

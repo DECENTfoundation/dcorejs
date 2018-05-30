@@ -1,0 +1,396 @@
+import {Account, AccountError, TransactionRecord, Asset, HistoryRecord} from './model/account';
+import {DatabaseOperations, SearchAccountHistoryOrder} from './api/model/database';
+import {ChainApi, ChainMethods} from './api/chain';
+import {CryptoUtils} from './crypt';
+import {Transaction} from './transaction';
+import {Utils} from './utils';
+import {HistoryApi, HistoryOperations} from './api/history';
+import {Memo, Operation, Operations} from './model/transaction';
+import { DatabaseApi } from './api/database';
+
+/**
+ * API class provides wrapper for account information.
+ */
+export class AccountApi {
+    private _dbApi: DatabaseApi;
+    private _chainApi: ChainApi;
+    private _historyApi: HistoryApi;
+
+    constructor(dbApi: DatabaseApi, chainApi: ChainApi, historyApi: HistoryApi) {
+        this._dbApi = dbApi;
+        this._chainApi = chainApi;
+        this._historyApi = historyApi;
+    }
+
+    /**
+     * Gets chain account for given Account name.
+     *
+     * @param {string} name         example: "u123456789abcdef123456789"
+     * @return {Promise<Account>}
+     */
+    public getAccountByName(name: string): Promise<Account> {
+        const dbOperation = new DatabaseOperations.GetAccountByName(name);
+        return new Promise((resolve, reject) => {
+            this._dbApi.execute(dbOperation)
+                .then((account: Account) => {
+                    resolve(account as Account);
+                })
+                .catch(err => {
+                    reject(this.handleError(AccountError.account_fetch_failed, err));
+                });
+        });
+    }
+
+    /**
+     * Gets chain account for given Account id.
+     *
+     * @param {string} id           example: "1.2.345"
+     * @return {Promise<Account>}
+     */
+    public getAccountById(id: string): Promise<Account> {
+        const dbOperation = new DatabaseOperations.GetAccounts([id]);
+        return new Promise((resolve, reject) => {
+            this._dbApi.execute(dbOperation)
+                .then((accounts: Account[]) => {
+                    if (accounts.length === 0) {
+                        reject(
+                            this.handleError(AccountError.account_does_not_exist, `${id}`)
+                        );
+                    }
+                    const [account] = accounts;
+                    resolve(account as Account);
+                })
+                .catch(err => {
+                    reject(this.handleError(AccountError.account_fetch_failed, err));
+                });
+        });
+    }
+
+    /**
+     * Gets transaction history for given Account name.
+     *
+     * @deprecated This method will be removed since future DCore update. Use getAccountHistory instead
+     *
+     * @param {string} accountId                example: "1.2.345"
+     * @param {string} order                    SearchAccountHistoryOrder class holds all available options.
+     *                                          Default SearchParamsOrder.createdDesc
+     * @param {string[]} privateKeys            Array of private keys in case private/public pair has been changed
+     *                                          to be able of decrypt older memo messages from transactions.
+     * @param {string} startObjectId            Id of object to start search from for paging purposes. Default 0.0.0
+     * @param {number} resultLimit              Number of returned transaction history records for paging. Default 100(max)
+     * @return {Promise<TransactionRecord[]>}
+     */
+    public getTransactionHistory(accountId: string,
+                                 privateKeys: string[],
+                                 order: string = SearchAccountHistoryOrder.timeDesc,
+                                 startObjectId: string = '0.0.0',
+                                 resultLimit: number = 100): Promise<TransactionRecord[]> {
+        return new Promise((resolve, reject) => {
+            const dbOperation = new DatabaseOperations.SearchAccountHistory(
+                accountId,
+                order,
+                startObjectId,
+                resultLimit
+            );
+            this._dbApi.execute(dbOperation)
+                .then((transactions: any[]) => {
+                    const namePromises: Promise<string>[] = [];
+                    const res = transactions.map((tr: any) => {
+                        const transaction = new TransactionRecord(tr, privateKeys);
+
+                        namePromises.push(new Promise((resolve, reject) => {
+                            this.getAccountById(transaction.fromAccountId)
+                                .then(account => {
+                                    transaction.fromAccountName = account.name;
+                                    resolve();
+                                })
+                                .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
+                        }));
+
+                        namePromises.push(new Promise((resolve, reject) => {
+                            this.getAccountById(transaction.toAccountId)
+                                .then(account => {
+                                    transaction.toAccountName = account.name;
+                                    resolve();
+                                })
+                                .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
+                        }));
+
+                        return transaction;
+                    });
+                    Promise.all(namePromises)
+                        .then(() => {
+                            resolve(res);
+                        })
+                        .catch(err => {
+                            reject(this.handleError(AccountError.account_fetch_failed, err));
+                        });
+                })
+                .catch(err => {
+                    reject(
+                        this.handleError(AccountError.transaction_history_fetch_failed, err)
+                    );
+                });
+        });
+    }
+
+    /**
+     * Transfers exact amount of DCT between accounts with optional
+     * message for recipient
+     *
+     * @param {number} amount
+     * @param {string} fromAccount      Name or id of account
+     * @param {string} toAccount        Name or id of account
+     * @param {string} memo             Message for recipient
+     * @param {string} privateKey       Private key used to encrypt memo and sign transaction
+     * @return {Promise<Operation>}
+     */
+    public transfer(amount: number,
+                    fromAccount: string,
+                    toAccount: string,
+                    memo: string,
+                    privateKey: string): Promise<Operation> {
+        const pKey = Utils.privateKeyFromWif(privateKey);
+
+        return new Promise((resolve, reject) => {
+            if (memo && !privateKey) {
+                reject(AccountError.transfer_missing_pkey);
+            }
+
+            const operations = new ChainMethods();
+            operations.add(ChainMethods.getAccount, fromAccount);
+            operations.add(ChainMethods.getAccount, toAccount);
+            operations.add(ChainMethods.getAsset, ChainApi.asset);
+
+            this._chainApi.fetch(operations)
+                .then(result => {
+                    const [senderAccount, receiverAccount, asset] = result;
+                    if (!senderAccount) {
+                        reject(
+                            this.handleError(
+                                AccountError.transfer_sender_account_not_found,
+                                `${fromAccount}`
+                            )
+                        );
+                    }
+                    if (!receiverAccount) {
+                        reject(
+                            this.handleError(
+                                AccountError.transfer_receiver_account_not_found,
+                                `${toAccount}`
+                            )
+                        );
+                    }
+
+                    const nonce: string = ChainApi.generateNonce();
+                    const fromPublicKey = senderAccount.get('options').get('memo_key');
+                    const toPublicKey = receiverAccount.get('options').get('memo_key');
+
+                    const pubKey = Utils.publicKeyFromString(toPublicKey);
+
+                    const memo_object: Memo = {
+                        from: fromPublicKey,
+                        to: toPublicKey,
+                        nonce: nonce,
+                        message: CryptoUtils.encryptWithChecksum(
+                            memo,
+                            pKey,
+                            pubKey,
+                            nonce
+                        )
+                    };
+
+                    const transaction = new Transaction();
+                    const transferOperation = new Operations.TransferOperation(
+                        senderAccount.get('id'),
+                        receiverAccount.get('id'),
+                        Asset.createAsset(amount, asset.get('id')),
+                        memo_object
+                    );
+                    transaction.add(transferOperation);
+                    transaction.broadcast(privateKey)
+                        .then(() => {
+                            resolve(transaction.operations[0]);
+                        })
+                        .catch(err => {
+                            reject(
+                                this.handleError(AccountError.transaction_broadcast_failed, err)
+                            );
+                        });
+                })
+                .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
+        });
+    }
+
+    /**
+     * Current account balance of DCT asset on given account
+     *
+     * @param {string} accountId    Account id, example: '1.2.345'
+     * @return {Promise<number>}
+     */
+    public getBalance(accountId: string): Promise<number> {
+        return new Promise((resolve, reject) => {
+            if (!accountId) {
+                reject('missing_parameter');
+                return;
+            }
+            const dbOperation = new DatabaseOperations.GetAccountBalances(accountId, [
+                ChainApi.asset_id
+            ]);
+            this._dbApi.execute(dbOperation)
+                .then(res => {
+                    resolve(res[0].amount / ChainApi.DCTPower);
+                })
+                .catch(err => {
+                    reject(this.handleError(AccountError.database_operation_failed, err));
+                });
+        });
+    }
+
+    /**
+     * Determine if block with transaction is verified and irreversible.
+     * Unverified blocks still can be reversed.
+     *
+     * NOTICE:
+     * Transaction object with id in form '1.7.X' can be fetched from AccountApi.getAccountHistory(:)
+     * method.
+     *
+     * @param {string} accountId        User's account id, example: '1.2.30'
+     * @param {string} transactionId    Transaction id in format '1.7.X'.
+     * @return {Promise<boolean>}
+     */
+    public isTransactionConfirmed(accountId: string, transactionId: string): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+            let start = transactionId;
+            if (transactionId !== '1.7.0') {
+                const trNumSplit = transactionId.split('.');
+                trNumSplit[2] = `${Number(trNumSplit[2]) - 1}`;
+                start = trNumSplit.join('.');
+            } else {
+                reject(this.handleError(AccountError.bad_parameter, ''));
+            }
+
+            const operation = new HistoryOperations.GetAccountHistory(
+                accountId,
+                start,
+                transactionId
+            );
+            this._historyApi.execute(operation)
+                .then(res => {
+                    if (res.length === 0) {
+                        reject(this.handleError(AccountError.transaction_history_fetch_failed, ''));
+                    }
+                    const dbOp = new DatabaseOperations.GetDynamicGlobalProperties();
+                    this._dbApi.execute(dbOp)
+                        .then(props => {
+                            resolve(res[0].block_num <= props.last_irreversible_block_num);
+                        })
+                        .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
+                })
+                .catch(err => reject(this.handleError(AccountError.history_fetch_failed, err)));
+        });
+    }
+
+    /**
+     * List chain operations history list for given user
+     * Operations can be filtered using Chain.ChainOperationType
+     *
+     * @param {string} accountId                Users account id, example: '1.2.30'
+     * @param {number} resultLimit              Number of results to be returned, max value is 100
+     * @return {Promise<HistoryRecord[]>}       Return variable object types, based on operation in history record
+     */
+    public getAccountHistory(accountId: string, resultLimit: number = 100): Promise<HistoryRecord[]> {
+        return new Promise((resolve, reject) => {
+            const operation = new HistoryOperations.GetAccountHistory(
+                accountId,
+                '1.7.0',
+                '1.7.0',
+                resultLimit
+            );
+            this._historyApi.execute(operation)
+                .then(res => {
+                    // TODO: create models for different operations names, placed in dcore/src/chain/src/ChainTypes.js
+                    resolve(res);
+                })
+                .catch(err => reject(this.handleError(AccountError.transaction_history_fetch_failed, err)));
+        });
+    }
+
+    public voteForMiner(miner: string, account: string, privateKeyWif: string): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            const operations = new ChainMethods();
+            operations.add(ChainMethods.getAccount, account);
+            this._chainApi.fetch(operations)
+                .then(res => {
+                    const [voterAccount] = res;
+                    const voter: Account = JSON.parse(JSON.stringify(voterAccount));
+                    const operation = new DatabaseOperations.GetMiners([miner]);
+                    this._dbApi.execute(operation)
+                        .then(res => {
+                            const [minerAcc] = res;
+                            voter.options.votes.push(minerAcc.vote_id);
+                            voter.options.votes.sort((e1: string, e2: string) => {
+                                return Number(e1.split(':')[1]) - Number(e2.split(':')[1]);
+                            });
+                            voter.options['num_witness'] = voter.options.num_miner;
+                            delete voter.options.num_miner;
+                            const op = new Operations.AccountUpdateOperation(
+                                account,
+                                voter.owner,
+                                voter.active,
+                                voter.options,
+                                {}
+                            );
+                            const transaction = new Transaction();
+                            transaction.add(op);
+                            transaction.broadcast(privateKeyWif)
+                                .then(res => resolve(res))
+                                .catch(err => reject(err));
+                        })
+                        .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
+                })
+                .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
+        });
+    }
+
+    public unvoteMiner(miner: string, account: string, privateKeyWif: string): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            const operations = new ChainMethods();
+            operations.add(ChainMethods.getAccount, account);
+            this._chainApi.fetch(operations)
+                .then(res => {
+                    const [voterAccount] = res;
+                    const voter: Account = JSON.parse(JSON.stringify(voterAccount));
+                    const operation = new DatabaseOperations.GetMiners([miner]);
+                    this._dbApi.execute(operation)
+                        .then(res => {
+                            const [minerAcc] = res;
+                            const voteIndex = voter.options.votes.indexOf(minerAcc.vote_id);
+                            voter.options.votes.splice(voteIndex, 1);
+                            voter.options['num_witness'] = voter.options.num_miner;
+                            delete voter.options.num_miner;
+                            const op = new Operations.AccountUpdateOperation(
+                                account,
+                                voter.owner,
+                                voter.active,
+                                voter.options,
+                                {}
+                            );
+                            const transaction = new Transaction();
+                            transaction.add(op);
+                            transaction.broadcast(privateKeyWif)
+                                .then(res => resolve(res))
+                                .catch(err => reject(err));
+                        })
+                        .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
+                })
+                .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
+        });
+    }
+
+    private handleError(message: string, err: any): Error {
+        const error = new Error(message);
+        error.stack = err;
+        return error;
+    }
+}

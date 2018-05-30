@@ -5,7 +5,6 @@ import {Operation} from './model/transaction';
 /**
  * Class contains available transaction operation names constants
  */
-
 export class Transaction {
     /**
      * dcore_jsjs.lib/lib - TransactionBuilder
@@ -25,6 +24,10 @@ export class Transaction {
         return this._operations;
     }
 
+    get transaction(): any {
+        return this._transaction;
+    }
+
     /**
      * Append new operation to transaction object.
      *
@@ -37,19 +40,25 @@ export class Transaction {
         return true;
     }
 
+    public propose(proposalParameters: any): void {
+        this._transaction.propose(proposalParameters);
+    }
+
     /**
      * Broadcast transaction to dcore_js blockchain.
      *
      * @param {string} privateKey
      * @return {Promise<void>}
      */
-    public broadcast(privateKey: string): Promise<void> {
+    public broadcast(privateKey: string, sign: boolean = true): Promise<void> {
         const secret = Utils.privateKeyFromWif(privateKey);
         const pubKey = Utils.getPublicKey(secret);
         return new Promise((resolve, reject) => {
             this.setTransactionFees()
                 .then(() => {
-                    this.signTransaction(secret, pubKey);
+                    if (sign) {
+                        this.signTransaction(secret, pubKey);
+                    }
                     this._transaction.broadcast()
                         .then(() => {
                             resolve();

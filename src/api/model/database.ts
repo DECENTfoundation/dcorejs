@@ -1,3 +1,5 @@
+import { Asset } from '../../model/transaction';
+
 export enum DatabaseError {
     chain_connection_failed = 'chain_connection_failed',
     chain_connecting = 'chain_connecting',
@@ -42,6 +44,11 @@ export enum DatabaseOperationName {
     listSeedersByRegion = 'list_seeders_by_region',
     listSeedersByRating = 'list_seeders_by_rating',
     getVestingBalances = 'get_vesting_balances',
+    listAssets = 'list_assets',
+    getAssets = 'get_assets',
+    priceToDct = 'price_to_dct',
+    getFeedsByMiner = 'get_feeds_by_miner',
+    getRealSupply = 'get_real_supply',
 }
 
 export class DatabaseOperation {
@@ -322,6 +329,36 @@ export namespace DatabaseOperations {
     export class GetBuyingByConsumerURI extends DatabaseOperation {
         constructor(accountId: string, URI: string) {
             super(DatabaseOperationName.getBuyingByConsumerURI, accountId, URI);
+        }
+    }
+
+    export class ListAssets extends DatabaseOperation {
+        constructor(lowerBoundSymbol: string, limit: number) {
+            super(DatabaseOperationName.listAssets, lowerBoundSymbol, limit);
+        }
+    }
+
+    export class GetAssets extends DatabaseOperation {
+        constructor(assetIds: string[]) {
+            super(DatabaseOperationName.getAssets, assetIds);
+        }
+    }
+
+    export class PriceToDCT extends DatabaseOperation {
+        constructor(asset: Asset) {
+            super(DatabaseOperationName.priceToDct, asset);
+        }
+    }
+
+    export class GetFeedsByMiner extends DatabaseOperation {
+        constructor(accountId: string, limit: number) {
+            super(DatabaseOperationName.getFeedsByMiner, accountId, limit);
+        }
+    }
+
+    export class GetRealSupply extends DatabaseOperation {
+        constructor() {
+            super(DatabaseOperationName.getRealSupply);
         }
     }
 

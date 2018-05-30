@@ -5,6 +5,7 @@ import {DatabaseApi} from './api/database';
 import {AccountApi} from './modules/account';
 import {HistoryApi} from './api/history';
 import {ApiConnector, ConnectionState} from './api/apiConnector';
+import {AssetModule} from './modules/assetModule';
 import {ExplorerModule} from './modules/explorer';
 import {MiningModule} from './modules/mining';
 import {SubscriptionModule} from './modules/subscription';
@@ -13,6 +14,7 @@ import {SeedingModule} from './modules/seeding';
 let _content: ContentApi;
 let _account: AccountApi;
 let _explorer: ExplorerModule;
+let _assetModule: AssetModule;
 let _mining: MiningModule;
 let _subscription: SubscriptionModule;
 let _seeding: SeedingModule;
@@ -45,7 +47,6 @@ export function initialize(config: DcoreConfig,
     ChainApi.setupChain(config.chainId, dcore.ChainConfig);
 
     const connector = new ApiConnector(config.dcoreNetworkWSPaths, dcore.Apis, connectionStatusCallback);
-
     const database = new DatabaseApi(dcore.Apis, connector);
     const historyApi = new HistoryApi(dcore.Apis, connector);
 
@@ -53,6 +54,7 @@ export function initialize(config: DcoreConfig,
     _content = new ContentApi(database);
     _account = new AccountApi(database, chain, historyApi, connector);
     _explorer = new ExplorerModule(database);
+    _assetModule = new AssetModule(database, connector, chain);
     _subscription = new SubscriptionModule(database);
     _seeding = new SeedingModule(database);
     _mining = new MiningModule(database, connector, chain);
@@ -70,6 +72,9 @@ export function explorer(): ExplorerModule {
     return _explorer;
 }
 
+export function asset(): AssetModule {
+    return _assetModule;
+}
 export function mining(): MiningModule {
     return _mining;
 }
