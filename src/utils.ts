@@ -209,22 +209,6 @@ export class Utils {
         return dcorejs_lib.TransactionHelper.unique_nonce_uint64();
     }
 
-    private static generatePrivateKey(brainKey: string): KeyPrivate {
-        const pKey = dcorejs_lib.key.get_brainPrivateKey(brainKey);
-        return new KeyPrivate(pKey);
-    }
-}
-
-/**
- * PKI private key
- */
-export class KeyPrivate {
-    private _privateKey: any;
-
-    constructor(privateKey: any) {
-        this._privateKey = privateKey;
-    }
-
     /**
      * Generates El Gamal public key from given El Gamal private key
      * @param {string} elGamalPrivate
@@ -258,3 +242,4 @@ export class KeyPrivate {
         return ElGamalKeys.generate(privateKeyWif);
     }
 }
+

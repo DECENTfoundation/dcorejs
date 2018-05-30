@@ -296,7 +296,7 @@ export class AssetModule extends ApiModule {
         });
     }
 
-    public priceToDCT(symbol: string, amount: number): Promise<any> {
+    public priceToDCT(symbol: string, amount: number): Promise<Asset> {
         return new Promise<any>((resolve, reject) => {
             this.listAssets(symbol, 1)
                 .then(res => {
