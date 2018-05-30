@@ -13,11 +13,6 @@ const email = 'dd.duskis+st14@gmail.com';
 const messageObject = {'keys': [';adfsjkndsffdjsfdsjdfsjkldfsajklfsjlka', 'oph82h42942bp    bp784bp78   gbp9g2bp2b']};
 const plainMessageEnc = '48310cc50094bd09181c6e8b8147ac622268942f100021b41dd51f637b1c7546f7455f5ffe2e20f373b425f9380169b27d6dbe5a8a3' +
     'ec398eb0e336555077de346e02bce6f8e0b3e1ec659ebe80dd30833ebac2d89b5d1bbabf485a4e9b00d16';
-const refElGamalPrivate = '995148271311054691065477011654988113333995189557838160534771306325983453509632335555982804728847520959577' +
-    '6035312706007755854990617069594416307472971521354';
-const refElGamalPublic = '1476592897265129256906985148863834019333244843526837587739241973266771272616315012971707289842820560922634' +
-    '174697696963038593504885326978206069960938313296';
-const refPrivateKey = '5KfaSt8mWyGcZXRk4HKmt77ERJsBQz8QXintiAvUFCMasL2KYTL';
 
 let secret: KeyPrivate = null;
 let pkey: KeyPublic = null;
@@ -70,12 +65,5 @@ describe('(server/unit) Crypt helper test', () => {
     it('decrypt - wallet compatible', () => {
         const res = CryptoUtils.decryptHexString(plainMessageEnc, 'Password1');
         expect(res).to.equal(JSON.stringify(messageObject));
-    });
-
-    it('generates El Gamal keys', () => {
-        const elGamalPrivate = CryptoUtils.elGamalPrivate(refPrivateKey);
-        const elGamalPublic = CryptoUtils.elGamalPublic(elGamalPrivate);
-        expect(elGamalPrivate).to.equal(refElGamalPrivate);
-        expect(elGamalPublic).to.equal(refElGamalPublic);
     });
 });
