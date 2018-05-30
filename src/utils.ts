@@ -196,7 +196,7 @@ export class Utils {
      * @param {string} brainKey         Brain key generated from Utils.suggestBrainKey or from wallet CLI
      * @returns {string}                Normalized brain key
      */
-    public static normalize(brainKey: string) {
+    public static normalize(brainKey: string): string {
         if (typeof brainKey !== 'string') {
             throw new Error('string required for brainKey');
         }
