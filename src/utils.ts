@@ -141,8 +141,8 @@ export class Utils {
      */
     public static generateKeys(fromBrainKey: string): [KeyPrivate, KeyPublic] {
         const normalizedBk = Utils.normalize(fromBrainKey);
-        const pkey: KeyPrivate = Utils.generatePrivateKey(normalizedBk);
-        const pubKey: KeyPublic = Utils.getPublicKey(pkey);
+        const pkey: KeyPrivate = KeyPrivate.fromBrainKey(normalizedBk);
+        const pubKey: KeyPublic = KeyPublic.fromPrivateKey(pkey);
         return [pkey, pubKey];
     }
 
@@ -153,8 +153,7 @@ export class Utils {
      * @return {KeyPublic}
      */
     public static getPublicKey(privkey: KeyPrivate): KeyPublic {
-        const publicKey: any = privkey.key.toPublicKey();
-        return new KeyPublic(publicKey);
+        return KeyPublic.fromPrivateKey(privkey);
     }
 
     /**
@@ -164,8 +163,7 @@ export class Utils {
      * @return {KeyPrivate}
      */
     public static privateKeyFromWif(pkWif: string): KeyPrivate {
-        const pKey = dcorejs_lib.PrivateKey.fromWif(pkWif);
-        return new KeyPrivate(pKey);
+        return KeyPrivate.fromWif(pkWif);
     }
 
     /**
@@ -175,8 +173,7 @@ export class Utils {
      * @return {KeyPublic}
      */
     public static publicKeyFromString(pubKeyString: string): KeyPublic {
-        const pubKey = dcorejs_lib.PublicKey.fromPublicKeyString(pubKeyString);
-        return new KeyPublic(pubKey);
+        return KeyPublic.fromString(pubKeyString);
     }
 
     public static suggestBrainKey(): string {
