@@ -1,14 +1,14 @@
-import {ApiConnector} from './api/apiConnector';
-import {DatabaseApi} from './api/database';
-import {DatabaseOperations} from './api/model/database';
-import {CryptoUtils} from './crypt';
-import {Asset, Memo, Operations, PriceFeed} from './model/transaction';
-import {Transaction} from './transaction';
-import {Utils} from './utils';
+import {ApiConnector} from '../api/apiConnector';
+import {DatabaseApi} from '../api/database';
+import {DatabaseOperations} from '../api/model/database';
+import {CryptoUtils} from '../crypt';
+import {Asset, Memo, Operations, PriceFeed} from '../model/transaction';
+import {Transaction} from '../transaction';
+import {Utils} from '../utils';
 
-import {ChainApi, ChainMethods} from './api/chain';
-import {ApiModule} from './modules/ApiModule';
-import {AssetError, AssetObject, AssetOptions, DCoreAssetObject, MonitoredAssetOptions, UserIssuedAssetInfo} from './model/asset';
+import {ChainApi, ChainMethods} from '../api/chain';
+import {ApiModule} from './ApiModule';
+import {AssetError, AssetObject, AssetOptions, DCoreAssetObject, MonitoredAssetOptions, UserIssuedAssetInfo} from '../model/asset';
 
 export class AssetModule extends ApiModule {
     public MAX_SHARED_SUPPLY = 7319777577456890;

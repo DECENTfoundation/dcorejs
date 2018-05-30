@@ -5,7 +5,7 @@ import {DatabaseApi} from './api/database';
 import {AccountApi} from './modules/account';
 import {HistoryApi} from './api/history';
 import {ApiConnector, ConnectionState} from './api/apiConnector';
-import {AssetModule} from './assetModule';
+import {AssetModule} from './modules/assetModule';
 import {ExplorerModule} from './modules/explorer';
 import {MiningModule} from './modules/mining';
 
