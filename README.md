@@ -287,6 +287,14 @@ getMiner(id: number): Promise<Miner|null>
 
 ```typescript
 setDesiredMinerCount(accountId: string, desiredNumOfMiners: number, privateKey: string): Promise<any>
+createMiner(minerAccountId: string, URL: string, signingPublicKey: string, privateKey: string): Promise<any>
+unvoteMiner(miner: string, account: string, privateKeyWif: string): Promise<any>
+unvoteMiners(miners: string[], account: string, privateKeyWif: string): Promise<any>
+voteForMiner(miner: string, account: string, privateKeyWif: string): Promise<any>
+voteForMiners(miners: string[], account: string, privateKeyWif: string): Promise<any>
+voteUnvoteMiners(voteMiners: string[], unvoteMiners: string[], accountId: string, privateKey: string): Promise<any>
+getVestingBalances(accountId: string): Promise<VestingBalance[]>
+updateMiner(minerId: string, minerAccountId: string, updateData: MinerUpdateData, privateKey: string): Promise<any>
 ```
 
 ### Utils
@@ -298,6 +306,13 @@ generateKeys(fromBrainKey: string): (KeyPrivate | KeyPublic)[]
 getPublicKey(privkey: KeyPrivate): KeyPublic
 privateKeyFromWif(pkWif: string): KeyPrivate
 publicKeyFromString(pubKeyString: string): KeyPublic
+suggestBrainKey(): string
+getBrainKeyInfo(brainKey: string): BrainKeyInfo
+normalize(brainKey: string): string
+generateNonce(): string
+elGamalPublic(elGamalPrivate: string): string
+elGamalPrivate(privateKeyWif: string): string
+generateElGamalKeys(privateKeyWif: string): ElGamalKeys
 ```
 
 ### Crypto utils
