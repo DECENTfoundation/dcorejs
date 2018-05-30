@@ -9,6 +9,84 @@ export interface BrainKeyInfo {
     pub_key: string;
 }
 
+/**
+ * PKI private key
+ */
+export class KeyPrivate {
+    private _privateKey: any;
+
+    static fromBrainKey(brainKey: string): KeyPrivate {
+        const pKey = dcorejs_lib.key.get_brainPrivateKey(brainKey);
+        return new KeyPrivate(pKey);
+    }
+
+    static fromWif(privateKeyWif: string): KeyPrivate {
+        const pKey = dcorejs_lib.PrivateKey.fromWif(privateKeyWif);
+        return new KeyPrivate(pKey);
+    }
+
+    constructor(privateKey: any) {
+        this._privateKey = privateKey;
+    }
+
+    /**
+     * Raw representation of key for dcorejs_libjs
+     * library purposes.
+     * @return {any}
+     */
+    get key(): any {
+        return this._privateKey;
+    }
+
+    /**
+     * WIF format string representation of key
+     * @return {string}
+     */
+    get stringKey(): string {
+        return this._privateKey.toWif();
+    }
+
+}
+
+/**
+ * PKI public key
+ */
+export class KeyPublic {
+    private _publicKey: any;
+
+    static fromString(publicString: string): KeyPublic {
+        const pubKey = dcorejs_lib.PublicKey.fromPublicKeyString(publicString);
+        return new KeyPublic(pubKey);
+    }
+
+    static fromPrivateKey(privateKey: KeyPrivate): KeyPublic {
+        const publicKey: any = privateKey.key.toPublicKey();
+        return new KeyPublic(publicKey);
+    }
+
+    constructor(publicKey: any) {
+        this._publicKey = publicKey;
+    }
+
+    /**
+     * Raw representation of key for dcorejs_libjs
+     * library purposes.
+     * @return {any}
+     */
+    get key(): any {
+        return this._publicKey;
+    }
+
+    /**
+     * String representation of key
+     * @return {string}
+     */
+    get stringKey(): string {
+        return this._publicKey.toString();
+    }
+
+}
+
 export class Utils {
 
     /**
