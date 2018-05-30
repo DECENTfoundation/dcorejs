@@ -3,7 +3,7 @@
 const el = id => document.getElementById(id);
 
 el('transferButton').onclick = () => {
-    transfer('1.2.30', receiverInput.value, amountInput.value, memoInput.value);
+    transfer('1.2.27', receiverInput.value, amountInput.value, memoInput.value);
 };
 const output = el('output');
 
@@ -17,7 +17,7 @@ const dcore_js = window['dcorejs'];
 // Lib initialization
 const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
 const dcoreNetworkAddresses = ['wss://stage.decentgo.com:8090'];
-const privateKey = '5JDFQN3T8CFT1ynhgd5s574mTV9UPf9WamkHojBL4NgbhSBDmBj';
+const privateKey = '5KcA6ky4Hs9VoDUSdTF4o3a7QDgiiG5gkpLLysRWR8dy6EAgTnZ';
 
 dcore_js.initialize({
     chainId: chainId,

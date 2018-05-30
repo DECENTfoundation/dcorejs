@@ -7,10 +7,12 @@ const message = 'test message for encryption';
 const encryptedMessage = '1bcd2ffea59c19cbff34b21e4c3d78947dd0fc8821e211b543395fcb52a35e15';
 const secretWif = '5JDFQN3T8CFT1ynhgd5s574mTV9UPf9WamkHojBL4NgbhSBDmBj';
 const pkeyString = 'DCT5dJjvk9k3yTsnJsAph6V8zEPxsAvJ7FCCzqYWiQQyVTiHvReLz';
-const secretEncrypted = '{"ct":"D2ZtQ9VmbWO0lyK/Ps191onhRBWpkM8FPHIkNw/nT1k=","iv":"5803bd0b0d39e0e216502720c22896ea","s":"3f4d194553206afd"}';
+const secretEncrypted = '{"ct":"D2ZtQ9VmbWO0lyK/Ps191onhRBWpkM8FPHIkNw/nT1k=","iv":"5803bd0b0d39e0e216' +
+    '502720c22896ea","s":"3f4d194553206afd"}';
 const email = 'dd.duskis+st14@gmail.com';
 const messageObject = {'keys': [';adfsjkndsffdjsfdsjdfsjkldfsajklfsjlka', 'oph82h42942bp    bp784bp78   gbp9g2bp2b']};
-const plainMessageEnc = '48310cc50094bd09181c6e8b8147ac622268942f100021b41dd51f637b1c7546f7455f5ffe2e20f373b425f9380169b27d6dbe5a8a3ec398eb0e336555077de346e02bce6f8e0b3e1ec659ebe80dd30833ebac2d89b5d1bbabf485a4e9b00d16';
+const plainMessageEnc = '48310cc50094bd09181c6e8b8147ac622268942f100021b41dd51f637b1c7546f7455f5ffe2e20f373b425f9380169b27d6dbe5a8a3' +
+    'ec398eb0e336555077de346e02bce6f8e0b3e1ec659ebe80dd30833ebac2d89b5d1bbabf485a4e9b00d16';
 
 let secret: KeyPrivate = null;
 let pkey: KeyPublic = null;
@@ -40,7 +42,8 @@ describe('(server/unit) Crypt helper test', () => {
 
     it('create sha512 hash', () => {
         const hash = CryptoUtils.sha512('dd.duskis+st14@gmail.com');
-        expect(hash).to.equal('93c6499a86f6891c00b47f1dc17d8400922bc3887c4b33485d853793df59863245aad895763bddc1ceb1e2bff95a2f8b29f8cc019d3c9a72385929780a88e285');
+        expect(hash).to.equal('93c6499a86f6891c00b47f1dc17d8400922bc3887c4b33485d853793df59863245aad895763bddc1c' +
+            'eb1e2bff95a2f8b29f8cc019d3c9a72385929780a88e285');
     });
 
     it('encrypt with password', () => {
