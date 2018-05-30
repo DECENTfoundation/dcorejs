@@ -1,20 +1,14 @@
 import {DatabaseApi} from '../api/database';
 import {DatabaseOperations} from '../api/model/database';
 import {Operations} from '../model/transaction';
-import {AccountError, Options} from '../model/account';
+import {Account, AccountError, Options} from '../model/account';
 import {Transaction} from '../transaction';
 import {ApiModule} from './ApiModule';
-import {Account} from '../model/account';
 import {ApiConnector} from '../api/apiConnector';
 import {ChainApi, ChainMethods} from '../api/chain';
 import {Block, Miner} from '../model/explorer';
+import {MinerUpdateData, MiningError} from '../model/mining';
 import VestingBalance = Block.VestingBalance;
-
-export enum MiningError {
-    transaction_broadcast_failed = 'transaction_broadcast_failed',
-    database_fetch_failed = 'database_fetch_failed',
-    connection_failed = 'connection_failed'
-}
 
 export class MiningModule extends ApiModule {
     private connector: ApiConnector;
@@ -220,6 +214,33 @@ export class MiningModule extends ApiModule {
             this.dbApi.execute(operation)
                 .then(res => resolve(res))
                 .catch(err => reject(this.handleError(MiningError.database_fetch_failed, err)));
+        });
+    }
+
+    public updateMiner(minerId: string, minerAccountId: string, updateData: MinerUpdateData, privateKey: string): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            const getMinerOp = new DatabaseOperations.GetMiners([minerId]);
+            this.dbApi.execute(getMinerOp)
+                .then(miners => {
+                    if (!miners || miners.length === 0) {
+                        reject(this.handleError(MiningError.miner_does_not_exist, ''));
+                        return;
+                    }
+                    const miner: Miner = miners[0];
+                    const operation = new Operations.MinerUpdate(
+                        minerId,
+                        minerAccountId,
+                        updateData.newUrl || miner.url,
+                        updateData.newSigningKey || miner.signing_key
+                    );
+                    const transaction = new Transaction();
+                    transaction.add(operation);
+                    transaction.broadcast(privateKey)
+                        .then(res => resolve(true))
+                        .catch(err => reject(this.handleError(MiningError.database_fetch_failed, err)));
+                })
+                .catch(err => reject(this.handleError(MiningError.miner_does_not_exist, err)));
+
         });
     }
 }

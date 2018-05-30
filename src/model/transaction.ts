@@ -266,7 +266,7 @@ export namespace Operations {
     }
 
     export class MinerUpdate extends Operation {
-        constructor(miner: string, minerAccount: string, newURL: string, newSigningKey: string) {
+        constructor(miner: string, minerAccount: string, newURL: string = null, newSigningKey: string = null) {
             super(
                 OperationName.miner_update,
                 {
