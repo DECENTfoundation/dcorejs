@@ -2,6 +2,8 @@ import {dcorejs_lib} from './helpers';
 import {CryptoUtils} from './crypt';
 import {ChainApi} from './api/chain';
 import dictionary from './resources/dictionary';
+import * as BigInteger from 'big-integer';
+import { sha512 } from 'js-sha512';
 
 export interface BrainKeyInfo {
     brain_priv_key: string;
@@ -84,8 +86,32 @@ export class KeyPublic {
     get stringKey(): string {
         return this._publicKey.toString();
     }
-
 }
+
+export class ElGamalKeys {
+    private _publicKey: string;
+    private _privateKey: string;
+
+    public get privateKey(): string {
+        return this._privateKey;
+    }
+
+    public get publicKey(): string {
+        return this._publicKey;
+    }
+
+    static generate(privateKey: string): ElGamalKeys {
+        const elGPrivate = Utils.elGamalPrivate(privateKey);
+        const elGPub = Utils.elGamalPublic(elGPrivate);
+        return new ElGamalKeys(elGPrivate, elGPub);
+    }
+
+    constructor(elGPrivateKey: string, elGPublicKey: string) {
+        this._privateKey = elGPrivateKey;
+        this._publicKey = elGPublicKey;
+    }
+}
+
 
 export class Utils {
 
@@ -177,66 +203,21 @@ export class Utils {
         return brainKey.split(/[\t\n\v\f\r ]+/).join(' ');
     }
 
-    private static generatePrivateKey(brainKey: string): KeyPrivate {
-        const pKey = dcorejs_lib.key.get_brainPrivateKey(brainKey);
-        return new KeyPrivate(pKey);
-    }
-}
-
-/**
- * PKI private key
- */
-export class KeyPrivate {
-    private _privateKey: any;
-
-    constructor(privateKey: any) {
-        this._privateKey = privateKey;
+    public static elGamalPublic(elGamalPrivate: string): string {
+        const elgPriv = BigInteger(elGamalPrivate);
+        const modulus = BigInteger('11760620558671662461946567396662025495126946227619472274' +
+            '601251081547302009186313201119191293557856181195016058359990840577430081932807832465057884143546419');
+        const generator = BigInteger(3);
+        return generator.modPow(elgPriv, modulus).toString();
     }
 
-    /**
-     * Raw representation of key for dcorejs_libjs
-     * library purposes.
-     * @return {any}
-     */
-    get key(): any {
-        return this._privateKey;
+    public static elGamalPrivate(privateKeyWif: string): string {
+        const pKey = Utils.privateKeyFromWif(privateKeyWif);
+        const hash = sha512(pKey.key.d.toBuffer());
+        return BigInteger(hash, 16).toString();
     }
 
-    /**
-     * WIF format string representation of key
-     * @return {string}
-     */
-    get stringKey(): string {
-        return this._privateKey.toWif();
+    public static generateElGamalKeys(privateKeyWif: string): ElGamalKeys {
+        return ElGamalKeys.generate(privateKeyWif);
     }
-
-}
-
-/**
- * PKI public key
- */
-export class KeyPublic {
-    private _publicKey: any;
-
-    constructor(publicKey: any) {
-        this._publicKey = publicKey;
-    }
-
-    /**
-     * Raw representation of key for dcorejs_libjs
-     * library purposes.
-     * @return {any}
-     */
-    get key(): any {
-        return this._publicKey;
-    }
-
-    /**
-     * String representation of key
-     * @return {string}
-     */
-    get stringKey(): string {
-        return this._publicKey.toString();
-    }
-
 }
