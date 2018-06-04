@@ -220,7 +220,7 @@ export class ContentApi extends ApiModule {
             ]);
             this.dbApi.execute(listAssetOp)
                 .then((assets: [DCoreAssetObject, DCoreAssetObject]) => {
-                    if (!assets || assets.length === 0 || !assets[0] || !assets[1]) {
+                    if (!assets || !assets[0] || !assets[1]) {
                         reject(this.handleError(ContentError.fetch_content_failed));
                         return;
                     }
