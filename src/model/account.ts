@@ -97,7 +97,9 @@ export class TransactionRecord {
     toAccountId: string;
     operationType: number;
     transactionAmount: number;
+    transactionAsset: string;
     transactionFee: number;
+    transactionFeeAsset: string;
     description: string;
     timestamp: string;
     memo: TransactionMemo;
@@ -109,7 +111,9 @@ export class TransactionRecord {
         this.toAccountId = transaction.m_to_account;
         this.operationType = transaction.m_operation_type;
         this.transactionAmount = transaction.m_transaction_amount.amount;
+        this.transactionAsset = transaction.m_transaction_amount.asset_id;
         this.transactionFee = transaction.m_transaction_fee.amount;
+        this.transactionFeeAsset = transaction.m_transaction_fee.asset_id;
         this.description = transaction.m_str_description;
         this.timestamp = transaction.m_timestamp;
         this.memo = new TransactionMemo(transaction);
