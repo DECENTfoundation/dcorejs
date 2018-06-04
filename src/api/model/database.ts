@@ -4,7 +4,8 @@ export enum DatabaseError {
     chain_connection_failed = 'chain_connection_failed',
     chain_connecting = 'chain_connecting',
     database_execution_failed = 'database_execution_failed',
-    api_connection_failed = 'api_connection_failed'
+    api_connection_failed = 'api_connection_failed',
+    asset_fetch_failed = 'asset_fetch_failed'
 }
 
 export enum DatabaseOperationName {
