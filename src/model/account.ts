@@ -1,6 +1,7 @@
 import {KeyPrivate, Utils} from '../utils';
 import {CryptoUtils} from '../crypt';
 import {ChainApi} from '../api/chain';
+import {DCoreAssetObject} from './asset';
 
 export type AccountNameIdPair = [string, string];
 
@@ -42,6 +43,18 @@ export class Asset {
             amount: Math.floor(amount * ChainApi.DCTPower),
             asset_id: assetId
         };
+    }
+
+    public static create(amount: number, assetObject: DCoreAssetObject): Asset {
+        return new Asset(
+            Math.floor(amount * Math.pow(10, assetObject.precision)),
+            assetObject.id
+        );
+    }
+
+    constructor(amount: number, assetId: string) {
+        this.asset_id = assetId;
+        this.amount = amount;
     }
 }
 
