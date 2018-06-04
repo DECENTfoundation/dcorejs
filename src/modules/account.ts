@@ -11,6 +11,7 @@ import {Memo, Operation, Operations} from '../model/transaction';
 import {Miner} from '../model/explorer';
 import {ApiModule} from './ApiModule';
 import {MiningModule} from './mining';
+import {DCoreAssetObject} from '../model/asset';
 
 export enum AccountOrder {
     nameAsc = '+name',
@@ -270,24 +271,33 @@ export class AccountApi extends ApiModule {
      * Current account balance of DCT asset on given account
      *
      * @param {string} accountId    Account id, example: '1.2.345'
+     * @param {string} assetId      Id of asset in which balance will be listed
      * @return {Promise<number>}
      */
-    public getBalance(accountId: string): Promise<number> {
+    public getBalance(accountId: string, assetId: string = '1.3.0'): Promise<number> {
         return new Promise((resolve, reject) => {
             if (!accountId) {
                 reject('missing_parameter');
                 return;
             }
-            const dbOperation = new DatabaseOperations.GetAccountBalances(accountId, [
-                ChainApi.asset_id
-            ]);
-            this.dbApi.execute(dbOperation)
-                .then(res => {
-                    resolve(res[0].amount / ChainApi.DCTPower);
+            const getAssetOp = new DatabaseOperations.GetAssets([assetId]);
+            this.dbApi.execute(getAssetOp)
+                .then((assets: DCoreAssetObject[]) => {
+                    if (!assets || assets.length === 0) {
+                        reject(this.handleError(DatabaseError.asset_fetch_failed));
+                        return;
+                    }
+                    const asset = assets[0];
+                    const dbOperation = new DatabaseOperations.GetAccountBalances(accountId, [asset.id]);
+                    this.dbApi.execute(dbOperation)
+                        .then(res => {
+                            resolve(res[0].amount / Math.pow(10, asset.precision));
+                        })
+                        .catch(err => {
+                            reject(this.handleError(AccountError.database_operation_failed, err));
+                        });
                 })
-                .catch(err => {
-                    reject(this.handleError(AccountError.database_operation_failed, err));
-                });
+                .catch(err => this.handleError(DatabaseError.database_execution_failed, err));
         });
     }
 
