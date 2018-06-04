@@ -128,8 +128,28 @@ export class Utils {
         return (dctAmount / ChainApi.DCTPower).toFixed(8);
     }
 
+    /**
+     * Formats amount to correct precision.
+     * Value is devided by asset's precision factor
+     * Note: Most of amount values are already formatted for this precision format.
+     *
+     * @param {number} amount
+     * @param {DCoreAssetObject} asset
+     * @returns {number}
+     */
     public static formatAmountForAsset(amount: number, asset: DCoreAssetObject): number {
         return amount / Math.pow(10, asset.precision);
+    }
+
+    /**
+     * Format amount value for DCore asset precision value.
+     * Value is multiplied by asset's precision factor.
+     * @param {number} amount
+     * @param {DCoreAssetObject} asset
+     * @returns {number}
+     */
+    public static formatAmountToAsset(amount: number, asset: DCoreAssetObject): number {
+        return amount * Math.pow(10, asset.precision);
     }
 
     public static ripemdHash(fromBuffer: Buffer): string {
