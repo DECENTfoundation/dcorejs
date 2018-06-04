@@ -8,3 +8,7 @@ export { CryptoUtils } from './crypt';
 export * from './model/content';
 export * from './model/account';
 export * from './model/explorer';
+export * from './model/asset';
+export * from './model/mining';
+export * from './model/seeding';
+export * from './model/subscription';
