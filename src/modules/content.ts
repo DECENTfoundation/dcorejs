@@ -1,10 +1,12 @@
-import { Rating, Content, Seeder, BuyingContent, SubmitObject, ContentKeys, KeyPair } from '../model/content';
+import {Rating, Content, Seeder, BuyingContent, SubmitObject, ContentKeys, KeyPair} from '../model/content';
 import {DatabaseApi} from '../api/database';
 import {ChainApi, ChainMethods} from '../api/chain';
 import {Transaction} from '../transaction';
 import {isUndefined} from 'util';
 import {DatabaseOperations, SearchParams, SearchParamsOrder} from '../api/model/database';
 import {ContentObject, Operations} from '../model/transaction';
+import {DCoreAssetObject} from '../model/asset';
+import {ApiModule} from './ApiModule';
 
 const moment = require('moment');
 
@@ -19,11 +21,9 @@ export enum ContentError {
  * ContentApi provide methods to communication
  * with content stored in dcore_js network.
  */
-export class ContentApi {
-    private _dbApi: DatabaseApi;
-
+export class ContentApi extends ApiModule {
     constructor(dbApi: DatabaseApi) {
-        this._dbApi = dbApi;
+        super(dbApi);
     }
 
     /**
@@ -35,7 +35,7 @@ export class ContentApi {
     public searchContent(searchParams?: SearchParams): Promise<Content[]> {
         const dbOperation = new DatabaseOperations.SearchContent(searchParams);
         return new Promise((resolve, reject) => {
-            this._dbApi
+            this.dbApi
                 .execute(dbOperation)
                 .then((content: any) => {
                     content.forEach((c: any) => {
@@ -58,7 +58,7 @@ export class ContentApi {
     public getContent(id: string): Promise<Content> {
         return new Promise((resolve, reject) => {
             const dbOperation = new DatabaseOperations.GetObjects([id]);
-            this._dbApi
+            this.dbApi
                 .execute(dbOperation)
                 .then(contents => {
                     const [content] = contents;
@@ -79,7 +79,7 @@ export class ContentApi {
     public getContentURI(URI: string): Promise<Content | null> {
         return new Promise((resolve, reject) => {
             const dbOperation = new DatabaseOperations.GetContent(URI);
-            this._dbApi
+            this.dbApi
                 .execute(dbOperation)
                 .then(contents => {
                     if (!contents) {
@@ -158,7 +158,7 @@ export class ContentApi {
             this.getContent(contentId)
                 .then(content => {
                     const dbOperation = new DatabaseOperations.GetBuyingHistoryObjects(accountId, content.URI);
-                    this._dbApi.execute(dbOperation)
+                    this.dbApi.execute(dbOperation)
                         .then(res => {
                             const validKey = elGamalKeys.find((elgPair: KeyPair) => elgPair.publicKey === res.pubKey.s);
                             if (!validKey) {
@@ -166,7 +166,7 @@ export class ContentApi {
                             }
 
                             const dbOperation = new DatabaseOperations.RestoreEncryptionKey(contentId, validKey.privateKey);
-                            this._dbApi
+                            this.dbApi
                                 .execute(dbOperation)
                                 .then(key => {
                                     resolve(key);
@@ -190,7 +190,7 @@ export class ContentApi {
     public generateContentKeys(seeders: string[]): Promise<ContentKeys> {
         const dbOperation = new DatabaseOperations.GenerateContentKeys(seeders);
         return new Promise((resolve, reject) => {
-            this._dbApi
+            this.dbApi
                 .execute(dbOperation)
                 .then(keys => {
                     resolve(keys);
@@ -263,7 +263,7 @@ export class ContentApi {
     public getOpenBuyingsByURI(URI: string): Promise<BuyingContent[]> {
         return new Promise<BuyingContent[]>(((resolve, reject) => {
             const operation = new DatabaseOperations.GetOpenBuyingsByURI(URI);
-            this._dbApi.execute(operation)
+            this.dbApi.execute(operation)
                 .then(res => resolve(res))
                 .catch(err => reject(this.handleError(ContentError.database_operation_failed, err)));
         }));
@@ -272,7 +272,7 @@ export class ContentApi {
     public getOpenBuyingsByConsumer(accountId: string): Promise<BuyingContent[]> {
         return new Promise<BuyingContent[]>(((resolve, reject) => {
             const operation = new DatabaseOperations.GetOpenBuyingsByConsumer(accountId);
-            this._dbApi.execute(operation)
+            this.dbApi.execute(operation)
                 .then(res => resolve(res))
                 .catch(err => reject(this.handleError(ContentError.database_operation_failed, err)));
         }));
@@ -281,7 +281,7 @@ export class ContentApi {
     public getBuyingsByConsumerURI(accountId: string, URI: string): Promise<BuyingContent[] | null> {
         return new Promise<BuyingContent[]>(((resolve, reject) => {
             const operation = new DatabaseOperations.GetBuyingByConsumerURI(accountId, URI);
-            this._dbApi.execute(operation)
+            this.dbApi.execute(operation)
                 .then(res => resolve(res))
                 .catch(err => reject(this.handleError(ContentError.database_operation_failed, err)));
         }));
@@ -290,7 +290,7 @@ export class ContentApi {
     public getBuyingHistoryObjectsByConsumer(accountId: string): Promise<BuyingContent[]> {
         return new Promise<BuyingContent[]>((resolve, reject) => {
             const operation = new DatabaseOperations.GetBuyingsHistoryObjectsByConsumer(accountId);
-            this._dbApi.execute(operation)
+            this.dbApi.execute(operation)
                 .then(res => resolve(res))
                 .catch(err => reject(this.handleError(ContentError.database_operation_failed, err)));
         });
@@ -363,7 +363,7 @@ export class ContentApi {
     public getSeeders(resultSize: number = 100): Promise<Seeder[]> {
         const dbOperation = new DatabaseOperations.ListSeeders(resultSize);
         return new Promise((resolve, reject) => {
-            this._dbApi
+            this.dbApi
                 .execute(dbOperation)
                 .then(result => {
                     resolve(result as Seeder[]);
@@ -403,7 +403,7 @@ export class ContentApi {
                         term,
                         resultSize
                     );
-                    this._dbApi
+                    this.dbApi
                         .execute(dbOperation)
                         .then(boughtContent => {
                             const result: Content[] = [];
@@ -457,7 +457,7 @@ export class ContentApi {
     searchFeedback(accountId: string, contentURI: string, ratingStartId: string, count: number = 100): Promise<Array<Rating>> {
         return new Promise<Array<Rating>>((resolve, reject) => {
             const operation = new DatabaseOperations.SearchFeedback(accountId, contentURI, ratingStartId, count);
-            this._dbApi.execute(operation)
+            this.dbApi.execute(operation)
                 .then(res => {
                     resolve(res);
                 })
@@ -470,7 +470,7 @@ export class ContentApi {
     getAuthorCoAuthors(URI: string): Promise<[string, string[]] | null> {
         return new Promise<[string, string[]]>((resolve, reject) => {
             const operation = new DatabaseOperations.GetContent(URI);
-            this._dbApi.execute<ContentObject>(operation)
+            this.dbApi.execute<ContentObject>(operation)
                 .then((content: ContentObject) => {
                     if (!content) {
                         resolve(null);
@@ -491,11 +491,5 @@ export class ContentApi {
                 .then(res => resolve(res))
                 .catch(err => reject(this.handleError(ContentError.transaction_broadcast_failed, err)));
         });
-    }
-
-    private handleError(contentErrorMessage: ContentError, err: any): Error {
-        const error = new Error(contentErrorMessage);
-        error.stack = err;
-        return error;
     }
 }
