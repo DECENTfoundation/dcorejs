@@ -153,6 +153,8 @@ export interface SubmitObject {
     hash: string;
     keyParts: KeyParts[];
     synopsis: any;
+    assetId?: string;
+    publishingFeeAsset?: string;
 }
 
 export interface Price {

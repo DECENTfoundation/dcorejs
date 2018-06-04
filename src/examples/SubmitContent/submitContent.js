@@ -78,12 +78,14 @@ function onSubmit() {
                     seeders: seeders,
                     fileName: file.name,
                     date: date.toString(),
-                    price: el('price').value * dctPow,
+                    price: el('price').value,
                     size: file.size,
                     URI: el('uri').value,
                     hash: el('hash').value,
                     keyParts: keys.parts,
-                    synopsis: synopsis
+                    synopsis: synopsis,
+                    assetId: '1.3.0',
+                    publishingFeeAsset: '1.3.0'
                 };
 
                 dcore_js.content().addContent(submitObject, privateKey)

@@ -11,6 +11,7 @@ import {Memo, Operation, Operations} from '../model/transaction';
 import {Miner} from '../model/explorer';
 import {ApiModule} from './ApiModule';
 import {MiningModule} from './mining';
+import {DCoreAssetObject} from '../model/asset';
 
 export enum AccountOrder {
     nameAsc = '+name',
@@ -82,7 +83,7 @@ export class AccountApi extends ApiModule {
     /**
      * Gets transaction history for given Account name.
      *
-     * @deprecated This method will be removed since future DCore update. Use getAccountHistory instead
+     * @deprecated This method will be removed in future DCore update. Use getAccountHistory instead
      *
      * @param {string} accountId                example: "1.2.345"
      * @param {string} order                    SearchAccountHistoryOrder class holds all available options.
@@ -165,7 +166,46 @@ export class AccountApi extends ApiModule {
             );
             this.dbApi.execute(dbOperation)
                 .then((transactions: any[]) => {
-                    resolve(transactions);
+                    const listAssetsOp = new DatabaseOperations.ListAssets('', 100);
+                    this.dbApi.execute(listAssetsOp)
+                        .then((assets: DCoreAssetObject[]) => {
+                            const namePromises: Promise<string>[] = [];
+                            const res = transactions.map((tr: any) => {
+                                const transaction = new TransactionRecord(tr, privateKeys);
+
+                                namePromises.push(new Promise((resolve, reject) => {
+                                    this.getAccountById(transaction.fromAccountId)
+                                        .then(account => {
+                                            transaction.fromAccountName = account.name;
+                                            resolve();
+                                        })
+                                        .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
+                                }));
+
+                                namePromises.push(new Promise((resolve, reject) => {
+                                    this.getAccountById(transaction.toAccountId)
+                                        .then(account => {
+                                            transaction.toAccountName = account.name;
+                                            resolve();
+                                        })
+                                        .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
+                                }));
+
+                                const asset = assets.find(a => a.id === transaction.transactionAsset);
+                                const feeAsset = assets.find(a => a.id === transaction.transactionFeeAsset);
+                                transaction.transactionAmount = Utils.formatAmountForAsset(transaction.transactionAmount, asset);
+                                transaction.transactionFee = Utils.formatAmountForAsset(transaction.transactionFee, feeAsset);
+                                return transaction;
+                            });
+                            Promise.all(namePromises)
+                                .then(() => {
+                                    resolve(res);
+                                })
+                                .catch(err => {
+                                    reject(this.handleError(AccountError.account_fetch_failed, err));
+                                });
+                        })
+                        .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
                 })
                 .catch(err => {
                     reject(
@@ -180,6 +220,7 @@ export class AccountApi extends ApiModule {
      * message for recipient
      *
      * @param {number} amount
+     * @param {string} assetId          Id of asset amount will be send. If empty, default 1.3.0 - DCT is selected
      * @param {string} fromAccount      Name or id of account
      * @param {string} toAccount        Name or id of account
      * @param {string} memo             Message for recipient
@@ -187,6 +228,7 @@ export class AccountApi extends ApiModule {
      * @return {Promise<Operation>}
      */
     public transfer(amount: number,
+                    assetId: string,
                     fromAccount: string,
                     toAccount: string,
                     memo: string,
@@ -201,7 +243,7 @@ export class AccountApi extends ApiModule {
             const operations = new ChainMethods();
             operations.add(ChainMethods.getAccount, fromAccount);
             operations.add(ChainMethods.getAccount, toAccount);
-            operations.add(ChainMethods.getAsset, ChainApi.asset);
+            operations.add(ChainMethods.getAsset, assetId || '1.3.0');
 
             this._chainApi.fetch(operations)
                 .then(result => {
@@ -241,11 +283,12 @@ export class AccountApi extends ApiModule {
                         )
                     };
 
+                    const assetObject = JSON.parse(JSON.stringify(asset));
                     const transaction = new Transaction();
                     const transferOperation = new Operations.TransferOperation(
                         senderAccount.get('id'),
                         receiverAccount.get('id'),
-                        Asset.createAsset(amount, asset.get('id')),
+                        Asset.create(amount, assetObject),
                         memo_object
                     );
                     transaction.add(transferOperation);
@@ -267,24 +310,33 @@ export class AccountApi extends ApiModule {
      * Current account balance of DCT asset on given account
      *
      * @param {string} accountId    Account id, example: '1.2.345'
+     * @param {string} assetId      Id of asset in which balance will be listed
      * @return {Promise<number>}
      */
-    public getBalance(accountId: string): Promise<number> {
+    public getBalance(accountId: string, assetId: string = '1.3.0'): Promise<number> {
         return new Promise((resolve, reject) => {
             if (!accountId) {
                 reject('missing_parameter');
                 return;
             }
-            const dbOperation = new DatabaseOperations.GetAccountBalances(accountId, [
-                ChainApi.asset_id
-            ]);
-            this.dbApi.execute(dbOperation)
-                .then(res => {
-                    resolve(res[0].amount / ChainApi.DCTPower);
+            const getAssetOp = new DatabaseOperations.GetAssets([assetId]);
+            this.dbApi.execute(getAssetOp)
+                .then((assets: DCoreAssetObject[]) => {
+                    if (!assets || assets.length === 0) {
+                        reject(this.handleError(DatabaseError.asset_fetch_failed));
+                        return;
+                    }
+                    const asset = assets[0];
+                    const dbOperation = new DatabaseOperations.GetAccountBalances(accountId, [asset.id]);
+                    this.dbApi.execute(dbOperation)
+                        .then(res => {
+                            resolve(Utils.formatAmountForAsset(res[0].amount, asset));
+                        })
+                        .catch(err => {
+                            reject(this.handleError(AccountError.database_operation_failed, err));
+                        });
                 })
-                .catch(err => {
-                    reject(this.handleError(AccountError.database_operation_failed, err));
-                });
+                .catch(err => this.handleError(DatabaseError.database_execution_failed, err));
         });
     }
 
@@ -470,9 +522,9 @@ export class AccountApi extends ApiModule {
                             if (voter.options.votes === newOptions.votes) {
                                 reject(
                                     this.handleError(
-                                    AccountError.votes_does_not_changed,
-                                    'Miners sent to unvote are already unvoted.'
-                                ));
+                                        AccountError.votes_does_not_changed,
+                                        'Miners sent to unvote are already unvoted.'
+                                    ));
                             }
                             const op = new Operations.AccountUpdateOperation(
                                 account,
@@ -568,7 +620,7 @@ export class AccountApi extends ApiModule {
                             memo_key: memoKey,
                             voting_account: '1.2.3',
                             allow_subscription: false,
-                            price_per_subscribe: Asset.createAsset(0, '1.3.0'),
+                            price_per_subscribe: Asset.createDCTAsset(0),
                             num_miner: 0,
                             votes: [],
                             extensions: [],
@@ -692,7 +744,23 @@ export class AccountApi extends ApiModule {
         return new Promise<Asset[]>((resolve, reject) => {
             const operation = new DatabaseOperations.GetAccountBalances(id, []);
             this.dbApi.execute(operation)
-                .then(res => resolve(res))
+                .then((balances: Asset[]) => {
+                    const listAssetsOp = new DatabaseOperations.GetAssets(balances.map(asset => asset.asset_id));
+                    this.dbApi.execute(listAssetsOp)
+                        .then((assets: DCoreAssetObject[]) => {
+                            if (!assets || assets.length === 0) {
+                                reject(this.handleError(AccountError.database_operation_failed));
+                                return;
+                            }
+                            const result = [].concat(...balances);
+                            result.forEach(bal => {
+                                const asset = assets.find(a => a.id === bal.asset_id);
+                                bal.amount = Utils.formatAmountForAsset(bal.amount, asset);
+                            });
+                            resolve(result);
+                        })
+                        .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
+                })
                 .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
         });
     }
