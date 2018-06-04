@@ -83,7 +83,7 @@ export class AccountApi extends ApiModule {
     /**
      * Gets transaction history for given Account name.
      *
-     * @deprecated This method will be removed since future DCore update. Use getAccountHistory instead
+     * @deprecated This method will be removed in future DCore update. Use getAccountHistory instead
      *
      * @param {string} accountId                example: "1.2.345"
      * @param {string} order                    SearchAccountHistoryOrder class holds all available options.
@@ -166,7 +166,46 @@ export class AccountApi extends ApiModule {
             );
             this.dbApi.execute(dbOperation)
                 .then((transactions: any[]) => {
-                    resolve(transactions);
+                    const listAssetsOp = new DatabaseOperations.ListAssets('', 100);
+                    this.dbApi.execute(listAssetsOp)
+                        .then((assets: DCoreAssetObject[]) => {
+                            const namePromises: Promise<string>[] = [];
+                            const res = transactions.map((tr: any) => {
+                                const transaction = new TransactionRecord(tr, privateKeys);
+
+                                namePromises.push(new Promise((resolve, reject) => {
+                                    this.getAccountById(transaction.fromAccountId)
+                                        .then(account => {
+                                            transaction.fromAccountName = account.name;
+                                            resolve();
+                                        })
+                                        .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
+                                }));
+
+                                namePromises.push(new Promise((resolve, reject) => {
+                                    this.getAccountById(transaction.toAccountId)
+                                        .then(account => {
+                                            transaction.toAccountName = account.name;
+                                            resolve();
+                                        })
+                                        .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
+                                }));
+
+                                const asset = assets.find(a => a.id === transaction.transactionAsset);
+                                const feeAsset = assets.find(a => a.id === transaction.transactionFeeAsset);
+                                transaction.transactionAmount = Utils.formatAmountForAsset(transaction.transactionAmount, asset);
+                                transaction.transactionFee = Utils.formatAmountForAsset(transaction.transactionFee, feeAsset);
+                                return transaction;
+                            });
+                            Promise.all(namePromises)
+                                .then(() => {
+                                    resolve(res);
+                                })
+                                .catch(err => {
+                                    reject(this.handleError(AccountError.account_fetch_failed, err));
+                                });
+                        })
+                        .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
                 })
                 .catch(err => {
                     reject(
