@@ -180,6 +180,7 @@ export class AccountApi extends ApiModule {
      * message for recipient
      *
      * @param {number} amount
+     * @param {string} assetId          Id of asset amount will be send. If empty, default 1.3.0 - DCT is selected
      * @param {string} fromAccount      Name or id of account
      * @param {string} toAccount        Name or id of account
      * @param {string} memo             Message for recipient
@@ -187,6 +188,7 @@ export class AccountApi extends ApiModule {
      * @return {Promise<Operation>}
      */
     public transfer(amount: number,
+                    assetId: string,
                     fromAccount: string,
                     toAccount: string,
                     memo: string,
@@ -201,7 +203,7 @@ export class AccountApi extends ApiModule {
             const operations = new ChainMethods();
             operations.add(ChainMethods.getAccount, fromAccount);
             operations.add(ChainMethods.getAccount, toAccount);
-            operations.add(ChainMethods.getAsset, ChainApi.asset);
+            operations.add(ChainMethods.getAsset, assetId || '1.3.0');
 
             this._chainApi.fetch(operations)
                 .then(result => {
@@ -241,11 +243,12 @@ export class AccountApi extends ApiModule {
                         )
                     };
 
+                    const assetObject = JSON.parse(JSON.stringify(asset));
                     const transaction = new Transaction();
                     const transferOperation = new Operations.TransferOperation(
                         senderAccount.get('id'),
                         receiverAccount.get('id'),
-                        Asset.createAsset(amount, asset.get('id')),
+                        Asset.create(amount, assetObject),
                         memo_object
                     );
                     transaction.add(transferOperation);
