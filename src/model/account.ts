@@ -1,6 +1,7 @@
 import {KeyPrivate, Utils} from '../utils';
 import {CryptoUtils} from '../crypt';
 import {ChainApi} from '../api/chain';
+import {DCoreAssetObject} from './asset';
 
 export type AccountNameIdPair = [string, string];
 
@@ -37,11 +38,23 @@ export class Asset {
     amount: number;
     asset_id: string;
 
-    public static createAsset(amount: number, assetId: string): Asset {
+    public static createDCTAsset(amount: number): Asset {
         return {
             amount: Math.floor(amount * ChainApi.DCTPower),
-            asset_id: assetId
+            asset_id: ChainApi.asset_id
         };
+    }
+
+    public static create(amount: number, assetObject: DCoreAssetObject): Asset {
+        return new Asset(
+            Math.floor(Utils.formatAmountForAsset(amount, assetObject)),
+            assetObject.id
+        );
+    }
+
+    constructor(amount: number, assetId: string) {
+        this.asset_id = assetId;
+        this.amount = amount;
     }
 }
 
@@ -84,7 +97,9 @@ export class TransactionRecord {
     toAccountId: string;
     operationType: number;
     transactionAmount: number;
+    transactionAsset: string;
     transactionFee: number;
+    transactionFeeAsset: string;
     description: string;
     timestamp: string;
     memo: TransactionMemo;
@@ -96,7 +111,9 @@ export class TransactionRecord {
         this.toAccountId = transaction.m_to_account;
         this.operationType = transaction.m_operation_type;
         this.transactionAmount = transaction.m_transaction_amount.amount;
+        this.transactionAsset = transaction.m_transaction_amount.asset_id;
         this.transactionFee = transaction.m_transaction_fee.amount;
+        this.transactionFeeAsset = transaction.m_transaction_fee.asset_id;
         this.description = transaction.m_str_description;
         this.timestamp = transaction.m_timestamp;
         this.memo = new TransactionMemo(transaction);

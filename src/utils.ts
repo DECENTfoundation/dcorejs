@@ -4,6 +4,7 @@ import {ChainApi} from './api/chain';
 import dictionary from './resources/dictionary';
 import * as BigInteger from 'big-integer';
 import { sha512 } from 'js-sha512';
+import {DCoreAssetObject} from './model/asset';
 
 export interface BrainKeyInfo {
     brain_priv_key: string;
@@ -125,6 +126,30 @@ export class Utils {
      */
     public static formatToReadiblePrice(dctAmount: number): string {
         return (dctAmount / ChainApi.DCTPower).toFixed(8);
+    }
+
+    /**
+     * Formats amount to correct precision.
+     * Value is devided by asset's precision factor
+     * Note: Most of amount values are already formatted for this precision format.
+     *
+     * @param {number} amount
+     * @param {DCoreAssetObject} asset
+     * @returns {number}
+     */
+    public static formatAmountForAsset(amount: number, asset: DCoreAssetObject): number {
+        return amount / Math.pow(10, asset.precision);
+    }
+
+    /**
+     * Format amount value for DCore asset precision value.
+     * Value is multiplied by asset's precision factor.
+     * @param {number} amount
+     * @param {DCoreAssetObject} asset
+     * @returns {number}
+     */
+    public static formatAmountToAsset(amount: number, asset: DCoreAssetObject): number {
+        return amount * Math.pow(10, asset.precision);
     }
 
     public static ripemdHash(fromBuffer: Buffer): string {
