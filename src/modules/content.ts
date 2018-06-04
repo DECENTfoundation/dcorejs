@@ -7,6 +7,7 @@ import {DatabaseOperations, SearchParams, SearchParamsOrder} from '../api/model/
 import {ContentObject, Operations} from '../model/transaction';
 import {DCoreAssetObject} from '../model/asset';
 import {ApiModule} from './ApiModule';
+import {Utils} from '../utils';
 
 const moment = require('moment');
 
@@ -213,48 +214,62 @@ export class ContentApi extends ApiModule {
     public addContent(content: SubmitObject, privateKey: string): Promise<void> {
         return new Promise((resolve, reject) => {
             content.size = this.getFileSize(content.size);
-            const submitOperation = new Operations.SubmitContentOperation(
-                content.size,
-                content.authorId,
-                content.coAuthors,
-                content.URI,
-                content.seeders.length,
-                [{
-                    region: 1,
-                    price: {
-                        amount: content.price,
-                        asset_id: ChainApi.asset_id
+            const listAssetOp = new DatabaseOperations.GetAssets([
+                content.assetId || ChainApi.asset_id,
+                content.publishingFeeAsset || ChainApi.asset_id
+            ]);
+            this.dbApi.execute(listAssetOp)
+                .then((assets: [DCoreAssetObject, DCoreAssetObject]) => {
+                    if (!assets || assets.length === 0 || !assets[0] || !assets[1]) {
+                        reject(this.handleError(ContentError.fetch_content_failed));
+                        return;
                     }
-                }],
-                content.hash,
-                content.seeders.map(s => s.seeder),
-                content.keyParts,
-                content.date.toString(),
-                {
-                    amount: this.calculateFee(content),
-                    asset_id: ChainApi.asset_id
-                },
-                JSON.stringify(content.synopsis)
-            );
-            const transaction = new Transaction();
-            transaction.add(submitOperation);
-            transaction
-                .broadcast(privateKey)
-                .then(() => {
-                    resolve();
-                })
-                .catch(err => {
-                    reject(
-                        this.handleError(ContentError.transaction_broadcast_failed, err)
+                    const priceAsset = assets[0];
+                    const feeAsset = assets[1];
+                    const submitOperation = new Operations.SubmitContentOperation(
+                        content.size,
+                        content.authorId,
+                        content.coAuthors,
+                        content.URI,
+                        content.seeders.length,
+                        [{
+                            region: 1,
+                            price: {
+                                amount: Utils.formatAmountToAsset(content.price, priceAsset),
+                                asset_id: priceAsset.id
+                            }
+                        }],
+                        content.hash,
+                        content.seeders.map(s => s.seeder),
+                        content.keyParts,
+                        content.date.toString(),
+                        {
+                            amount: this.calculateFee(content),
+                            asset_id: feeAsset.id
+                        },
+                        JSON.stringify(content.synopsis)
                     );
-                });
+                    const transaction = new Transaction();
+                    transaction.add(submitOperation);
+                    transaction
+                        .broadcast(privateKey)
+                        .then(() => {
+                            resolve();
+                        })
+                        .catch(err => {
+                            reject(
+                                this.handleError(ContentError.transaction_broadcast_failed, err)
+                            );
+                        });
+                })
+                .catch(err => this.handleError(ContentError.database_operation_failed, err));
         });
     }
 
     public getOpenBuyings(): Promise<BuyingContent[]> {
         return new Promise<BuyingContent[]>(((resolve, reject) => {
             const operation = new DatabaseOperations.GetOpenBuyings();
-            this._dbApi.execute(operation)
+            this.dbApi.execute(operation)
                 .then(res => resolve(res))
                 .catch(err => reject(this.handleError(ContentError.database_operation_failed, err)));
         }));
