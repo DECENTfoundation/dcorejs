@@ -330,7 +330,7 @@ export class AccountApi extends ApiModule {
                     const dbOperation = new DatabaseOperations.GetAccountBalances(accountId, [asset.id]);
                     this.dbApi.execute(dbOperation)
                         .then(res => {
-                            resolve(res[0].amount / Math.pow(10, asset.precision));
+                            resolve(Utils.formatAmountForAsset(res[0].amount, asset));
                         })
                         .catch(err => {
                             reject(this.handleError(AccountError.database_operation_failed, err));
@@ -620,7 +620,7 @@ export class AccountApi extends ApiModule {
                             memo_key: memoKey,
                             voting_account: '1.2.3',
                             allow_subscription: false,
-                            price_per_subscribe: Asset.createAsset(0, '1.3.0'),
+                            price_per_subscribe: Asset.createDCTAsset(0),
                             num_miner: 0,
                             votes: [],
                             extensions: [],
@@ -755,7 +755,7 @@ export class AccountApi extends ApiModule {
                             const result = [].concat(...balances);
                             result.forEach(bal => {
                                 const asset = assets.find(a => a.id === bal.asset_id);
-                                bal.amount = bal.amount / Math.pow(10, asset.precision);
+                                bal.amount = Utils.formatAmountForAsset(bal.amount, asset);
                             });
                             resolve(result);
                         })
