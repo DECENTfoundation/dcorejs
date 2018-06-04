@@ -522,9 +522,9 @@ export class AccountApi extends ApiModule {
                             if (voter.options.votes === newOptions.votes) {
                                 reject(
                                     this.handleError(
-                                    AccountError.votes_does_not_changed,
-                                    'Miners sent to unvote are already unvoted.'
-                                ));
+                                        AccountError.votes_does_not_changed,
+                                        'Miners sent to unvote are already unvoted.'
+                                    ));
                             }
                             const op = new Operations.AccountUpdateOperation(
                                 account,
