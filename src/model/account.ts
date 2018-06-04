@@ -38,10 +38,10 @@ export class Asset {
     amount: number;
     asset_id: string;
 
-    public static createAsset(amount: number, assetId: string): Asset {
+    public static createDCTAsset(amount: number): Asset {
         return {
             amount: Math.floor(amount * ChainApi.DCTPower),
-            asset_id: assetId
+            asset_id: ChainApi.asset_id
         };
     }
 
