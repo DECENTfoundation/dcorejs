@@ -705,7 +705,23 @@ export class AccountApi extends ApiModule {
         return new Promise<Asset[]>((resolve, reject) => {
             const operation = new DatabaseOperations.GetAccountBalances(id, []);
             this.dbApi.execute(operation)
-                .then(res => resolve(res))
+                .then((balances: Asset[]) => {
+                    const listAssetsOp = new DatabaseOperations.GetAssets(balances.map(asset => asset.asset_id));
+                    this.dbApi.execute(listAssetsOp)
+                        .then((assets: DCoreAssetObject[]) => {
+                            if (!assets || assets.length === 0) {
+                                reject(this.handleError(AccountError.database_operation_failed));
+                                return;
+                            }
+                            const result = [].concat(...balances);
+                            result.forEach(bal => {
+                                const asset = assets.find(a => a.id === bal.asset_id);
+                                bal.amount = bal.amount / Math.pow(10, asset.precision);
+                            });
+                            resolve(result);
+                        })
+                        .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
+                })
                 .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
         });
     }
