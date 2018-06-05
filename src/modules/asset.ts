@@ -25,7 +25,24 @@ export class AssetModule extends ApiModule {
         return new Promise<any>((resolve, reject) => {
             const operation = new DatabaseOperations.ListAssets(lowerBoundSymbol, limit);
             this.dbApi.execute(operation)
-                .then(res => {
+                .then((assets: DCoreAssetObject[]) => {
+                    const res: DCoreAssetObject[] = assets.map(asset => {
+                        const a = Object.assign({}, asset);
+                        a.options.core_exchange_rate.base.amount = asset.options.core_exchange_rate.base.amount / ChainApi.DCTPower;
+                        a.options.core_exchange_rate.quote.amount = Utils.formatAmountForAsset(
+                            asset.options.core_exchange_rate.quote.amount,
+                            asset
+                        );
+                        if (asset.monitored_asset_opts) {
+                            a.monitored_asset_opts.current_feed.core_exchange_rate.base.amount =
+                                asset.options.core_exchange_rate.base.amount / ChainApi.DCTPower;
+                            a.monitored_asset_opts.current_feed.core_exchange_rate.quote.amount = Utils.formatAmountForAsset(
+                                asset.options.core_exchange_rate.quote.amount,
+                                asset
+                            );
+                        }
+                        return a;
+                    });
                     resolve(res);
                 })
                 .catch(err => {
