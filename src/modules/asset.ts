@@ -299,15 +299,16 @@ export class AssetModule extends ApiModule {
     public priceToDCT(symbol: string, amount: number): Promise<Asset> {
         return new Promise<any>((resolve, reject) => {
             this.listAssets(symbol, 1)
-                .then(res => {
-                    if (res.length !== 1 || res[0].symbol !== symbol) {
+                .then((assets: DCoreAssetObject[]) => {
+                    if (assets.length !== 1 || assets[0].symbol !== symbol) {
                         reject(this.handleError(AssetError.asset_not_found));
                         return;
                     }
+                    const asset = assets[0];
                     const operation = new DatabaseOperations.PriceToDCT(
                         {
-                            asset_id: res[0].id,
-                            amount: amount
+                            asset_id: asset[0].id,
+                            amount: Utils.formatAmountForAsset(amount, asset)
                         }
                     );
                     this.dbApi.execute(operation)
