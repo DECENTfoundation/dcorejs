@@ -293,27 +293,6 @@ export class AssetModule extends ApiModule {
         });
     }
 
-    private formatAssets(assets: DCoreAssetObject[]): DCoreAssetObject[] {
-        const res: DCoreAssetObject[] = assets.map(asset => {
-            const a = Object.assign({}, asset);
-            a.options.core_exchange_rate.base.amount = asset.options.core_exchange_rate.base.amount / ChainApi.DCTPower;
-            a.options.core_exchange_rate.quote.amount = Utils.formatAmountForAsset(
-                asset.options.core_exchange_rate.quote.amount,
-                asset
-            );
-            if (asset.monitored_asset_opts) {
-                a.monitored_asset_opts.current_feed.core_exchange_rate.base.amount =
-                    asset.options.core_exchange_rate.base.amount / ChainApi.DCTPower;
-                a.monitored_asset_opts.current_feed.core_exchange_rate.quote.amount = Utils.formatAmountForAsset(
-                    asset.options.core_exchange_rate.quote.amount,
-                    asset
-                );
-            }
-            return a;
-        });
-        return res;
-    }
-
     public getAssets(...assetIds: string[]): Promise<DCoreAssetObject[]> {
         const operation = new DatabaseOperations.GetAssets(assetIds);
         return new Promise<DCoreAssetObject[]>((resolve, reject) => {
@@ -420,5 +399,26 @@ export class AssetModule extends ApiModule {
                 })
                 .catch(err => reject(this.handleError(AssetError.unable_to_list_assets, err)));
         });
+    }
+
+    private formatAssets(assets: DCoreAssetObject[]): DCoreAssetObject[] {
+        const res: DCoreAssetObject[] = assets.map(asset => {
+            const a = Object.assign({}, asset);
+            a.options.core_exchange_rate.base.amount = asset.options.core_exchange_rate.base.amount / ChainApi.DCTPower;
+            a.options.core_exchange_rate.quote.amount = Utils.formatAmountForAsset(
+                asset.options.core_exchange_rate.quote.amount,
+                asset
+            );
+            if (asset.monitored_asset_opts) {
+                a.monitored_asset_opts.current_feed.core_exchange_rate.base.amount =
+                    asset.options.core_exchange_rate.base.amount / ChainApi.DCTPower;
+                a.monitored_asset_opts.current_feed.core_exchange_rate.quote.amount = Utils.formatAmountForAsset(
+                    asset.options.core_exchange_rate.quote.amount,
+                    asset
+                );
+            }
+            return a;
+        });
+        return res;
     }
 }
