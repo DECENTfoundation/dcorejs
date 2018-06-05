@@ -295,11 +295,17 @@ export class AssetModule extends ApiModule {
         });
     }
 
-    public getAsset(assetId: string): Promise<DCoreAssetObject[]> {
+    public getAsset(assetId: string): Promise<DCoreAssetObject> {
         const operation = new DatabaseOperations.GetAssets([assetId]);
-        return new Promise<DCoreAssetObject[]>((resolve, reject) => {
+        return new Promise<DCoreAssetObject>((resolve, reject) => {
             this.dbApi.execute(operation)
-                .then(res => resolve(res))
+                .then((assets: DCoreAssetObject[]) => {
+                    if (!assets || !assets[0]) {
+                        reject(this.handleError(AssetError.asset_not_found));
+                        return;
+                    }
+                    resolve(this.formatAssets(assets)[0]);
+                })
                 .catch(err => reject(err));
         });
     }
