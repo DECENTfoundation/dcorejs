@@ -182,6 +182,7 @@ export interface MinerInfo {
 }
 
 export interface WalletExport {
+    version: number;
     chain_id: string;
     my_accounts: Account[];
     cipher_keys: string;
