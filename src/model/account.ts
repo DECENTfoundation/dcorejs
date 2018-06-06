@@ -47,7 +47,7 @@ export class Asset {
 
     public static create(amount: number, assetObject: DCoreAssetObject): Asset {
         return new Asset(
-            Math.floor(Utils.formatAmountForAsset(amount, assetObject)),
+            Utils.formatAmountToAsset(amount, assetObject),
             assetObject.id
         );
     }
