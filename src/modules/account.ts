@@ -83,7 +83,7 @@ export class AccountApi extends ApiModule {
     /**
      * Gets transaction history for given Account name.
      *
-     * @deprecated This method will be removed in future DCore update. Use getAccountHistory instead
+     * @deprecated This method will be removed in future DCore update. Use getAccountHistory or searchAccountHistory instead
      *
      * @param {string} accountId                example: "1.2.345"
      * @param {string} order                    SearchAccountHistoryOrder class holds all available options.
@@ -102,37 +102,7 @@ export class AccountApi extends ApiModule {
         return new Promise((resolve, reject) => {
             this.searchAccountHistory(accountId, privateKeys, order, startObjectId, resultLimit)
                 .then((transactions: any[]) => {
-                    const namePromises: Promise<string>[] = [];
-                    const res = transactions.map((tr: any) => {
-                        const transaction = new TransactionRecord(tr, privateKeys);
-
-                        namePromises.push(new Promise((resolve, reject) => {
-                            this.getAccountById(transaction.fromAccountId)
-                                .then(account => {
-                                    transaction.fromAccountName = account.name;
-                                    resolve();
-                                })
-                                .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
-                        }));
-
-                        namePromises.push(new Promise((resolve, reject) => {
-                            this.getAccountById(transaction.toAccountId)
-                                .then(account => {
-                                    transaction.toAccountName = account.name;
-                                    resolve();
-                                })
-                                .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
-                        }));
-
-                        return transaction;
-                    });
-                    Promise.all(namePromises)
-                        .then(() => {
-                            resolve(res);
-                        })
-                        .catch(err => {
-                            reject(this.handleError(AccountError.account_fetch_failed, err));
-                        });
+                    resolve(transactions);
                 })
                 .catch(err => {
                     reject(
@@ -143,7 +113,7 @@ export class AccountApi extends ApiModule {
     }
 
     /**
-     * Returns operations on given account.
+     * Returns transfer operations for given account.
      *
      * @param {string} accountId
      * @param {string[]} privateKeys
