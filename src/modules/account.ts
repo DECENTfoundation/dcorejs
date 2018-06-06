@@ -641,16 +641,16 @@ export class AccountApi extends ApiModule {
      *
      * @param {string} accountId
      * @param {string} password
-     * @param {string} elGamalPrivateKey
-     * @param {string} elGamalPublicKey
-     * @param {string} privateKeys
+     * @param brainKey
+     * @param additionalPrivateKeys
+     * @param additionalElGamalPrivateKeys
      * @returns {Promise<any>}
      */
     exportWallet(accountId: string,
                  password: string,
-                 elGamalPrivateKey: string,
-                 elGamalPublicKey: string,
-                 ...privateKeys: string[]): Promise<any> {
+                 brainKey: string,
+                 additionalPrivateKeys: string[] = [],
+                 additionalElGamalPrivateKeys: string[] = []): Promise<any> {
         return new Promise((resolve, reject) => {
             this.getAccountById(accountId)
                 .then((acc) => {
@@ -658,7 +658,11 @@ export class AccountApi extends ApiModule {
                         reject(this.handleError(AccountError.account_does_not_exist, ''));
                         return;
                     }
+                    const generatedKeys = Utils.generateKeys(brainKey);
+                    const elGPrivate = Utils.elGamalPrivate(generatedKeys[0].stringKey);
+                    const elGPublic = Utils.elGamalPublic(elGPrivate);
                     const walletExport: WalletExport = {
+                        version: 1,
                         chain_id: this._chainApi.chainId,
                         my_accounts: [acc],
                         cipher_keys: '',
@@ -670,16 +674,27 @@ export class AccountApi extends ApiModule {
                         ws_password: '',
                     };
                     const keys = {
-                        ec_keys: privateKeys.map(pk => {
+                        ec_keys: additionalPrivateKeys.map(pk => {
                             const pubKey = Utils.getPublicKey(Utils.privateKeyFromWif(pk));
                             return [pubKey.stringKey, pk];
                         }),
                         el_gamal_keys: [
-                            [{s: elGamalPrivateKey}, {s: elGamalPublicKey}]
+                            {
+                                private: {s: elGPrivate},
+                                public: {s: elGPublic}
+                            }
                         ],
                         checksum: CryptoUtils.sha512(password)
                     };
-                    console.log(keys);
+                    keys.ec_keys.push([generatedKeys[1].stringKey, generatedKeys[0].stringKey]);
+
+                    keys.el_gamal_keys.push(...additionalElGamalPrivateKeys.map(elgPriv => {
+                        const elGPub = Utils.elGamalPublic(elGPrivate);
+                        return {
+                            private: {s: elgPriv},
+                            public: {s: elGPub}
+                        };
+                    }));
                     walletExport.cipher_keys = CryptoUtils.encryptToHexString(JSON.stringify(keys), password);
                     resolve(walletExport);
                 })
