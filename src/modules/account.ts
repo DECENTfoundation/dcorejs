@@ -1,15 +1,24 @@
-import {Account, AccountError, AccountNameIdPair, Asset, HistoryRecord, MinerInfo, TransactionRecord, WalletExport} from '../model/account';
-import {DatabaseApi} from '../api/database';
-import {ChainApi, ChainMethods} from '../api/chain';
-import {CryptoUtils} from '../crypt';
-import {Transaction} from '../transaction';
-import {KeyPrivate, KeyPublic, Utils} from '../utils';
-import {HistoryApi, HistoryOperations} from '../api/history';
-import {ApiConnector} from '../api/apiConnector';
-import {DatabaseError, DatabaseOperations, MinerOrder, SearchAccountHistoryOrder} from '../api/model/database';
-import {Memo, Operation, Operations} from '../model/transaction';
-import {ApiModule} from './ApiModule';
-import {DCoreAssetObject} from '../model/asset';
+import {
+    Account,
+    AccountError,
+    AccountNameIdPair,
+    Asset, HistoryRecord,
+    MinerInfo,
+    TransactionRecord,
+    WalletExport,
+    HistoryOptions
+} from '../model/account';
+import { DatabaseApi } from '../api/database';
+import { ChainApi, ChainMethods } from '../api/chain';
+import { CryptoUtils } from '../crypt';
+import { Transaction } from '../transaction';
+import { KeyPrivate, KeyPublic, Utils } from '../utils';
+import { HistoryApi, HistoryOperations } from '../api/history';
+import { ApiConnector } from '../api/apiConnector';
+import { DatabaseError, DatabaseOperations, MinerOrder, SearchAccountHistoryOrder } from '../api/model/database';
+import { Memo, Operation, Operations } from '../model/transaction';
+import { ApiModule } from './ApiModule';
+import { DCoreAssetObject } from '../model/asset';
 
 export enum AccountOrder {
     nameAsc = '+name',
@@ -93,10 +102,10 @@ export class AccountApi extends ApiModule {
      * @return {Promise<TransactionRecord[]>}
      */
     public getTransactionHistory(accountId: string,
-                                 privateKeys: string[],
-                                 order: SearchAccountHistoryOrder = SearchAccountHistoryOrder.timeDesc,
-                                 startObjectId: string = '0.0.0',
-                                 resultLimit: number = 100): Promise<TransactionRecord[]> {
+        privateKeys: string[],
+        order: SearchAccountHistoryOrder = SearchAccountHistoryOrder.timeDesc,
+        startObjectId: string = '0.0.0',
+        resultLimit: number = 100): Promise<TransactionRecord[]> {
         return new Promise((resolve, reject) => {
             this.searchAccountHistory(accountId, privateKeys, order, startObjectId, resultLimit)
                 .then((transactions: any[]) => {
@@ -121,10 +130,10 @@ export class AccountApi extends ApiModule {
      * @returns {Promise<TransactionRecord[]>}
      */
     public searchAccountHistory(accountId: string,
-                                privateKeys: string[],
-                                order: SearchAccountHistoryOrder = SearchAccountHistoryOrder.timeDesc,
-                                startObjectId: string = '0.0.0',
-                                resultLimit: number = 100): Promise<TransactionRecord[]> {
+        privateKeys: string[],
+        order: SearchAccountHistoryOrder = SearchAccountHistoryOrder.timeDesc,
+        startObjectId: string = '0.0.0',
+        resultLimit: number = 100): Promise<TransactionRecord[]> {
         return new Promise((resolve, reject) => {
             const dbOperation = new DatabaseOperations.SearchAccountHistory(
                 accountId,
@@ -186,11 +195,11 @@ export class AccountApi extends ApiModule {
      * @return {Promise<Operation>}
      */
     public transfer(amount: number,
-                    assetId: string,
-                    fromAccount: string,
-                    toAccount: string,
-                    memo: string,
-                    privateKey: string): Promise<Operation> {
+        assetId: string,
+        fromAccount: string,
+        toAccount: string,
+        memo: string,
+        privateKey: string): Promise<Operation> {
         const pKey = Utils.privateKeyFromWif(privateKey);
 
         return new Promise((resolve, reject) => {
@@ -351,13 +360,13 @@ export class AccountApi extends ApiModule {
      * @param {number} resultLimit              Number of results to be returned, max value is 100
      * @return {Promise<HistoryRecord[]>}       Return variable object types, based on operation in history record
      */
-    public getAccountHistory(accountId: string, fromId: string = '1.7.0', resultLimit: number = 100): Promise<HistoryRecord[]> {
+    public getAccountHistory(accountId: string, historyOptions: HistoryOptions): Promise<HistoryRecord[]> {
         return new Promise((resolve, reject) => {
             const operation = new HistoryOperations.GetAccountHistory(
                 accountId,
-                fromId,
+                historyOptions.fromId || '1.7.0',
                 '1.7.0',
-                resultLimit
+                historyOptions.resultLimit || 100
             );
             this._historyApi.execute(operation)
                 .then(res => {
@@ -412,11 +421,11 @@ export class AccountApi extends ApiModule {
      * @returns {Promise<boolean>}
      */
     public registerAccount(name: string,
-                           ownerKey: string,
-                           activeKey: string,
-                           memoKey: string,
-                           registrar: string,
-                           regisrarPrivateKey: string): Promise<boolean> {
+        ownerKey: string,
+        activeKey: string,
+        memoKey: string,
+        registrar: string,
+        regisrarPrivateKey: string): Promise<boolean> {
         const ownerKeyAuths: [[string, number]] = [] as [[string, number]];
         ownerKeyAuths.push([ownerKey, 1]);
         const activeKeyAuths: [[string, number]] = [] as [[string, number]];
@@ -475,9 +484,9 @@ export class AccountApi extends ApiModule {
      * @returns {Promise<boolean>}
      */
     public createAccountWithBrainkey(brainkey: string,
-                                     accountName: string,
-                                     registrar: string,
-                                     registrarPrivateKey: string): Promise<boolean> {
+        accountName: string,
+        registrar: string,
+        registrarPrivateKey: string): Promise<boolean> {
         const normalizedBrainkey = Utils.normalize(brainkey);
         const keyPair: [KeyPrivate, KeyPublic] = Utils.generateKeys(normalizedBrainkey);
         return this.registerAccount(
@@ -500,9 +509,9 @@ export class AccountApi extends ApiModule {
      * @returns {Promise<any>}
      */
     exportWallet(accountId: string,
-                 password: string,
-                 privateKeys: string[],
-                 additionalElGamalPrivateKeys: string[] = []): Promise<WalletExport> {
+        password: string,
+        privateKeys: string[],
+        additionalElGamalPrivateKeys: string[] = []): Promise<WalletExport> {
         return new Promise((resolve, reject) => {
             this.getAccountById(accountId)
                 .then((acc) => {
@@ -612,11 +621,11 @@ export class AccountApi extends ApiModule {
      * @returns {Promise<MinerInfo[]>}
      */
     public searchMinerVoting(accountName: string,
-                             keyword: string,
-                             myVotes: boolean,
-                             sort: MinerOrder,
-                             fromMinerId: string,
-                             limit: number = 1000): Promise<MinerInfo[]> {
+        keyword: string,
+        myVotes: boolean,
+        sort: MinerOrder,
+        fromMinerId: string,
+        limit: number = 1000): Promise<MinerInfo[]> {
         return new Promise<MinerInfo[]>((resolve, reject) => {
             const operation = new DatabaseOperations.SearchMinerVoting(
                 accountName,
