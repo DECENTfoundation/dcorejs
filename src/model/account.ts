@@ -5,6 +5,11 @@ import {DCoreAssetObject} from './asset';
 
 export type AccountNameIdPair = [string, string];
 
+export interface HistoryOptions {
+    fromId?: string
+    resultLimit?: number
+}
+
 export interface TransactionRaw {
     id: string;
     m_from_account: string;
