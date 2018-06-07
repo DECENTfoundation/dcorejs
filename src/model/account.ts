@@ -165,7 +165,7 @@ export class TransactionMemo {
 
 export interface HistoryRecord {
     id: string
-    op: [number, object]
+    op: [number, any]
     result: any[]
     block_num: number
     trx_in_block: number
