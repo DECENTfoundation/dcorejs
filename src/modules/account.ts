@@ -510,9 +510,8 @@ export class AccountApi extends ApiModule {
      */
     exportWallet(accountId: string,
                  password: string,
-                 brainKey: string,
-                 additionalPrivateKeys: string[] = [],
-                 additionalElGamalPrivateKeys: string[] = []): Promise<any> {
+                 privateKeys: string[],
+                 additionalElGamalPrivateKeys: string[] = []): Promise<WalletExport> {
         return new Promise((resolve, reject) => {
             this.getAccountById(accountId)
                 .then((acc) => {
@@ -520,9 +519,21 @@ export class AccountApi extends ApiModule {
                         reject(this.handleError(AccountError.account_does_not_exist, ''));
                         return;
                     }
-                    const generatedKeys = Utils.generateKeys(brainKey);
-                    const elGPrivate = Utils.elGamalPrivate(generatedKeys[0].stringKey);
-                    const elGPublic = Utils.elGamalPublic(elGPrivate);
+                    const elGamalKeys = privateKeys.map(pk => {
+                        const elGPriv = Utils.elGamalPrivate(pk);
+                        const elGPub = Utils.elGamalPublic(elGPriv);
+                        return {
+                            private: { s: elGPriv },
+                            public: { s: elGPub }
+                        };
+                    });
+                    elGamalKeys.push(...additionalElGamalPrivateKeys.map(elGPriv => {
+                        const elGPub = Utils.elGamalPublic(elGPriv);
+                        return {
+                            private: { s: elGPriv },
+                            public: { s: elGPub }
+                        };
+                    }));
                     const walletExport: WalletExport = {
                         version: 1,
                         chain_id: this._chainApi.chainId,
@@ -536,27 +547,13 @@ export class AccountApi extends ApiModule {
                         ws_password: '',
                     };
                     const keys = {
-                        ec_keys: additionalPrivateKeys.map(pk => {
+                        ec_keys: privateKeys.map(pk => {
                             const pubKey = Utils.getPublicKey(Utils.privateKeyFromWif(pk));
                             return [pubKey.stringKey, pk];
                         }),
-                        el_gamal_keys: [
-                            {
-                                private: {s: elGPrivate},
-                                public: {s: elGPublic}
-                            }
-                        ],
+                        el_gamal_keys: elGamalKeys,
                         checksum: CryptoUtils.sha512(password)
                     };
-                    keys.ec_keys.push([generatedKeys[1].stringKey, generatedKeys[0].stringKey]);
-
-                    keys.el_gamal_keys.push(...additionalElGamalPrivateKeys.map(elgPriv => {
-                        const elGPub = Utils.elGamalPublic(elGPrivate);
-                        return {
-                            private: {s: elgPriv},
-                            public: {s: elGPub}
-                        };
-                    }));
                     walletExport.cipher_keys = CryptoUtils.encryptToHexString(JSON.stringify(keys), password);
                     resolve(walletExport);
                 })
