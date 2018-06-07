@@ -357,14 +357,15 @@ export class AccountApi extends ApiModule {
      * Operations can be filtered using Chain.ChainOperationType
      *
      * @param {string} accountId                Users account id, example: '1.2.30'
+     * @param {string} fromId                   ID of operation from what to start list from
      * @param {number} resultLimit              Number of results to be returned, max value is 100
      * @return {Promise<HistoryRecord[]>}       Return variable object types, based on operation in history record
      */
-    public getAccountHistory(accountId: string, resultLimit: number = 100): Promise<HistoryRecord[]> {
+    public getAccountHistory(accountId: string, fromId: string = '1.7.0', resultLimit: number = 100): Promise<HistoryRecord[]> {
         return new Promise((resolve, reject) => {
             const operation = new HistoryOperations.GetAccountHistory(
                 accountId,
-                '1.7.0',
+                fromId,
                 '1.7.0',
                 resultLimit
             );
