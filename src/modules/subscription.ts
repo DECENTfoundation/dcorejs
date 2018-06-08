@@ -1,10 +1,11 @@
 import {ApiModule} from './ApiModule';
 import {DatabaseApi} from '../api/database';
 import {DatabaseOperations} from '../api/model/database';
-import {SubscriptionError, SubscriptionObject} from '../model/subscription';
+import {Subscription, SubscriptionError, SubscriptionObject} from '../model/subscription';
 import {Operations} from '../model/transaction';
-import {dcorejs_lib} from '../helpers';
-import {Utils} from '../utils';
+import {DCoreAssetObject} from '../model/asset';
+import {Asset} from '../model/account';
+import {Transaction} from '../transaction';
 
 export class SubscriptionModule extends ApiModule {
     constructor(dbApi: DatabaseApi) {
@@ -57,23 +58,53 @@ export class SubscriptionModule extends ApiModule {
 
     public subscribeToAuthor(fromId: string, toId: string, amount: number, assetId: string): Promise<Boolean> {
         return new Promise<Boolean>((resolve, reject) => {
-            const operation = new DatabaseOperations.GetAssets([assetId]);
-            this.dbApi.execute(operation)
-                .then(() => {
-                    const subscribeToOperation = new Operations.Subscribe(
+            const getAssetOperation = new DatabaseOperations.GetAssets([assetId]);
+            this.dbApi.execute(getAssetOperation)
+                .then((assets: DCoreAssetObject) => {
+                    if (assets[0] === null) {
+                        reject(this.handleError(SubscriptionError.asset_does_not_exist));
+                        return;
+                    }
+                    const price: Asset = Asset.create(amount, assets[0]);
+                    const subscribeToAuthorOperation = new Operations.Subscribe(
                         fromId,
                         toId,
-                        Utils.formatAmountToAsset(amount, )
+                        price
                     );
-                    this.dbApi.execute(subscribeToOperation)
-                        .then()
-                        .catch();
+                    const transaction = new Transaction();
+                    transaction.add(subscribeToAuthorOperation);
                 })
                 .catch((error) => {
                     reject(this.handleError(SubscriptionError.subscription_to_author_failed));
                 });
-
-
         });
+    }
+
+    public subscribeByAuthor(fromId: string, toId: string): Promise<Boolean> {
+        return new Promise<Boolean>(((resolve, reject) => {
+            const subscribeByAuthorOperation = new Operations.SubscribeByAuthor(
+                fromId,
+                toId
+            );
+            const transaction = new Transaction();
+            transaction.add(subscribeByAuthorOperation);
+        }));
+    }
+
+    public setSubscription(accountId: string, params: Subscription): Promise<Boolean> {
+        return new Promise<Boolean>(((resolve, reject) => {
+        }));
+    }
+
+    public setAutomaticRenewalOfSubscription(accountId: string, subscriptionId: string, automaticRenewal: boolean): Promise<Boolean> {
+        return new Promise<Boolean>(((resolve, reject) => {
+            const setAutomaticRenewalOperation = new Operations.SetAutomaticRenewalOfSubscription(
+                accountId,
+                subscriptionId,
+                automaticRenewal
+            );
+            const transaction = new Transaction();
+            transaction.add(setAutomaticRenewalOperation);
+        }));
     }
 }

@@ -52,6 +52,8 @@ export enum OperationName {
     proposal_create = 'proposal_create',
     operation_wrapper = 'op_wrapper',
     subscribe = 'subscribe',
+    subscribe_by_author = 'subscribe_by_author',
+    automatic_renewal_of_subscription = 'automatic_renewal_of_subscription',
 }
 
 /**
@@ -368,10 +370,31 @@ export namespace Operations {
     export class Subscribe extends Operation {
         constructor(fromId: string, toId: string, asset: Asset) {
             super(OperationName.subscribe, {
-                    from: fromId,
-                    to: toId,
-                    price: asset
+                    fromId,
+                    toId,
+                    asset
             });
+        }
+    }
+
+    export class SubscribeByAuthor extends Operation {
+        constructor(fromId: string, toId: string) {
+            super(
+                OperationName.subscribe_by_author, {
+                    fromId,
+                    toId
+                });
+        }
+    }
+
+    export class SetAutomaticRenewalOfSubscription extends Operation {
+        constructor(accountId: string, subscriptionId: string, automaticRenewal: boolean) {
+            super(
+                OperationName.automatic_renewal_of_subscription, {
+                    accountId,
+                    subscriptionId,
+                    automaticRenewal
+                });
         }
     }
 }
