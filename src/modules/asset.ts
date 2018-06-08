@@ -313,8 +313,8 @@ export class AssetModule extends ApiModule {
                     const asset = assets[0];
                     const operation = new DatabaseOperations.PriceToDCT(
                         {
-                            asset_id: asset[0].id,
-                            amount: Utils.formatAmountForAsset(amount, asset)
+                            asset_id: asset.id,
+                            amount: Utils.formatAmountToAsset(amount, asset)
                         }
                     );
                     this.dbApi.execute(operation)
