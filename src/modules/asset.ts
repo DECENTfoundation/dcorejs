@@ -21,12 +21,12 @@ export class AssetModule extends ApiModule {
         this.connector = connector;
     }
 
-    public listAssets(lowerBoundSymbol: string, limit: number = 100): Promise<AssetObject[]> {
+    public listAssets(lowerBoundSymbol: string, limit: number = 100, formatAssets: boolean = false): Promise<AssetObject[]> {
         return new Promise<any>((resolve, reject) => {
             const operation = new DatabaseOperations.ListAssets(lowerBoundSymbol, limit);
             this.dbApi.execute(operation)
                 .then((assets: DCoreAssetObject[]) => {
-                    resolve(this.formatAssets(assets));
+                    resolve(formatAssets ? this.formatAssets(assets) : assets);
                 })
                 .catch(err => {
                     reject(this.handleError(AssetError.unable_to_list_assets, err));
@@ -278,7 +278,7 @@ export class AssetModule extends ApiModule {
         });
     }
 
-    public getAsset(assetId: string): Promise<DCoreAssetObject> {
+    public getAsset(assetId: string, formatAsset: boolean = false): Promise<DCoreAssetObject> {
         const operation = new DatabaseOperations.GetAssets([assetId]);
         return new Promise<DCoreAssetObject>((resolve, reject) => {
             this.dbApi.execute(operation)
@@ -287,7 +287,7 @@ export class AssetModule extends ApiModule {
                         reject(this.handleError(AssetError.asset_not_found));
                         return;
                     }
-                    resolve(this.formatAssets(assets)[0]);
+                    resolve(formatAsset ? this.formatAssets(assets)[0] : assets[0]);
                 })
                 .catch(err => reject(err));
         });
