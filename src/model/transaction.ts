@@ -51,6 +51,7 @@ export enum OperationName {
     miner_update = 'miner_update',
     proposal_create = 'proposal_create',
     operation_wrapper = 'op_wrapper',
+    subscribe = 'subscribe',
 }
 
 /**
@@ -361,6 +362,16 @@ export namespace Operations {
     export class RegisterAccount extends Operation {
         constructor(params: CreateAccountParameters) {
             super(OperationName.account_create, params);
+        }
+    }
+
+    export class Subscribe extends Operation {
+        constructor(fromId: string, toId: string, asset: Asset) {
+            super(OperationName.subscribe, {
+                    from: fromId,
+                    to: toId,
+                    price: asset
+            });
         }
     }
 }

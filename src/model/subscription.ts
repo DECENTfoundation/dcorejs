@@ -7,4 +7,5 @@ export interface SubscriptionObject {
 
 export enum SubscriptionError {
     database_operation_failed = 'database_operation_failed',
+    subscription_to_author_failed = 'subscription_to_author_failed',
 }
