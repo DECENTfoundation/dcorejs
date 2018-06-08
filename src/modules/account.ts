@@ -589,6 +589,10 @@ export class AccountApi extends ApiModule {
             const operation = new DatabaseOperations.GetAccountBalances(id, []);
             this.dbApi.execute(operation)
                 .then((balances: Asset[]) => {
+                    if (balances.length === 0) {
+                        resolve(balances);
+                        return;
+                    }
                     const listAssetsOp = new DatabaseOperations.GetAssets(balances.map(asset => asset.asset_id));
                     this.dbApi.execute(listAssetsOp)
                         .then((assets: DCoreAssetObject[]) => {
