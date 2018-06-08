@@ -92,7 +92,7 @@ export class AssetModule extends ApiModule {
         return new Promise<any>((resolve, reject) => {
             this.listAssets(assetSymbol, 1)
                 .then((assets: AssetObject[]) => {
-                    if (!assets || assets.length === 0) {
+                    if (assets.length === 0 || !assets[0]) {
                         reject('asset_not_found');
                         return;
                     }
@@ -153,7 +153,7 @@ export class AssetModule extends ApiModule {
         return new Promise<any>((resolve, reject) => {
             this.listAssets(symbol, 1)
                 .then((assets: AssetObject[]) => {
-                    if (assets.length === 0) {
+                    if (assets.length === 0 || !assets[0]) {
                         reject(this.handleError(AssetError.asset_not_found));
                         return;
                     }
@@ -190,7 +190,7 @@ export class AssetModule extends ApiModule {
             ])
                 .then(res => {
                     const [uia, dct] = res;
-                    if (!(uia[0].symbol === uiaSymbol && dct[0].symbol === dctSymbol) || res.length !== 2) {
+                    if (uia.length === 0 || dct.length === 0 || !uia[0] || !dct[0]) {
                         reject(this.handleError(AssetError.asset_not_found));
                         return;
                     }
@@ -219,7 +219,7 @@ export class AssetModule extends ApiModule {
         return new Promise<any>((resolve, reject) => {
             this.listAssets(symbol, 1)
                 .then(res => {
-                    if (res[0].symbol !== symbol || res.length !== 1) {
+                    if (res.length !== 1 || !res[0]) {
                         reject(this.handleError(AssetError.asset_not_found));
                         return;
                     }
@@ -253,7 +253,7 @@ export class AssetModule extends ApiModule {
             ])
                 .then(res => {
                     const [uia, dct] = res;
-                    if (!(uia[0].symbol === uiaSymbol && dct[0].symbol === dctSymbol) || res.length !== 2) {
+                    if (uia.length === 0 || dct.length === 0 || !uia[0] || !dct[0]) {
                         reject(this.handleError(AssetError.asset_not_found));
                         return;
                     }
@@ -306,7 +306,7 @@ export class AssetModule extends ApiModule {
         return new Promise<any>((resolve, reject) => {
             this.listAssets(symbol, 1)
                 .then((assets: DCoreAssetObject[]) => {
-                    if (assets.length !== 1 || assets[0].symbol !== symbol) {
+                    if (assets.length !== 1 || !assets[0]) {
                         reject(this.handleError(AssetError.asset_not_found));
                         return;
                     }
@@ -333,7 +333,7 @@ export class AssetModule extends ApiModule {
         return new Promise<any>((resolve, reject) => {
             this.listAssets(symbol, 1)
                 .then((assets: AssetObject[]) => {
-                    if (assets.length !== 1 || assets[0].symbol !== symbol) {
+                    if (assets.length !== 1 || !assets[0]) {
                         reject('asset_not_found');
                         return;
                     }
