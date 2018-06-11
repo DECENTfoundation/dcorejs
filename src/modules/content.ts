@@ -65,22 +65,27 @@ export class ContentApi extends ApiModule {
      * Fetch content object from blockchain for given content id
      *
      * @param {string} id example: '1.2.345'
+     * @param {boolean} convertAsset
      * @return {Promise<Content>}
      */
-    public getContent(id: string): Promise<Content> {
+    public getContent(id: string, convertAsset: boolean = false): Promise<Content> {
         return new Promise((resolve, reject) => {
-            const dbOperation = new DatabaseOperations.GetObjects([id]);
-            this.dbApi
-                .execute(dbOperation)
-                .then(contents => {
-                    const [content] = contents;
-                    const stringidied = JSON.stringify(content);
-                    const objectified = JSON.parse(stringidied);
-                    objectified.synopsis = JSON.parse(objectified.synopsis);
-                    if (isUndefined(objectified.price['amount'])) {
-                        objectified.price = objectified.price['map_price'][0][1];
-                    }
-                    resolve(objectified as Content);
+            const listAssetsOp = new DatabaseOperations.ListAssets('', 100);
+            this.dbApi.execute(listAssetsOp)
+                .then((assets: DCoreAssetObject[]) => {
+                    const dbOperation = new DatabaseOperations.GetObjects([id]);
+                    this.dbApi
+                        .execute(dbOperation)
+                        .then(contents => {
+                            const [content] = contents;
+                            const stringidied = JSON.stringify(content);
+                            let objectified = JSON.parse(stringidied);
+                            objectified.synopsis = JSON.parse(objectified.synopsis);
+                            if (isUndefined(objectified.price['amount']) && convertAsset) {
+                                objectified = this.formatPrices([objectified], assets)[0];
+                            }
+                            resolve(objectified as Content);
+                        });
                 })
                 .catch(err => {
                     reject(this.handleError(ContentError.database_operation_failed, err));
