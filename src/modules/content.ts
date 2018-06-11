@@ -93,24 +93,34 @@ export class ContentApi extends ApiModule {
         });
     }
 
-    public getContentURI(URI: string): Promise<Content | null> {
+    /**
+     *
+     * @param {string} URI
+     * @param {boolean} convertAsset
+     * @returns {Promise<Content | null>}
+     */
+    public getContentURI(URI: string, convertAsset: boolean = false): Promise<Content | null> {
         return new Promise((resolve, reject) => {
-            const dbOperation = new DatabaseOperations.GetContent(URI);
-            this.dbApi
-                .execute(dbOperation)
-                .then(contents => {
-                    if (!contents) {
-                        resolve(null);
-                        return;
-                    }
-                    const [content] = contents;
-                    const stringidied = JSON.stringify(content);
-                    const objectified = JSON.parse(stringidied);
-                    objectified.synopsis = JSON.parse(objectified.synopsis);
-                    if (isUndefined(objectified.price['amount'])) {
-                        objectified.price = objectified.price['map_price'][0][1];
-                    }
-                    resolve(objectified as Content);
+            const listAssetsOp = new DatabaseOperations.ListAssets('', 100);
+            this.dbApi.execute(listAssetsOp)
+                .then((assets: DCoreAssetObject[]) => {
+                    const dbOperation = new DatabaseOperations.GetContent(URI);
+                    this.dbApi
+                        .execute(dbOperation)
+                        .then(contents => {
+                            if (!contents) {
+                                resolve(null);
+                                return;
+                            }
+                            const [content] = contents;
+                            const stringidied = JSON.stringify(content);
+                            let objectified = JSON.parse(stringidied);
+                            objectified.synopsis = JSON.parse(objectified.synopsis);
+                            if (isUndefined(objectified.price['amount']) && convertAsset) {
+                                objectified = this.formatPrices([objectified], assets);
+                            }
+                            resolve(objectified as Content);
+                        });
                 })
                 .catch(err => {
                     reject(this.handleError(ContentError.database_operation_failed, err));
