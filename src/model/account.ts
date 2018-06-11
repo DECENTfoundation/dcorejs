@@ -5,6 +5,11 @@ import {DCoreAssetObject} from './asset';
 
 export type AccountNameIdPair = [string, string];
 
+export interface HistoryOptions {
+    fromId?: string
+    resultLimit?: number
+}
+
 export interface TransactionRaw {
     id: string;
     m_from_account: string;
@@ -47,7 +52,7 @@ export class Asset {
 
     public static create(amount: number, assetObject: DCoreAssetObject): Asset {
         return new Asset(
-            Math.floor(Utils.formatAmountForAsset(amount, assetObject)),
+            Utils.formatAmountToAsset(amount, assetObject),
             assetObject.id
         );
     }
@@ -61,7 +66,7 @@ export class Asset {
 export interface Authority {
     weight_threshold: number;
     account_auths: any[];
-    key_auths: [[string, number]];
+    key_auths: [string, number][];
 }
 
 export class KeyAuth {
@@ -165,7 +170,7 @@ export class TransactionMemo {
 
 export interface HistoryRecord {
     id: string
-    op: any[]
+    op: [number, any]
     result: any[]
     block_num: number
     trx_in_block: number
@@ -182,6 +187,7 @@ export interface MinerInfo {
 }
 
 export interface WalletExport {
+    version: number;
     chain_id: string;
     my_accounts: Account[];
     cipher_keys: string;
