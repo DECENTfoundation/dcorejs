@@ -311,6 +311,16 @@ export class ContentApi extends ApiModule {
         });
     }
 
+    private formatPrices(content: ContentExchangeObject[], assets: DCoreAssetObject[]): ContentExchangeObject[] {
+        const result: ContentExchangeObject[] = content.map(obj => {
+            const asset = assets.find(a => a.id === obj.price.asset_id);
+            const c = Object.assign({}, obj);
+            c.price.amount = Utils.formatAmountForAsset(obj.price.amount, asset);
+            return c;
+        });
+        return result;
+    }
+
     private getFileSize(fileSize: number): number {
         return Math.ceil(fileSize / (1024 * 1024));
     }
