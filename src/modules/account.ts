@@ -135,7 +135,7 @@ export class AccountApi extends ApiModule {
                                 startObjectId: string = '0.0.0',
                                 resultLimit: number = 100,
                                 convertAssets: boolean = false): Promise<TransactionRecord[]> {
-        return new Promise((resolve, reject) => {
+        return new Promise<TransactionRecord[]>((resolve, reject) => {
             const dbOperation = new DatabaseOperations.SearchAccountHistory(
                 accountId,
                 order,
@@ -182,7 +182,7 @@ export class AccountApi extends ApiModule {
                                     resolve(res);
                                 })
                                 .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
-                        }));
+                        });
                 })
                 .catch(err => {
                     reject(
