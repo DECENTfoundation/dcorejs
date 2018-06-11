@@ -15,7 +15,7 @@ export interface Subscription {
 export enum SubscriptionError {
     database_operation_failed = 'database_operation_failed',
     asset_does_not_exist = 'asset_does_not_exist',
+    account_does_not_exist = 'account_does_not_exist',
     transaction_broadcast_failed = 'transaction_broadcast_failed',
     subscription_to_author_failed = 'subscription_to_author_failed',
-    subscription_by_author_failed = 'subscription_by_author_failed',
 }

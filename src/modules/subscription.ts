@@ -1,11 +1,11 @@
 import {ApiModule} from './ApiModule';
 import {DatabaseApi} from '../api/database';
 import {DatabaseOperations} from '../api/model/database';
-import {Subscription, SubscriptionError, SubscriptionObject} from '../model/subscription';
+import {SubscriptionError, SubscriptionObject} from '../model/subscription';
 import {Operations} from '../model/transaction';
 import {DCoreAssetObject} from '../model/asset';
-import {Asset} from '../model/account';
 import {Transaction} from '../transaction';
+import {Asset} from '../model/account';
 
 export class SubscriptionModule extends ApiModule {
     constructor(dbApi: DatabaseApi) {
@@ -85,10 +85,7 @@ export class SubscriptionModule extends ApiModule {
 
     public subscribeByAuthor(from: string, to: string, privateKey: string): Promise<Boolean> {
         return new Promise<Boolean>(((resolve, reject) => {
-            const subscribeByAuthorOperation = new Operations.SubscribeByAuthor(
-                from,
-                to
-            );
+            const subscribeByAuthorOperation = new Operations.SubscribeByAuthor(from, to);
             const transaction = new Transaction();
             transaction.add(subscribeByAuthorOperation);
             transaction.broadcast(privateKey)
@@ -98,11 +95,6 @@ export class SubscriptionModule extends ApiModule {
                 .catch((error) => {
                     reject(this.handleError(SubscriptionError.transaction_broadcast_failed, error));
                 });
-        }));
-    }
-
-    public setSubscription(accountId: string, params: Subscription, privateKey: string): Promise<Boolean> {
-        return new Promise<Boolean>(((resolve, reject) => {
         }));
     }
 
@@ -125,4 +117,5 @@ export class SubscriptionModule extends ApiModule {
                 });
         }));
     }
+
 }
