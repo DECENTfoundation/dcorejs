@@ -1,17 +1,24 @@
-import {Account, AccountError, AccountNameIdPair, Asset, HistoryRecord, MinerInfo, TransactionRecord, WalletExport} from '../model/account';
-import {DatabaseApi} from '../api/database';
-import {ChainApi, ChainMethods} from '../api/chain';
-import {CryptoUtils} from '../crypt';
-import {Transaction} from '../transaction';
-import {KeyPrivate, KeyPublic, Utils} from '../utils';
-import {HistoryApi, HistoryOperations} from '../api/history';
-import {ApiConnector} from '../api/apiConnector';
-import {DatabaseError, DatabaseOperations, MinerOrder, SearchAccountHistoryOrder} from '../api/model/database';
-import {Memo, Operation, Operations} from '../model/transaction';
-import {Miner} from '../model/explorer';
-import {ApiModule} from './ApiModule';
-import {MiningModule} from './mining';
-import {DCoreAssetObject} from '../model/asset';
+import {
+    Account,
+    AccountError,
+    AccountNameIdPair,
+    Asset, HistoryRecord,
+    MinerInfo,
+    TransactionRecord,
+    WalletExport,
+    HistoryOptions
+} from '../model/account';
+import { DatabaseApi } from '../api/database';
+import { ChainApi, ChainMethods } from '../api/chain';
+import { CryptoUtils } from '../crypt';
+import { Transaction } from '../transaction';
+import { KeyPrivate, KeyPublic, Utils } from '../utils';
+import { HistoryApi, HistoryOperations } from '../api/history';
+import { ApiConnector } from '../api/apiConnector';
+import { DatabaseError, DatabaseOperations, MinerOrder, SearchAccountHistoryOrder } from '../api/model/database';
+import { Memo, Operation, Operations } from '../model/transaction';
+import { ApiModule } from './ApiModule';
+import { DCoreAssetObject } from '../model/asset';
 
 export enum AccountOrder {
     nameAsc = '+name',
@@ -95,10 +102,10 @@ export class AccountApi extends ApiModule {
      * @return {Promise<TransactionRecord[]>}
      */
     public getTransactionHistory(accountId: string,
-                                 privateKeys: string[],
-                                 order: SearchAccountHistoryOrder = SearchAccountHistoryOrder.timeDesc,
-                                 startObjectId: string = '0.0.0',
-                                 resultLimit: number = 100): Promise<TransactionRecord[]> {
+        privateKeys: string[],
+        order: SearchAccountHistoryOrder = SearchAccountHistoryOrder.timeDesc,
+        startObjectId: string = '0.0.0',
+        resultLimit: number = 100): Promise<TransactionRecord[]> {
         return new Promise((resolve, reject) => {
             this.searchAccountHistory(accountId, privateKeys, order, startObjectId, resultLimit)
                 .then((transactions: any[]) => {
@@ -174,11 +181,26 @@ export class AccountApi extends ApiModule {
                                 .then(() => {
                                     resolve(res);
                                 })
-                                .catch(err => {
-                                    reject(this.handleError(AccountError.account_fetch_failed, err));
-                                });
+                                .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
+                        }));
+
+                        namePromises.push(new Promise((resolve, reject) => {
+                            this.getAccountById(transaction.toAccountId)
+                                .then(account => {
+                                    transaction.toAccountName = account.name;
+                                    resolve();
+                                })
+                                .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
+                        }));
+                        return transaction;
+                    });
+                    Promise.all(namePromises)
+                        .then(() => {
+                            resolve(res);
                         })
-                        .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
+                        .catch(err => {
+                            reject(this.handleError(AccountError.account_fetch_failed, err));
+                        });
                 })
                 .catch(err => {
                     reject(
@@ -201,11 +223,11 @@ export class AccountApi extends ApiModule {
      * @return {Promise<Operation>}
      */
     public transfer(amount: number,
-                    assetId: string,
-                    fromAccount: string,
-                    toAccount: string,
-                    memo: string,
-                    privateKey: string): Promise<Operation> {
+        assetId: string,
+        fromAccount: string,
+        toAccount: string,
+        memo: string,
+        privateKey: string): Promise<Operation> {
         const pKey = Utils.privateKeyFromWif(privateKey);
 
         return new Promise((resolve, reject) => {
@@ -362,16 +384,17 @@ export class AccountApi extends ApiModule {
      * Operations can be filtered using Chain.ChainOperationType
      *
      * @param {string} accountId                Users account id, example: '1.2.30'
+     * @param {string} fromId                   ID of operation from what to start list from
      * @param {number} resultLimit              Number of results to be returned, max value is 100
      * @return {Promise<HistoryRecord[]>}       Return variable object types, based on operation in history record
      */
-    public getAccountHistory(accountId: string, resultLimit: number = 100): Promise<HistoryRecord[]> {
+    public getAccountHistory(accountId: string, historyOptions: HistoryOptions): Promise<HistoryRecord[]> {
         return new Promise((resolve, reject) => {
             const operation = new HistoryOperations.GetAccountHistory(
                 accountId,
+                historyOptions.fromId || '1.7.0',
                 '1.7.0',
-                '1.7.0',
-                resultLimit
+                historyOptions.resultLimit || 100
             );
             this._historyApi.execute(operation)
                 .then(res => {
@@ -379,142 +402,6 @@ export class AccountApi extends ApiModule {
                     resolve(res);
                 })
                 .catch(err => reject(this.handleError(AccountError.transaction_history_fetch_failed, err)));
-        });
-    }
-
-    /**
-     * Vote for selected miner.
-     * More information on https://devdocs.decent.ch/UseCases/#vote_for_a_miner_1
-     * @deprecated                      Use method from mining module instead. Method will be removed in future releases
-     * @param {string} miner
-     * @param {string} account
-     * @param {string} privateKeyWif
-     * @returns {Promise<any>}
-     */
-    public voteForMiner(miner: string, account: string, privateKeyWif: string): Promise<any> {
-        return this.voteForMiners([miner], account, privateKeyWif);
-    }
-
-    /**
-     * Remove youte vote from selected miner.
-     * @deprecated                      Use method from mining module instead. Method will be removed in future releases
-     * @param {string} miner
-     * @param {string} account
-     * @param {string} privateKeyWif
-     * @returns {Promise<any>}
-     */
-    public unvoteMiner(miner: string, account: string, privateKeyWif: string): Promise<any> {
-        return this.unvoteMiners([miner], account, privateKeyWif);
-    }
-
-    /**
-     * @deprecated                      Use method from mining module instead. Method will be removed in future releases
-     * @param {string[]} miners
-     * @param {string} account
-     * @param {string} privateKeyWif
-     * @returns {Promise<any>}
-     */
-    public voteForMiners(miners: string[], account: string, privateKeyWif: string): Promise<any> {
-        return new Promise<any>((resolve, reject) => {
-            const operations = new ChainMethods();
-            operations.add(ChainMethods.getAccount, account);
-            this._chainApi.fetch(operations)
-                .then(res => {
-                    if (!res[0]) {
-                        reject(this.handleError(AccountError.account_does_not_exist, ''));
-                        return;
-                    }
-                    const [voterAccount] = res;
-                    const voter: Account = JSON.parse(JSON.stringify(voterAccount));
-                    const operation = new DatabaseOperations.GetMiners(miners);
-                    this.dbApi.execute(operation)
-                        .then((res: Miner[]) => {
-                            const newOptions = Object.assign({}, voter.options);
-                            newOptions.votes.push(...res.map(miner => miner.vote_id));
-                            newOptions.votes = MiningModule.getSortedMiners(voter.options.votes);
-                            const op = new Operations.AccountUpdateOperation(
-                                account,
-                                voter.owner,
-                                voter.active,
-                                newOptions,
-                                {}
-                            );
-                            const transaction = new Transaction();
-                            transaction.add(op);
-                            transaction.broadcast(privateKeyWif)
-                                .then(res => resolve(true))
-                                .catch((err: Error) => {
-                                    console.log(err);
-                                    let errorMessage = 'transaction_broadcast_failed';
-                                    if (err.stack.indexOf('duplicate') >= 0) {
-                                        errorMessage = 'duplicate_parameter_set';
-                                    }
-                                    reject(errorMessage);
-                                });
-                        })
-                        .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
-                })
-                .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
-        });
-    }
-
-    /**
-     * @deprecated                      Use method from mining module instead. Method will be removed in future releases
-     * @param {string[]} miners
-     * @param {string} account
-     * @param {string} privateKeyWif
-     * @returns {Promise<any>}
-     */
-    public unvoteMiners(miners: string[], account: string, privateKeyWif: string): Promise<any> {
-        return new Promise<any>((resolve, reject) => {
-            const operations = new ChainMethods();
-            operations.add(ChainMethods.getAccount, account);
-            this._chainApi.fetch(operations)
-                .then(res => {
-                    if (!res[0]) {
-                        reject(this.handleError(AccountError.account_does_not_exist, ''));
-                        return;
-                    }
-                    const [voterAccount] = res;
-                    const voter: Account = JSON.parse(JSON.stringify(voterAccount));
-                    const operation = new DatabaseOperations.GetMiners(miners);
-                    this.dbApi.execute(operation)
-                        .then((res: Miner[]) => {
-                            const minersToUnvote = MiningModule.createVoteIdList(miners, res);
-                            const newOptions = Object.assign({}, voter.options);
-                            newOptions.votes = MiningModule.removeVotedMiners(voter.options.votes, minersToUnvote);
-                            if (newOptions.votes.length < voter.options.num_miner) {
-                                reject(
-                                    this.handleError(
-                                        AccountError.cannot_update_miner_votes,
-                                        'Number of votes cannot be lower as desired miners number'
-                                    )
-                                );
-                                return;
-                            }
-                            if (voter.options.votes === newOptions.votes) {
-                                reject(
-                                    this.handleError(
-                                        AccountError.votes_does_not_changed,
-                                        'Miners sent to unvote are already unvoted.'
-                                    ));
-                            }
-                            const op = new Operations.AccountUpdateOperation(
-                                account,
-                                voter.owner,
-                                voter.active,
-                                newOptions,
-                                {}
-                            );
-                            const transaction = new Transaction();
-                            transaction.add(op);
-                            transaction.broadcast(privateKeyWif)
-                                .then(res => resolve(true))
-                                .catch(err => reject(err));
-                        })
-                        .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
-                })
-                .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
         });
     }
 
@@ -562,11 +449,11 @@ export class AccountApi extends ApiModule {
      * @returns {Promise<boolean>}
      */
     public registerAccount(name: string,
-                           ownerKey: string,
-                           activeKey: string,
-                           memoKey: string,
-                           registrar: string,
-                           regisrarPrivateKey: string): Promise<boolean> {
+        ownerKey: string,
+        activeKey: string,
+        memoKey: string,
+        registrar: string,
+        regisrarPrivateKey: string): Promise<boolean> {
         const ownerKeyAuths: [[string, number]] = [] as [[string, number]];
         ownerKeyAuths.push([ownerKey, 1]);
         const activeKeyAuths: [[string, number]] = [] as [[string, number]];
@@ -625,9 +512,9 @@ export class AccountApi extends ApiModule {
      * @returns {Promise<boolean>}
      */
     public createAccountWithBrainkey(brainkey: string,
-                                     accountName: string,
-                                     registrar: string,
-                                     registrarPrivateKey: string): Promise<boolean> {
+        accountName: string,
+        registrar: string,
+        registrarPrivateKey: string): Promise<boolean> {
         const normalizedBrainkey = Utils.normalize(brainkey);
         const keyPair: [KeyPrivate, KeyPublic] = Utils.generateKeys(normalizedBrainkey);
         return this.registerAccount(
@@ -644,16 +531,15 @@ export class AccountApi extends ApiModule {
      *
      * @param {string} accountId
      * @param {string} password
-     * @param {string} elGamalPrivateKey
-     * @param {string} elGamalPublicKey
-     * @param {string} privateKeys
+     * @param brainKey
+     * @param additionalPrivateKeys
+     * @param additionalElGamalPrivateKeys
      * @returns {Promise<any>}
      */
     exportWallet(accountId: string,
-                 password: string,
-                 elGamalPrivateKey: string,
-                 elGamalPublicKey: string,
-                 ...privateKeys: string[]): Promise<any> {
+        password: string,
+        privateKeys: string[],
+        additionalElGamalPrivateKeys: string[] = []): Promise<WalletExport> {
         return new Promise((resolve, reject) => {
             this.getAccountById(accountId)
                 .then((acc) => {
@@ -661,7 +547,23 @@ export class AccountApi extends ApiModule {
                         reject(this.handleError(AccountError.account_does_not_exist, ''));
                         return;
                     }
+                    const elGamalKeys = privateKeys.map(pk => {
+                        const elGPriv = Utils.elGamalPrivate(pk);
+                        const elGPub = Utils.elGamalPublic(elGPriv);
+                        return {
+                            private: { s: elGPriv },
+                            public: { s: elGPub }
+                        };
+                    });
+                    elGamalKeys.push(...additionalElGamalPrivateKeys.map(elGPriv => {
+                        const elGPub = Utils.elGamalPublic(elGPriv);
+                        return {
+                            private: { s: elGPriv },
+                            public: { s: elGPub }
+                        };
+                    }));
                     const walletExport: WalletExport = {
+                        version: 1,
                         chain_id: this._chainApi.chainId,
                         my_accounts: [acc],
                         cipher_keys: '',
@@ -677,12 +579,9 @@ export class AccountApi extends ApiModule {
                             const pubKey = Utils.getPublicKey(Utils.privateKeyFromWif(pk));
                             return [pubKey.stringKey, pk];
                         }),
-                        el_gamal_keys: [
-                            [{s: elGamalPrivateKey}, {s: elGamalPublicKey}]
-                        ],
+                        el_gamal_keys: elGamalKeys,
                         checksum: CryptoUtils.sha512(password)
                     };
-                    console.log(keys);
                     walletExport.cipher_keys = CryptoUtils.encryptToHexString(JSON.stringify(keys), password);
                     resolve(walletExport);
                 })
@@ -718,6 +617,10 @@ export class AccountApi extends ApiModule {
             const operation = new DatabaseOperations.GetAccountBalances(id, []);
             this.dbApi.execute(operation)
                 .then((balances: Asset[]) => {
+                    if (balances.length === 0) {
+                        resolve(balances);
+                        return;
+                    }
                     const listAssetsOp = new DatabaseOperations.GetAssets(balances.map(asset => asset.asset_id));
                     this.dbApi.execute(listAssetsOp)
                         .then((assets: DCoreAssetObject[]) => {
@@ -750,11 +653,11 @@ export class AccountApi extends ApiModule {
      * @returns {Promise<MinerInfo[]>}
      */
     public searchMinerVoting(accountName: string,
-                             keyword: string,
-                             myVotes: boolean,
-                             sort: MinerOrder,
-                             fromMinerId: string,
-                             limit: number = 1000): Promise<MinerInfo[]> {
+        keyword: string,
+        myVotes: boolean,
+        sort: MinerOrder,
+        fromMinerId: string,
+        limit: number = 1000): Promise<MinerInfo[]> {
         return new Promise<MinerInfo[]>((resolve, reject) => {
             const operation = new DatabaseOperations.SearchMinerVoting(
                 accountName,
