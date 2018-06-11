@@ -368,11 +368,11 @@ export namespace Operations {
     }
 
     export class Subscribe extends Operation {
-        constructor(fromId: string, toId: string, asset: Asset) {
+        constructor(fromId: string, toId: string, price: Asset) {
             super(OperationName.subscribe, {
-                    fromId,
-                    toId,
-                    asset
+                    from: fromId,
+                    to: toId,
+                    price: price
             });
         }
     }
@@ -381,8 +381,8 @@ export namespace Operations {
         constructor(fromId: string, toId: string) {
             super(
                 OperationName.subscribe_by_author, {
-                    fromId,
-                    toId
+                    from: fromId,
+                    to: toId
                 });
         }
     }
@@ -391,9 +391,9 @@ export namespace Operations {
         constructor(accountId: string, subscriptionId: string, automaticRenewal: boolean) {
             super(
                 OperationName.automatic_renewal_of_subscription, {
-                    accountId,
-                    subscriptionId,
-                    automaticRenewal
+                    consumer: accountId,
+                    subscription: subscriptionId,
+                    automatic_renewal: automaticRenewal
                 });
         }
     }
