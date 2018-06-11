@@ -51,6 +51,7 @@ export enum OperationName {
     miner_update = 'miner_update',
     proposal_create = 'proposal_create',
     operation_wrapper = 'op_wrapper',
+    vesting_balance_withdraw = 'vesting_balance_withdraw',
 }
 
 /**
@@ -361,6 +362,18 @@ export namespace Operations {
     export class RegisterAccount extends Operation {
         constructor(params: CreateAccountParameters) {
             super(OperationName.account_create, params);
+        }
+    }
+
+    export class VestingBalanceWithdraw extends Operation {
+        constructor(vestingBalanceId: string, ownerId: string, ammount: Asset) {
+            super(
+                OperationName.vesting_balance_withdraw,
+                {
+                    vesting_balance: vestingBalanceId,
+                    owner: ownerId,
+                    amount: ammount
+                });
         }
     }
 }
