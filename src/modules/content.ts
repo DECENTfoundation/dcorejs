@@ -33,18 +33,27 @@ export class ContentApi extends ApiModule {
      * Searches content submitted to dcore_js network and is not expired.
      *
      * @param {SearchParams} searchParams
+     * @param {boolean} convertAsset
      * @return {Promise<Content[]>}
      */
-    public searchContent(searchParams?: SearchParams): Promise<Content[]> {
+    public searchContent(searchParams?: SearchParams, convertAsset: boolean = false): Promise<Content[]> {
         const dbOperation = new DatabaseOperations.SearchContent(searchParams);
         return new Promise((resolve, reject) => {
             this.dbApi
                 .execute(dbOperation)
                 .then((content: any) => {
-                    content.forEach((c: any) => {
-                        c.synopsis = JSON.parse(c.synopsis);
-                    });
-                    resolve(content);
+                    const listAssetsOp = new DatabaseOperations.ListAssets('', 100);
+                    this.dbApi.execute(listAssetsOp)
+                        .then((assets: DCoreAssetObject[]) => {
+                            resolve(content.map((c: any) => {
+                                c.synopsis = JSON.parse(c.synopsis);
+                                if (c.price && convertAsset) {
+                                    c = this.formatPrices(c, assets);
+                                }
+                                return c;
+                            }));
+                        })
+                        .catch(err => console.log(err));
                 })
                 .catch((err: any) => {
                     reject(this.handleError(ContentError.database_operation_failed, err));
