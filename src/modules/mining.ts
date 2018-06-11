@@ -11,6 +11,7 @@ import {MinerUpdateData, MiningError} from '../model/mining';
 import VestingBalance = Block.VestingBalance;
 
 export class MiningModule extends ApiModule {
+    static CHAIN_PROXY_TO_SELF = '';
     private connector: ApiConnector;
     private chainApi: ChainApi;
 
@@ -344,6 +345,47 @@ export class MiningModule extends ApiModule {
             transaction.broadcast(privateKey)
                 .then(res => resolve(true))
                 .catch(err => reject(this.handleError(MiningError.transaction_broadcast_failed, err)));
+        });
+    }
+
+    public setVotingProxy(accountId: string, votingAccountId: string = '', privateKey: string): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            const getAccountMethod = new ChainMethods();
+            getAccountMethod.add(ChainMethods.getAccount, accountId);
+            this.chainApi.fetch(getAccountMethod)
+                .then((result: Account[]) => {
+                    if (result.length === 0 || !result[0]) {
+                        reject(this.handleError(MiningError.account_fetch_failed));
+                        return;
+                    }
+                    const account = result[0];
+                    const newOptions = Object.assign({}, account.options);
+                    if (votingAccountId !== '') {
+                        if (newOptions.voting_account === votingAccountId) {
+                            reject(this.handleError(MiningError.duplicate_settings, 'Voting account already set'));
+                            return;
+                        }
+                    } else {
+                        if (newOptions.voting_account === MiningModule.CHAIN_PROXY_TO_SELF) {
+                            reject(this.handleError(MiningError.duplicate_settings, 'Voting account already set'));
+                            return;
+                        }
+                        newOptions.voting_account = MiningModule.CHAIN_PROXY_TO_SELF;
+                    }
+                    const accountUpdateOperation = new Operations.AccountUpdateOperation(
+                        accountId,
+                        account.owner,
+                        account.active,
+                        newOptions,
+                        {}
+                    );
+                    const transaction = new Transaction();
+                    transaction.add(accountUpdateOperation);
+                    transaction.broadcast(privateKey)
+                        .then(res => resolve(true))
+                        .catch(err => reject(this.handleError(MiningError.transaction_broadcast_failed, err)));
+                })
+                .catch(err => this.handleError(MiningError.account_fetch_failed, err));
         });
     }
 }
