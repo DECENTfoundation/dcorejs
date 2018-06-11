@@ -5,13 +5,6 @@ export interface SubscriptionObject {
     automatic_renewal: boolean;
 }
 
-export interface Subscription {
-    allow_subscription: boolean,
-    subscription_period: number,
-    price_amount: number,
-    price_asset_symbol: string
-}
-
 export enum SubscriptionError {
     database_operation_failed = 'database_operation_failed',
     asset_does_not_exist = 'asset_does_not_exist',
