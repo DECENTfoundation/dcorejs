@@ -66,7 +66,7 @@ export class Asset {
 export interface Authority {
     weight_threshold: number;
     account_auths: any[];
-    key_auths: [[string, number]];
+    key_auths: [string, number][];
 }
 
 export class KeyAuth {
