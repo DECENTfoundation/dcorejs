@@ -323,4 +323,27 @@ export class MiningModule extends ApiModule {
 
         });
     }
+
+    public withdrawVesting(
+        vestinBalanceId: string,
+        ownerId: string,
+        amount: number,
+        assetId: string,
+        privateKey: string): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            const operation = new Operations.VestingBalanceWithdraw(
+                vestinBalanceId,
+                ownerId,
+                {
+                    amount: amount,
+                    asset_id: assetId
+                }
+            );
+            const transaction = new Transaction();
+            transaction.add(operation);
+            transaction.broadcast(privateKey)
+                .then(res => resolve(true))
+                .catch(err => reject(this.handleError(MiningError.transaction_broadcast_failed, err)));
+        });
+    }
 }
