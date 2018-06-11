@@ -400,15 +400,33 @@ export class ContentApi extends ApiModule {
         }));
     }
 
-    public getBuyingHistoryObjectsByConsumer(accountId: string): Promise<BuyingContent[]> {
+    /**
+     *
+     * @param {string} accountId
+     * @param {boolean} convertAsset
+     * @returns {Promise<BuyingContent[]>}
+     */
+    public getBuyingHistoryObjectsByConsumer(accountId: string, convertAsset: boolean = false): Promise<BuyingContent[]> {
         return new Promise<BuyingContent[]>((resolve, reject) => {
-            const operation = new DatabaseOperations.GetBuyingsHistoryObjectsByConsumer(accountId);
-            this.dbApi.execute(operation)
-                .then(res => resolve(res))
+            const getBuyingsHistoryObjectsByConsumerOp = new DatabaseOperations.GetBuyingsHistoryObjectsByConsumer(accountId);
+            this.dbApi.execute(getBuyingsHistoryObjectsByConsumerOp)
+                .then(buyingObjects => {
+                    const listAssetsOp = new DatabaseOperations.ListAssets('', 100);
+                    this.dbApi.execute(listAssetsOp)
+                        .then((assets: DCoreAssetObject[]) => {
+                            if (!assets || assets.length === 0) {
+                                reject(this.handleError(ContentError.asset_fetch_failed));
+                                return;
+                            }
+                            const result = convertAsset ? this.formatPrices(buyingObjects, assets) : buyingObjects;
+                            resolve(result as BuyingContent[]);
+                        })
+                        .catch(err => reject(this.handleError(ContentError.database_operation_failed, err)));
+                })
                 .catch(err => reject(this.handleError(ContentError.database_operation_failed, err)));
         });
     }
-
+    
     private formatPrices(content: ContentExchangeObject[], assets: DCoreAssetObject[]): ContentExchangeObject[] {
         const result: ContentExchangeObject[] = content.map(obj => {
             const asset = assets.find(a => a.id === obj.price.asset_id);
