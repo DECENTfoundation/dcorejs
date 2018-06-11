@@ -292,11 +292,28 @@ export class ContentApi extends ApiModule {
         });
     }
 
-    public getOpenBuyings(): Promise<BuyingContent[]> {
+    /**
+     *
+     * @param {boolean} convertAsset
+     * @returns {Promise<BuyingContent[]>}
+     */
+    public getOpenBuyings(convertAsset: boolean = false): Promise<BuyingContent[]> {
         return new Promise<BuyingContent[]>(((resolve, reject) => {
             const operation = new DatabaseOperations.GetOpenBuyings();
             this.dbApi.execute(operation)
-                .then(res => resolve(res))
+                .then(buyingObjects => {
+                    const listAssetsOp = new DatabaseOperations.ListAssets('', 100);
+                    this.dbApi.execute(listAssetsOp)
+                        .then((assets: DCoreAssetObject[]) => {
+                            if (!assets || assets.length === 0) {
+                                reject(this.handleError(ContentError.asset_fetch_failed));
+                                return;
+                            }
+                            const result = convertAsset ? this.formatPrices(buyingObjects, assets) : buyingObjects;
+                            resolve(result as BuyingContent[]);
+                        })
+                        .catch(err => reject(this.handleError(ContentError.database_operation_failed, err)));
+                })
                 .catch(err => reject(this.handleError(ContentError.database_operation_failed, err)));
         }));
     }
