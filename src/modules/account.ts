@@ -130,10 +130,11 @@ export class AccountApi extends ApiModule {
      * @returns {Promise<TransactionRecord[]>}
      */
     public searchAccountHistory(accountId: string,
-        privateKeys: string[],
-        order: SearchAccountHistoryOrder = SearchAccountHistoryOrder.timeDesc,
-        startObjectId: string = '0.0.0',
-        resultLimit: number = 100): Promise<TransactionRecord[]> {
+                                privateKeys: string[],
+                                order: SearchAccountHistoryOrder = SearchAccountHistoryOrder.timeDesc,
+                                startObjectId: string = '0.0.0',
+                                resultLimit: number = 100,
+                                convertAssets: boolean = false): Promise<TransactionRecord[]> {
         return new Promise((resolve, reject) => {
             const dbOperation = new DatabaseOperations.SearchAccountHistory(
                 accountId,
@@ -143,36 +144,45 @@ export class AccountApi extends ApiModule {
             );
             this.dbApi.execute(dbOperation)
                 .then((transactions: any[]) => {
-                    const namePromises: Promise<string>[] = [];
-                    const res = transactions.map((tr: any) => {
-                        const transaction = new TransactionRecord(tr, privateKeys);
+                    const listAssetsOp = new DatabaseOperations.ListAssets('', 100);
+                    this.dbApi.execute(listAssetsOp)
+                        .then((assets: DCoreAssetObject[]) => {
+                            const namePromises: Promise<string>[] = [];
+                            const res = transactions.map((tr: any) => {
+                                const transaction = new TransactionRecord(tr, privateKeys);
 
-                        namePromises.push(new Promise((resolve, reject) => {
-                            this.getAccountById(transaction.fromAccountId)
-                                .then(account => {
-                                    transaction.fromAccountName = account.name;
-                                    resolve();
+                                namePromises.push(new Promise((resolve, reject) => {
+                                    this.getAccountById(transaction.fromAccountId)
+                                        .then(account => {
+                                            transaction.fromAccountName = account.name;
+                                            resolve();
+                                        })
+                                        .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
+                                }));
+
+                                namePromises.push(new Promise((resolve, reject) => {
+                                    this.getAccountById(transaction.toAccountId)
+                                        .then(account => {
+                                            transaction.toAccountName = account.name;
+                                            resolve();
+                                        })
+                                        .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
+                                }));
+
+                                if (convertAssets) {
+                                    const asset = assets.find(a => a.id === transaction.transactionAsset);
+                                    const feeAsset = assets.find(a => a.id === transaction.transactionFeeAsset);
+                                    transaction.transactionAmount = Utils.formatAmountForAsset(transaction.transactionAmount, asset);
+                                    transaction.transactionFee = Utils.formatAmountForAsset(transaction.transactionFee, feeAsset);
+                                }
+                                return transaction;
+                            });
+                            Promise.all(namePromises)
+                                .then(() => {
+                                    resolve(res);
                                 })
                                 .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
                         }));
-
-                        namePromises.push(new Promise((resolve, reject) => {
-                            this.getAccountById(transaction.toAccountId)
-                                .then(account => {
-                                    transaction.toAccountName = account.name;
-                                    resolve();
-                                })
-                                .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
-                        }));
-                        return transaction;
-                    });
-                    Promise.all(namePromises)
-                        .then(() => {
-                            resolve(res);
-                        })
-                        .catch(err => {
-                            reject(this.handleError(AccountError.account_fetch_failed, err));
-                        });
                 })
                 .catch(err => {
                     reject(
