@@ -14,8 +14,7 @@ export class MiningModule extends ApiModule {
     private connector: ApiConnector;
     private chainApi: ChainApi;
 
-    // TODO: make private after vote/unvote methods deprecation from account module
-    public static getSortedMiners(minersVoteIds: string[]): string[] {
+    private static getSortedMiners(minersVoteIds: string[]): string[] {
         const res = [].concat(...minersVoteIds);
         res.sort((e1: string, e2: string) => {
             return Number(e1.split(':')[1]) - Number(e2.split(':')[1]);
@@ -23,8 +22,7 @@ export class MiningModule extends ApiModule {
         return res;
     }
 
-    // TODO: make private after vote/unvote methods deprecation from account module
-    public static removeVotedMiners(voted: string[], toUnvote: string[]): string[] {
+    private static removeVotedMiners(voted: string[], toUnvote: string[]): string[] {
         const res: string[] = [].concat(...voted);
         toUnvote.forEach(u => {
             const index = res.indexOf(u);
@@ -35,8 +33,7 @@ export class MiningModule extends ApiModule {
         return res;
     }
 
-    // TODO: make private after vote/unvote methods deprecation from account module
-    public static createVoteIdList(ids: string[], objects: any[]): string[] {
+    private static createVoteIdList(ids: string[], objects: any[]): string[] {
         const res: string[] = [];
         ids.forEach(m => {
             const miner = objects.find(el => el.id === m);
