@@ -126,7 +126,8 @@ export class AccountApi extends ApiModule {
                                 privateKeys: string[],
                                 order: SearchAccountHistoryOrder = SearchAccountHistoryOrder.timeDesc,
                                 startObjectId: string = '0.0.0',
-                                resultLimit: number = 100): Promise<TransactionRecord[]> {
+                                resultLimit: number = 100,
+                                convertAssets: boolean = false): Promise<TransactionRecord[]> {
         return new Promise((resolve, reject) => {
             const dbOperation = new DatabaseOperations.SearchAccountHistory(
                 accountId,
@@ -161,10 +162,12 @@ export class AccountApi extends ApiModule {
                                         .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
                                 }));
 
-                                const asset = assets.find(a => a.id === transaction.transactionAsset);
-                                const feeAsset = assets.find(a => a.id === transaction.transactionFeeAsset);
-                                transaction.transactionAmount = Utils.formatAmountForAsset(transaction.transactionAmount, asset);
-                                transaction.transactionFee = Utils.formatAmountForAsset(transaction.transactionFee, feeAsset);
+                                if (convertAssets) {
+                                    const asset = assets.find(a => a.id === transaction.transactionAsset);
+                                    const feeAsset = assets.find(a => a.id === transaction.transactionFeeAsset);
+                                    transaction.transactionAmount = Utils.formatAmountForAsset(transaction.transactionAmount, asset);
+                                    transaction.transactionFee = Utils.formatAmountForAsset(transaction.transactionFee, feeAsset);
+                                }
                                 return transaction;
                             });
                             Promise.all(namePromises)
