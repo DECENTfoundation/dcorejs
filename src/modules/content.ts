@@ -372,11 +372,30 @@ export class ContentApi extends ApiModule {
         }));
     }
 
-    public getBuyingsByConsumerURI(accountId: string, URI: string): Promise<BuyingContent[] | null> {
+    /**
+     *
+     * @param {string} accountId
+     * @param {string} URI
+     * @param {boolean} convertAsset
+     * @returns {Promise<BuyingContent[] | null>}
+     */
+    public getBuyingsByConsumerURI(accountId: string, URI: string, convertAsset: boolean = false): Promise<BuyingContent[] | null> {
         return new Promise<BuyingContent[]>(((resolve, reject) => {
             const operation = new DatabaseOperations.GetBuyingByConsumerURI(accountId, URI);
             this.dbApi.execute(operation)
-                .then(res => resolve(res))
+                .then(buyingObjects => {
+                    const listAssetsOp = new DatabaseOperations.ListAssets('', 100);
+                    this.dbApi.execute(listAssetsOp)
+                        .then((assets: DCoreAssetObject[]) => {
+                            if (!assets || assets.length === 0) {
+                                reject(this.handleError(ContentError.asset_fetch_failed));
+                                return;
+                            }
+                            const result = convertAsset ? this.formatPrices(buyingObjects, assets) : buyingObjects;
+                            resolve(result as BuyingContent[]);
+                        })
+                        .catch(err => reject(this.handleError(ContentError.database_operation_failed, err)));
+                })
                 .catch(err => reject(this.handleError(ContentError.database_operation_failed, err)));
         }));
     }
