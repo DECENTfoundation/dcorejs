@@ -1,4 +1,4 @@
-import {Rating, Content, Seeder, BuyingContent, SubmitObject, ContentKeys, KeyPair} from '../model/content';
+import {Rating, Content, Seeder, BuyingContent, SubmitObject, ContentKeys, KeyPair, ContentExchangeObject} from '../model/content';
 import {DatabaseApi} from '../api/database';
 import {ChainApi, ChainMethods} from '../api/chain';
 import {Transaction} from '../transaction';
@@ -15,7 +15,9 @@ export enum ContentError {
     database_operation_failed = 'operation_failed',
     fetch_content_failed = 'fetch_content_failed',
     transaction_broadcast_failed = 'transaction_broadcast_failed',
-    restore_content_keys_failed = 'restore_content_keys_failed'
+    restore_content_keys_failed = 'restore_content_keys_failed',
+    asset_fetch_failed = 'asset_fetch_failed',
+    asset_not_found = 'asset_not_found'
 }
 
 /**
