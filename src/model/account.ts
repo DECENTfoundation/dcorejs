@@ -5,6 +5,11 @@ import {DCoreAssetObject} from './asset';
 
 export type AccountNameIdPair = [string, string];
 
+export interface HistoryOptions {
+    fromId?: string
+    resultLimit?: number
+}
+
 export interface TransactionRaw {
     id: string;
     m_from_account: string;
@@ -165,7 +170,7 @@ export class TransactionMemo {
 
 export interface HistoryRecord {
     id: string
-    op: [number, object]
+    op: [number, any]
     result: any[]
     block_num: number
     trx_in_block: number
@@ -182,6 +187,7 @@ export interface MinerInfo {
 }
 
 export interface WalletExport {
+    version: number;
     chain_id: string;
     my_accounts: Account[];
     cipher_keys: string;
