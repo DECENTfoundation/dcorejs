@@ -17,7 +17,7 @@ export class SubscriptionModule extends ApiModule {
             const operation = new DatabaseOperations.ListActiveSubscriptionsByConsumer(consumerId, count);
             this.dbApi.execute(operation)
                 .then(res => {
-                    console.log(res);
+                    resolve(res);
                 })
                 .catch(err => reject(this.handleError(SubscriptionError.database_operation_failed, err)));
         });
@@ -56,8 +56,8 @@ export class SubscriptionModule extends ApiModule {
         });
     }
 
-    public subscribeToAuthor(from: string, to: string, amount: number, assetId: string, privateKey: string): Promise<Boolean> {
-        return new Promise<Boolean>((resolve, reject) => {
+    public subscribeToAuthor(from: string, to: string, amount: number, assetId: string, privateKey: string): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
             const getAssetOperation = new DatabaseOperations.GetAssets([assetId]);
             this.dbApi.execute(getAssetOperation)
                 .then((assets: DCoreAssetObject) => {
@@ -71,7 +71,7 @@ export class SubscriptionModule extends ApiModule {
                     transaction.add(subscribeToAuthorOperation);
                     transaction.broadcast(privateKey)
                         .then(result => {
-                            resolve(true);
+                            resolve(result);
                         })
                         .catch(error => {
                             reject(this.handleError(SubscriptionError.transaction_broadcast_failed, error));
@@ -83,8 +83,8 @@ export class SubscriptionModule extends ApiModule {
         });
     }
 
-    public subscribeByAuthor(from: string, to: string, privateKey: string): Promise<Boolean> {
-        return new Promise<Boolean>(((resolve, reject) => {
+    public subscribeByAuthor(from: string, to: string, privateKey: string): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
             const subscribeByAuthorOperation = new Operations.SubscribeByAuthor(from, to);
             const transaction = new Transaction();
             transaction.add(subscribeByAuthorOperation);
@@ -95,27 +95,27 @@ export class SubscriptionModule extends ApiModule {
                 .catch((error) => {
                     reject(this.handleError(SubscriptionError.transaction_broadcast_failed, error));
                 });
-        }));
+        });
     }
 
     public setAutomaticRenewalOfSubscription(
-        accountId: string, subscriptionId: string, automaticRenewal: boolean, privateKey: string): Promise<Boolean> {
-        return new Promise<Boolean>(((resolve, reject) => {
-            const setAutomaticRenewalOperation = new Operations.SetAutomaticRenewalOfSubscription(
-                accountId,
-                subscriptionId,
-                automaticRenewal
-            );
-            const transaction = new Transaction();
-            transaction.add(setAutomaticRenewalOperation);
-            transaction.broadcast(privateKey)
+        accountId: string, subscriptionId: string, automaticRenewal: boolean, privateKey: string): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+                const setAutomaticRenewalOperation = new Operations.SetAutomaticRenewalOfSubscription(
+                    accountId,
+                    subscriptionId,
+                    automaticRenewal
+                );
+                const transaction = new Transaction();
+                transaction.add(setAutomaticRenewalOperation);
+                transaction.broadcast(privateKey)
                 .then(() => {
                     resolve(true);
                 })
                 .catch(error => {
-                    reject(this.handleError(SubscriptionError.transaction_broadcast_failed, error));
+                    reject(this.handleError(SubscriptionError.subscription_does_not_exist, error));
                 });
-        }));
+        });
     }
 
 }

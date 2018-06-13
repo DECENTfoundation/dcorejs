@@ -1,4 +1,5 @@
 export interface SubscriptionObject {
+    id: string,
     from: string;
     to: string;
     expiration: number;
@@ -11,4 +12,5 @@ export enum SubscriptionError {
     account_does_not_exist = 'account_does_not_exist',
     transaction_broadcast_failed = 'transaction_broadcast_failed',
     subscription_to_author_failed = 'subscription_to_author_failed',
+    subscription_does_not_exist = 'subscription_does_not_exist',
 }
