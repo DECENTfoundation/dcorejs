@@ -10,6 +10,7 @@ import {ExplorerModule} from './modules/explorer';
 import {MiningModule} from './modules/mining';
 import {SubscriptionModule} from './modules/subscription';
 import {SeedingModule} from './modules/seeding';
+import {ProposalModule} from './modules/proposal';
 
 let _content: ContentApi;
 let _account: AccountApi;
@@ -18,6 +19,7 @@ let _assetModule: AssetModule;
 let _mining: MiningModule;
 let _subscription: SubscriptionModule;
 let _seeding: SeedingModule;
+let _proposal: ProposalModule;
 
 export class DcoreError {
     static app_not_initialized = 'app_not_initialized';
@@ -58,6 +60,7 @@ export function initialize(config: DcoreConfig,
     _subscription = new SubscriptionModule(database);
     _seeding = new SeedingModule(database);
     _mining = new MiningModule(database, connector, chain);
+    _proposal = new ProposalModule(database);
 }
 
 export function content(): ContentApi {
@@ -85,4 +88,8 @@ export function subscription(): SubscriptionModule {
 
 export function seeding(): SeedingModule {
     return _seeding;
+}
+
+export function proposal(): ProposalModule {
+    return _proposal;
 }

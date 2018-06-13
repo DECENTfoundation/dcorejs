@@ -50,6 +50,7 @@ export enum OperationName {
     miner_create = 'miner_create',
     miner_update = 'miner_update',
     proposal_create = 'proposal_create',
+    proposal_update = 'proposal_update',
     operation_wrapper = 'op_wrapper',
 }
 
@@ -331,6 +332,32 @@ export namespace Operations {
                     proposed_ops: proposedOperations,
                     expiration_time: expirationTime,
                     review_period_seconds: reviewPeriodSeconds,
+                    extensions: []
+                }
+            );
+        }
+    }
+
+    export class ProposalUpdate extends Operation {
+        constructor(feePayingAccount: string,
+                    proposal: object,
+                    activeApprovalsToAdd: Array<string>,
+                    activeApprovalsToRemove: Array<string>,
+                    ownerApprovalsToAdd: Array<string>,
+                    ownerApprovalsToRemove: Array<string>,
+                    keyApprovalsToAdd: Array<string>,
+                    keyApprovalsToRemove: Array<string>) {
+            super(
+                OperationName.proposal_update,
+                {
+                    fee_paying_account: feePayingAccount,
+                    proposal: proposal,
+                    active_approvals_to_add: activeApprovalsToAdd,
+                    active_approvals_to_remove: activeApprovalsToRemove,
+                    owner_approvals_to_add: ownerApprovalsToAdd,
+                    owner_approvals_to_remove: ownerApprovalsToRemove,
+                    key_approvals_to_add: keyApprovalsToAdd,
+                    key_approvals_to_remove: keyApprovalsToRemove,
                     extensions: []
                 }
             );

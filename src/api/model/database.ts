@@ -50,6 +50,7 @@ export enum DatabaseOperationName {
     priceToDct = 'price_to_dct',
     getFeedsByMiner = 'get_feeds_by_miner',
     getRealSupply = 'get_real_supply',
+    getProposedTransactions = 'get_proposed_transactions',
 }
 
 export class DatabaseOperation {
@@ -392,7 +393,7 @@ export namespace DatabaseOperations {
             super(DatabaseOperationName.listSubscriptionsByAuthor, accountId, limit);
         }
     }
-  
+
     export class ListSeedersByUpload extends DatabaseOperation {
         constructor(limit: number) {
             super(DatabaseOperationName.listSeedersByUpload, limit);
@@ -408,6 +409,12 @@ export namespace DatabaseOperations {
     export class ListSeedersByRating extends DatabaseOperation {
         constructor(limit: number) {
             super(DatabaseOperationName.listSeedersByRating, limit);
+        }
+    }
+
+    export class GetProposedTransactions extends DatabaseOperation {
+        constructor(accountId: string) {
+            super(DatabaseOperationName.getProposedTransactions, accountId);
         }
     }
 }
