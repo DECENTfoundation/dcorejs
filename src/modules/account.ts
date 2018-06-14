@@ -6,7 +6,7 @@ import {
     MinerInfo,
     TransactionRecord,
     WalletExport,
-    HistoryOptions
+    HistoryOptions, UpdateAccountParameters, Authority, Options
 } from '../model/account';
 import { DatabaseApi } from '../api/database';
 import { ChainApi, ChainMethods } from '../api/chain';
@@ -654,5 +654,65 @@ export class AccountApi extends ApiModule {
                     reject(this.handleError(DatabaseError.database_execution_failed, err));
                 });
         });
+    }
+
+    public updateAccount(accountId: string, params: UpdateAccountParameters, privateKey: string): Promise<Boolean> {
+        return new Promise<Boolean>(((resolve, reject) => {
+
+            this.getAccountById(accountId)
+                .then((account: Account) => {
+                    if (account === null) {
+                        reject(this.handleError(AccountError.account_does_not_exist));
+                        return;
+                    }
+                    const ownerAuthority: Authority = Object.assign({}, account.owner);
+                    ownerAuthority.key_auths[0][0] = params.newOwnerKey || account.owner.key_auths[0][0];
+
+                    const activeAuthority: Authority = Object.assign({}, account.active);
+                    activeAuthority.key_auths[0][0] = params.newActiveKey || account.active.key_auths[0][0];
+
+                    let priceSubscription = Object.assign({}, account.options.price_per_subscribe);
+                    if (params.newSubscription !== undefined) {
+                        priceSubscription = Asset.createDCTAsset(params.newSubscription.pricePerSubscribeAmount);
+                    }
+
+                    const newOptions: Options = {
+                        memo_key: params.newMemoKey || account.options.memo_key,
+                        voting_account: account.options.voting_account,
+                        num_miner: params.newNumMiner || account.options.num_miner,
+                        votes: params.newVotes || account.options.votes,
+                        extensions: account.options.extensions,
+                        allow_subscription: params.newSubscription
+                            ? params.newSubscription.allowSubscription
+                            : account.options.allow_subscription,
+                        price_per_subscribe: priceSubscription,
+                        subscription_period: params.newSubscription
+                            ? params.newSubscription.subscriptionPeriod
+                            : account.options.subscription_period
+                    };
+                    const accountUpdateOperation = new Operations.AccountUpdateOperation(
+                        accountId,
+                        ownerAuthority,
+                        activeAuthority,
+                        newOptions,
+                        {}
+                    );
+
+                    const transaction = new Transaction();
+                    transaction.add(accountUpdateOperation);
+                    transaction.broadcast(privateKey)
+                        .then(() => {
+                            resolve(true);
+                        })
+                        .catch((error: any) => {
+                            reject(this.handleError(AccountError.transaction_broadcast_failed, error));
+                        });
+
+                    })
+                .catch((error) => {
+                    reject(this.handleError(AccountError.account_update_failed, error));
+                });
+
+        }));
     }
 }

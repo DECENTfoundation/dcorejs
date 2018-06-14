@@ -45,7 +45,7 @@ export class Asset {
 
     public static createDCTAsset(amount: number): Asset {
         return {
-            amount: Math.floor(amount * ChainApi.DCTPower),
+            amount: amount * ChainApi.DCTPower,
             asset_id: ChainApi.asset_id
         };
     }
@@ -199,6 +199,21 @@ export interface WalletExport {
     ws_password: string;
 }
 
+export interface SubscriptionParameters {
+    allowSubscription: boolean;
+    pricePerSubscribeAmount: number;
+    subscriptionPeriod: number;
+}
+
+export interface UpdateAccountParameters {
+    newOwnerKey?: string;
+    newActiveKey?: string;
+    newMemoKey?: string;
+    newNumMiner?: number;
+    newVotes?: Array<string>;
+    newSubscription?: SubscriptionParameters;
+}
+
 export enum AccountError {
     account_does_not_exist = 'account_does_not_exist',
     account_fetch_failed = 'account_fetch_failed',
@@ -213,4 +228,6 @@ export enum AccountError {
     history_fetch_failed = 'history_fetch_failed',
     cannot_update_miner_votes = 'cannot_update_miner_votes',
     votes_does_not_changed = 'votes_does_not_changed',
+    asset_does_not_exist = 'asset_does_not_exist',
+    account_update_failed = 'account_update_failed',
 }
