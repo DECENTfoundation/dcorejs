@@ -672,7 +672,6 @@ export class AccountApi extends ApiModule {
                     activeAuthority.key_auths[0][0] = params.newActiveKey || account.active.key_auths[0][0];
 
                     let priceSubscription = Object.assign({}, account.options.price_per_subscribe);
-
                     if (params.newSubscription !== undefined) {
                         priceSubscription = Asset.createDCTAsset(params.newSubscription.pricePerSubscribeAmount);
                     }
