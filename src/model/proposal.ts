@@ -3,7 +3,13 @@ import Transaction = Block.Transaction;
 
 export enum ProposalError {
     database_operation_failed = 'database_operation_failed',
+    chain_operation_failed = 'chain_operation_failed',
     transaction_broadcast_failed = 'transaction_broadcast_failed',
+    account_does_not_exist = 'account_does_not_exist',
+    account_fetch_failed = 'account_fetch_failed',
+    transfer_sender_account_does_not_exist = 'transfer_sender_account_does_not_exist',
+    transfer_receiver_account_does_not_exist = 'transfer_receiver_account_does_not_exist',
+    asset_not_found = 'asset_not_found',
 }
 
 export interface ProposalObject {
@@ -18,10 +24,7 @@ export interface ProposalObject {
 }
 
 export interface ProposalParameters {
-    current_fees?: {
-        parameters: Array<[number, object]>;
-        scale: number;
-    };
+    current_fees?: CurrentFeesParameters,
     block_interval?: number;
     maintenance_interval?: number;
     maintenance_skip_slots?: number;
@@ -38,6 +41,18 @@ export interface ProposalParameters {
     max_predicate_opcode?: number;
     max_authority_depth?: number;
     extensions?: Array<any>;
+}
+
+export interface ProposalCreateParameters {
+    fee_paying_account: string,
+    expiration_time: number,
+    reviewPeriodSeconds?: number,
+    extensions: Array<any>
+}
+
+export interface CurrentFeesParameters {
+    parameters: Array<[number, object]>;
+    scale: number;
 }
 
 export interface DeltaParameters {

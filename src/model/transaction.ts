@@ -4,6 +4,7 @@ import {Block} from './explorer';
 import AssetExchangeRate = Block.AssetExchangeRate;
 import {Authority, Options} from './account';
 import {MonitoredAssetOptions} from './asset';
+import {ProposalParameters} from './proposal';
 
 /**
  * OperationType to be broadcasted to blockchain
@@ -49,6 +50,7 @@ export enum OperationName {
     asset_publish_feed = 'asset_publish_feed',
     miner_create = 'miner_create',
     miner_update = 'miner_update',
+    miner_update_global_parameters = 'miner_update_global_parameters',
     proposal_create = 'proposal_create',
     proposal_update = 'proposal_update',
     operation_wrapper = 'op_wrapper',
@@ -317,6 +319,12 @@ export namespace Operations {
                     new_signing_key: newSigningKey
                 }
             );
+        }
+    }
+
+    export class MinerUpdateGlobalParameters extends Operation {
+        constructor(proposalParameters: ProposalParameters) {
+            super(OperationName.miner_update_global_parameters, proposalParameters);
         }
     }
 
