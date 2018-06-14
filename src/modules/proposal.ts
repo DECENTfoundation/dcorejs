@@ -3,6 +3,9 @@ import {DatabaseApi} from '../api/database';
 import {DatabaseOperations} from '../api/model/database';
 import {DeltaParameters, ProposalError, ProposalObject, ProposalParameters} from '../model/proposal';
 import {DCoreAssetObject} from '../model/asset';
+import {Operations} from '../model/transaction';
+import {Transaction} from '../transaction';
+import {Asset} from '../model/account';
 
 
 export class ProposalModule extends ApiModule {
@@ -35,21 +38,20 @@ export class ProposalModule extends ApiModule {
                         reject(this.handleError(ProposalError.database_operation_failed));
                         return;
                     }
-                    // const price = Asset.create(amount, assets[0]);
-                    // const transferOperation = new Operations.TransferOperation(fromId, toId, price, memoKey);
-                    //
-                    // const operation = new Operations.ProposalCreate(proposerId, [transferOperation], expiration);
-                    // const transaction = new Transaction();
-                    // transaction.add(operation);
-                    // transaction.propose({});
-                    // transaction.broadcast(privateKey)
-                    //     .then(result => {
-                    //         resolve(result);
-                    //     })
-                    //     .catch(error => {
-                    //         reject(this.handleError(ProposalError.transaction_broadcast_failed, error));
-                    //     });
+                    const price = Asset.create(amount, assets[0]);
+                    const transferOperation = new Operations.TransferOperation(fromId, toId, price, memoKey);
 
+                    const operation = new Operations.ProposalCreate(proposerId, [transferOperation], expiration);
+                    const transaction = new Transaction();
+                    transaction.add(operation);
+                    transaction.propose({});
+                    transaction.broadcast(privateKey)
+                        .then(result => {
+                            resolve(result);
+                        })
+                        .catch(error => {
+                            reject(this.handleError(ProposalError.transaction_broadcast_failed, error));
+                        });
                 })
                 .catch(error => {
                     reject(this.handleError(ProposalError.database_operation_failed, error));
