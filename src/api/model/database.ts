@@ -21,6 +21,7 @@ export enum DatabaseOperationName {
     getObjects = 'get_objects',
     getContent = 'get_content',
     getBuyingHistoryObjects = 'get_buying_by_consumer_URI',
+    getGlobalProperties = 'get_global_properties',
     getDynamicGlobalProperties = 'get_dynamic_global_properties',
     getBlock = 'get_block',
     getTransaction = 'get_transaction',
@@ -235,6 +236,12 @@ export namespace DatabaseOperations {
     export class GetBuyingHistoryObjects extends DatabaseOperation {
         constructor(accountId: string, contentURI: string) {
             super(DatabaseOperationName.getBuyingHistoryObjects, accountId, contentURI);
+        }
+    }
+
+    export class GetGlobalProperties extends DatabaseOperation {
+        constructor() {
+            super(DatabaseOperationName.getGlobalProperties);
         }
     }
 
