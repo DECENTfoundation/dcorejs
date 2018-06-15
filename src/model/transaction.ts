@@ -4,7 +4,7 @@ import {Block} from './explorer';
 import AssetExchangeRate = Block.AssetExchangeRate;
 import {Authority, Options} from './account';
 import {MonitoredAssetOptions} from './asset';
-import {ProposalParameters} from './proposal';
+import {Proposal} from './proposal';
 
 /**
  * OperationType to be broadcasted to blockchain
@@ -323,7 +323,7 @@ export namespace Operations {
     }
 
     export class MinerUpdateGlobalParameters extends Operation {
-        constructor(proposalParameters: ProposalParameters) {
+        constructor(proposalParameters: Proposal) {
             super(OperationName.miner_update_global_parameters, proposalParameters);
         }
     }

@@ -1,6 +1,7 @@
 import {Block} from './explorer';
 import Transaction = Block.Transaction;
 
+
 export enum ProposalError {
     database_operation_failed = 'database_operation_failed',
     chain_operation_failed = 'chain_operation_failed',
@@ -38,6 +39,7 @@ export interface ProposalParameters {
     maximum_authority_membership?: number;
     cashback_vesting_period_seconds?: number;
     cashback_vesting_threshold?: number;
+    miner_pay_vesting_seconds?: number;
     max_predicate_opcode?: number;
     max_authority_depth?: number;
     extensions?: Array<any>;
@@ -47,12 +49,20 @@ export interface ProposalCreateParameters {
     fee_paying_account: string,
     expiration_time: number,
     reviewPeriodSeconds?: number,
-    extensions: Array<any>
+    extensions: Array<any>,
 }
 
 export interface CurrentFeesParameters {
     parameters: Array<[number, object]>;
     scale: number;
+}
+
+export interface Proposal {
+    active_miners: Array<string>;
+    id: string;
+    next_available_vote_id: number;
+    parameters: ProposalParameters;
+    new_parameters?: ProposalParameters;
 }
 
 export interface DeltaParameters {

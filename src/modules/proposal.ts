@@ -2,7 +2,7 @@ import {ApiModule} from './ApiModule';
 import {DatabaseApi} from '../api/database';
 import {DatabaseOperations} from '../api/model/database';
 import {
-    CurrentFeesParameters, DeltaParameters, ProposalCreateParameters, ProposalError, ProposalObject,
+    CurrentFeesParameters, DeltaParameters, Proposal, ProposalCreateParameters, ProposalError, ProposalObject,
     ProposalParameters
 } from '../model/proposal';
 import {Memo, Operations} from '../model/transaction';
@@ -79,9 +79,9 @@ export class ProposalModule extends ApiModule {
                 const transaction = new Transaction();
                 transaction.add(transferOperation);
                 const proposalCreateParameters: ProposalCreateParameters = {
-                    fee_paying_account: proposerAccountId,
                     expiration_time: expiration,
-                    extensions: []
+                    extensions: [],
+                    fee_paying_account: proposerAccountId,
                 };
                 transaction.propose(proposalCreateParameters);
                 transaction.broadcast(privateKey)
@@ -108,66 +108,76 @@ export class ProposalModule extends ApiModule {
             this.dbApi.execute(databaseOperation)
                 .then(result => {
                     const globalParameters = JSON.parse(JSON.stringify(result));
+                    const newParameters: Proposal = {
+                        id: globalParameters.id,
+                        new_parameters: Object.assign({}, globalParameters.parameters),
+                        next_available_vote_id: globalParameters.next_available_vote_id,
+                        parameters: globalParameters.parameters,
+                        active_miners: globalParameters.active_miners,
+                    };
+
+                    newParameters.new_parameters.miner_pay_vesting_seconds = 100000;
+
                     if (proposalParameters.current_fees !== undefined) {
-                        globalParameters.parameters.current_fees = Object.assign({}, proposalParameters.current_fees);
+                        newParameters.new_parameters.current_fees = Object.assign({}, proposalParameters.current_fees);
                     }
                     if (proposalParameters.block_interval !== undefined) {
-                        globalParameters.parameters.block_interval = proposalParameters.block_interval;
+                        newParameters.new_parameters.block_interval = proposalParameters.block_interval;
                     }
                     if (proposalParameters.maintenance_interval !== undefined) {
-                        globalParameters.parameters.maintenance_interval = proposalParameters.maintenance_interval;
+                        newParameters.new_parameters.maintenance_interval = proposalParameters.maintenance_interval;
                     }
                     if (proposalParameters.maintenance_skip_slots !== undefined) {
-                        globalParameters.parameters.maintenance_skip_slots = proposalParameters.maintenance_skip_slots;
+                        newParameters.new_parameters.maintenance_skip_slots = proposalParameters.maintenance_skip_slots;
                     }
                     if (proposalParameters.miner_proposal_review_period !== undefined) {
-                        globalParameters.parameters.miner_proposal_review_period = proposalParameters.miner_proposal_review_period;
+                        newParameters.new_parameters.miner_proposal_review_period = proposalParameters.miner_proposal_review_period;
                     }
                     if (proposalParameters.maximum_transaction_size !== undefined) {
-                        globalParameters.parameters.maximum_transaction_size = proposalParameters.maximum_transaction_size;
+                        newParameters.new_parameters.maximum_transaction_size = proposalParameters.maximum_transaction_size;
                     }
                     if (proposalParameters.maximum_block_size !== undefined) {
-                        globalParameters.parameters.maximum_block_size = proposalParameters.maximum_block_size;
+                        newParameters.new_parameters.maximum_block_size = proposalParameters.maximum_block_size;
                     }
                     if (proposalParameters.maximum_time_until_expiration !== undefined) {
-                        globalParameters.parameters.maximum_time_until_expiration = proposalParameters.maximum_time_until_expiration;
+                        newParameters.new_parameters.maximum_time_until_expiration = proposalParameters.maximum_time_until_expiration;
                     }
                     if (proposalParameters.maximum_proposal_lifetime !== undefined) {
-                        globalParameters.parameters.maximum_proposal_lifetime = proposalParameters.maximum_proposal_lifetime;
+                        newParameters.new_parameters.maximum_proposal_lifetime = proposalParameters.maximum_proposal_lifetime;
                     }
                     if (proposalParameters.maximum_asset_feed_publishers !== undefined) {
-                        globalParameters.parameters.maximum_asset_feed_publishers = proposalParameters.maximum_asset_feed_publishers;
+                        newParameters.new_parameters.maximum_asset_feed_publishers = proposalParameters.maximum_asset_feed_publishers;
                     }
                     if (proposalParameters.maximum_miner_count !== undefined) {
-                        globalParameters.parameters.maximum_miner_count = proposalParameters.maximum_miner_count;
+                        newParameters.new_parameters.maximum_miner_count = proposalParameters.maximum_miner_count;
                     }
                     if (proposalParameters.maximum_authority_membership !== undefined) {
-                        globalParameters.parameters.maximum_authority_membership = proposalParameters.maximum_authority_membership;
+                        newParameters.new_parameters.maximum_authority_membership = proposalParameters.maximum_authority_membership;
                     }
                     if (proposalParameters.cashback_vesting_period_seconds !== undefined) {
-                        globalParameters.parameters.cashback_vesting_period_seconds = proposalParameters.cashback_vesting_period_seconds;
+                        newParameters.new_parameters.cashback_vesting_period_seconds = proposalParameters.cashback_vesting_period_seconds;
                     }
                     if (proposalParameters.cashback_vesting_threshold !== undefined) {
-                        globalParameters.parameters.cashback_vesting_threshold = proposalParameters.cashback_vesting_threshold;
+                        newParameters.new_parameters.cashback_vesting_threshold = proposalParameters.cashback_vesting_threshold;
                     }
                     if (proposalParameters.max_predicate_opcode !== undefined) {
-                        globalParameters.parameters.max_predicate_opcode = proposalParameters.max_predicate_opcode;
+                        newParameters.new_parameters.max_predicate_opcode = proposalParameters.max_predicate_opcode;
                     }
                     if (proposalParameters.max_authority_depth !== undefined) {
-                        globalParameters.parameters.max_authority_depth = proposalParameters.max_authority_depth;
+                        newParameters.new_parameters.max_authority_depth = proposalParameters.max_authority_depth;
                     }
                     if (proposalParameters.extensions !== undefined) {
-                        globalParameters.parameters.extensions = proposalParameters.extensions;
+                        newParameters.new_parameters.extensions = proposalParameters.extensions;
                     }
 
-                    // console.log(globalParameters);
-                    const operation = new Operations.MinerUpdateGlobalParameters(globalParameters);
+                    console.log(newParameters);
+                    const operation = new Operations.MinerUpdateGlobalParameters(newParameters);
                     const transaction = new Transaction();
                     transaction.add(operation);
                     const proposalCreateParameters: ProposalCreateParameters = {
-                        fee_paying_account: proposerAccountId,
                         expiration_time: expiration,
-                        extensions: []
+                        extensions: [],
+                        fee_paying_account: proposerAccountId,
                     };
                     transaction.propose(proposalCreateParameters);
                     transaction.broadcast(privateKey)
