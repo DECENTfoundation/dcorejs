@@ -79,9 +79,9 @@ export class ProposalModule extends ApiModule {
                 const transaction = new Transaction();
                 transaction.add(transferOperation);
                 const proposalCreateParameters: ProposalCreateParameters = {
-                    expiration_time: expiration,
-                    extensions: [],
                     fee_paying_account: proposerAccountId,
+                    expiration_time: expiration,
+                    extensions: []
                 };
                 transaction.propose(proposalCreateParameters);
                 transaction.broadcast(privateKey)
@@ -112,8 +112,8 @@ export class ProposalModule extends ApiModule {
                         id: globalParameters.id,
                         new_parameters: Object.assign({}, globalParameters.parameters),
                         next_available_vote_id: globalParameters.next_available_vote_id,
-                        parameters: globalParameters.parameters,
                         active_miners: globalParameters.active_miners,
+                        extensions: [],
                     };
 
                     newParameters.new_parameters.miner_pay_vesting_seconds = 100000;
@@ -170,14 +170,13 @@ export class ProposalModule extends ApiModule {
                         newParameters.new_parameters.extensions = proposalParameters.extensions;
                     }
 
-                    console.log(newParameters);
                     const operation = new Operations.MinerUpdateGlobalParameters(newParameters);
                     const transaction = new Transaction();
                     transaction.add(operation);
                     const proposalCreateParameters: ProposalCreateParameters = {
-                        expiration_time: expiration,
-                        extensions: [],
                         fee_paying_account: proposerAccountId,
+                        extensions: [],
+                        expiration_time: expiration,
                     };
                     transaction.propose(proposalCreateParameters);
                     transaction.broadcast(privateKey)
@@ -213,9 +212,8 @@ export class ProposalModule extends ApiModule {
     }
 
     public approveProposal(
-        payingAccountId: string, proposalId: string, approvalDelta: DeltaParameters): Promise<boolean> {
+        payingAccountId: string, proposalId: string, approvalsDelta: DeltaParameters): Promise<boolean> {
         return new Promise<boolean>(((resolve, reject) => {
-
         }));
     }
 }

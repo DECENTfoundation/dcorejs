@@ -61,11 +61,16 @@ export interface Proposal {
     active_miners: Array<string>;
     id: string;
     next_available_vote_id: number;
-    parameters: ProposalParameters;
     new_parameters?: ProposalParameters;
+    extensions: Array<any>;
 }
 
 export interface DeltaParameters {
-
+    active_approvals_to_add: Array<string>;
+    active_approvals_to_remove: Array<string>;
+    owner_approvals_to_add: Array<string>;
+    owner_approvals_to_remove: Array<string>;
+    key_approvals_to_add: Array<string>;
+    key_approvals_to_remove: Array<string>;
 }
 
