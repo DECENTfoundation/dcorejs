@@ -1,7 +1,7 @@
 import {Asset} from './account';
 
 
-export interface BuyingContent {
+export interface BuyingContent extends ContentExchangeObject {
     consumer: string;
     URI: string;
     size: number;
@@ -23,7 +23,7 @@ export interface BuyingContent {
     region_code_from: number;
 }
 
-export interface Content {
+export interface Content extends ContentExchangeObject {
     /**
      * If of the content.
      */
@@ -128,7 +128,7 @@ export enum Status {
     Expired = 'Expired'
 }
 
-export interface Seeder {
+export interface Seeder extends ContentExchangeObject {
     id: string;
     seeder: string;
     free_space: number;
@@ -155,6 +155,10 @@ export interface SubmitObject {
     synopsis: any;
     assetId?: string;
     publishingFeeAsset?: string;
+}
+
+export interface ContentExchangeObject {
+    price: Asset;
 }
 
 export interface Price {
