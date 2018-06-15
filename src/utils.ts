@@ -18,8 +18,8 @@ export interface BrainKeyInfo {
 export class KeyPrivate {
     private _privateKey: any;
 
-    static fromBrainKey(brainKey: string): KeyPrivate {
-        const pKey = dcorejs_lib.key.get_brainPrivateKey(brainKey);
+    static fromBrainKey(brainKey: string, sequence: number = 0): KeyPrivate {
+        const pKey = dcorejs_lib.key.get_brainPrivateKey(brainKey, sequence);
         return new KeyPrivate(pKey);
     }
 
@@ -265,6 +265,17 @@ export class Utils {
      */
     public static generateElGamalKeys(privateKeyWif: string): ElGamalKeys {
         return ElGamalKeys.generate(privateKeyWif);
+    }
+
+    public static generateBrainKeyElGamalKey(): [BrainKeyInfo, ElGamalKeys] {
+        const brainKey = Utils.suggestBrainKey();
+        const bkInfo = Utils.getBrainKeyInfo(brainKey);
+        const elGamalKeys = Utils.generateElGamalKeys(bkInfo.wif_priv_key);
+        return [bkInfo, elGamalKeys];
+    }
+
+    public static derivePrivateKey(brainKey: string, sequence: number): KeyPrivate {
+        return KeyPrivate.fromBrainKey(brainKey, sequence);
     }
 }
 
