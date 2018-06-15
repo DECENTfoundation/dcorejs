@@ -266,5 +266,12 @@ export class Utils {
     public static generateElGamalKeys(privateKeyWif: string): ElGamalKeys {
         return ElGamalKeys.generate(privateKeyWif);
     }
+
+    public static generateBrainKeyElGamalKey(): [BrainKeyInfo, ElGamalKeys] {
+        const brainKey = Utils.suggestBrainKey();
+        const bkInfo = Utils.getBrainKeyInfo(brainKey);
+        const elGamalKeys = Utils.generateElGamalKeys(bkInfo.wif_priv_key);
+        return [bkInfo, elGamalKeys];
+    }
 }
 
