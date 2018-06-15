@@ -11,11 +11,11 @@ import {MinerUpdateData, MiningError} from '../model/mining';
 import VestingBalance = Block.VestingBalance;
 
 export class MiningModule extends ApiModule {
+    static CHAIN_PROXY_TO_SELF = '';
     private connector: ApiConnector;
     private chainApi: ChainApi;
 
-    // TODO: make private after vote/unvote methods deprecation from account module
-    public static getSortedMiners(minersVoteIds: string[]): string[] {
+    private static getSortedMiners(minersVoteIds: string[]): string[] {
         const res = [].concat(...minersVoteIds);
         res.sort((e1: string, e2: string) => {
             return Number(e1.split(':')[1]) - Number(e2.split(':')[1]);
@@ -23,8 +23,7 @@ export class MiningModule extends ApiModule {
         return res;
     }
 
-    // TODO: make private after vote/unvote methods deprecation from account module
-    public static removeVotedMiners(voted: string[], toUnvote: string[]): string[] {
+    private static removeVotedMiners(voted: string[], toUnvote: string[]): string[] {
         const res: string[] = [].concat(...voted);
         toUnvote.forEach(u => {
             const index = res.indexOf(u);
@@ -35,8 +34,7 @@ export class MiningModule extends ApiModule {
         return res;
     }
 
-    // TODO: make private after vote/unvote methods deprecation from account module
-    public static createVoteIdList(ids: string[], objects: any[]): string[] {
+    private static createVoteIdList(ids: string[], objects: any[]): string[] {
         const res: string[] = [];
         ids.forEach(m => {
             const miner = objects.find(el => el.id === m);
@@ -324,6 +322,70 @@ export class MiningModule extends ApiModule {
                 })
                 .catch(err => reject(this.handleError(MiningError.miner_does_not_exist, err)));
 
+        });
+    }
+
+    public withdrawVesting(
+        vestinBalanceId: string,
+        ownerId: string,
+        amount: number,
+        assetId: string,
+        privateKey: string): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            const operation = new Operations.VestingBalanceWithdraw(
+                vestinBalanceId,
+                ownerId,
+                {
+                    amount: amount,
+                    asset_id: assetId
+                }
+            );
+            const transaction = new Transaction();
+            transaction.add(operation);
+            transaction.broadcast(privateKey)
+                .then(res => resolve(true))
+                .catch(err => reject(this.handleError(MiningError.transaction_broadcast_failed, err)));
+        });
+    }
+
+    public setVotingProxy(accountId: string, votingAccountId: string = '', privateKey: string): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            const getAccountMethod = new ChainMethods();
+            getAccountMethod.add(ChainMethods.getAccount, accountId);
+            this.chainApi.fetch(getAccountMethod)
+                .then((result: Account[]) => {
+                    if (result.length === 0 || !result[0]) {
+                        reject(this.handleError(MiningError.account_fetch_failed));
+                        return;
+                    }
+                    const account = result[0];
+                    const newOptions = Object.assign({}, account.options);
+                    if (votingAccountId !== '') {
+                        if (newOptions.voting_account === votingAccountId) {
+                            reject(this.handleError(MiningError.duplicate_settings, 'Voting account already set'));
+                            return;
+                        }
+                    } else {
+                        if (newOptions.voting_account === MiningModule.CHAIN_PROXY_TO_SELF) {
+                            reject(this.handleError(MiningError.duplicate_settings, 'Voting account already set'));
+                            return;
+                        }
+                        newOptions.voting_account = MiningModule.CHAIN_PROXY_TO_SELF;
+                    }
+                    const accountUpdateOperation = new Operations.AccountUpdateOperation(
+                        accountId,
+                        account.owner,
+                        account.active,
+                        newOptions,
+                        {}
+                    );
+                    const transaction = new Transaction();
+                    transaction.add(accountUpdateOperation);
+                    transaction.broadcast(privateKey)
+                        .then(res => resolve(true))
+                        .catch(err => reject(this.handleError(MiningError.transaction_broadcast_failed, err)));
+                })
+                .catch(err => this.handleError(MiningError.account_fetch_failed, err));
         });
     }
 }
