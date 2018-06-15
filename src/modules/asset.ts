@@ -21,12 +21,12 @@ export class AssetModule extends ApiModule {
         this.connector = connector;
     }
 
-    public listAssets(lowerBoundSymbol: string, limit: number = 100): Promise<AssetObject[]> {
+    public listAssets(lowerBoundSymbol: string, limit: number = 100, formatAssets: boolean = false): Promise<AssetObject[]> {
         return new Promise<any>((resolve, reject) => {
             const operation = new DatabaseOperations.ListAssets(lowerBoundSymbol, limit);
             this.dbApi.execute(operation)
-                .then(res => {
-                    resolve(res);
+                .then((assets: DCoreAssetObject[]) => {
+                    resolve(formatAssets ? this.formatAssets(assets) : assets);
                 })
                 .catch(err => {
                     reject(this.handleError(AssetError.unable_to_list_assets, err));
@@ -92,7 +92,7 @@ export class AssetModule extends ApiModule {
         return new Promise<any>((resolve, reject) => {
             this.listAssets(assetSymbol, 1)
                 .then((assets: AssetObject[]) => {
-                    if (!assets || assets.length === 0) {
+                    if (assets.length === 0 || !assets[0]) {
                         reject('asset_not_found');
                         return;
                     }
@@ -153,7 +153,7 @@ export class AssetModule extends ApiModule {
         return new Promise<any>((resolve, reject) => {
             this.listAssets(symbol, 1)
                 .then((assets: AssetObject[]) => {
-                    if (assets.length === 0) {
+                    if (assets.length === 0 || !assets[0]) {
                         reject(this.handleError(AssetError.asset_not_found));
                         return;
                     }
@@ -190,7 +190,7 @@ export class AssetModule extends ApiModule {
             ])
                 .then(res => {
                     const [uia, dct] = res;
-                    if (!(uia[0].symbol === uiaSymbol && dct[0].symbol === dctSymbol) || res.length !== 2) {
+                    if (uia.length === 0 || dct.length === 0 || !uia[0] || !dct[0]) {
                         reject(this.handleError(AssetError.asset_not_found));
                         return;
                     }
@@ -219,7 +219,7 @@ export class AssetModule extends ApiModule {
         return new Promise<any>((resolve, reject) => {
             this.listAssets(symbol, 1)
                 .then(res => {
-                    if (res[0].symbol !== symbol || res.length !== 1) {
+                    if (res.length !== 1 || !res[0]) {
                         reject(this.handleError(AssetError.asset_not_found));
                         return;
                     }
@@ -253,7 +253,7 @@ export class AssetModule extends ApiModule {
             ])
                 .then(res => {
                     const [uia, dct] = res;
-                    if (!(uia[0].symbol === uiaSymbol && dct[0].symbol === dctSymbol) || res.length !== 2) {
+                    if (uia.length === 0 || dct.length === 0 || !uia[0] || !dct[0]) {
                         reject(this.handleError(AssetError.asset_not_found));
                         return;
                     }
@@ -278,20 +278,26 @@ export class AssetModule extends ApiModule {
         });
     }
 
-    public getAsset(assetId: string): Promise<DCoreAssetObject[]> {
+    public getAsset(assetId: string, formatAsset: boolean = false): Promise<DCoreAssetObject> {
         const operation = new DatabaseOperations.GetAssets([assetId]);
-        return new Promise<DCoreAssetObject[]>((resolve, reject) => {
+        return new Promise<DCoreAssetObject>((resolve, reject) => {
             this.dbApi.execute(operation)
-                .then(res => resolve(res))
+                .then((assets: DCoreAssetObject[]) => {
+                    if (!assets || !assets[0]) {
+                        reject(this.handleError(AssetError.asset_not_found));
+                        return;
+                    }
+                    resolve(formatAsset ? this.formatAssets(assets)[0] : assets[0]);
+                })
                 .catch(err => reject(err));
         });
     }
 
-    public getAssets(...assetIds: string[]): Promise<DCoreAssetObject[]> {
+    public getAssets(assetIds: string[], formatAssets: boolean = false): Promise<DCoreAssetObject[]> {
         const operation = new DatabaseOperations.GetAssets(assetIds);
         return new Promise<DCoreAssetObject[]>((resolve, reject) => {
             this.dbApi.execute(operation)
-                .then(res => resolve(res))
+                .then(res => resolve(formatAssets ? this.formatAssets(res) : res))
                 .catch(err => reject(err));
         });
     }
@@ -299,15 +305,16 @@ export class AssetModule extends ApiModule {
     public priceToDCT(symbol: string, amount: number): Promise<Asset> {
         return new Promise<any>((resolve, reject) => {
             this.listAssets(symbol, 1)
-                .then(res => {
-                    if (res.length !== 1 || res[0].symbol !== symbol) {
+                .then((assets: DCoreAssetObject[]) => {
+                    if (assets.length !== 1 || !assets[0]) {
                         reject(this.handleError(AssetError.asset_not_found));
                         return;
                     }
+                    const asset = assets[0];
                     const operation = new DatabaseOperations.PriceToDCT(
                         {
-                            asset_id: res[0].id,
-                            amount: amount
+                            asset_id: asset.id,
+                            amount: Utils.formatAmountToAsset(amount, asset)
                         }
                     );
                     this.dbApi.execute(operation)
@@ -326,7 +333,7 @@ export class AssetModule extends ApiModule {
         return new Promise<any>((resolve, reject) => {
             this.listAssets(symbol, 1)
                 .then((assets: AssetObject[]) => {
-                    if (assets.length !== 1 || assets[0].symbol !== symbol) {
+                    if (assets.length !== 1 || !assets[0]) {
                         reject('asset_not_found');
                         return;
                     }
@@ -392,5 +399,26 @@ export class AssetModule extends ApiModule {
                 })
                 .catch(err => reject(this.handleError(AssetError.unable_to_list_assets, err)));
         });
+    }
+
+    private formatAssets(assets: DCoreAssetObject[]): DCoreAssetObject[] {
+        const res: DCoreAssetObject[] = assets.map(asset => {
+            const a = Object.assign({}, asset);
+            a.options.core_exchange_rate.base.amount = asset.options.core_exchange_rate.base.amount / ChainApi.DCTPower;
+            a.options.core_exchange_rate.quote.amount = Utils.formatAmountForAsset(
+                asset.options.core_exchange_rate.quote.amount,
+                asset
+            );
+            if (asset.monitored_asset_opts) {
+                a.monitored_asset_opts.current_feed.core_exchange_rate.base.amount =
+                    asset.options.core_exchange_rate.base.amount / ChainApi.DCTPower;
+                a.monitored_asset_opts.current_feed.core_exchange_rate.quote.amount = Utils.formatAmountForAsset(
+                    asset.options.core_exchange_rate.quote.amount,
+                    asset
+                );
+            }
+            return a;
+        });
+        return res;
     }
 }
