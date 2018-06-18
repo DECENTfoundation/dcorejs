@@ -6,10 +6,14 @@ import {Operations} from '../model/transaction';
 import {DCoreAssetObject} from '../model/asset';
 import {Transaction} from '../transaction';
 import {Asset} from '../model/account';
+import {ApiConnector} from '../api/apiConnector';
 
 export class SubscriptionModule extends ApiModule {
-    constructor(dbApi: DatabaseApi) {
+    private connector: ApiConnector;
+
+    constructor(dbApi: DatabaseApi, connector: ApiConnector) {
         super(dbApi);
+        this.connector = connector;
     }
 
     public listActiveSubscriptionByConsumer(consumerId: string, count: number = 100): Promise<SubscriptionObject[]> {
@@ -85,36 +89,44 @@ export class SubscriptionModule extends ApiModule {
 
     public subscribeByAuthor(from: string, to: string, privateKey: string): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
-            const subscribeByAuthorOperation = new Operations.SubscribeByAuthor(from, to);
-            const transaction = new Transaction();
-            transaction.add(subscribeByAuthorOperation);
-            transaction.broadcast(privateKey)
-                .then(() => {
-                    resolve(true);
+            this.connector.connect()
+                .then(res => {
+                    const subscribeByAuthorOperation = new Operations.SubscribeByAuthor(from, to);
+                    const transaction = new Transaction();
+                    transaction.add(subscribeByAuthorOperation);
+                    transaction.broadcast(privateKey)
+                        .then(() => {
+                            resolve(true);
+                        })
+                        .catch((error) => {
+                            reject(this.handleError(SubscriptionError.transaction_broadcast_failed, error));
+                        });
                 })
-                .catch((error) => {
-                    reject(this.handleError(SubscriptionError.transaction_broadcast_failed, error));
-                });
+                .catch(err => reject(this.handleError(SubscriptionError.blockchain_connection_failed, err)));
         });
     }
 
     public setAutomaticRenewalOfSubscription(
         accountId: string, subscriptionId: string, automaticRenewal: boolean, privateKey: string): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
-                const setAutomaticRenewalOperation = new Operations.SetAutomaticRenewalOfSubscription(
-                    accountId,
-                    subscriptionId,
-                    automaticRenewal
-                );
-                const transaction = new Transaction();
-                transaction.add(setAutomaticRenewalOperation);
-                transaction.broadcast(privateKey)
-                .then(() => {
-                    resolve(true);
+            this.connector.connect()
+                .then(res => {
+                    const setAutomaticRenewalOperation = new Operations.SetAutomaticRenewalOfSubscription(
+                        accountId,
+                        subscriptionId,
+                        automaticRenewal
+                    );
+                    const transaction = new Transaction();
+                    transaction.add(setAutomaticRenewalOperation);
+                    transaction.broadcast(privateKey)
+                        .then(() => {
+                            resolve(true);
+                        })
+                        .catch(error => {
+                            reject(this.handleError(SubscriptionError.transaction_broadcast_failed, error));
+                        });
                 })
-                .catch(error => {
-                    reject(this.handleError(SubscriptionError.subscription_does_not_exist, error));
-                });
+                .catch(err => reject(this.handleError(SubscriptionError.blockchain_connection_failed, err)));
         });
     }
 

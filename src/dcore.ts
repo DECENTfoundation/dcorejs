@@ -55,7 +55,7 @@ export function initialize(config: DcoreConfig,
     _account = new AccountApi(database, chain, historyApi, connector);
     _explorer = new ExplorerModule(database);
     _assetModule = new AssetModule(database, connector, chain);
-    _subscription = new SubscriptionModule(database);
+    _subscription = new SubscriptionModule(database, connector);
     _seeding = new SeedingModule(database);
     _mining = new MiningModule(database, connector, chain);
 }

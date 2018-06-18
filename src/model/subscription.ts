@@ -13,4 +13,5 @@ export enum SubscriptionError {
     transaction_broadcast_failed = 'transaction_broadcast_failed',
     subscription_to_author_failed = 'subscription_to_author_failed',
     subscription_does_not_exist = 'subscription_does_not_exist',
+    blockchain_connection_failed = 'blockchain_connection_failed'
 }
