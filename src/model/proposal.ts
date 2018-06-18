@@ -11,6 +11,7 @@ export enum ProposalError {
     transfer_sender_account_does_not_exist = 'transfer_sender_account_does_not_exist',
     transfer_receiver_account_does_not_exist = 'transfer_receiver_account_does_not_exist',
     asset_not_found = 'asset_not_found',
+    propose_object_not_found = 'propose_object_not_found',
 }
 
 export interface ProposalObject {
@@ -25,7 +26,10 @@ export interface ProposalObject {
 }
 
 export interface ProposalParameters {
-    current_fees?: CurrentFeesParameters,
+    current_fees?: {
+        parameters: Array<[number, object]>;
+        scale: number;
+    };
     block_interval?: number;
     maintenance_interval?: number;
     maintenance_skip_slots?: number;
@@ -52,17 +56,66 @@ export interface ProposalCreateParameters {
     extensions: Array<any>,
 }
 
-export interface CurrentFeesParameters {
-    parameters: Array<[number, object]>;
-    scale: number;
+export interface Fee {
+    fee: number;
+    price_per_kbyte?: number;
+}
+
+export interface BasicFee {
+    basic_fee: number
+}
+
+export interface FeesParameters {
+    transfer?: Fee;
+    account_create?: BasicFee;
+    account_update?: Fee;
+    asset_create?: BasicFee;
+    asset_update?: Fee;
+    asset_publish_feed?: Fee;
+    miner_create?: Fee;
+    miner_update?: Fee;
+    miner_update_global_parameters?: Fee;
+    proposal_create?: Fee;
+    proposal_update?: Fee;
+    proposal_delete?: Fee;
+    withdraw_permission_create?: Fee;
+    withdraw_permission_update?: Fee;
+    withdraw_permission_claim?: Fee;
+    withdraw_permission_delete?: Fee;
+    vesting_balance_create?: Fee;
+    vesting_balance_withdraw?: Fee;
+    custom?: Fee;
+    assert?: Fee;
+    content_submit?: Fee;
+    request_to_buy?: Fee;
+    leave_rating_and_comment?: Fee;
+    ready_to_publish?: Fee;
+    proof_of_custody?: Fee;
+    deliver_keys?: Fee;
+    subscribe?: Fee;
+    subscribe_by_author?: Fee;
+    automatic_renewal_of_subscription?: Fee;
+    report_stats?: Fee;
+    set_publishing_manager?: Fee;
+    set_publishing_right?: Fee;
+    content_cancellation?: Fee;
+    asset_fund_pools_operation?: Fee;
+    asset_reserve_operation?: Fee;
+    asset_claim_fees_operation?: Fee;
+    update_user_issued_asset?: Fee;
+    update_monitored_asset_operation?: Fee;
+    ready_to_publish2?: Fee;
+    transfer2?: Fee;
+    disallow_automatic_renewal_of_subscription?: Fee;
+    return_escrow_submission?: Fee;
+    return_escrow_buying?: Fee;
+    pay_seeder?: Fee;
+    finish_buying?: Fee;
+    renewal_of_subscription?: Fee;
 }
 
 export interface Proposal {
-    active_miners: Array<string>;
-    id: string;
-    next_available_vote_id: number;
-    new_parameters?: ProposalParameters;
-    extensions: Array<any>;
+    new_parameters: ProposalParameters;
 }
 
 export interface DeltaParameters {
@@ -73,4 +126,3 @@ export interface DeltaParameters {
     key_approvals_to_add: Array<string>;
     key_approvals_to_remove: Array<string>;
 }
-

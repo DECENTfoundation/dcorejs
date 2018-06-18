@@ -2,7 +2,7 @@ import {ApiModule} from './ApiModule';
 import {DatabaseApi} from '../api/database';
 import {DatabaseOperations} from '../api/model/database';
 import {
-    CurrentFeesParameters, DeltaParameters, Proposal, ProposalCreateParameters, ProposalError, ProposalObject,
+    FeesParameters, DeltaParameters, Proposal, ProposalCreateParameters, ProposalError, ProposalObject,
     ProposalParameters
 } from '../model/proposal';
 import {Memo, Operations} from '../model/transaction';
@@ -109,14 +109,10 @@ export class ProposalModule extends ApiModule {
                 .then(result => {
                     const globalParameters = JSON.parse(JSON.stringify(result));
                     const newParameters: Proposal = {
-                        id: globalParameters.id,
                         new_parameters: Object.assign({}, globalParameters.parameters),
-                        next_available_vote_id: globalParameters.next_available_vote_id,
-                        active_miners: globalParameters.active_miners,
-                        extensions: [],
                     };
 
-                    newParameters.new_parameters.miner_pay_vesting_seconds = 100000;
+                    newParameters.new_parameters.miner_pay_vesting_seconds = 1000;
 
                     if (proposalParameters.current_fees !== undefined) {
                         newParameters.new_parameters.current_fees = Object.assign({}, proposalParameters.current_fees);
@@ -175,8 +171,8 @@ export class ProposalModule extends ApiModule {
                     transaction.add(operation);
                     const proposalCreateParameters: ProposalCreateParameters = {
                         fee_paying_account: proposerAccountId,
-                        extensions: [],
                         expiration_time: expiration,
+                        extensions: [],
                     };
                     transaction.propose(proposalCreateParameters);
                     transaction.broadcast(privateKey)
@@ -195,25 +191,190 @@ export class ProposalModule extends ApiModule {
     }
 
     public proposeFeeChange(
-        proposerAccountId: string, expiration: number, currentFeesParameters: CurrentFeesParameters, privateKey: string): Promise<boolean> {
+        proposerAccountId: string, expiration: number, feesParameters: FeesParameters, privateKey: string): Promise<boolean> {
         return new Promise<boolean>(((resolve, reject) => {
-            const proposalParameters: ProposalParameters = {
-                current_fees: currentFeesParameters
-            };
-            this.proposeParameterChange(proposerAccountId, expiration, proposalParameters, privateKey)
-                .then(result => {
-                    resolve(result);
+            const databaseOperation = new DatabaseOperations.GetGlobalProperties();
+            this.dbApi.execute(databaseOperation)
+                .then(currentParameters => {
+                    const newParameters: Proposal = {
+                        new_parameters: Object.assign({}, currentParameters.parameters),
+                    };
+                    newParameters.new_parameters.miner_pay_vesting_seconds = 1000;
+
+                    if (feesParameters.transfer !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[0] = [0, feesParameters.transfer];
+                    }
+                    if (feesParameters.account_create !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[1] = [1, feesParameters.account_create];
+                    }
+                    if (feesParameters.account_update !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[2] = [2, feesParameters.account_update];
+                    }
+                    if (feesParameters.asset_create !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[3] = [3, feesParameters.asset_create];
+                    }
+                    if (feesParameters.asset_update !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[4] = [4, feesParameters.asset_update];
+                    }
+                    if (feesParameters.asset_publish_feed !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[5] = [5, feesParameters.asset_publish_feed];
+                    }
+                    if (feesParameters.miner_create !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[6] = [6, feesParameters.miner_create];
+                    }
+                    if (feesParameters.miner_update !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[7] = [7, feesParameters.miner_update];
+                    }
+                    if (feesParameters.miner_update_global_parameters !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[8] = [8, feesParameters.miner_update_global_parameters];
+                    }
+                    if (feesParameters.proposal_create !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[9] = [9, feesParameters.proposal_create];
+                    }
+                    if (feesParameters.proposal_update !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[10] = [10, feesParameters.proposal_update];
+                    }
+                    if (feesParameters.proposal_delete !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[11] = [11, feesParameters.proposal_delete];
+                    }
+                    if (feesParameters.withdraw_permission_create !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[12] = [12, feesParameters.withdraw_permission_create];
+                    }
+                    if (feesParameters.withdraw_permission_update !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[13] = [13, feesParameters.withdraw_permission_update];
+                    }
+                    if (feesParameters.withdraw_permission_claim !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[14] = [14, feesParameters.withdraw_permission_claim];
+                    }
+                    if (feesParameters.withdraw_permission_delete !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[15] = [15, feesParameters.withdraw_permission_delete];
+                    }
+                    if (feesParameters.vesting_balance_create !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[16] = [16, feesParameters.vesting_balance_create];
+                    }
+                    if (feesParameters.vesting_balance_withdraw !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[17] = [17, feesParameters.vesting_balance_withdraw];
+                    }
+                    if (feesParameters.custom !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[18] = [18, feesParameters.custom];
+                    }
+                    if (feesParameters.assert !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[19] = [19, feesParameters.assert];
+                    }
+                    if (feesParameters.content_submit !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[20] = [20, feesParameters.content_submit];
+                    }
+                    if (feesParameters.request_to_buy !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[21] = [21, feesParameters.request_to_buy];
+                    }
+                    if (feesParameters.leave_rating_and_comment !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[22] = [22, feesParameters.leave_rating_and_comment];
+                    }
+                    if (feesParameters.ready_to_publish !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[23] = [23, feesParameters.ready_to_publish];
+                    }
+                    if (feesParameters.proof_of_custody !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[24] = [24, feesParameters.proof_of_custody];
+                    }
+                    if (feesParameters.deliver_keys !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[25] = [25, feesParameters.deliver_keys];
+                    }
+                    if (feesParameters.subscribe !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[26] = [26, feesParameters.subscribe];
+                    }
+                    if (feesParameters.subscribe_by_author !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[27] = [27, feesParameters.subscribe_by_author];
+                    }
+                    if (feesParameters.automatic_renewal_of_subscription !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[28] = [28, feesParameters.automatic_renewal_of_subscription];
+                    }
+                    if (feesParameters.report_stats !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[29] = [29, feesParameters.report_stats];
+                    }
+                    if (feesParameters.set_publishing_manager !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[30] = [30, feesParameters.set_publishing_manager];
+                    }
+                    if (feesParameters.set_publishing_right !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[31] = [31, feesParameters.set_publishing_right];
+                    }
+                    if (feesParameters.content_cancellation !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[32] = [32, feesParameters.content_cancellation];
+                    }
+                    if (feesParameters.disallow_automatic_renewal_of_subscription !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[33]
+                            = [33, feesParameters.disallow_automatic_renewal_of_subscription];
+                    }
+                    if (feesParameters.return_escrow_submission !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[34] = [34, feesParameters.return_escrow_submission];
+                    }
+                    if (feesParameters.return_escrow_buying !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[35] = [35, feesParameters.return_escrow_buying];
+                    }
+                    if (feesParameters.pay_seeder !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[36] = [36, feesParameters.pay_seeder];
+                    }
+                    if (feesParameters.finish_buying !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[37] = [37, feesParameters.finish_buying];
+                    }
+                    if (feesParameters.renewal_of_subscription !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[38] = [38, feesParameters.renewal_of_subscription];
+                    }
+
+                    const operation = new Operations.MinerUpdateGlobalParameters(newParameters);
+                    const transaction = new Transaction();
+                    transaction.add(operation);
+                    const proposalCreateParameters: ProposalCreateParameters = {
+                        fee_paying_account: proposerAccountId,
+                        expiration_time: expiration,
+                        extensions: [],
+                    };
+                    transaction.propose(proposalCreateParameters);
+                    transaction.broadcast(privateKey)
+                        .then(() => {
+                            resolve(true);
+                        })
+                        .catch(error => {
+                            reject(this.handleError(ProposalError.transaction_broadcast_failed, error));
+                            return;
+                        });
                 })
                 .catch(error => {
-                    reject(this.handleError(error));
+                    reject(this.handleError(ProposalError.database_operation_failed));
                     return;
                 });
         }));
     }
 
     public approveProposal(
-        payingAccountId: string, proposalId: string, approvalsDelta: DeltaParameters): Promise<boolean> {
+        payingAccountId: string, proposalId: string, approvalsDelta: DeltaParameters, privateKey: string): Promise<boolean> {
         return new Promise<boolean>(((resolve, reject) => {
+            this.getProposedTransactions(proposalId)
+                .then(propose => {
+                    const operation = new Operations.ProposalUpdate(
+                        payingAccountId,
+                        propose,
+                        approvalsDelta.active_approvals_to_add,
+                        approvalsDelta.active_approvals_to_remove,
+                        approvalsDelta.owner_approvals_to_add,
+                        approvalsDelta.owner_approvals_to_remove,
+                        approvalsDelta.key_approvals_to_add,
+                        approvalsDelta.key_approvals_to_remove
+                    );
+                    const transaction = new Transaction();
+                    transaction.add(operation);
+                    transaction.broadcast(privateKey)
+                        .then(() => {
+                            resolve(true);
+                        })
+                        .catch(error => {
+                            reject(this.handleError(ProposalError.transaction_broadcast_failed, error));
+                            return;
+                        });
+                })
+                .catch(error => {
+                    reject(this.handleError(ProposalError.propose_object_not_found, error));
+                    return;
+                });
         }));
     }
 }
