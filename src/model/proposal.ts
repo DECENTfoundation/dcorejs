@@ -51,8 +51,8 @@ export interface ProposalParameters {
 
 export interface ProposalCreateParameters {
     fee_paying_account: string,
-    expiration_time: number,
-    reviewPeriodSeconds?: number,
+    expiration_time: string,
+    review_period_seconds?: number,
     extensions: Array<any>,
 }
 

@@ -60,7 +60,7 @@ export function initialize(config: DcoreConfig,
     _subscription = new SubscriptionModule(database);
     _seeding = new SeedingModule(database);
     _mining = new MiningModule(database, connector, chain);
-    _proposal = new ProposalModule(database, chain);
+    _proposal = new ProposalModule(database, chain, connector);
 }
 
 export function content(): ContentApi {

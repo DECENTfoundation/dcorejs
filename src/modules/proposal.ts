@@ -11,13 +11,16 @@ import {Asset} from '../model/account';
 import {ChainApi, ChainMethods} from '../api/chain';
 import {Utils} from '../utils';
 import {CryptoUtils} from '../crypt';
+import {ApiConnector} from '../api/apiConnector';
 
 export class ProposalModule extends ApiModule {
     private _chainApi: ChainApi;
+    private _apiConnector: ApiConnector;
 
-    constructor(dbApi: DatabaseApi, chainApi: ChainApi) {
+    constructor(dbApi: DatabaseApi, chainApi: ChainApi, apiConnector: ApiConnector) {
         super(dbApi);
         this._chainApi = chainApi;
+        this._apiConnector = apiConnector;
     }
 
     public getProposedTransactions(accountId: string): Promise<ProposalObject[]> {
@@ -35,7 +38,7 @@ export class ProposalModule extends ApiModule {
 
     public proposeTransfer(
         proposerAccountId: string, fromAccountId: string, toAccountId: string, amount: number, assetId: string, memoKey: string,
-        expiration: number, privateKey: string): Promise<any> {
+        expiration: string, privateKey: string): Promise<any> {
         return new Promise<any>(((resolve, reject) => {
             const operations = new ChainMethods();
             operations.add(ChainMethods.getAccount, fromAccountId);
@@ -102,7 +105,7 @@ export class ProposalModule extends ApiModule {
     }
 
     public proposeParameterChange(
-        proposerAccountId: string, expiration: number, proposalParameters: ProposalParameters, privateKey: string): Promise<boolean> {
+        proposerAccountId: string, expiration: string, proposalParameters: ProposalParameters, privateKey: string): Promise<boolean> {
         return new Promise<boolean>(((resolve, reject) => {
             const databaseOperation = new DatabaseOperations.GetGlobalProperties();
             this.dbApi.execute(databaseOperation)
@@ -112,7 +115,7 @@ export class ProposalModule extends ApiModule {
                         new_parameters: Object.assign({}, globalParameters.parameters),
                     };
 
-                    newParameters.new_parameters.miner_pay_vesting_seconds = 1000;
+                    newParameters.new_parameters.miner_pay_vesting_seconds = 86400;
 
                     if (proposalParameters.current_fees !== undefined) {
                         newParameters.new_parameters.current_fees = Object.assign({}, proposalParameters.current_fees);
@@ -172,6 +175,7 @@ export class ProposalModule extends ApiModule {
                     const proposalCreateParameters: ProposalCreateParameters = {
                         fee_paying_account: proposerAccountId,
                         expiration_time: expiration,
+                        review_period_seconds: 1209600,
                         extensions: [],
                     };
                     transaction.propose(proposalCreateParameters);
@@ -191,7 +195,7 @@ export class ProposalModule extends ApiModule {
     }
 
     public proposeFeeChange(
-        proposerAccountId: string, expiration: number, feesParameters: FeesParameters, privateKey: string): Promise<boolean> {
+        proposerAccountId: string, expiration: string, feesParameters: FeesParameters, privateKey: string): Promise<boolean> {
         return new Promise<boolean>(((resolve, reject) => {
             const databaseOperation = new DatabaseOperations.GetGlobalProperties();
             this.dbApi.execute(databaseOperation)
@@ -199,7 +203,7 @@ export class ProposalModule extends ApiModule {
                     const newParameters: Proposal = {
                         new_parameters: Object.assign({}, currentParameters.parameters),
                     };
-                    newParameters.new_parameters.miner_pay_vesting_seconds = 1000;
+                    newParameters.new_parameters.miner_pay_vesting_seconds = 86400;
 
                     if (feesParameters.transfer !== undefined) {
                         newParameters.new_parameters.current_fees.parameters[0] = [0, feesParameters.transfer];
@@ -348,11 +352,11 @@ export class ProposalModule extends ApiModule {
     public approveProposal(
         payingAccountId: string, proposalId: string, approvalsDelta: DeltaParameters, privateKey: string): Promise<boolean> {
         return new Promise<boolean>(((resolve, reject) => {
-            this.getProposedTransactions(proposalId)
-                .then(propose => {
+            this._apiConnector.connect()
+                .then(() => {
                     const operation = new Operations.ProposalUpdate(
                         payingAccountId,
-                        propose,
+                        proposalId,
                         approvalsDelta.active_approvals_to_add,
                         approvalsDelta.active_approvals_to_remove,
                         approvalsDelta.owner_approvals_to_add,
@@ -371,10 +375,7 @@ export class ProposalModule extends ApiModule {
                             return;
                         });
                 })
-                .catch(error => {
-                    reject(this.handleError(ProposalError.propose_object_not_found, error));
-                    return;
-                });
+                .catch();
         }));
     }
 }

@@ -348,7 +348,7 @@ export namespace Operations {
 
     export class ProposalUpdate extends Operation {
         constructor(feePayingAccount: string,
-                    proposal: object,
+                    proposal: string,
                     activeApprovalsToAdd: Array<string>,
                     activeApprovalsToRemove: Array<string>,
                     ownerApprovalsToAdd: Array<string>,
