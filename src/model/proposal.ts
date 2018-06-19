@@ -66,52 +66,52 @@ export interface BasicFee {
 }
 
 export interface FeesParameters {
-    transfer?: Fee;
+    transfer?: Fee; // 0
     account_create?: BasicFee;
     account_update?: Fee;
     asset_create?: BasicFee;
     asset_update?: Fee;
-    asset_publish_feed?: Fee;
+    asset_publish_feed?: Fee; // 5
     miner_create?: Fee;
     miner_update?: Fee;
     miner_update_global_parameters?: Fee;
     proposal_create?: Fee;
-    proposal_update?: Fee;
+    proposal_update?: Fee; // 10
     proposal_delete?: Fee;
     withdraw_permission_create?: Fee;
     withdraw_permission_update?: Fee;
     withdraw_permission_claim?: Fee;
-    withdraw_permission_delete?: Fee;
+    withdraw_permission_delete?: Fee; // 15
     vesting_balance_create?: Fee;
     vesting_balance_withdraw?: Fee;
     custom?: Fee;
     assert?: Fee;
-    content_submit?: Fee;
+    content_submit?: Fee; // 20
     request_to_buy?: Fee;
     leave_rating_and_comment?: Fee;
     ready_to_publish?: Fee;
     proof_of_custody?: Fee;
-    deliver_keys?: Fee;
+    deliver_keys?: Fee; // 25
     subscribe?: Fee;
     subscribe_by_author?: Fee;
     automatic_renewal_of_subscription?: Fee;
     report_stats?: Fee;
-    set_publishing_manager?: Fee;
+    set_publishing_manager?: Fee; // 30
     set_publishing_right?: Fee;
     content_cancellation?: Fee;
     asset_fund_pools_operation?: Fee;
     asset_reserve_operation?: Fee;
-    asset_claim_fees_operation?: Fee;
+    asset_claim_fees_operation?: Fee; // 35
     update_user_issued_asset?: Fee;
     update_monitored_asset_operation?: Fee;
     ready_to_publish2?: Fee;
     transfer2?: Fee;
-    disallow_automatic_renewal_of_subscription?: Fee;
+    disallow_automatic_renewal_of_subscription?: Fee; // 40
     return_escrow_submission?: Fee;
     return_escrow_buying?: Fee;
     pay_seeder?: Fee;
     finish_buying?: Fee;
-    renewal_of_subscription?: Fee;
+    renewal_of_subscription?: Fee; // 45
 }
 
 export interface Proposal {

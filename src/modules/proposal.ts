@@ -175,7 +175,6 @@ export class ProposalModule extends ApiModule {
                     const proposalCreateParameters: ProposalCreateParameters = {
                         fee_paying_account: proposerAccountId,
                         expiration_time: expiration,
-                        review_period_seconds: 1209600,
                         extensions: [],
                     };
                     transaction.propose(proposalCreateParameters);
@@ -203,6 +202,7 @@ export class ProposalModule extends ApiModule {
                     const newParameters: Proposal = {
                         new_parameters: Object.assign({}, currentParameters.parameters),
                     };
+                    console.log(newParameters.new_parameters.current_fees.parameters);
                     newParameters.new_parameters.miner_pay_vesting_seconds = 86400;
 
                     if (feesParameters.transfer !== undefined) {
@@ -304,24 +304,45 @@ export class ProposalModule extends ApiModule {
                     if (feesParameters.content_cancellation !== undefined) {
                         newParameters.new_parameters.current_fees.parameters[32] = [32, feesParameters.content_cancellation];
                     }
+                    if (feesParameters.asset_fund_pools_operation !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[33] = [33, feesParameters.asset_fund_pools_operation];
+                    }
+                    if (feesParameters.asset_reserve_operation !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[34] = [34, feesParameters.asset_reserve_operation];
+                    }
+                    if (feesParameters.asset_claim_fees_operation !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[35] = [35, feesParameters.asset_claim_fees_operation];
+                    }
+                    if (feesParameters.update_user_issued_asset !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[36] = [36, feesParameters.update_user_issued_asset];
+                    }
+                    if (feesParameters.update_monitored_asset_operation !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[37] = [37, feesParameters.update_monitored_asset_operation];
+                    }
+                    if (feesParameters.ready_to_publish2 !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[38] = [38, feesParameters.ready_to_publish2];
+                    }
+                    if (feesParameters.transfer2 !== undefined) {
+                        newParameters.new_parameters.current_fees.parameters[39] = [39, feesParameters.transfer2];
+                    }
                     if (feesParameters.disallow_automatic_renewal_of_subscription !== undefined) {
-                        newParameters.new_parameters.current_fees.parameters[33]
-                            = [33, feesParameters.disallow_automatic_renewal_of_subscription];
+                        newParameters.new_parameters.current_fees.parameters[40]
+                            = [40, feesParameters.disallow_automatic_renewal_of_subscription];
                     }
                     if (feesParameters.return_escrow_submission !== undefined) {
-                        newParameters.new_parameters.current_fees.parameters[34] = [34, feesParameters.return_escrow_submission];
+                        newParameters.new_parameters.current_fees.parameters[41] = [41, feesParameters.return_escrow_submission];
                     }
                     if (feesParameters.return_escrow_buying !== undefined) {
-                        newParameters.new_parameters.current_fees.parameters[35] = [35, feesParameters.return_escrow_buying];
+                        newParameters.new_parameters.current_fees.parameters[42] = [42, feesParameters.return_escrow_buying];
                     }
                     if (feesParameters.pay_seeder !== undefined) {
-                        newParameters.new_parameters.current_fees.parameters[36] = [36, feesParameters.pay_seeder];
+                        newParameters.new_parameters.current_fees.parameters[43] = [43, feesParameters.pay_seeder];
                     }
                     if (feesParameters.finish_buying !== undefined) {
-                        newParameters.new_parameters.current_fees.parameters[37] = [37, feesParameters.finish_buying];
+                        newParameters.new_parameters.current_fees.parameters[44] = [44, feesParameters.finish_buying];
                     }
                     if (feesParameters.renewal_of_subscription !== undefined) {
-                        newParameters.new_parameters.current_fees.parameters[38] = [38, feesParameters.renewal_of_subscription];
+                        newParameters.new_parameters.current_fees.parameters[45] = [45, feesParameters.renewal_of_subscription];
                     }
 
                     const operation = new Operations.MinerUpdateGlobalParameters(newParameters);
