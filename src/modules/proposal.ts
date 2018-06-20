@@ -80,7 +80,7 @@ export class ProposalModule extends ApiModule {
                 const price = Asset.create(amount, assetObject);
                 const transferOperation = new Operations.TransferOperation(fromAccountId, toAccountId, price, memo);
                 const transaction = new Transaction();
-                transaction.add(transferOperation);
+                transaction.addOperation(transferOperation);
                 const proposalCreateParameters: ProposalCreateParameters = {
                     fee_paying_account: proposerAccountId,
                     expiration_time: expiration,
@@ -180,7 +180,7 @@ export class ProposalModule extends ApiModule {
 
                     const operation = new Operations.MinerUpdateGlobalParameters(newParameters);
                     const transaction = new Transaction();
-                    transaction.add(operation);
+                    transaction.addOperation(operation);
                     const proposalCreateParameters: ProposalCreateParameters = {
                         fee_paying_account: proposerAccountId,
                         expiration_time: expiration,
@@ -367,7 +367,7 @@ export class ProposalModule extends ApiModule {
 
                     const operation = new Operations.MinerUpdateGlobalParameters(newParameters);
                     const transaction = new Transaction();
-                    transaction.add(operation);
+                    transaction.addOperation(operation);
                     const proposalCreateParameters: ProposalCreateParameters = {
                         fee_paying_account: proposerAccountId,
                         expiration_time: expiration,
@@ -417,7 +417,7 @@ export class ProposalModule extends ApiModule {
                         approvalsDelta.key_approvals_to_remove
                     );
                     const transaction = new Transaction();
-                    transaction.add(operation);
+                    transaction.addOperation(operation);
                     transaction.broadcast(privateKey)
                         .then(() => {
                             resolve(true);

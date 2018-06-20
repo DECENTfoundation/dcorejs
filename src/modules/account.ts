@@ -268,7 +268,7 @@ export class AccountApi extends ApiModule {
                         Asset.create(amount, assetObject),
                         memo_object
                     );
-                    transaction.add(transferOperation);
+                    transaction.addOperation(transferOperation);
                     transaction.broadcast(privateKey)
                         .then(() => {
                             resolve(transaction.operations[0]);
@@ -471,7 +471,7 @@ export class AccountApi extends ApiModule {
                     });
 
                     const transaction = new Transaction();
-                    transaction.add(operation);
+                    transaction.addOperation(operation);
                     transaction.broadcast(regisrarPrivateKey)
                         .then(() => resolve(true))
                         .catch(err => reject(err));
@@ -699,7 +699,7 @@ export class AccountApi extends ApiModule {
                     );
 
                     const transaction = new Transaction();
-                    transaction.add(accountUpdateOperation);
+                    transaction.addOperation(accountUpdateOperation);
                     transaction.broadcast(privateKey)
                         .then(() => {
                             resolve(true);

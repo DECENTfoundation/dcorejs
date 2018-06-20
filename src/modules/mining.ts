@@ -86,7 +86,7 @@ export class MiningModule extends ApiModule {
                         accountId, account.owner, account.active, options, {}
                     );
                     const transaction = new Transaction();
-                    transaction.add(operation);
+                    transaction.addOperation(operation);
                     transaction.broadcast(privateKey)
                         .then(res => resolve(res))
                         .catch(err => reject(this.handleError(MiningError.transaction_broadcast_failed, err)));
@@ -101,7 +101,7 @@ export class MiningModule extends ApiModule {
                 .then(res => {
                     const operation = new Operations.MinerCreate(minerAccountId, URL, signingPublicKey);
                     const transaction = new Transaction();
-                    transaction.add(operation);
+                    transaction.addOperation(operation);
                     transaction.broadcast(privateKey)
                         .then(res => resolve(true))
                         .catch(err => reject(this.handleError(MiningError.transaction_broadcast_failed, err)));
@@ -163,7 +163,7 @@ export class MiningModule extends ApiModule {
                                 {}
                             );
                             const transaction = new Transaction();
-                            transaction.add(op);
+                            transaction.addOperation(op);
                             transaction.broadcast(privateKeyWif)
                                 .then(res => resolve(res))
                                 .catch(err => reject(err));
@@ -219,7 +219,7 @@ export class MiningModule extends ApiModule {
                                 {}
                             );
                             const transaction = new Transaction();
-                            transaction.add(op);
+                            transaction.addOperation(op);
                             transaction.broadcast(privateKeyWif)
                                 .then(res => resolve(transaction))
                                 .catch((err: Error) => {
@@ -278,7 +278,7 @@ export class MiningModule extends ApiModule {
                                 {}
                             );
                             const transaction = new Transaction();
-                            transaction.add(accountUpdateOp);
+                            transaction.addOperation(accountUpdateOp);
                             transaction.broadcast(privateKey)
                                 .then(res => resolve(true))
                                 .catch(err => reject(this.handleError(AccountError.transaction_broadcast_failed, err)));
@@ -315,7 +315,7 @@ export class MiningModule extends ApiModule {
                         updateData.newSigningKey || miner.signing_key
                     );
                     const transaction = new Transaction();
-                    transaction.add(operation);
+                    transaction.addOperation(operation);
                     transaction.broadcast(privateKey)
                         .then(res => resolve(true))
                         .catch(err => reject(this.handleError(MiningError.database_fetch_failed, err)));
@@ -341,7 +341,7 @@ export class MiningModule extends ApiModule {
                 }
             );
             const transaction = new Transaction();
-            transaction.add(operation);
+            transaction.addOperation(operation);
             transaction.broadcast(privateKey)
                 .then(res => resolve(true))
                 .catch(err => reject(this.handleError(MiningError.transaction_broadcast_failed, err)));
@@ -380,7 +380,7 @@ export class MiningModule extends ApiModule {
                         {}
                     );
                     const transaction = new Transaction();
-                    transaction.add(accountUpdateOperation);
+                    transaction.addOperation(accountUpdateOperation);
                     transaction.broadcast(privateKey)
                         .then(res => resolve(true))
                         .catch(err => reject(this.handleError(MiningError.transaction_broadcast_failed, err)));
