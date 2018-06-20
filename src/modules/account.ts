@@ -374,9 +374,9 @@ export class AccountApi extends ApiModule {
         return new Promise((resolve, reject) => {
             const operation = new HistoryOperations.GetAccountHistory(
                 accountId,
-                historyOptions.fromId || '1.7.0',
+                historyOptions && historyOptions.fromId || '1.7.0',
                 '1.7.0',
-                historyOptions.resultLimit || 100
+                historyOptions && historyOptions.resultLimit || 100
             );
             this._historyApi.execute(operation)
                 .then(res => {
