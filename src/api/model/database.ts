@@ -21,6 +21,7 @@ export enum DatabaseOperationName {
     getObjects = 'get_objects',
     getContent = 'get_content',
     getBuyingHistoryObjects = 'get_buying_by_consumer_URI',
+    getGlobalProperties = 'get_global_properties',
     getDynamicGlobalProperties = 'get_dynamic_global_properties',
     getBlock = 'get_block',
     getTransaction = 'get_transaction',
@@ -50,6 +51,7 @@ export enum DatabaseOperationName {
     priceToDct = 'price_to_dct',
     getFeedsByMiner = 'get_feeds_by_miner',
     getRealSupply = 'get_real_supply',
+    getProposedTransactions = 'get_proposed_transactions',
 }
 
 export class DatabaseOperation {
@@ -237,6 +239,12 @@ export namespace DatabaseOperations {
         }
     }
 
+    export class GetGlobalProperties extends DatabaseOperation {
+        constructor() {
+            super(DatabaseOperationName.getGlobalProperties);
+        }
+    }
+
     export class GetDynamicGlobalProperties extends DatabaseOperation {
         constructor() {
             super(DatabaseOperationName.getDynamicGlobalProperties);
@@ -392,7 +400,7 @@ export namespace DatabaseOperations {
             super(DatabaseOperationName.listSubscriptionsByAuthor, accountId, limit);
         }
     }
-  
+
     export class ListSeedersByUpload extends DatabaseOperation {
         constructor(limit: number) {
             super(DatabaseOperationName.listSeedersByUpload, limit);
@@ -408,6 +416,12 @@ export namespace DatabaseOperations {
     export class ListSeedersByRating extends DatabaseOperation {
         constructor(limit: number) {
             super(DatabaseOperationName.listSeedersByRating, limit);
+        }
+    }
+
+    export class GetProposedTransactions extends DatabaseOperation {
+        constructor(accountId: string) {
+            super(DatabaseOperationName.getProposedTransactions, accountId);
         }
     }
 }
