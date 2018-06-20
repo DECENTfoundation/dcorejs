@@ -1,6 +1,7 @@
 import {dcorejs_lib} from './helpers';
 import {KeyPrivate, KeyPublic, Utils} from './utils';
 import {Operation} from './model/transaction';
+import {ProposalCreateParameters} from './model/proposal';
 
 /**
  * Class contains available transaction operation names constants
@@ -40,7 +41,7 @@ export class Transaction {
         return true;
     }
 
-    public propose(proposalParameters: any): void {
+    public propose(proposalParameters: ProposalCreateParameters): void {
         this._transaction.propose(proposalParameters);
     }
 
