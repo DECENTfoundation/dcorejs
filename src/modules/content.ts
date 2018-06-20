@@ -8,6 +8,8 @@ import {ContentObject, Operations} from '../model/transaction';
 import {DCoreAssetObject} from '../model/asset';
 import {ApiModule} from './ApiModule';
 import {Utils} from '../utils';
+import {dcorejs_lib} from '../helpers';
+import * as bigInt from 'big-integer';
 
 const moment = require('moment');
 
@@ -632,5 +634,15 @@ export class ContentApi extends ApiModule {
                 .then(res => resolve(res))
                 .catch(err => reject(this.handleError(ContentError.transaction_broadcast_failed, err)));
         });
+    }
+
+    public generateEncryptionKey(): string {
+        const randomKey = dcorejs_lib.key.random32ByteBuffer();
+        let hexString = '';
+        for (let i = 0; i < randomKey.length; i++) {
+            hexString += ('0' + randomKey[i].toString(16)).slice(-2);
+        }
+        const key = bigInt(hexString, 16);
+        return key.toString(10) + '.';
     }
 }
