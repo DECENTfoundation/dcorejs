@@ -101,11 +101,22 @@ export class ProposalModule extends ApiModule {
                 return;
             });
         }));
-
     }
 
-    public proposeParameterChange(
-        proposerAccountId: string, expiration: string, proposalParameters: ProposalParameters, privateKey: string): Promise<boolean> {
+    /**
+     * Propose change of global fees for operations
+     *
+     * @param {string} proposerAccountId                    Account which pays fee for propose operation.
+     * @param {ProposalParameters} proposalParameters       Global parameters that should be changed.
+     * @param {number} reviewPeriodInDays                   Min is 14, max is 27.
+     * @param {string} expiration                           Date in form of "2018-07-17T16:00:00", depends on reviewPeriodInDays.
+     *                                                      If reviewPeriodInDays is 14, expiration must be at least 14 days since today,
+     *                                                      max is always 27 days since today.
+     * @param {string} privateKey                           Private key for signing transaction.
+     * @returns {Promise<boolean>}
+     */
+    public proposeParameterChange(proposerAccountId: string, proposalParameters: ProposalParameters, reviewPeriodInDays: number,
+                                  expiration: string, privateKey: string): Promise<boolean> {
         return new Promise<boolean>(((resolve, reject) => {
             const databaseOperation = new DatabaseOperations.GetGlobalProperties();
             this.dbApi.execute(databaseOperation)
@@ -114,8 +125,6 @@ export class ProposalModule extends ApiModule {
                     const newParameters: Proposal = {
                         new_parameters: Object.assign({}, globalParameters.parameters),
                     };
-
-                    newParameters.new_parameters.miner_pay_vesting_seconds = 86400;
 
                     if (proposalParameters.current_fees !== undefined) {
                         newParameters.new_parameters.current_fees = Object.assign({}, proposalParameters.current_fees);
@@ -175,6 +184,7 @@ export class ProposalModule extends ApiModule {
                     const proposalCreateParameters: ProposalCreateParameters = {
                         fee_paying_account: proposerAccountId,
                         expiration_time: expiration,
+                        review_period_seconds: this.convertDaysToSeconds(reviewPeriodInDays),
                         extensions: [],
                     };
                     transaction.propose(proposalCreateParameters);
@@ -193,8 +203,20 @@ export class ProposalModule extends ApiModule {
         }));
     }
 
-    public proposeFeeChange(
-        proposerAccountId: string, expiration: string, feesParameters: FeesParameters, privateKey: string): Promise<boolean> {
+    /**
+     * Propose change of global fees for operations
+     *
+     * @param {string} proposerAccountId                Account which pays fee for propose operation.
+     * @param {FeesParameters} feesParameters           Fees that should be changed.
+     * @param {number} reviewPeriodInDays               Min is 14, max is 27.
+     * @param {string} expiration                       Date in form of "2018-07-17T16:00:00", depends on reviewPeriodInDays.
+     *                                                  If reviewPeriodInDays is 14, expiration must be at least 14 days since today,
+     *                                                  max is always 27 days since today.
+     * @param {string} privateKey                       Private key for signing transaction.
+     * @returns {Promise<boolean>}
+     */
+    public proposeFeeChange(proposerAccountId: string, feesParameters: FeesParameters, reviewPeriodInDays: number, expiration: string,
+                            privateKey: string): Promise<boolean> {
         return new Promise<boolean>(((resolve, reject) => {
             const databaseOperation = new DatabaseOperations.GetGlobalProperties();
             this.dbApi.execute(databaseOperation)
@@ -202,8 +224,6 @@ export class ProposalModule extends ApiModule {
                     const newParameters: Proposal = {
                         new_parameters: Object.assign({}, currentParameters.parameters),
                     };
-                    console.log(newParameters.new_parameters.current_fees.parameters);
-                    newParameters.new_parameters.miner_pay_vesting_seconds = 86400;
 
                     if (feesParameters.transfer !== undefined) {
                         newParameters.new_parameters.current_fees.parameters[0] = [0, feesParameters.transfer];
@@ -351,6 +371,7 @@ export class ProposalModule extends ApiModule {
                     const proposalCreateParameters: ProposalCreateParameters = {
                         fee_paying_account: proposerAccountId,
                         expiration_time: expiration,
+                        review_period_seconds: this.convertDaysToSeconds(reviewPeriodInDays),
                         extensions: [],
                     };
                     transaction.propose(proposalCreateParameters);
@@ -369,6 +390,16 @@ export class ProposalModule extends ApiModule {
                 });
         }));
     }
+
+    /**
+     * Approve proposal operation
+     *
+     * @param {string} payingAccountId                  Account which pays fee for this operation.
+     * @param {string} proposalId                       Id of proposal that you want to approve.
+     * @param {DeltaParameters} approvalsDelta          Active keys, owner keys and key approvals that you can add or remove.
+     * @param {string} privateKey                       Private key for signing transaction.
+     * @returns {Promise<boolean>}
+     */
 
     public approveProposal(
         payingAccountId: string, proposalId: string, approvalsDelta: DeltaParameters, privateKey: string): Promise<boolean> {
@@ -398,5 +429,9 @@ export class ProposalModule extends ApiModule {
                 })
                 .catch();
         }));
+    }
+
+    private convertDaysToSeconds(days: number): number {
+        return days * 24 * 60 * 60;
     }
 }

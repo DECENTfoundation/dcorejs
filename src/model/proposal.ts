@@ -43,7 +43,6 @@ export interface ProposalParameters {
     maximum_authority_membership?: number;
     cashback_vesting_period_seconds?: number;
     cashback_vesting_threshold?: number;
-    miner_pay_vesting_seconds?: number;
     max_predicate_opcode?: number;
     max_authority_depth?: number;
     extensions?: Array<any>;
