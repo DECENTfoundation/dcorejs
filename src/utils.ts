@@ -149,7 +149,8 @@ export class Utils {
      * @returns {number}
      */
     public static formatAmountToAsset(amount: number, asset: DCoreAssetObject): number {
-        return amount * Math.pow(10, asset.precision);
+        const transformedAmount = amount * Math.pow(10, asset.precision);
+        return Number(transformedAmount.toFixed(0));
     }
 
     public static ripemdHash(fromBuffer: Buffer): string {
