@@ -140,6 +140,14 @@ export class ChainApi {
             .catch(err => console.log(err));
     }
 
+    public subscribePendingTransactions(callback: ChainSubscriptionCallback) {
+        this.connect()
+            .then(res => {
+                this._chainStore.subscribePendingTransaction(callback);
+            })
+            .catch(err => console.log(err));
+    }
+
     private connect(): Promise<void> {
         return new Promise<void>(((resolve, reject) => {
             this._apiConnector

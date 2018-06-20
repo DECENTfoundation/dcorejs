@@ -1,6 +1,6 @@
 import {getLibRef} from './helpers';
 import {ContentApi} from './modules/content';
-import {ChainApi} from './api/chain';
+import {ChainApi, ChainSubscriptionCallback} from './api/chain';
 import {DatabaseApi} from './api/database';
 import {AccountApi} from './modules/account';
 import {HistoryApi} from './api/history';
@@ -18,6 +18,7 @@ let _assetModule: AssetModule;
 let _mining: MiningModule;
 let _subscription: SubscriptionModule;
 let _seeding: SeedingModule;
+let _chain: ChainApi;
 
 export class DcoreError {
     static app_not_initialized = 'app_not_initialized';
@@ -50,14 +51,27 @@ export function initialize(config: DcoreConfig,
     const database = new DatabaseApi(dcore.Apis, connector);
     const historyApi = new HistoryApi(dcore.Apis, connector);
 
-    const chain = new ChainApi(connector, dcore.ChainStore);
+    _chain = new ChainApi(connector, dcore.ChainStore);
     _content = new ContentApi(database);
-    _account = new AccountApi(database, chain, historyApi, connector);
+    _account = new AccountApi(database, _chain, historyApi, connector);
     _explorer = new ExplorerModule(database);
-    _assetModule = new AssetModule(database, connector, chain);
+    _assetModule = new AssetModule(database, connector, _chain);
     _subscription = new SubscriptionModule(database);
     _seeding = new SeedingModule(database);
-    _mining = new MiningModule(database, connector, chain);
+    _mining = new MiningModule(database, connector, _chain);
+}
+
+/**
+ * Subscribe for blockchain update notifications.
+ *
+ * @param {(data: any[]) => void} callback
+ */
+export function subscribe(callback: ChainSubscriptionCallback) {
+    _chain.subscribe(callback);
+}
+
+export function subscribePendingTransaction(callback: ChainSubscriptionCallback) {
+    _chain.subscribePendingTransactions(callback);
 }
 
 export function content(): ContentApi {
