@@ -150,7 +150,7 @@ export class ContentApi extends ApiModule {
 
                     const cancelOperation = new Operations.ContentCancelOperation(authorId, URI);
                     const transaction = new Transaction();
-                    transaction.add(cancelOperation);
+                    transaction.addOperation(cancelOperation);
                     transaction
                         .broadcast(privateKey)
                         .then(() => {
@@ -278,7 +278,7 @@ export class ContentApi extends ApiModule {
                         JSON.stringify(content.synopsis)
                     );
                     const transaction = new Transaction();
-                    transaction.add(submitOperation);
+                    transaction.addOperation(submitOperation);
                     transaction
                         .broadcast(privateKey)
                         .then(() => {
@@ -479,7 +479,7 @@ export class ContentApi extends ApiModule {
                         {s: elGammalPub}
                     );
                     const transaction = new Transaction();
-                    transaction.add(buyOperation);
+                    transaction.addOperation(buyOperation);
                     transaction
                         .broadcast(privateKey)
                         .then(() => {
@@ -629,7 +629,7 @@ export class ContentApi extends ApiModule {
         return new Promise<any>((resolve, reject) => {
             const operation = new Operations.LeaveRatingAndComment(contentURI, consumer, comment, rating);
             const transaction = new Transaction();
-            transaction.add(operation);
+            transaction.addOperation(operation);
             transaction.broadcast(consumerPKey)
                 .then(res => resolve(res))
                 .catch(err => reject(this.handleError(ContentError.transaction_broadcast_failed, err)));
