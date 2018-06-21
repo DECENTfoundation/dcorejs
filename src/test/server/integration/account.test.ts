@@ -8,10 +8,10 @@ chai.config.showDiff = false;
 
 const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
 const dcoreNetworkAddresses = ['wss://stage.decentgo.com:8090'];
-const accountName = 'u5d42a7b0b5713396aac58019eed01d53';
-const accountId = '1.2.18';
-const privateKey = '5JdZfU9Ni7wopN8JPLPM2SJBkKWB19XJSR4mK27Ww7kyZAidJ1M';
-const transactionId = '1.7.49';
+const accountName = 'u46f36fcd24d74ae58c9b0e49a1f0103c';
+const accountId = '1.2.27';
+const privateKey = '5KcA6ky4Hs9VoDUSdTF4o3a7QDgiiG5gkpLLysRWR8dy6EAgTnZ';
+const transactionId = '1.7.190';
 
 // turn off unverified certificate rejection
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
@@ -46,18 +46,6 @@ describe('(server/integration) Account fetch', () => {
                 done();
             });
     });
-
-    it('get transaction history( DatabaseAPI )', (done) => {
-        dcore_js.account().getTransactionHistory(accountId, [privateKey])
-            .then(res => {
-                expect(res).to.have.length.above(0);
-                done();
-            })
-            .catch(err => {
-                expect(err).to.be.a('array');
-                done();
-            });
-    }).timeout(10000);
 
     it('get transaction history( HistoryAPI )', (done) => {
         dcore_js.account().getAccountHistory(accountId)
@@ -97,10 +85,7 @@ describe('(server/integration) Account fetch', () => {
     });
 
     it('do transfer', (done) => {
-        dcore_js.account().transfer(0.00000001,
-            accountId, 'u1240446860c3766acefe22dc1a0d3ac5',
-            '',
-            privateKey)
+        dcore_js.account().transfer(0.0000001, '1.3.0', '1.2.27', '1.2.24', '', privateKey)
             .then(() => {
                 done();
             })
@@ -108,7 +93,7 @@ describe('(server/integration) Account fetch', () => {
                 expect(err).to.be.a('number');
                 done();
             });
-    }).timeout(10000);
+    }).timeout(15000);
 
     it('search accounts', (done) => {
         dcore_js.account().searchAccounts('', AccountOrder.none, '0.0.0')
