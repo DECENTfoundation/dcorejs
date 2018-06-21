@@ -165,12 +165,30 @@ dcorejs.content().restoreContentKeys(contentId, elGamalKeyPair)
 
 [Download browser example](https://github.com/DECENTfoundation/dcorejs/tree/master/src/examples/DownloadContent)
 
+
+## Blockchain event handling
+```typescript
+dcorejs.subscribe((data: any) => {
+    // handle fired event
+});
+
+dcorejs.subscribePendingTransaction((data: any) => {
+    // handle pending transaction event
+});
+```
+
 More examples available [here](https://github.com/DECENTfoundation/dcorejs/tree/master/src/examples).
 To run examples, you need to clone repository and build with `npm run build`
 if folders `dist` and `lib` is not presented. Browser bundle can be found
 within `dist/dcorejs.umd.js`. Node version in `lib/dcorejs.js`.
 
 ## All available methods
+
+### dcorejs
+```typescript
+subscribe(callback: ChainSubscriptionCallback)
+subscribePendingTransaction(callback: ChainSubscriptionCallback)
+```
 
 ### Content
 
