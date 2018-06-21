@@ -4,6 +4,7 @@ import {Block} from './explorer';
 import AssetExchangeRate = Block.AssetExchangeRate;
 import {Authority, Options} from './account';
 import {MonitoredAssetOptions} from './asset';
+import {Proposal} from './proposal';
 
 /**
  * OperationType to be broadcasted to blockchain
@@ -49,8 +50,11 @@ export enum OperationName {
     asset_publish_feed = 'asset_publish_feed',
     miner_create = 'miner_create',
     miner_update = 'miner_update',
+    miner_update_global_parameters = 'miner_update_global_parameters',
     proposal_create = 'proposal_create',
+    proposal_update = 'proposal_update',
     operation_wrapper = 'op_wrapper',
+    vesting_balance_withdraw = 'vesting_balance_withdraw',
 }
 
 /**
@@ -319,6 +323,12 @@ export namespace Operations {
         }
     }
 
+    export class MinerUpdateGlobalParameters extends Operation {
+        constructor(proposalParameters: Proposal) {
+            super(OperationName.miner_update_global_parameters, proposalParameters);
+        }
+    }
+
     export class ProposalCreate extends Operation {
         constructor(feePayingAccount: string,
                     proposedOperations: object[],
@@ -331,6 +341,32 @@ export namespace Operations {
                     proposed_ops: proposedOperations,
                     expiration_time: expirationTime,
                     review_period_seconds: reviewPeriodSeconds,
+                    extensions: []
+                }
+            );
+        }
+    }
+
+    export class ProposalUpdate extends Operation {
+        constructor(feePayingAccount: string,
+                    proposal: string,
+                    activeApprovalsToAdd: Array<string>,
+                    activeApprovalsToRemove: Array<string>,
+                    ownerApprovalsToAdd: Array<string>,
+                    ownerApprovalsToRemove: Array<string>,
+                    keyApprovalsToAdd: Array<string>,
+                    keyApprovalsToRemove: Array<string>) {
+            super(
+                OperationName.proposal_update,
+                {
+                    fee_paying_account: feePayingAccount,
+                    proposal: proposal,
+                    active_approvals_to_add: activeApprovalsToAdd,
+                    active_approvals_to_remove: activeApprovalsToRemove,
+                    owner_approvals_to_add: ownerApprovalsToAdd,
+                    owner_approvals_to_remove: ownerApprovalsToRemove,
+                    key_approvals_to_add: keyApprovalsToAdd,
+                    key_approvals_to_remove: keyApprovalsToRemove,
                     extensions: []
                 }
             );
@@ -361,6 +397,18 @@ export namespace Operations {
     export class RegisterAccount extends Operation {
         constructor(params: CreateAccountParameters) {
             super(OperationName.account_create, params);
+        }
+    }
+
+    export class VestingBalanceWithdraw extends Operation {
+        constructor(vestingBalanceId: string, ownerId: string, ammount: Asset) {
+            super(
+                OperationName.vesting_balance_withdraw,
+                {
+                    vesting_balance: vestingBalanceId,
+                    owner: ownerId,
+                    amount: ammount
+                });
         }
     }
 }

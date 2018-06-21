@@ -1,4 +1,4 @@
-import {Rating, Content, Seeder, BuyingContent, SubmitObject, ContentKeys, KeyPair} from '../model/content';
+import {Rating, Content, Seeder, BuyingContent, SubmitObject, ContentKeys, KeyPair, ContentExchangeObject} from '../model/content';
 import {DatabaseApi} from '../api/database';
 import {ChainApi, ChainMethods} from '../api/chain';
 import {Transaction} from '../transaction';
@@ -8,6 +8,8 @@ import {ContentObject, Operations} from '../model/transaction';
 import {DCoreAssetObject} from '../model/asset';
 import {ApiModule} from './ApiModule';
 import {Utils} from '../utils';
+import {dcorejs_lib} from '../helpers';
+import * as bigInt from 'big-integer';
 
 const moment = require('moment');
 
@@ -15,7 +17,9 @@ export enum ContentError {
     database_operation_failed = 'operation_failed',
     fetch_content_failed = 'fetch_content_failed',
     transaction_broadcast_failed = 'transaction_broadcast_failed',
-    restore_content_keys_failed = 'restore_content_keys_failed'
+    restore_content_keys_failed = 'restore_content_keys_failed',
+    asset_fetch_failed = 'asset_fetch_failed',
+    asset_not_found = 'asset_not_found'
 }
 
 /**
@@ -31,18 +35,27 @@ export class ContentApi extends ApiModule {
      * Searches content submitted to dcore_js network and is not expired.
      *
      * @param {SearchParams} searchParams
+     * @param {boolean} convertAsset
      * @return {Promise<Content[]>}
      */
-    public searchContent(searchParams?: SearchParams): Promise<Content[]> {
+    public searchContent(searchParams?: SearchParams, convertAsset: boolean = false): Promise<Content[]> {
         const dbOperation = new DatabaseOperations.SearchContent(searchParams);
         return new Promise((resolve, reject) => {
             this.dbApi
                 .execute(dbOperation)
                 .then((content: any) => {
-                    content.forEach((c: any) => {
-                        c.synopsis = JSON.parse(c.synopsis);
-                    });
-                    resolve(content);
+                    const listAssetsOp = new DatabaseOperations.ListAssets('', 100);
+                    this.dbApi.execute(listAssetsOp)
+                        .then((assets: DCoreAssetObject[]) => {
+                            resolve(content.map((c: any) => {
+                                c.synopsis = JSON.parse(c.synopsis);
+                                if (c.price && convertAsset) {
+                                    c = this.formatPrices(c, assets);
+                                }
+                                return c;
+                            }));
+                        })
+                        .catch(err => console.log(err));
                 })
                 .catch((err: any) => {
                     reject(this.handleError(ContentError.database_operation_failed, err));
@@ -54,22 +67,27 @@ export class ContentApi extends ApiModule {
      * Fetch content object from blockchain for given content id
      *
      * @param {string} id example: '1.2.345'
+     * @param {boolean} convertAsset
      * @return {Promise<Content>}
      */
-    public getContent(id: string): Promise<Content> {
+    public getContent(id: string, convertAsset: boolean = false): Promise<Content> {
         return new Promise((resolve, reject) => {
-            const dbOperation = new DatabaseOperations.GetObjects([id]);
-            this.dbApi
-                .execute(dbOperation)
-                .then(contents => {
-                    const [content] = contents;
-                    const stringidied = JSON.stringify(content);
-                    const objectified = JSON.parse(stringidied);
-                    objectified.synopsis = JSON.parse(objectified.synopsis);
-                    if (isUndefined(objectified.price['amount'])) {
-                        objectified.price = objectified.price['map_price'][0][1];
-                    }
-                    resolve(objectified as Content);
+            const listAssetsOp = new DatabaseOperations.ListAssets('', 100);
+            this.dbApi.execute(listAssetsOp)
+                .then((assets: DCoreAssetObject[]) => {
+                    const dbOperation = new DatabaseOperations.GetObjects([id]);
+                    this.dbApi
+                        .execute(dbOperation)
+                        .then(contents => {
+                            const [content] = contents;
+                            const stringidied = JSON.stringify(content);
+                            let objectified = JSON.parse(stringidied);
+                            objectified.synopsis = JSON.parse(objectified.synopsis);
+                            if (isUndefined(objectified.price['amount']) && convertAsset) {
+                                objectified = this.formatPrices([objectified], assets)[0];
+                            }
+                            resolve(objectified as Content);
+                        });
                 })
                 .catch(err => {
                     reject(this.handleError(ContentError.database_operation_failed, err));
@@ -77,24 +95,34 @@ export class ContentApi extends ApiModule {
         });
     }
 
-    public getContentURI(URI: string): Promise<Content | null> {
+    /**
+     *
+     * @param {string} URI
+     * @param {boolean} convertAsset
+     * @returns {Promise<Content | null>}
+     */
+    public getContentURI(URI: string, convertAsset: boolean = false): Promise<Content | null> {
         return new Promise((resolve, reject) => {
-            const dbOperation = new DatabaseOperations.GetContent(URI);
-            this.dbApi
-                .execute(dbOperation)
-                .then(contents => {
-                    if (!contents) {
-                        resolve(null);
-                        return;
-                    }
-                    const [content] = contents;
-                    const stringidied = JSON.stringify(content);
-                    const objectified = JSON.parse(stringidied);
-                    objectified.synopsis = JSON.parse(objectified.synopsis);
-                    if (isUndefined(objectified.price['amount'])) {
-                        objectified.price = objectified.price['map_price'][0][1];
-                    }
-                    resolve(objectified as Content);
+            const listAssetsOp = new DatabaseOperations.ListAssets('', 100);
+            this.dbApi.execute(listAssetsOp)
+                .then((assets: DCoreAssetObject[]) => {
+                    const dbOperation = new DatabaseOperations.GetContent(URI);
+                    this.dbApi
+                        .execute(dbOperation)
+                        .then(contents => {
+                            if (!contents) {
+                                resolve(null);
+                                return;
+                            }
+                            const [content] = contents;
+                            const stringidied = JSON.stringify(content);
+                            let objectified = JSON.parse(stringidied);
+                            objectified.synopsis = JSON.parse(objectified.synopsis);
+                            if (isUndefined(objectified.price['amount']) && convertAsset) {
+                                objectified = this.formatPrices([objectified], assets);
+                            }
+                            resolve(objectified as Content);
+                        });
                 })
                 .catch(err => {
                     reject(this.handleError(ContentError.database_operation_failed, err));
@@ -122,7 +150,7 @@ export class ContentApi extends ApiModule {
 
                     const cancelOperation = new Operations.ContentCancelOperation(authorId, URI);
                     const transaction = new Transaction();
-                    transaction.add(cancelOperation);
+                    transaction.addOperation(cancelOperation);
                     transaction
                         .broadcast(privateKey)
                         .then(() => {
@@ -250,7 +278,7 @@ export class ContentApi extends ApiModule {
                         JSON.stringify(content.synopsis)
                     );
                     const transaction = new Transaction();
-                    transaction.add(submitOperation);
+                    transaction.addOperation(submitOperation);
                     transaction
                         .broadcast(privateKey)
                         .then(() => {
@@ -266,49 +294,149 @@ export class ContentApi extends ApiModule {
         });
     }
 
-    public getOpenBuyings(): Promise<BuyingContent[]> {
+    /**
+     *
+     * @param {boolean} convertAsset
+     * @returns {Promise<BuyingContent[]>}
+     */
+    public getOpenBuyings(convertAsset: boolean = false): Promise<BuyingContent[]> {
         return new Promise<BuyingContent[]>(((resolve, reject) => {
             const operation = new DatabaseOperations.GetOpenBuyings();
             this.dbApi.execute(operation)
-                .then(res => resolve(res))
+                .then(buyingObjects => {
+                    const listAssetsOp = new DatabaseOperations.ListAssets('', 100);
+                    this.dbApi.execute(listAssetsOp)
+                        .then((assets: DCoreAssetObject[]) => {
+                            if (!assets || assets.length === 0) {
+                                reject(this.handleError(ContentError.asset_fetch_failed));
+                                return;
+                            }
+                            const result = convertAsset ? this.formatPrices(buyingObjects, assets) : buyingObjects;
+                            resolve(result as BuyingContent[]);
+                        })
+                        .catch(err => reject(this.handleError(ContentError.database_operation_failed, err)));
+                })
                 .catch(err => reject(this.handleError(ContentError.database_operation_failed, err)));
         }));
     }
 
-    public getOpenBuyingsByURI(URI: string): Promise<BuyingContent[]> {
+    /**
+     *
+     * @param {string} URI
+     * @param {boolean} convertAsset
+     * @returns {Promise<BuyingContent[]>}
+     */
+    public getOpenBuyingsByURI(URI: string, convertAsset: boolean = false): Promise<BuyingContent[]> {
         return new Promise<BuyingContent[]>(((resolve, reject) => {
             const operation = new DatabaseOperations.GetOpenBuyingsByURI(URI);
             this.dbApi.execute(operation)
-                .then(res => resolve(res))
+                .then(buyingObjects => {
+                    const listAssetsOp = new DatabaseOperations.ListAssets('', 100);
+                    this.dbApi.execute(listAssetsOp)
+                        .then((assets: DCoreAssetObject[]) => {
+                            if (!assets || assets.length === 0) {
+                                reject(this.handleError(ContentError.asset_fetch_failed));
+                                return;
+                            }
+                            const result = convertAsset ? this.formatPrices(buyingObjects, assets) : buyingObjects;
+                            resolve(result as BuyingContent[]);
+                        })
+                        .catch(err => reject(this.handleError(ContentError.database_operation_failed, err)));
+                })
                 .catch(err => reject(this.handleError(ContentError.database_operation_failed, err)));
         }));
     }
 
-    public getOpenBuyingsByConsumer(accountId: string): Promise<BuyingContent[]> {
+    /**
+     *
+     * @param {string} accountId
+     * @param {boolean} convertAsset
+     * @returns {Promise<BuyingContent[]>}
+     */
+    public getOpenBuyingsByConsumer(accountId: string, convertAsset: boolean = false): Promise<BuyingContent[]> {
         return new Promise<BuyingContent[]>(((resolve, reject) => {
             const operation = new DatabaseOperations.GetOpenBuyingsByConsumer(accountId);
             this.dbApi.execute(operation)
-                .then(res => resolve(res))
+                .then(buyingObjects => {
+                    const listAssetsOp = new DatabaseOperations.ListAssets('', 100);
+                    this.dbApi.execute(listAssetsOp)
+                        .then((assets: DCoreAssetObject[]) => {
+                            if (!assets || assets.length === 0) {
+                                reject(this.handleError(ContentError.asset_fetch_failed));
+                                return;
+                            }
+                            const result = convertAsset ? this.formatPrices(buyingObjects, assets) : buyingObjects;
+                            resolve(result as BuyingContent[]);
+                        })
+                        .catch(err => reject(this.handleError(ContentError.database_operation_failed, err)));
+                })
                 .catch(err => reject(this.handleError(ContentError.database_operation_failed, err)));
         }));
     }
 
-    public getBuyingsByConsumerURI(accountId: string, URI: string): Promise<BuyingContent[] | null> {
+    /**
+     *
+     * @param {string} accountId
+     * @param {string} URI
+     * @param {boolean} convertAsset
+     * @returns {Promise<BuyingContent[] | null>}
+     */
+    public getBuyingsByConsumerURI(accountId: string, URI: string, convertAsset: boolean = false): Promise<BuyingContent[] | null> {
         return new Promise<BuyingContent[]>(((resolve, reject) => {
             const operation = new DatabaseOperations.GetBuyingByConsumerURI(accountId, URI);
             this.dbApi.execute(operation)
-                .then(res => resolve(res))
+                .then(buyingObjects => {
+                    const listAssetsOp = new DatabaseOperations.ListAssets('', 100);
+                    this.dbApi.execute(listAssetsOp)
+                        .then((assets: DCoreAssetObject[]) => {
+                            if (!assets || assets.length === 0) {
+                                reject(this.handleError(ContentError.asset_fetch_failed));
+                                return;
+                            }
+                            const result = convertAsset ? this.formatPrices(buyingObjects, assets) : buyingObjects;
+                            resolve(result as BuyingContent[]);
+                        })
+                        .catch(err => reject(this.handleError(ContentError.database_operation_failed, err)));
+                })
                 .catch(err => reject(this.handleError(ContentError.database_operation_failed, err)));
         }));
     }
 
-    public getBuyingHistoryObjectsByConsumer(accountId: string): Promise<BuyingContent[]> {
+    /**
+     *
+     * @param {string} accountId
+     * @param {boolean} convertAsset
+     * @returns {Promise<BuyingContent[]>}
+     */
+    public getBuyingHistoryObjectsByConsumer(accountId: string, convertAsset: boolean = false): Promise<BuyingContent[]> {
         return new Promise<BuyingContent[]>((resolve, reject) => {
-            const operation = new DatabaseOperations.GetBuyingsHistoryObjectsByConsumer(accountId);
-            this.dbApi.execute(operation)
-                .then(res => resolve(res))
+            const getBuyingsHistoryObjectsByConsumerOp = new DatabaseOperations.GetBuyingsHistoryObjectsByConsumer(accountId);
+            this.dbApi.execute(getBuyingsHistoryObjectsByConsumerOp)
+                .then(buyingObjects => {
+                    const listAssetsOp = new DatabaseOperations.ListAssets('', 100);
+                    this.dbApi.execute(listAssetsOp)
+                        .then((assets: DCoreAssetObject[]) => {
+                            if (!assets || assets.length === 0) {
+                                reject(this.handleError(ContentError.asset_fetch_failed));
+                                return;
+                            }
+                            const result = convertAsset ? this.formatPrices(buyingObjects, assets) : buyingObjects;
+                            resolve(result as BuyingContent[]);
+                        })
+                        .catch(err => reject(this.handleError(ContentError.database_operation_failed, err)));
+                })
                 .catch(err => reject(this.handleError(ContentError.database_operation_failed, err)));
         });
+    }
+    
+    private formatPrices(content: ContentExchangeObject[], assets: DCoreAssetObject[]): ContentExchangeObject[] {
+        const result: ContentExchangeObject[] = content.map(obj => {
+            const asset = assets.find(a => a.id === obj.price.asset_id);
+            const c = Object.assign({}, obj);
+            c.price.amount = Utils.formatAmountForAsset(obj.price.amount, asset);
+            return c;
+        });
+        return result;
     }
 
     private getFileSize(fileSize: number): number {
@@ -351,7 +479,7 @@ export class ContentApi extends ApiModule {
                         {s: elGammalPub}
                     );
                     const transaction = new Transaction();
-                    transaction.add(buyOperation);
+                    transaction.addOperation(buyOperation);
                     transaction
                         .broadcast(privateKey)
                         .then(() => {
@@ -501,10 +629,20 @@ export class ContentApi extends ApiModule {
         return new Promise<any>((resolve, reject) => {
             const operation = new Operations.LeaveRatingAndComment(contentURI, consumer, comment, rating);
             const transaction = new Transaction();
-            transaction.add(operation);
+            transaction.addOperation(operation);
             transaction.broadcast(consumerPKey)
                 .then(res => resolve(res))
                 .catch(err => reject(this.handleError(ContentError.transaction_broadcast_failed, err)));
         });
+    }
+
+    public generateEncryptionKey(): string {
+        const randomKey = dcorejs_lib.key.random32ByteBuffer();
+        let hexString = '';
+        for (let i = 0; i < randomKey.length; i++) {
+            hexString += ('0' + randomKey[i].toString(16)).slice(-2);
+        }
+        const key = bigInt(hexString, 16);
+        return key.toString(10) + '.';
     }
 }

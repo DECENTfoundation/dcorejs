@@ -71,6 +71,8 @@ export class ChainMethods {
     }
 }
 
+export type ChainSubscriptionCallback = (msg: any) => void;
+
 export class ChainApi {
 
     static asset = 'DCT';
@@ -112,28 +114,50 @@ export class ChainApi {
      */
     public fetch(methods: ChainMethods): Promise<any[]> {
         return new Promise((resolve, reject) => {
-            this._apiConnector
-                .connect()
-                .then(() => {
-                    this._chainStore.init()
-                        .then(() => {
-                            const commands = methods.commands
-                                .map(op => dcorejs_lib.FetchChain(op.name, op.param));
-                            Promise.all(commands)
-                                .then(result => resolve(result))
-                                .catch(err => {
-                                    const e = new Error(ChainError.command_execution_failed);
-                                    e.stack = err;
-                                    reject(e);
-                                });
-                        })
+            this.connect()
+                .then(res => {
+                    const commands = methods.commands
+                        .map(op => dcorejs_lib.FetchChain(op.name, op.param));
+                    Promise.all(commands)
+                        .then(result => resolve(result))
                         .catch(err => {
-                            reject(err);
+                            const e = new Error(ChainError.command_execution_failed);
+                            e.stack = err;
+                            reject(e);
                         });
                 })
                 .catch(err => {
                     reject(err);
                 });
         });
+    }
+
+    public subscribe(callback: ChainSubscriptionCallback) {
+        this.connect()
+            .then(res => {
+                this._chainStore.subscribe(callback);
+            })
+            .catch(err => console.log(err));
+    }
+
+    public subscribePendingTransactions(callback: ChainSubscriptionCallback) {
+        this.connect()
+            .then(res => {
+                this._chainStore.subscribePendingTransaction(callback);
+            })
+            .catch(err => console.log(err));
+    }
+
+    private connect(): Promise<void> {
+        return new Promise<void>(((resolve, reject) => {
+            this._apiConnector
+                .connect()
+                .then(() => {
+                    this._chainStore.init()
+                        .then(() => resolve())
+                        .catch(err => reject(err));
+                })
+                .catch(err => reject(err));
+        }));
     }
 }

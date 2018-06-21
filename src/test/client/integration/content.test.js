@@ -1,4 +1,4 @@
-const contentId = '2.13.240';
+// const contentId = '2.13.240';
 
 before(() => {
     dcorejs.initialize({
@@ -9,8 +9,7 @@ before(() => {
 
 describe('(client/integration) Content fetch', () => {
     it('search content', (done) => {
-        const searchParameters = new dcorejs.SearchParams('');
-        dcorejs.content().searchContent(searchParameters)
+        dcorejs.content().searchContent()
             .then(res => {
                 expect(res).to.be.a('array');
                 done();
@@ -21,17 +20,18 @@ describe('(client/integration) Content fetch', () => {
             });
     }).timeout(5000);
 
-    it('get content', (done) => {
-        dcorejs.content().getContent(contentId)
-            .then(res => {
-                expect(res.id).to.be.equal(contentId);
-                done();
-            })
-            .catch(err => {
-                chai.assert.isDefined(err);
-                done();
-            });
-    }).timeout(5000);
+    // TODO: disabled due to lack of content on testnet
+    // it('get content', (done) => {
+    //     dcorejs.content().getContent(contentId)
+    //         .then(res => {
+    //             expect(res.id).to.be.equal(contentId);
+    //             done();
+    //         })
+    //         .catch(err => {
+    //             chai.assert.isDefined(err);
+    //             done();
+    //         });
+    // }).timeout(5000);
 
     // Test is commented due to testnet reset, therefore, no seeders and no content is on testnet yet
     // it('restore content keys', (done) => {
