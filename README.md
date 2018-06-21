@@ -205,7 +205,6 @@ getOpenBuyingsByURI(URI: string, convertAsset: boolean = false): Promise<BuyingC
 getOpenBuyingsByConsumer(accountId: string, convertAsset: boolean = false): Promise<BuyingContent[]>
 getBuyingsByConsumerURI(accountId: string, URI: string, convertAsset: boolean = false): Promise<BuyingContent[] | null>
 getBuyingHistoryObjectsByConsumer(accountId: string, convertAsset: boolean = false): Promise<BuyingContent[]>
-key which will be used to identify users bought content
 buyContent(contentId: string,
 getSeeders(resultSize: number = 100): Promise<Seeder[]>
 getPurchasedContent(accountId: string,
