@@ -370,7 +370,7 @@ export class AccountApi extends ApiModule {
      * @param {number} resultLimit              Number of results to be returned, max value is 100
      * @return {Promise<HistoryRecord[]>}       Return variable object types, based on operation in history record
      */
-    public getAccountHistory(accountId: string, historyOptions: HistoryOptions): Promise<HistoryRecord[]> {
+    public getAccountHistory(accountId: string, historyOptions?: HistoryOptions): Promise<HistoryRecord[]> {
         return new Promise((resolve, reject) => {
             const operation = new HistoryOperations.GetAccountHistory(
                 accountId,

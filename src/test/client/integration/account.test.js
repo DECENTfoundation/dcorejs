@@ -1,6 +1,6 @@
 const accountName = 'u5d42a7b0b5713396aac58019eed01d53';
 const privateKey = '5JdZfU9Ni7wopN8JPLPM2SJBkKWB19XJSR4mK27Ww7kyZAidJ1M';
-const transactionId = '1.7.49';
+const transactionId = '1.7.190';
 
 before(() => {
     dcorejs.initialize({
@@ -29,18 +29,6 @@ describe('(client/integration) Account module', () => {
             })
             .catch(err => {
                 chai.assert.isDefined(err);
-                done();
-            });
-    }).timeout(5000);
-
-    it('get transaction history( DatabaseAPI )', (done) => {
-        dcorejs.account().getTransactionHistory(accountId, [privateKey])
-            .then(res => {
-                expect(res).to.have.length.above(0);
-                done();
-            })
-            .catch(err => {
-                expect(err).to.be.a('array');
                 done();
             });
     }).timeout(5000);
@@ -83,10 +71,7 @@ describe('(client/integration) Account module', () => {
     }).timeout(5000);
 
     it('transfer asset', (done) => {
-        dcorejs.account().transfer(0.00000001,
-            accountId, 'u1240446860c3766acefe22dc1a0d3ac5',
-            '',
-            privateKey)
+        dcorejs.account().transfer(0.0000001, '1.3.0', '1.2.27', '1.2.24', '', '5KcA6ky4Hs9VoDUSdTF4o3a7QDgiiG5gkpLLysRWR8dy6EAgTnZ')
             .then(() => {
                 done();
             })
