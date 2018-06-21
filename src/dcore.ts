@@ -68,7 +68,7 @@ export function initialize(config: DcoreConfig,
 }
 
 /**
- * Subscribe for blockchain update notifications.
+ * Subscribe for blockchain update notifications. Notifications is fired periodically.
  *
  * @param {(data: any[]) => void} callback
  */
@@ -76,6 +76,11 @@ export function subscribe(callback: ChainSubscriptionCallback) {
     _chain.subscribe(callback);
 }
 
+/**
+ * Subscribe for events fired everytime new transaction is broadcasted to network
+ *
+ * @param callback
+ */
 export function subscribePendingTransaction(callback: ChainSubscriptionCallback) {
     _chain.subscribePendingTransactions(callback);
 }
