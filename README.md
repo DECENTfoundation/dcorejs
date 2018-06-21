@@ -97,9 +97,15 @@ const itemId = '0.0.0';
 const category = '1';
 const count = 4;
 
-const searchParams: dcorejs.SearchParams = new dcorejs.SearchParams(
-    term, order, user, region_code, itemId, category, count
-);
+const searchParams: dcorejs.SearchParams = {
+    term, 
+    order,
+    user, 
+    region_code, 
+    itemId, 
+    category, 
+    count
+}
 
 dcorejs.content().searchContent(searchParams)
     .then((contents: dcorejs.Content[]) => {
