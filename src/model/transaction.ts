@@ -5,12 +5,23 @@ import AssetExchangeRate = Block.AssetExchangeRate;
 import {Authority, Options} from './account';
 import {MonitoredAssetOptions} from './asset';
 import {Proposal} from './proposal';
+import {
+    AssetClaimFeesPrototype,
+    AssetCreatePrototype, AssetFundPoolsPrototype, AssetPublishFeedPrototype, AssetReservePrototype,
+    BuyContentPrototype, ContentCancelPrototype, CreateAccountPrototype, IssueAssetPrototype, LeaveRatingAndCommentPrototype,
+    MinerCreatePrototype,
+    MinerUpdateGlobalParametersPrototype,
+    MinerUpdatePrototype, OperationWrapperPrototype, ProposalCreatePrototype, ProposalUpdatePrototype,
+    SubmitContentPrototype,
+    TransferPrototype,
+    UpdateAccountPrototype, UpdateUserIssuedAssetPrototype, VestingBalanceWithdrawPrototype
+} from './operationPrototype';
 
 /**
  * OperationType to be broadcasted to blockchain
  * internal representation
  */
-export class Operation {
+export abstract class Operation {
     name: OperationName;
     operation: object;
 
@@ -18,6 +29,10 @@ export class Operation {
         this.name = name;
         this.operation = type;
     }
+}
+
+export interface OperationHandler {
+    getPrototype(): object;
 }
 
 /**
@@ -71,6 +86,11 @@ export class Asset {
  */
 export namespace Operations {
     export class TransferOperation extends Operation {
+
+        static getPrototype(): object {
+            return TransferPrototype.getPrototype();
+        }
+
         constructor(from: string, to: string, amount: Asset, memo: Memo) {
             super(
                 OperationName.transfer,
@@ -84,6 +104,11 @@ export namespace Operations {
     }
 
     export class ContentCancelOperation extends Operation {
+
+        static getPrototype(): object {
+            return ContentCancelPrototype.getPrototype();
+        }
+
         constructor(author: string, URI: string) {
             super(
                 OperationName.content_cancellation,
@@ -95,6 +120,11 @@ export namespace Operations {
     }
 
     export class BuyContentOperation extends Operation {
+
+        static getPrototype(): object {
+            return BuyContentPrototype.getPrototype();
+        }
+
         constructor(
             URI: string,
             consumer: string,
@@ -116,6 +146,11 @@ export namespace Operations {
     }
 
     export class SubmitContentOperation extends Operation {
+
+        static getPrototype(): object {
+            return SubmitContentPrototype.getPrototype();
+        }
+
         constructor(
             size: number,
             author: string,
@@ -150,6 +185,11 @@ export namespace Operations {
     }
 
     export class AccountUpdateOperation extends Operation {
+
+        static getPrototype(): object {
+            return UpdateAccountPrototype.getPrototype();
+        }
+
         constructor(account: string,
                     owner: Authority,
                     active: Authority,
@@ -170,6 +210,11 @@ export namespace Operations {
     }
 
     export class AssetCreateOperation extends Operation {
+
+        static getPrototype(): object {
+            return AssetCreatePrototype.getPrototype();
+        }
+
         constructor(issuer: string,
                     symbol: string,
                     precision: number,
@@ -193,6 +238,11 @@ export namespace Operations {
     }
 
     export class IssueAssetOperation extends Operation {
+
+        static getPrototype(): object {
+            return IssueAssetPrototype.getPrototype();
+        }
+
         constructor(issuer: string, assetToIssue: Asset, issueToAccount: string, memo?: Memo) {
             super(OperationName.issue_asset, {
                 issuer,
@@ -205,6 +255,11 @@ export namespace Operations {
     }
 
     export class UpdateAssetIssuedOperation extends Operation {
+
+        static getPrototype(): object {
+            return UpdateUserIssuedAssetPrototype.getPrototype();
+        }
+
         constructor(issuer: string,
                     asset_to_update: string,
                     new_description: string,
@@ -229,6 +284,11 @@ export namespace Operations {
     }
 
     export class AssetFundPools extends Operation {
+
+        static getPrototype(): object {
+            return AssetFundPoolsPrototype.getPrototype();
+        }
+
         constructor(fromAccountId: string, uiaAsset: Asset, dctAsset: Asset) {
             super(
                 OperationName.asset_fund_pools_operation,
@@ -242,6 +302,11 @@ export namespace Operations {
     }
 
     export class AssetReserve extends Operation {
+
+        static getPrototype(): object {
+            return AssetReservePrototype.getPrototype();
+        }
+
         constructor(payer: string, assetToReserve: Asset) {
             super(
                 OperationName.asset_reserve_operation,
@@ -255,6 +320,11 @@ export namespace Operations {
     }
 
     export class AssetClaimFeesOperation extends Operation {
+
+        static getPrototype(): object {
+            return AssetClaimFeesPrototype.getPrototype();
+        }
+
         constructor(issuer: string, uiaAsset: Asset, dctAsset: Asset) {
             super(
                 OperationName.asset_claim_fees_operation,
@@ -269,6 +339,11 @@ export namespace Operations {
     }
 
     export class LeaveRatingAndComment extends Operation {
+
+        static getPrototype(): object {
+            return LeaveRatingAndCommentPrototype.getPrototype();
+        }
+
         constructor(URI: string, consumer: string, comment: string, rating: number) {
             super(
                 OperationName.leave_rating_and_comment,
@@ -283,6 +358,11 @@ export namespace Operations {
     }
 
     export class AssetPublishFeed extends Operation {
+
+        static getPrototype(): object {
+            return AssetPublishFeedPrototype.getPrototype();
+        }
+
         constructor(publisher: string, assetId: string, feed: PriceFeed) {
             super(
                 OperationName.asset_publish_feed,
@@ -297,6 +377,11 @@ export namespace Operations {
     }
 
     export class MinerCreate extends Operation {
+
+        static getPrototype(): object {
+            return MinerCreatePrototype.getPrototype();
+        }
+
         constructor(miner_account: string, url: string, block_signing_key: string) {
             super(
                 OperationName.miner_create,
@@ -310,6 +395,11 @@ export namespace Operations {
     }
 
     export class MinerUpdate extends Operation {
+
+        static getPrototype(): object {
+            return MinerUpdatePrototype.getPrototype();
+        }
+
         constructor(miner: string, minerAccount: string, newURL: string = null, newSigningKey: string = null) {
             super(
                 OperationName.miner_update,
@@ -324,12 +414,22 @@ export namespace Operations {
     }
 
     export class MinerUpdateGlobalParameters extends Operation {
+
+        static getPrototype(): object {
+            return MinerUpdateGlobalParametersPrototype.getPrototype();
+        }
+
         constructor(proposalParameters: Proposal) {
             super(OperationName.miner_update_global_parameters, proposalParameters);
         }
     }
 
     export class ProposalCreate extends Operation {
+
+        static getPrototype(): object {
+            return ProposalCreatePrototype.getPrototype();
+        }
+
         constructor(feePayingAccount: string,
                     proposedOperations: object[],
                     expirationTime: number,
@@ -348,6 +448,11 @@ export namespace Operations {
     }
 
     export class ProposalUpdate extends Operation {
+
+        static getPrototype(): object {
+            return ProposalUpdatePrototype.getPrototype();
+        }
+
         constructor(feePayingAccount: string,
                     proposal: string,
                     activeApprovalsToAdd: Array<string>,
@@ -374,6 +479,11 @@ export namespace Operations {
     }
 
     export class OperationWrapper extends Operation {
+
+        static getPrototype(): object {
+            return OperationWrapperPrototype.getPrototype();
+        }
+
         constructor(operation: Operation) {
             super(
                 OperationName.operation_wrapper,
@@ -395,12 +505,22 @@ export namespace Operations {
     }
 
     export class RegisterAccount extends Operation {
+
+        static getPrototype(): object {
+            return CreateAccountPrototype.getPrototype();
+        }
+
         constructor(params: CreateAccountParameters) {
             super(OperationName.account_create, params);
         }
     }
 
     export class VestingBalanceWithdraw extends Operation {
+
+        static getPrototype(): object {
+            return VestingBalanceWithdrawPrototype.getPrototype();
+        }
+
         constructor(vestingBalanceId: string, ownerId: string, ammount: Asset) {
             super(
                 OperationName.vesting_balance_withdraw,
