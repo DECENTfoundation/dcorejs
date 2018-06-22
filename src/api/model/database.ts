@@ -121,7 +121,7 @@ export enum MinerOrder {
  */
 export interface SearchParams {
     term?: string;
-    order?: string;
+    order?: SearchParamsOrder;
     /**
      * Content owner
      * @memberof SearchParams
