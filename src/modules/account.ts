@@ -6,7 +6,7 @@ import {
     MinerInfo,
     TransactionRecord,
     WalletExport,
-    HistoryOptions
+    HistoryOptions, UpdateAccountParameters, Authority, Options
 } from '../model/account';
 import { DatabaseApi } from '../api/database';
 import { ChainApi, ChainMethods } from '../api/chain';
@@ -130,11 +130,12 @@ export class AccountApi extends ApiModule {
      * @returns {Promise<TransactionRecord[]>}
      */
     public searchAccountHistory(accountId: string,
-        privateKeys: string[],
-        order: SearchAccountHistoryOrder = SearchAccountHistoryOrder.timeDesc,
-        startObjectId: string = '0.0.0',
-        resultLimit: number = 100): Promise<TransactionRecord[]> {
-        return new Promise((resolve, reject) => {
+                                privateKeys: string[],
+                                order: SearchAccountHistoryOrder = SearchAccountHistoryOrder.timeDesc,
+                                startObjectId: string = '0.0.0',
+                                resultLimit: number = 100,
+                                convertAssets: boolean = false): Promise<TransactionRecord[]> {
+        return new Promise<TransactionRecord[]>((resolve, reject) => {
             const dbOperation = new DatabaseOperations.SearchAccountHistory(
                 accountId,
                 order,
@@ -143,35 +144,44 @@ export class AccountApi extends ApiModule {
             );
             this.dbApi.execute(dbOperation)
                 .then((transactions: any[]) => {
-                    const namePromises: Promise<string>[] = [];
-                    const res = transactions.map((tr: any) => {
-                        const transaction = new TransactionRecord(tr, privateKeys);
+                    const listAssetsOp = new DatabaseOperations.ListAssets('', 100);
+                    this.dbApi.execute(listAssetsOp)
+                        .then((assets: DCoreAssetObject[]) => {
+                            const namePromises: Promise<string>[] = [];
+                            const res = transactions.map((tr: any) => {
+                                const transaction = new TransactionRecord(tr, privateKeys);
 
-                        namePromises.push(new Promise((resolve, reject) => {
-                            this.getAccountById(transaction.fromAccountId)
-                                .then(account => {
-                                    transaction.fromAccountName = account.name;
-                                    resolve();
+                                namePromises.push(new Promise((resolve, reject) => {
+                                    this.getAccountById(transaction.fromAccountId)
+                                        .then(account => {
+                                            transaction.fromAccountName = account.name;
+                                            resolve();
+                                        })
+                                        .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
+                                }));
+
+                                namePromises.push(new Promise((resolve, reject) => {
+                                    this.getAccountById(transaction.toAccountId)
+                                        .then(account => {
+                                            transaction.toAccountName = account.name;
+                                            resolve();
+                                        })
+                                        .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
+                                }));
+
+                                if (convertAssets) {
+                                    const asset = assets.find(a => a.id === transaction.transactionAsset);
+                                    const feeAsset = assets.find(a => a.id === transaction.transactionFeeAsset);
+                                    transaction.transactionAmount = Utils.formatAmountForAsset(transaction.transactionAmount, asset);
+                                    transaction.transactionFee = Utils.formatAmountForAsset(transaction.transactionFee, feeAsset);
+                                }
+                                return transaction;
+                            });
+                            Promise.all(namePromises)
+                                .then(() => {
+                                    resolve(res);
                                 })
                                 .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
-                        }));
-
-                        namePromises.push(new Promise((resolve, reject) => {
-                            this.getAccountById(transaction.toAccountId)
-                                .then(account => {
-                                    transaction.toAccountName = account.name;
-                                    resolve();
-                                })
-                                .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
-                        }));
-                        return transaction;
-                    });
-                    Promise.all(namePromises)
-                        .then(() => {
-                            resolve(res);
-                        })
-                        .catch(err => {
-                            reject(this.handleError(AccountError.account_fetch_failed, err));
                         });
                 })
                 .catch(err => {
@@ -258,7 +268,7 @@ export class AccountApi extends ApiModule {
                         Asset.create(amount, assetObject),
                         memo_object
                     );
-                    transaction.add(transferOperation);
+                    transaction.addOperation(transferOperation);
                     transaction.broadcast(privateKey)
                         .then(() => {
                             resolve(transaction.operations[0]);
@@ -360,13 +370,13 @@ export class AccountApi extends ApiModule {
      * @param {number} resultLimit              Number of results to be returned, max value is 100
      * @return {Promise<HistoryRecord[]>}       Return variable object types, based on operation in history record
      */
-    public getAccountHistory(accountId: string, historyOptions: HistoryOptions): Promise<HistoryRecord[]> {
+    public getAccountHistory(accountId: string, historyOptions?: HistoryOptions): Promise<HistoryRecord[]> {
         return new Promise((resolve, reject) => {
             const operation = new HistoryOperations.GetAccountHistory(
                 accountId,
-                historyOptions.fromId || '1.7.0',
+                historyOptions && historyOptions.fromId || '1.7.0',
                 '1.7.0',
-                historyOptions.resultLimit || 100
+                historyOptions && historyOptions.resultLimit || 100
             );
             this._historyApi.execute(operation)
                 .then(res => {
@@ -461,7 +471,7 @@ export class AccountApi extends ApiModule {
                     });
 
                     const transaction = new Transaction();
-                    transaction.add(operation);
+                    transaction.addOperation(operation);
                     transaction.broadcast(regisrarPrivateKey)
                         .then(() => resolve(true))
                         .catch(err => reject(err));
@@ -644,5 +654,65 @@ export class AccountApi extends ApiModule {
                     reject(this.handleError(DatabaseError.database_execution_failed, err));
                 });
         });
+    }
+
+    public updateAccount(accountId: string, params: UpdateAccountParameters, privateKey: string): Promise<Boolean> {
+        return new Promise<Boolean>(((resolve, reject) => {
+
+            this.getAccountById(accountId)
+                .then((account: Account) => {
+                    if (account === null) {
+                        reject(this.handleError(AccountError.account_does_not_exist));
+                        return;
+                    }
+                    const ownerAuthority: Authority = Object.assign({}, account.owner);
+                    ownerAuthority.key_auths[0][0] = params.newOwnerKey || account.owner.key_auths[0][0];
+
+                    const activeAuthority: Authority = Object.assign({}, account.active);
+                    activeAuthority.key_auths[0][0] = params.newActiveKey || account.active.key_auths[0][0];
+
+                    let priceSubscription = Object.assign({}, account.options.price_per_subscribe);
+                    if (params.newSubscription !== undefined) {
+                        priceSubscription = Asset.createDCTAsset(params.newSubscription.pricePerSubscribeAmount);
+                    }
+
+                    const newOptions: Options = {
+                        memo_key: params.newMemoKey || account.options.memo_key,
+                        voting_account: account.options.voting_account,
+                        num_miner: params.newNumMiner || account.options.num_miner,
+                        votes: params.newVotes || account.options.votes,
+                        extensions: account.options.extensions,
+                        allow_subscription: params.newSubscription
+                            ? params.newSubscription.allowSubscription
+                            : account.options.allow_subscription,
+                        price_per_subscribe: priceSubscription,
+                        subscription_period: params.newSubscription
+                            ? params.newSubscription.subscriptionPeriod
+                            : account.options.subscription_period
+                    };
+                    const accountUpdateOperation = new Operations.AccountUpdateOperation(
+                        accountId,
+                        ownerAuthority,
+                        activeAuthority,
+                        newOptions,
+                        {}
+                    );
+
+                    const transaction = new Transaction();
+                    transaction.addOperation(accountUpdateOperation);
+                    transaction.broadcast(privateKey)
+                        .then(() => {
+                            resolve(true);
+                        })
+                        .catch((error: any) => {
+                            reject(this.handleError(AccountError.transaction_broadcast_failed, error));
+                        });
+
+                    })
+                .catch((error) => {
+                    reject(this.handleError(AccountError.account_update_failed, error));
+                });
+
+        }));
     }
 }

@@ -97,9 +97,15 @@ const itemId = '0.0.0';
 const category = '1';
 const count = 4;
 
-const searchParams: dcorejs.SearchParams = new dcorejs.SearchParams(
-    term, order, user, region_code, itemId, category, count
-);
+const searchParams: dcorejs.SearchParams = {
+    term, 
+    order,
+    user, 
+    region_code, 
+    itemId, 
+    category, 
+    count
+}
 
 dcorejs.content().searchContent(searchParams)
     .then((contents: dcorejs.Content[]) => {
@@ -118,8 +124,8 @@ Replace all variables with your values to get requested content.
 ```typescript
 import * as dcorejs from 'dcorejs';
 
-const contentId = '1.2.3';
-const accountId = '1.3.45';
+const contentId = '2.13.54';
+const accountId = '1.2.45';
 const privateKey = 'ac7b6876b8a7b68a7c6b8a7c6b8a7cb68a7cb78a6cb8';
 const elGammalPublic = '704978309485720398475187405981709436818374592763459872645';
 
@@ -151,7 +157,7 @@ import * as dcorejs from 'dcorejs';
 const elGamalPrivate = '32983749287349872934792739472387492387492834';
 const elGamalPublic = '704978309485720398475187405981709436818374592763459872645';
 const elGamalKeyPair = new dcorejs.KeyPair(elGamalPrivate, elGamalPublic);
-const contentId = '1.2.312';
+const contentId = '2.13.312';
 
 // Content key restoration
 dcorejs.content().restoreContentKeys(contentId, elGamalKeyPair)
@@ -165,6 +171,18 @@ dcorejs.content().restoreContentKeys(contentId, elGamalKeyPair)
 
 [Download browser example](https://github.com/DECENTfoundation/dcorejs/tree/master/src/examples/DownloadContent)
 
+
+## Blockchain event handling
+```typescript
+dcorejs.subscribe((data: any) => {
+    // handle fired event
+});
+
+dcorejs.subscribePendingTransaction((data: any) => {
+    // handle pending transaction event
+});
+```
+
 More examples available [here](https://github.com/DECENTfoundation/dcorejs/tree/master/src/examples).
 To run examples, you need to clone repository and build with `npm run build`
 if folders `dist` and `lib` is not presented. Browser bundle can be found
@@ -172,30 +190,31 @@ within `dist/dcorejs.umd.js`. Node version in `lib/dcorejs.js`.
 
 ## All available methods
 
+### dcorejs
+```typescript
+subscribe(callback: ChainSubscriptionCallback)
+subscribePendingTransaction(callback: ChainSubscriptionCallback)
+```
+
 ### Content
 
 ```typescript
-searchContent(searchParams: SearchParams): Promise<Content[]>
-getContent(id: string): Promise<Content>
+ssearchContent(searchParams?: SearchParams, convertAsset: boolean = false): Promise<Content[]>
+getContent(id: string, convertAsset: boolean = false): Promise<Content>
+getContentURI(URI: string, convertAsset: boolean = false): Promise<Content | null>
 removeContent(contentId: string,
-              authorId: string,
-              privateKey: string): Promise<void>
-restoreContentKeys(contentId: String,
-                   accountId: string,
-                   ...elGamalKeys: KeyPair[]): Promise<string>
+restoreContentKeys(contentId: string, accountId: string, ...elGamalKeys: KeyPair[]): Promise<string>
 generateContentKeys(seeders: string[]): Promise<ContentKeys>
-addContent(content: SubmitObject,
-           privateKey: string): Promise<void>
+addContent(content: SubmitObject, privateKey: string): Promise<void>
+getOpenBuyings(convertAsset: boolean = false): Promise<BuyingContent[]>
+getOpenBuyingsByURI(URI: string, convertAsset: boolean = false): Promise<BuyingContent[]>
+getOpenBuyingsByConsumer(accountId: string, convertAsset: boolean = false): Promise<BuyingContent[]>
+getBuyingsByConsumerURI(accountId: string, URI: string, convertAsset: boolean = false): Promise<BuyingContent[] | null>
+getBuyingHistoryObjectsByConsumer(accountId: string, convertAsset: boolean = false): Promise<BuyingContent[]>
 buyContent(contentId: string,
-           buyerId: string,
-           elGammalPub: string,
-           privateKey: string): Promise<void>
-getSeeders(resultSize: number): Promise<Seeder[]>
+getSeeders(resultSize: number = 100): Promise<Seeder[]>
 getPurchasedContent(accountId: string,
-                    order: string,
-                    startObjectId: string,
-                    term: string,
-                    resultSize: number): Promise<Content[]>
+generateEncryptionKey(): string 
 getRating(contentId: string, forUser: string, ratingStartId: string, count: number = 100): Promise<Array<Rating>>
 searchFeedback(accountId: string, contentURI: string, ratingStartId: string, count: number = 100): Promise<Array<Rating>>
 getAuthorCoAuthors(URI: string): Promise<[string, string[]] | null>
@@ -207,21 +226,20 @@ leaveCommentAndRating(contentURI: string, consumer: string, comment: string, rat
 ```typescript
 getAccountByName(name: string): Promise<Account>
 getAccountById(id: string): Promise<Account>
-getTransactionHistory(accountId: string,
-                      privateKeys: string[],
-                      order: string,
-                      startObjectId: string,
-                      resultLimit: number): Promise<TransactionRecord[]>
+searchAccountHistory(accountId: string,
+                                privateKeys: string[],
+                                order: SearchAccountHistoryOrder = SearchAccountHistoryOrder.timeDesc,
+                                startObjectId: string = '0.0.0',
+                                resultLimit: number = 100,
+                                convertAssets: boolean = false): Promise<TransactionRecord[]>
 transfer(amount: number,
          fromAccount: string,
          toAccount: string,
          memo: string,
          privateKey: string): Promise<void>
 getBalance(account: string): Promise<number>
-voteForMiner(miner: string, account: string, privateKeyWif: string): Promise<any>
-unvoteMiner(miner: string, account: string, privateKeyWif: string): Promise<any>
-voteForMiners(miners: string[], account: string, privateKeyWif: string): Promise<any>
-unvoteMiners(miners: string[], account: string, privateKeyWif: string): Promise<any>
+isTransactionConfirmed(accountId: string, transactionId: string): Promise<boolean>
+getAccountHistory(accountId: string, historyOptions?: HistoryOptions): Promise<HistoryRecord[]>
 searchAccounts(searchTerm: string, order: AccountOrder, id: string, limit: number = 100): Promise<Account>
 getAccountCount(): Promise<number>
 registerAccount(name: string,
@@ -247,6 +265,49 @@ searchMinerVoting(accountName: string,
                              sort: MinerOrder,
                              fromMinerId: string,
                              limit: number = 1000): Promise<MinerInfo[]>
+updateAccount(accountId: string, params: UpdateAccountParameters, privateKey: string): Promise<Boolean>
+```
+
+### Asset
+```typescript
+listAssets(lowerBoundSymbol: string, limit: number = 100, formatAssets: boolean = false): Promise<AssetObject[]>
+createUserIssuedAsset(issuer: string,
+                                 symbol: string,
+                                 precision: number,
+                                 description: string,
+                                 maxSupply: number,
+                                 baseExchangeAmount: number,
+                                 quoteExchangeAmount: number,
+                                 isExchangable: boolean,
+                                 isSupplyFixed: boolean,
+                                 issuerPrivateKey: string): Promise<boolean>
+issueAsset(assetSymbol: string, amount: number, issueToAccount: string, memo: string, issuerPKey: string): Promise<any>
+updateUserIssuedAsset(symbol: string, newInfo: UserIssuedAssetInfo, issuerPKey: string): Promise<any>
+fundAssetPools(fromAccountId: string,
+                          uiaAmount: number,
+                          uiaSymbol: string,
+                          dctAmount: number,
+                          dctSymbol: string,
+                          privateKey: string): Promise<any>
+assetReserve(payer: string, symbol: string, amountToReserve: number, privateKey: string): Promise<any>
+assetClaimFees(issuer: string,
+                          uiaAmount: number,
+                          uiaSymbol: string,
+                          dctAmount: number,
+                          dctSymbol: string,
+                          privateKey: string): Promise<any>
+getAsset(assetId: string, formatAsset: boolean = false): Promise<DCoreAssetObject>
+getAssets(assetIds: string[], formatAssets: boolean = false): Promise<DCoreAssetObject[]>
+priceToDCT(symbol: string, amount: number): Promise<Asset>
+publishAssetFeed(publishingAccount: string,
+                            symbol: string,
+                            exchangeBaseAmount: number,
+                            exchangeQuoteAmount: number,
+                            privateKey: string): Promise<any>
+getFeedsByMiner(minerAccountId: string, limit: number = 100): Promise<any>
+getRealSupply(): Promise<any>
+getMonitoredAssetData(assetId: string): Promise<MonitoredAssetOptions | null>
+formatAssets(assets: DCoreAssetObject[]): DCoreAssetObject[]
 ```
 
 ### Explorer 
@@ -300,30 +361,36 @@ updateMiner(minerId: string, minerAccountId: string, updateData: MinerUpdateData
 ### Utils
 
 ```typescript
-formatToReadiblePrice(dctAmount: number): string
-ripemdHash(fromBuffer: Buffer): string
-generateKeys(fromBrainKey: string): (KeyPrivate | KeyPublic)[]
-getPublicKey(privkey: KeyPrivate): KeyPublic
-privateKeyFromWif(pkWif: string): KeyPrivate
-publicKeyFromString(pubKeyString: string): KeyPublic
-suggestBrainKey(): string
-getBrainKeyInfo(brainKey: string): BrainKeyInfo
-normalize(brainKey: string): string
-generateNonce(): string
-elGamalPublic(elGamalPrivate: string): string
-elGamalPrivate(privateKeyWif: string): string
-generateElGamalKeys(privateKeyWif: string): ElGamalKeys
+formatToReadiblePrice(dctAmount: number): string 
+formatAmountForAsset(amount: number, asset: DCoreAssetObject): number 
+formatAmountToAsset(amount: number, asset: DCoreAssetObject): number 
+ripemdHash(fromBuffer: Buffer): string 
+generateKeys(fromBrainKey: string): [KeyPrivate, KeyPublic] 
+getPublicKey(privkey: KeyPrivate): KeyPublic 
+privateKeyFromWif(pkWif: string): KeyPrivate 
+publicKeyFromString(pubKeyString: string): KeyPublic 
+suggestBrainKey(): string 
+getBrainKeyInfo(brainKey: string): BrainKeyInfo 
+normalize(brainKey: string): string 
+generateNonce(): string 
+elGamalPublic(elGamalPrivate: string): string 
+elGamalPrivate(privateKeyWif: string): string 
+generateElGamalKeys(privateKeyWif: string): ElGamalKeys 
+generateBrainKeyElGamalKey(): [BrainKeyInfo, ElGamalKeys] 
+derivePrivateKey(brainKey: string, sequence: number): KeyPrivate 
 ```
 
 ### Crypto utils
 
 ```typescript
-encryptWithChecksum(message: string, privateKey: KeyPrivate, publicKey: KeyPublic,  nonce: string = ''): Buffer
+encryptWithChecksum(message: string, privateKey: KeyPrivate, publicKey: KeyPublic, nonce: string = ''): Buffer
 decryptWithChecksum(message: string, privateKey: KeyPrivate, publicKey: KeyPublic, nonce: string = ''): Buffer
-ripemdHash(fromBuffer: Buffer): string
-md5(message: string): string
-encrypt(message: string, password: string): string
-decrypt(message: string, password: string): string | null
-encryptToHexString(message: string | Buffer, password: string): string
-decryptHexString(message: string, password: string): string
+ripemdHash(fromBuffer: Buffer): string 
+md5(message: string): string 
+sha512(message: any): string 
+sha256(message: string): string 
+encrypt(message: string, password: string): string 
+decrypt(message: string, password: string): string | null 
+encryptToHexString(message: string | Buffer, password: string): string 
+decryptHexString(message: string, password: string): string 
 ```
