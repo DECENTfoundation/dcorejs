@@ -70,6 +70,9 @@ export enum OperationName {
     proposal_update = 'proposal_update',
     operation_wrapper = 'op_wrapper',
     vesting_balance_withdraw = 'vesting_balance_withdraw',
+    subscribe = 'subscribe',
+    subscribe_by_author = 'subscribe_by_author',
+    automatic_renewal_of_subscription = 'automatic_renewal_of_subscription',
 }
 
 /**
@@ -528,6 +531,37 @@ export namespace Operations {
                     vesting_balance: vestingBalanceId,
                     owner: ownerId,
                     amount: ammount
+                });
+        }
+    }
+
+    export class Subscribe extends Operation {
+        constructor(fromId: string, toId: string, price: Asset) {
+            super(OperationName.subscribe, {
+                    from: fromId,
+                    to: toId,
+                    price: price
+            });
+        }
+    }
+
+    export class SubscribeByAuthor extends Operation {
+        constructor(fromId: string, toId: string) {
+            super(
+                OperationName.subscribe_by_author, {
+                    from: fromId,
+                    to: toId
+                });
+        }
+    }
+
+    export class SetAutomaticRenewalOfSubscription extends Operation {
+        constructor(accountId: string, subscriptionId: string, automaticRenewal: boolean) {
+            super(
+                OperationName.automatic_renewal_of_subscription, {
+                    consumer: accountId,
+                    subscription: subscriptionId,
+                    automatic_renewal: automaticRenewal
                 });
         }
     }
