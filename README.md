@@ -358,6 +358,18 @@ getVestingBalances(accountId: string): Promise<VestingBalance[]>
 updateMiner(minerId: string, minerAccountId: string, updateData: MinerUpdateData, privateKey: string): Promise<any>
 ```
 
+### Subscription
+```typescript 
+listActiveSubscriptionByConsumer(consumerId: string, count: number = 100): Promise<SubscriptionObject[]>
+listSubscriptionsByConsumer(consumerId: string, count: number = 100): Promise<SubscriptionObject[]>
+listActiveSubscriptionsByAuthor(authorId: string, count: number = 100): Promise<SubscriptionObject[]>
+listSubscriptionsByAuthor(authorId: string, count: number = 100): Promise<SubscriptionObject[]>
+subscribeToAuthor(from: string, to: string, amount: number, assetId: string, privateKey: string): Promise<boolean>
+subscribeByAuthor(from: string, to: string, privateKey: string): Promise<boolean>
+setAutomaticRenewalOfSubscription(accountId: string, subscriptionId: string, automaticRenewal: boolean, privateKey: string): Promise<boolean>
+setSubscription(accountId: string, options: SubscriptionOptions, privateKey: string): Promise<boolean>
+```
+
 ### Utils
 
 ```typescript
