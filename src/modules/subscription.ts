@@ -72,7 +72,7 @@ export class SubscriptionModule extends ApiModule {
                     const price: Asset = Asset.create(amount, assets[0]);
                     const subscribeToAuthorOperation = new Operations.Subscribe(from, to, price);
                     const transaction = new Transaction();
-                    transaction.add(subscribeToAuthorOperation);
+                    transaction.addOperation(subscribeToAuthorOperation);
                     transaction.broadcast(privateKey)
                         .then(result => {
                             resolve(true);
@@ -93,7 +93,7 @@ export class SubscriptionModule extends ApiModule {
                 .then(res => {
                     const subscribeByAuthorOperation = new Operations.SubscribeByAuthor(from, to);
                     const transaction = new Transaction();
-                    transaction.add(subscribeByAuthorOperation);
+                    transaction.addOperation(subscribeByAuthorOperation);
                     transaction.broadcast(privateKey)
                         .then(() => {
                             resolve(true);
@@ -117,7 +117,7 @@ export class SubscriptionModule extends ApiModule {
                         automaticRenewal
                     );
                     const transaction = new Transaction();
-                    transaction.add(setAutomaticRenewalOperation);
+                    transaction.addOperation(setAutomaticRenewalOperation);
                     transaction.broadcast(privateKey)
                         .then(() => {
                             resolve(true);
@@ -171,7 +171,7 @@ export class SubscriptionModule extends ApiModule {
                                 {}
                             );
                             const transaction = new Transaction();
-                            transaction.add(accUpdateOp);
+                            transaction.addOperation(accUpdateOp);
                             transaction.broadcast(privateKey)
                                 .then(res => resolve(true))
                                 .catch(err => reject(this.handleError(SubscriptionError.transaction_broadcast_failed, err)));
