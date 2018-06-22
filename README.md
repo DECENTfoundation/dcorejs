@@ -124,8 +124,8 @@ Replace all variables with your values to get requested content.
 ```typescript
 import * as dcorejs from 'dcorejs';
 
-const contentId = '1.2.3';
-const accountId = '1.3.45';
+const contentId = '2.13.54';
+const accountId = '1.2.45';
 const privateKey = 'ac7b6876b8a7b68a7c6b8a7c6b8a7cb68a7cb78a6cb8';
 const elGammalPublic = '704978309485720398475187405981709436818374592763459872645';
 
@@ -157,7 +157,7 @@ import * as dcorejs from 'dcorejs';
 const elGamalPrivate = '32983749287349872934792739472387492387492834';
 const elGamalPublic = '704978309485720398475187405981709436818374592763459872645';
 const elGamalKeyPair = new dcorejs.KeyPair(elGamalPrivate, elGamalPublic);
-const contentId = '1.2.312';
+const contentId = '2.13.312';
 
 // Content key restoration
 dcorejs.content().restoreContentKeys(contentId, elGamalKeyPair)
