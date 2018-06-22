@@ -9,6 +9,7 @@ import {Utils} from '../utils';
 import {ChainApi, ChainMethods} from '../api/chain';
 import {ApiModule} from './ApiModule';
 import {AssetError, AssetObject, AssetOptions, DCoreAssetObject, MonitoredAssetOptions, UserIssuedAssetInfo} from '../model/asset';
+import {ProposalCreateParameters} from '../model/proposal';
 
 export class AssetModule extends ApiModule {
     public MAX_SHARED_SUPPLY = 7319777577456890;
@@ -421,4 +422,71 @@ export class AssetModule extends ApiModule {
         });
         return res;
     }
+
+    /**
+     * NOTE: only miner can create monitored asset.
+     * @requires dcorejs-lib@1.2.1 - support for asset creation
+     *
+     * @param {string} issuer
+     * @param {string} symbol
+     * @param {number} precision
+     * @param {string} description
+     * @param {number} feedLifetimeSec
+     * @param {number} minimumFeeds
+     * @param {string} issuerPrivateKey
+     * @returns {Promise<any>}
+     */
+    public createMonitoredAsset(issuer: string, symbol: string, precision: number, description: string, feedLifetimeSec: number,
+                                minimumFeeds: number, issuerPrivateKey: string): Promise<boolean> {
+        return new Promise<any>((resolve, reject) => {
+            const options: AssetOptions = {
+                max_supply: 0,
+                core_exchange_rate: {
+                    base: {
+                        amount: 0,
+                        asset_id: '1.3.0'
+                    },
+                    quote: {
+                        amount: 0,
+                        asset_id: '1.3.1'
+                    }
+                },
+                is_exchangeable: true,
+                extensions: [],
+            };
+            const monitoredOptions: MonitoredAssetOptions = {
+                feed_lifetime_sec: feedLifetimeSec,
+                minimum_feeds: minimumFeeds
+            };
+            const assetCreateOperation = new Operations.AssetCreateOperation(
+                issuer, symbol, precision, description, options, monitoredOptions
+            );
+            const transaction = new Transaction();
+            transaction.addOperation(assetCreateOperation);
+
+            const proposalParameters: ProposalCreateParameters = {
+                fee_paying_account: issuer,
+                expiration_time: '2018-06-23T16:00:00',
+                review_period_seconds: this.convertDaysToSeconds(1),
+                extensions: []
+            };
+            transaction.propose(proposalParameters);
+            this.connector.connect()
+                .then(() => {
+                    transaction.broadcast(issuerPrivateKey, true)
+                        .then(() => resolve(true))
+                        .catch(err => {
+                            reject(this.handleError(AssetError.transaction_broadcast_failed, err));
+                        });
+                })
+                .catch(err => {
+                    reject(this.handleError(AssetError.connection_failed, err));
+                });
+        });
+    }
+
+    private convertDaysToSeconds(days: number): number {
+        return days * 24 * 60 * 60;
+    }
+
 }

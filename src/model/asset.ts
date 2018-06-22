@@ -28,7 +28,7 @@ export interface AssetOptions {
     max_supply: number;
     core_exchange_rate?: AssetExchangeRate;
     is_exchangeable: boolean;
-    extensions?: any[];
+    extensions?: Array<any>;
 }
 
 export interface AssetCurrentFeed {
