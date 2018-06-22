@@ -158,10 +158,9 @@ export interface SubmitObject {
 }
 
 export interface ContentExchangeObject {
-    price: Asset;
+    price: Price | Asset;
 }
 
 export interface Price {
-    amount: number;
-    asset_id: string;
+    map_price: [any, Asset][];
 }
