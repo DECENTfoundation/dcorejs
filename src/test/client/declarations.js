@@ -12,3 +12,17 @@ dcorejs.setLibRef(dcorejs_lib);
 const refElGamalPrivate = '9951482713110546910654770116549881133339951895578381605347713063259834535096323355559828047288475209595776035312706007755854990617069594416307472971521354';
 const refElGamalPublic = '1476592897265129256906985148863834019333244843526837587739241973266771272616315012971707289842820560922634174697696963038593504885326978206069960938313296';
 const refPrivateKey = '5KfaSt8mWyGcZXRk4HKmt77ERJsBQz8QXintiAvUFCMasL2KYTL';
+const dctAssetObject = {
+    'id': '1.3.0',
+    'symbol': 'DCT',
+    'precision': 8,
+    'issuer': '1.2.1',
+    'description': '',
+    'options': {
+        'max_supply': '7319777577456900',
+        'core_exchange_rate': {'base': {'amount': 1, 'asset_id': '1.3.0'}, 'quote': {'amount': 1, 'asset_id': '1.3.0'}},
+        'is_exchangeable': true,
+        'extensions': []
+    },
+    'dynamic_asset_data_id': '2.3.0'
+};

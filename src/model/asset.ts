@@ -11,7 +11,7 @@ export interface AssetObject {
     precision: number;
     issuer: string;
     description: string;
-    monitored_asset_opts: MonitoredAssetOptions;
+    monitored_asset_opts?: MonitoredAssetOptions;
     options: AssetOptions;
     dynamic_asset_data_id: string;
 }
@@ -25,7 +25,7 @@ export interface MonitoredAssetOptions {
 }
 
 export interface AssetOptions {
-    max_supply: number;
+    max_supply: string;
     core_exchange_rate?: AssetExchangeRate;
     is_exchangeable: boolean;
     extensions?: any[];
