@@ -1,4 +1,4 @@
-import {AssetOptions} from './asset';
+import {AssetOptions, UpdateMonitoredAssetParameters} from './asset';
 import {Key, KeyParts} from './content';
 import {Block} from './explorer';
 import AssetExchangeRate = Block.AssetExchangeRate;
@@ -14,7 +14,7 @@ import {
     MinerUpdatePrototype, OperationWrapperPrototype, ProposalCreatePrototype, ProposalUpdatePrototype,
     SubmitContentPrototype,
     TransferPrototype,
-    UpdateAccountPrototype, UpdateUserIssuedAssetPrototype, VestingBalanceWithdrawPrototype
+    UpdateAccountPrototype, UpdateMonitoredAssetPrototype, UpdateUserIssuedAssetPrototype, VestingBalanceWithdrawPrototype
 } from './operationPrototype';
 
 /**
@@ -70,6 +70,7 @@ export enum OperationName {
     proposal_update = 'proposal_update',
     operation_wrapper = 'op_wrapper',
     vesting_balance_withdraw = 'vesting_balance_withdraw',
+    update_monitored_asset_operation = 'update_monitored_asset_operation',
 }
 
 /**
@@ -529,6 +530,16 @@ export namespace Operations {
                     owner: ownerId,
                     amount: ammount
                 });
+        }
+    }
+
+    export class UpdateMonitoredAssetOperation extends Operation {
+        static getPrototype(): object {
+            return UpdateMonitoredAssetPrototype.getPrototype();
+        }
+
+        constructor(params: UpdateMonitoredAssetParameters) {
+            super(OperationName.update_monitored_asset_operation, params);
         }
     }
 }

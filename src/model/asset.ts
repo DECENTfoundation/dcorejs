@@ -43,6 +43,14 @@ export interface UserIssuedAssetInfo {
     isExchangable?: boolean;
 }
 
+export interface UpdateMonitoredAssetParameters {
+    issuer: string,
+    asset_to_update: string,
+    new_description: string,
+    new_feed_lifetime_sec: number,
+    new_minimum_feeds: number,
+}
+
 export enum AssetError {
     unable_to_list_assets = 'unable_to_list_assets',
     connection_failed = 'connection_failed',

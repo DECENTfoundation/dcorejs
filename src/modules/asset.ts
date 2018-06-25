@@ -8,8 +8,10 @@ import {Utils} from '../utils';
 
 import {ChainApi, ChainMethods} from '../api/chain';
 import {ApiModule} from './ApiModule';
-import {AssetError, AssetObject, AssetOptions, DCoreAssetObject, MonitoredAssetOptions, UserIssuedAssetInfo} from '../model/asset';
+import {AssetError, AssetObject, AssetOptions, DCoreAssetObject, MonitoredAssetOptions, UpdateMonitoredAssetParameters, UserIssuedAssetInfo
+} from '../model/asset';
 import {ProposalCreateParameters} from '../model/proposal';
+
 
 export class AssetModule extends ApiModule {
     public MAX_SHARED_SUPPLY = 7319777577456890;
@@ -439,48 +441,80 @@ export class AssetModule extends ApiModule {
     public createMonitoredAsset(issuer: string, symbol: string, precision: number, description: string, feedLifetimeSec: number,
                                 minimumFeeds: number, issuerPrivateKey: string): Promise<boolean> {
         return new Promise<any>((resolve, reject) => {
-            const options: AssetOptions = {
-                max_supply: 0,
-                core_exchange_rate: {
-                    base: {
-                        amount: 0,
-                        asset_id: '1.3.0'
-                    },
-                    quote: {
-                        amount: 0,
-                        asset_id: '1.3.1'
-                    }
-                },
-                is_exchangeable: true,
-                extensions: [],
-            };
-            const monitoredOptions: MonitoredAssetOptions = {
-                feed_lifetime_sec: feedLifetimeSec,
-                minimum_feeds: minimumFeeds
-            };
-            const assetCreateOperation = new Operations.AssetCreateOperation(
-                issuer, symbol, precision, description, options, monitoredOptions
-            );
-            const transaction = new Transaction();
-            transaction.addOperation(assetCreateOperation);
 
-            const proposalParameters: ProposalCreateParameters = {
-                fee_paying_account: issuer,
-                expiration_time: '2018-06-23T16:00:00',
-                review_period_seconds: this.convertDaysToSeconds(1),
-                extensions: []
-            };
-            transaction.propose(proposalParameters);
-            this.connector.connect()
-                .then(() => {
-                    transaction.broadcast(issuerPrivateKey, true)
-                        .then(() => resolve(true))
-                        .catch(err => {
-                            reject(this.handleError(AssetError.transaction_broadcast_failed, err));
+            this.listAssets(symbol, 1)
+                .then((assets: AssetObject[]) => {
+                    if (assets.length === 0 || !assets[0]) {
+                        reject(this.handleError(AssetError.asset_not_found));
+                        return;
+                    }
+                    const asset = Object.assign({}, assets[0]);
+                    const options: AssetOptions = Object.assign({}, asset.options);
+                    options.max_supply = 0;
+                    const monitoredOptions: MonitoredAssetOptions = {
+                        feed_lifetime_sec: this.convertDaysToSeconds(feedLifetimeSec),
+                        minimum_feeds: minimumFeeds
+                    };
+                    const operation = new Operations.AssetCreateOperation(
+                        issuer, symbol, precision, description, options, monitoredOptions
+                    );
+                    const proposalCreateParameters: ProposalCreateParameters = {
+                        fee_paying_account: issuer,
+                        expiration_time: '2018-06-26T10:00:00',
+                        // review_period_seconds: this.convertDaysToSeconds(14),
+                        extensions: []
+                    };
+                    const transaction = new Transaction();
+                    transaction.addOperation(operation);
+                    transaction.propose(proposalCreateParameters);
+                    transaction.broadcast(issuerPrivateKey)
+                        .then(() => {
+                            resolve(true);
+                        })
+                        .catch(error => {
+                            reject(this.handleError(AssetError.transaction_broadcast_failed, error));
+                            return;
                         });
                 })
-                .catch(err => {
-                    reject(this.handleError(AssetError.connection_failed, err));
+                .catch(error => {
+                    reject(this.handleError(AssetError.database_operation_failed, error));
+                    return;
+                });
+            });
+    }
+
+    public updateMonitoredAsset(symbol: string, description: string, feedLifetimeSec: number, minimumFeeds: number, privateKey: string):
+        Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            this.listAssets(symbol, 1)
+                .then((assets: AssetObject[]) => {
+                    if (assets.length === 0 || !assets[0]) {
+                        reject(this.handleError(AssetError.asset_not_found));
+                        return;
+                    }
+                    const asset = assets[0];
+                    const parameters: UpdateMonitoredAssetParameters = {
+                        issuer: asset.issuer,
+                        asset_to_update: asset.id,
+                        new_description: description,
+                        new_feed_lifetime_sec: feedLifetimeSec,
+                        new_minimum_feeds: minimumFeeds,
+                    };
+                    const operation = new Operations.UpdateMonitoredAssetOperation(parameters);
+                    const transaction = new Transaction();
+                    transaction.addOperation(operation);
+                    transaction.broadcast(privateKey)
+                        .then(() => {
+                            resolve(true);
+                        })
+                        .catch(error => {
+                            reject(this.handleError(AssetError.transaction_broadcast_failed, error));
+                            return;
+                        });
+                })
+                .catch(error => {
+                    reject(this.handleError(AssetError.database_operation_failed, error));
+                    return;
                 });
         });
     }

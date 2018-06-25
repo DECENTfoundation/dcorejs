@@ -410,3 +410,15 @@ export class VestingBalanceWithdrawPrototype {
         };
     }
 }
+
+export class UpdateMonitoredAssetPrototype {
+    static getPrototype(): object {
+        return {
+            issuer: '',
+            asset_to_update: '',
+            new_description: '',
+            new_feed_lifetime_sec: 0,
+            new_minimum_feeds: 1,
+        };
+    }
+}
