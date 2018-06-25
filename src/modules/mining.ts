@@ -60,8 +60,8 @@ export class MiningModule extends ApiModule {
      * @param {string} privateKey
      * @returns {Promise<any>}
      */
-    public setDesiredMinerCount(accountId: string, desiredNumOfMiners: number, privateKey: string): Promise<any> {
-        return new Promise<any>((resolve, reject) => {
+    public setDesiredMinerCount(accountId: string, desiredNumOfMiners: number, privateKey: string): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
             if (!accountId || desiredNumOfMiners === undefined || !privateKey) {
                 reject('missing_parameter');
                 return;
@@ -89,15 +89,15 @@ export class MiningModule extends ApiModule {
                     const transaction = new Transaction();
                     transaction.addOperation(operation);
                     transaction.broadcast(privateKey)
-                        .then(res => resolve(res))
+                        .then(res => resolve(true))
                         .catch(err => reject(this.handleError(MiningError.transaction_broadcast_failed, err)));
                 })
                 .catch(err => reject(this.handleError(MiningError.database_fetch_failed, err)));
         });
     }
 
-    public createMiner(minerAccountId: string, URL: string, signingPublicKey: string, privateKey: string): Promise<any> {
-        return new Promise<any>(((resolve, reject) => {
+    public createMiner(minerAccountId: string, URL: string, signingPublicKey: string, privateKey: string): Promise<boolean> {
+        return new Promise<boolean>(((resolve, reject) => {
             this.connector.connect()
                 .then(res => {
                     const operation = new Operations.MinerCreate(minerAccountId, URL, signingPublicKey);
@@ -119,7 +119,7 @@ export class MiningModule extends ApiModule {
      * @param {string} privateKeyWif
      * @returns {Promise<any>}
      */
-    public unvoteMiner(miner: string, account: string, privateKeyWif: string): Promise<any> {
+    public unvoteMiner(miner: string, account: string, privateKeyWif: string): Promise<boolean> {
         return this.unvoteMiners([miner], account, privateKeyWif);
     }
 
@@ -164,7 +164,7 @@ export class MiningModule extends ApiModule {
                             const transaction = new Transaction();
                             transaction.addOperation(op);
                             transaction.broadcast(privateKeyWif)
-                                .then(res => resolve(res))
+                                .then(res => resolve(true))
                                 .catch(err => reject(err));
                         })
                         .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
@@ -218,7 +218,7 @@ export class MiningModule extends ApiModule {
                             const transaction = new Transaction();
                             transaction.addOperation(op);
                             transaction.broadcast(privateKeyWif)
-                                .then(res => resolve(transaction))
+                                .then(res => resolve(true))
                                 .catch((err: Error) => {
                                     console.log(err);
                                     let errorMessage = 'transaction_broadcast_failed';
@@ -293,8 +293,8 @@ export class MiningModule extends ApiModule {
         });
     }
 
-    public updateMiner(minerId: string, minerAccountId: string, updateData: MinerUpdateData, privateKey: string): Promise<any> {
-        return new Promise<any>((resolve, reject) => {
+    public updateMiner(minerId: string, minerAccountId: string, updateData: MinerUpdateData, privateKey: string): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
             const getMinerOp = new DatabaseOperations.GetMiners([minerId]);
             this.dbApi.execute(getMinerOp)
                 .then(miners => {
