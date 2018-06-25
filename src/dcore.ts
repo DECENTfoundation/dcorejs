@@ -1,6 +1,6 @@
 import {getLibRef} from './helpers';
 import {ContentApi} from './modules/content';
-import {ChainApi, ChainSubscriptionCallback} from './api/chain';
+import {ChainApi} from './api/chain';
 import {DatabaseApi} from './api/database';
 import {AccountApi} from './modules/account';
 import {HistoryApi} from './api/history';
@@ -12,6 +12,7 @@ import {SubscriptionModule} from './modules/subscription';
 import {SeedingModule} from './modules/seeding';
 import {ProposalModule} from './modules/proposal';
 import {Transaction} from './transaction';
+import {ChainSubscriptionCallback} from './api/model/chain';
 
 let _content: ContentApi;
 let _account: AccountApi;
