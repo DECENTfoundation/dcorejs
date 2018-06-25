@@ -1,4 +1,5 @@
-import {Rating, Content, Seeder, BuyingContent, SubmitObject, ContentKeys, KeyPair, ContentExchangeObject} from '../model/content';
+import { Asset } from './../model/account';
+import {Rating, Content, Seeder, BuyingContent, SubmitObject, ContentKeys, KeyPair, ContentExchangeObject, Price} from '../model/content';
 import {DatabaseApi} from '../api/database';
 import {ChainApi, ChainMethods} from '../api/chain';
 import {Transaction} from '../transaction';
@@ -19,7 +20,8 @@ export enum ContentError {
     transaction_broadcast_failed = 'transaction_broadcast_failed',
     restore_content_keys_failed = 'restore_content_keys_failed',
     asset_fetch_failed = 'asset_fetch_failed',
-    asset_not_found = 'asset_not_found'
+    asset_not_found = 'asset_not_found',
+    content_not_exist = 'content_not_exist'
 }
 
 /**
@@ -79,6 +81,10 @@ export class ContentApi extends ApiModule {
                     this.dbApi
                         .execute(dbOperation)
                         .then(contents => {
+                            if (!contents || !contents[0]) {
+                                reject(this.handleError(ContentError.content_not_exist));
+                                return;
+                            }
                             const [content] = contents;
                             const stringidied = JSON.stringify(content);
                             let objectified = JSON.parse(stringidied);
@@ -109,12 +115,11 @@ export class ContentApi extends ApiModule {
                     const dbOperation = new DatabaseOperations.GetContent(URI);
                     this.dbApi
                         .execute(dbOperation)
-                        .then(contents => {
-                            if (!contents) {
+                        .then(content => {
+                            if (!content) {
                                 resolve(null);
                                 return;
                             }
-                            const [content] = contents;
                             const stringidied = JSON.stringify(content);
                             let objectified = JSON.parse(stringidied);
                             objectified.synopsis = JSON.parse(objectified.synopsis);
@@ -150,7 +155,7 @@ export class ContentApi extends ApiModule {
 
                     const cancelOperation = new Operations.ContentCancelOperation(authorId, URI);
                     const transaction = new Transaction();
-                    transaction.add(cancelOperation);
+                    transaction.addOperation(cancelOperation);
                     transaction
                         .broadcast(privateKey)
                         .then(() => {
@@ -278,7 +283,7 @@ export class ContentApi extends ApiModule {
                         JSON.stringify(content.synopsis)
                     );
                     const transaction = new Transaction();
-                    transaction.add(submitOperation);
+                    transaction.addOperation(submitOperation);
                     transaction
                         .broadcast(privateKey)
                         .then(() => {
@@ -428,12 +433,14 @@ export class ContentApi extends ApiModule {
                 .catch(err => reject(this.handleError(ContentError.database_operation_failed, err)));
         });
     }
-    
+
     private formatPrices(content: ContentExchangeObject[], assets: DCoreAssetObject[]): ContentExchangeObject[] {
         const result: ContentExchangeObject[] = content.map(obj => {
-            const asset = assets.find(a => a.id === obj.price.asset_id);
+            const priceAsset: Asset = obj.price.hasOwnProperty('map_price') ? (obj.price as Price).map_price[0][1] : (obj.price as Asset);
+            const asset = assets.find(a => a.id === priceAsset.asset_id);
             const c = Object.assign({}, obj);
-            c.price.amount = Utils.formatAmountForAsset(obj.price.amount, asset);
+            const newAsset: Asset = c.price.hasOwnProperty('map_price') ? (c.price as Price).map_price[0][1] : (c.price as Asset);
+            newAsset.amount = Utils.formatAmountForAsset(priceAsset.amount, asset);
             return c;
         });
         return result;
@@ -458,7 +465,7 @@ export class ContentApi extends ApiModule {
     /**
      * Request buy content.
      *
-     * @param {string} contentId Id of content to be bought, example: '1.2.123'
+     * @param {string} contentId Id of content to be bought, example: '2.13.'
      * @param {string} buyerId Account id of user buying content, example: '1.2.123'
      * @param {string} elGammalPub ElGammal public key which will be used to identify users bought content
      * @param {string} privateKey
@@ -467,23 +474,23 @@ export class ContentApi extends ApiModule {
     public buyContent(contentId: string,
                       buyerId: string,
                       elGammalPub: string,
-                      privateKey: string): Promise<void> {
-        return new Promise((resolve, reject) => {
+                      privateKey: string): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
             this.getContent(contentId)
                 .then((content: Content) => {
                     const buyOperation = new Operations.BuyContentOperation(
                         content.URI,
                         buyerId,
-                        content.price,
+                        content.price.map_price[0][1],
                         1,
                         {s: elGammalPub}
                     );
                     const transaction = new Transaction();
-                    transaction.add(buyOperation);
+                    transaction.addOperation(buyOperation);
                     transaction
                         .broadcast(privateKey)
                         .then(() => {
-                            resolve();
+                            resolve(true);
                         })
                         .catch((err: any) => {
                             reject(
@@ -629,7 +636,7 @@ export class ContentApi extends ApiModule {
         return new Promise<any>((resolve, reject) => {
             const operation = new Operations.LeaveRatingAndComment(contentURI, consumer, comment, rating);
             const transaction = new Transaction();
-            transaction.add(operation);
+            transaction.addOperation(operation);
             transaction.broadcast(consumerPKey)
                 .then(res => resolve(res))
                 .catch(err => reject(this.handleError(ContentError.transaction_broadcast_failed, err)));

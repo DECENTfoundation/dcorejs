@@ -45,7 +45,7 @@ export class AssetModule extends ApiModule {
                                  isSupplyFixed: boolean,
                                  issuerPrivateKey: string): Promise<boolean> {
         const options: AssetOptions = {
-            max_supply: maxSupply,
+            max_supply: maxSupply.toString(),
             core_exchange_rate: {
                 base: {
                     amount: baseExchangeAmount,
@@ -68,7 +68,7 @@ export class AssetModule extends ApiModule {
         );
 
         const transaction = new Transaction();
-        transaction.add(operation);
+        transaction.addOperation(operation);
 
         return new Promise<boolean>((resolve, reject) => {
             this.connector.connect()
@@ -134,7 +134,7 @@ export class AssetModule extends ApiModule {
                                 memoObject
                             );
                             const transaction = new Transaction();
-                            transaction.add(operation);
+                            transaction.addOperation(operation);
                             transaction.broadcast(issuerPKey)
                                 .then(res => resolve(true))
                                 .catch(err => {
@@ -162,13 +162,13 @@ export class AssetModule extends ApiModule {
                         asset.issuer,
                         asset.id,
                         newInfo.description || asset.description,
-                        newInfo.maxSupply || asset.options.max_supply,
+                        Number(newInfo.maxSupply || asset.options.max_supply),
                         newInfo.coreExchange || asset.options.core_exchange_rate,
                         newInfo.isExchangable || asset.options.is_exchangeable,
                         newInfo.newIssuer
                     );
                     const transaction = new Transaction();
-                    transaction.add(operation);
+                    transaction.addOperation(operation);
                     transaction.broadcast(issuerPKey)
                         .then(res => resolve(true))
                         .catch(err => reject(this.handleError(AssetError.transaction_broadcast_failed, err)));
@@ -206,7 +206,7 @@ export class AssetModule extends ApiModule {
                         }
                     );
                     const transaction = new Transaction();
-                    transaction.add(operation);
+                    transaction.addOperation(operation);
                     transaction.broadcast(privateKey)
                         .then(res => resolve(true))
                         .catch(err => reject(this.handleError(AssetError.transaction_broadcast_failed, err)));
@@ -231,7 +231,7 @@ export class AssetModule extends ApiModule {
                         }
                     );
                     const transaction = new Transaction();
-                    transaction.add(operation);
+                    transaction.addOperation(operation);
                     transaction.broadcast(privateKey)
                         .then(res => resolve(res))
                         .catch(err => reject(this.handleError(AssetError.transaction_broadcast_failed, err)));
@@ -267,7 +267,7 @@ export class AssetModule extends ApiModule {
                     };
                     const operation = new Operations.AssetClaimFeesOperation(issuer, uiaAsset, dctAsset);
                     const transaction = new Transaction();
-                    transaction.add(operation);
+                    transaction.addOperation(operation);
                     transaction.broadcast(privateKey)
                         .then(res => resolve(true))
                         .catch(err => reject('failed_to_broadcast_transaction'));
@@ -352,7 +352,7 @@ export class AssetModule extends ApiModule {
                     };
                     const operation = new Operations.AssetPublishFeed(publishingAccount, asset.id, feed);
                     const transaction = new Transaction();
-                    transaction.add(operation);
+                    transaction.addOperation(operation);
                     transaction.broadcast(privateKey)
                         .then(res => resolve(res))
                         .catch(err => reject(this.handleError(AssetError.transaction_broadcast_failed, err)));

@@ -11,6 +11,7 @@ import {MiningModule} from './modules/mining';
 import {SubscriptionModule} from './modules/subscription';
 import {SeedingModule} from './modules/seeding';
 import {ProposalModule} from './modules/proposal';
+import {Transaction} from './transaction';
 
 let _content: ContentApi;
 let _account: AccountApi;
@@ -21,6 +22,7 @@ let _subscription: SubscriptionModule;
 let _seeding: SeedingModule;
 let _proposal: ProposalModule;
 let _chain: ChainApi;
+let _transaction: Transaction;
 
 export class DcoreError {
     static app_not_initialized = 'app_not_initialized';
@@ -58,14 +60,15 @@ export function initialize(config: DcoreConfig,
     _account = new AccountApi(database, _chain, historyApi, connector);
     _explorer = new ExplorerModule(database);
     _assetModule = new AssetModule(database, connector, _chain);
-    _subscription = new SubscriptionModule(database);
+    _subscription = new SubscriptionModule(database, connector);
     _seeding = new SeedingModule(database);
     _mining = new MiningModule(database, connector, _chain);
     _proposal = new ProposalModule(database, _chain, connector);
+    _transaction = new Transaction();
 }
 
 /**
- * Subscribe for blockchain update notifications.
+ * Subscribe for blockchain update notifications. Notifications is fired periodically.
  *
  * @param {(data: any[]) => void} callback
  */
@@ -73,6 +76,11 @@ export function subscribe(callback: ChainSubscriptionCallback) {
     _chain.subscribe(callback);
 }
 
+/**
+ * Subscribe for events fired everytime new transaction is broadcasted to network
+ *
+ * @param callback
+ */
 export function subscribePendingTransaction(callback: ChainSubscriptionCallback) {
     _chain.subscribePendingTransactions(callback);
 }
@@ -106,4 +114,8 @@ export function seeding(): SeedingModule {
 
 export function proposal(): ProposalModule {
     return _proposal;
+}
+
+export function transaction(): Transaction {
+    return _transaction;
 }

@@ -4,11 +4,25 @@ const expect = chai.expect;
 chai.should();
 const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
 const dcoreNetworkAddresses = ['wss://stage.decentgo.com:8090'];
-const bk = 'WORKBOX UPJERK GORBLE SPECULA SUCKLER FUNNEL INWRAP DOSIS DARNEL CATTABU FINGER MINARET TUCKER DENDRIC WOD CULMEN';
-const pub = 'DCT5dJjvk9k3yTsnJsAph6V8zEPxsAvJ7FCCzqYWiQQyVTiHvReLz';
-const priv = '5JDFQN3T8CFT1ynhgd5s574mTV9UPf9WamkHojBL4NgbhSBDmBj';
-const accountId = '1.2.18';
+const bk = 'PADDLED PACE ATIMON PILLAGE VISTO IXODID CODFISH DANDLE MELA LATOMY NATES CUTTED SPIRAL BEGORRY BIOTAXY LIMPING';
+const pub = 'DCT8cYDtKZvcAyWfFRusy6ja1Hafe9Ys4UPJS92ajTmcrufHnGgjp';
+const priv = '5KcA6ky4Hs9VoDUSdTF4o3a7QDgiiG5gkpLLysRWR8dy6EAgTnZ';
+const accountId = '1.2.27';
 dcorejs.setLibRef(dcorejs_lib);
 const refElGamalPrivate = '9951482713110546910654770116549881133339951895578381605347713063259834535096323355559828047288475209595776035312706007755854990617069594416307472971521354';
 const refElGamalPublic = '1476592897265129256906985148863834019333244843526837587739241973266771272616315012971707289842820560922634174697696963038593504885326978206069960938313296';
 const refPrivateKey = '5KfaSt8mWyGcZXRk4HKmt77ERJsBQz8QXintiAvUFCMasL2KYTL';
+const dctAssetObject = {
+    'id': '1.3.0',
+    'symbol': 'DCT',
+    'precision': 8,
+    'issuer': '1.2.1',
+    'description': '',
+    'options': {
+        'max_supply': '7319777577456900',
+        'core_exchange_rate': {'base': {'amount': 1, 'asset_id': '1.3.0'}, 'quote': {'amount': 1, 'asset_id': '1.3.0'}},
+        'is_exchangeable': true,
+        'extensions': []
+    },
+    'dynamic_asset_data_id': '2.3.0'
+};

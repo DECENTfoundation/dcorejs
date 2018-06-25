@@ -121,7 +121,7 @@ export enum MinerOrder {
  */
 export interface SearchParams {
     term?: string;
-    order?: string;
+    order?: SearchParamsOrder;
     /**
      * Content owner
      * @memberof SearchParams
@@ -138,13 +138,13 @@ export namespace DatabaseOperations {
         constructor(searchParams: SearchParams) {
             super(
                 DatabaseOperationName.searchContent,
-                searchParams.term || '',
-                searchParams.order || '',
-                searchParams.user || '',
-                searchParams.region_code || '',
-                searchParams.itemId || '0.0.0',
-                searchParams.category || '1',
-                searchParams.count || 100
+                searchParams && searchParams.term || '',
+                searchParams && searchParams.order || '',
+                searchParams && searchParams.user || '',
+                searchParams && searchParams.region_code || '',
+                searchParams && searchParams.itemId || '0.0.0',
+                searchParams && searchParams.category || '1',
+                searchParams && searchParams.count || 100
             );
         }
     }

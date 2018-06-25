@@ -8,7 +8,7 @@ chai.config.showDiff = false;
 const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
 const dcoreNetworkAddresses = ['wss://stage.decentgo.com:8090'];
 const accountId = '1.2.18';
-const contentId = '2.13.240';
+// const contentId = '2.13.240';
 
 // turn off unverified certificate rejection
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
@@ -21,8 +21,7 @@ before(() => {
 });
 describe('(server/integration) Content fetch', () => {
     it('search content', (done) => {
-        const searchParameters = new dcore_js.SearchParams('');
-        dcore_js.content().searchContent(searchParameters)
+        dcore_js.content().searchContent()
             .then(res => {
                 expect(res).to.be.a('array');
                 done();
@@ -33,19 +32,20 @@ describe('(server/integration) Content fetch', () => {
             });
     });
 
-    it('get content', (done) => {
-        dcore_js.content().getContent(contentId)
-            .then(res => {
-                expect(res.id).to.be.equal(contentId);
-                done();
-            })
-            .catch(err => {
-                chai.assert.isDefined(err);
-                done();
-            });
-    });
+    // TODO: disabled due to lack of content on testnet
+    // it('get content', (done) => {
+    //     dcore_js.content().getContent(contentId)
+    //         .then(res => {
+    //             expect(res.id).to.be.equal(contentId);
+    //             done();
+    //         })
+    //         .catch(err => {
+    //             chai.assert.isDefined(err);
+    //             done();
+    //         });
+    // });
 
-    // Test is commented due to testnet reset, therefore, no seeders and no content is on testnet yet
+    // TODO: Test is commented due to testnet reset, therefore, no seeders and no content is on testnet yet
     // it('restore content keys', (done) => {
     //     const elGamalPublic = '7317752633383033582159088' +
     //         '0415095934922384683502050702002361917832276924025919' +
