@@ -6,9 +6,10 @@ import {Asset, Memo, Operations, PriceFeed} from '../model/transaction';
 import {Transaction} from '../transaction';
 import {Utils} from '../utils';
 
-import {ChainApi, ChainMethods} from '../api/chain';
+import {ChainApi} from '../api/chain';
 import {ApiModule} from './ApiModule';
 import {AssetError, AssetObject, AssetOptions, DCoreAssetObject, MonitoredAssetOptions, UserIssuedAssetInfo} from '../model/asset';
+import {ChainMethods} from '../api/model/chain';
 
 export class AssetModule extends ApiModule {
     public MAX_SHARED_SUPPLY = 7319777577456890;
@@ -100,10 +101,11 @@ export class AssetModule extends ApiModule {
                     const issuer = asset.issuer;
                     // TODO: correct memo object
 
-                    const operations = new ChainMethods();
-                    operations.add(ChainMethods.getAccount, issueToAccount);
-                    operations.add(ChainMethods.getAccount, issuer);
-                    this.chainApi.fetch(operations)
+                    const operations = [].concat(
+                        new ChainMethods.GetAccount(issueToAccount),
+                        new ChainMethods.GetAccount(issuer)
+                    );
+                    this.chainApi.fetch(...operations)
                         .then(res => {
                             const [issueToAcc, issuerAcc] = res;
                             const privateKeyIssuer = Utils.privateKeyFromWif(issuerPKey);

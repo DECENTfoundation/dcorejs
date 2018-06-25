@@ -5,10 +5,11 @@ import {Account, AccountError, Options} from '../model/account';
 import {Transaction} from '../transaction';
 import {ApiModule} from './ApiModule';
 import {ApiConnector} from '../api/apiConnector';
-import {ChainApi, ChainMethods} from '../api/chain';
+import {ChainApi} from '../api/chain';
 import {Block, Miner} from '../model/explorer';
 import {MinerUpdateData, MiningError} from '../model/mining';
 import VestingBalance = Block.VestingBalance;
+import {ChainMethods} from '../api/model/chain';
 
 export class MiningModule extends ApiModule {
     static CHAIN_PROXY_TO_SELF = '';
@@ -131,11 +132,9 @@ export class MiningModule extends ApiModule {
      * @param {string} privateKeyWif
      * @returns {Promise<any>}
      */
-    public unvoteMiners(miners: string[], account: string, privateKeyWif: string): Promise<any> {
-        return new Promise<any>((resolve, reject) => {
-            const operations = new ChainMethods();
-            operations.add(ChainMethods.getAccount, account);
-            this.chainApi.fetch(operations)
+    public unvoteMiners(miners: string[], account: string, privateKeyWif: string): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            this.chainApi.fetch(new ChainMethods.GetAccount(account))
                 .then(res => {
                     const [voterAccount] = res;
                     const voter: Account = JSON.parse(JSON.stringify(voterAccount));
@@ -196,11 +195,9 @@ export class MiningModule extends ApiModule {
      * @param {string} privateKeyWif
      * @returns {Promise<any>}
      */
-    public voteForMiners(miners: string[], account: string, privateKeyWif: string): Promise<any> {
-        return new Promise<any>((resolve, reject) => {
-            const operations = new ChainMethods();
-            operations.add(ChainMethods.getAccount, account);
-            this.chainApi.fetch(operations)
+    public voteForMiners(miners: string[], account: string, privateKeyWif: string): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            this.chainApi.fetch(new ChainMethods.GetAccount(account))
                 .then(res => {
                     const [voterAccount] = res;
                     const voter: Account = JSON.parse(JSON.stringify(voterAccount));
@@ -237,11 +234,9 @@ export class MiningModule extends ApiModule {
         });
     }
 
-    public voteUnvoteMiners(voteMiners: string[], unvoteMiners: string[], accountId: string, privateKey: string): Promise<any> {
-        return new Promise<any>((resolve, reject) => {
-            const operations = new ChainMethods();
-            operations.add(ChainMethods.getAccount, accountId);
-            this.chainApi.fetch(operations)
+    public voteUnvoteMiners(voteMiners: string[], unvoteMiners: string[], accountId: string, privateKey: string): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            this.chainApi.fetch(new ChainMethods.GetAccount(accountId))
                 .then(res => {
                     if (!res[0]) {
                         reject(this.handleError(AccountError.account_does_not_exist, ''));
@@ -350,9 +345,7 @@ export class MiningModule extends ApiModule {
 
     public setVotingProxy(accountId: string, votingAccountId: string = '', privateKey: string): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
-            const getAccountMethod = new ChainMethods();
-            getAccountMethod.add(ChainMethods.getAccount, accountId);
-            this.chainApi.fetch(getAccountMethod)
+            this.chainApi.fetch(new ChainMethods.GetAccount(accountId))
                 .then((result: Account[]) => {
                     if (result.length === 0 || !result[0]) {
                         reject(this.handleError(MiningError.account_fetch_failed));
