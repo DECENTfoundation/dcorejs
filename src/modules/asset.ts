@@ -457,6 +457,7 @@ export class AssetModule extends ApiModule {
                     }
                     const asset = Object.assign({}, assets[0]);
                     const options: AssetOptions = Object.assign({}, asset.options);
+                    options.max_supply = 0;
                     options.core_exchange_rate.base.amount = 0;
                     options.core_exchange_rate.base.asset_id = '1.3.0';
                     options.core_exchange_rate.quote.amount = 0;
@@ -467,12 +468,12 @@ export class AssetModule extends ApiModule {
                         current_feed: {
                             core_exchange_rate: {
                                 base: {
-                                    amount: options.core_exchange_rate.base.amount,
-                                    asset_id: options.core_exchange_rate.base.asset_id
+                                    amount: 0,
+                                    asset_id: '1.3.0'
                                 },
                                 quote: {
-                                    amount: options.core_exchange_rate.quote.amount,
-                                    asset_id: options.core_exchange_rate.quote.asset_id,
+                                    amount: 0,
+                                    asset_id: '1.3.0',
                                 }
                             }
                         },
