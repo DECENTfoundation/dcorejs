@@ -161,13 +161,21 @@ export class AssetModule extends ApiModule {
                         return;
                     }
                     const asset = assets[0];
+                    let maxSupply = asset.options.max_supply;
+                    if (newInfo.maxSupply !== undefined) {
+                        maxSupply = newInfo.maxSupply;
+                    }
+                    let isExchangable = asset.options.is_exchangeable;
+                    if (newInfo.isExchangable !== undefined) {
+                        isExchangable = newInfo.isExchangable;
+                    }
                     const operation = new Operations.UpdateAssetIssuedOperation(
                         asset.issuer,
                         asset.id,
                         newInfo.description || asset.description,
-                        newInfo.maxSupply || asset.options.max_supply,
+                        maxSupply,
                         newInfo.coreExchange || asset.options.core_exchange_rate,
-                        newInfo.isExchangable || asset.options.is_exchangeable,
+                        isExchangable,
                         newInfo.newIssuer
                     );
                     const transaction = new Transaction();
@@ -441,7 +449,6 @@ export class AssetModule extends ApiModule {
     public createMonitoredAsset(issuer: string, symbol: string, precision: number, description: string, feedLifetimeSec: number,
                                 minimumFeeds: number, issuerPrivateKey: string): Promise<boolean> {
         return new Promise<any>((resolve, reject) => {
-
             this.listAssets(symbol, 1)
                 .then((assets: AssetObject[]) => {
                     if (assets.length === 0 || !assets[0]) {
@@ -450,18 +457,35 @@ export class AssetModule extends ApiModule {
                     }
                     const asset = Object.assign({}, assets[0]);
                     const options: AssetOptions = Object.assign({}, asset.options);
-                    options.max_supply = 0;
+                    options.core_exchange_rate.base.amount = 0;
+                    options.core_exchange_rate.base.asset_id = '1.3.0';
+                    options.core_exchange_rate.quote.amount = 0;
+                    options.core_exchange_rate.quote.asset_id = '1.3.0';
+
                     const monitoredOptions: MonitoredAssetOptions = {
+                        feeds: [],
+                        current_feed: {
+                            core_exchange_rate: {
+                                base: {
+                                    amount: options.core_exchange_rate.base.amount,
+                                    asset_id: options.core_exchange_rate.base.asset_id
+                                },
+                                quote: {
+                                    amount: options.core_exchange_rate.quote.amount,
+                                    asset_id: options.core_exchange_rate.quote.asset_id,
+                                }
+                            }
+                        },
                         feed_lifetime_sec: this.convertDaysToSeconds(feedLifetimeSec),
                         minimum_feeds: minimumFeeds
                     };
                     const operation = new Operations.AssetCreateOperation(
-                        issuer, symbol, precision, description, options, monitoredOptions
+                        asset.issuer, symbol, precision, description, options, monitoredOptions
                     );
                     const proposalCreateParameters: ProposalCreateParameters = {
                         fee_paying_account: issuer,
-                        expiration_time: '2018-06-26T10:00:00',
-                        // review_period_seconds: this.convertDaysToSeconds(14),
+                        expiration_time: '2018-07-16T02:00:00',
+                        review_period_seconds: this.convertDaysToSeconds(14),
                         extensions: []
                     };
                     const transaction = new Transaction();
@@ -480,7 +504,7 @@ export class AssetModule extends ApiModule {
                     reject(this.handleError(AssetError.database_operation_failed, error));
                     return;
                 });
-            });
+        });
     }
 
     public updateMonitoredAsset(symbol: string, description: string, feedLifetimeSec: number, minimumFeeds: number, privateKey: string):
