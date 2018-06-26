@@ -20,36 +20,7 @@ export class MessagingModule extends ApiModule {
 
     public getSentMessages(sender: string, receiver: string, decryptPrivateKey: string, count: number = 100): Promise<DCoreMessagePayload[]> {
         return new Promise<DCoreMessagePayload[]>(((resolve, reject) => {
-            const op = new MessagingOperations.GetMessageObjects(sender, receiver, count);
-            this._message_api.execute(op)
-                .then((messages: any[]) => {
-                    messages.map((msg: DCoreMessagePayload) => {
-                        if (msg.receivers_data.length !== 0) {
-                            try {
-                                msg.text = CryptoUtils.decryptWithChecksum(
-                                    msg.receivers_data[0].data,
-                                    KeyPrivate.fromWif(decryptPrivateKey),
-                                    KeyPublic.fromString(msg.receivers_data[0].receiver_pubkey),
-                                    msg.receivers_data[0].nonce
-                                ).toString('utf-8');
-                            } catch (e) {
-                                reject(this.handleError(MessagingError.message_decryption_failed, e));
-                                return;
-                            }
-                        } else {
-                            msg.text = '';
-                        }
-                    });
-                    resolve(messages);
-                })
-                .catch(err => reject(this.handleError(MessagingError.query_execution_failed, err)));
-        }));
-    }
-
-    public getMessages(receiver: string, count: number = 100): Promise<any> {
-        return new Promise<any>(((resolve, reject) => {
-            const op = new MessagingOperations.GetMessageObjects(null, receiver, count);
-            this._message_api.execute(op)
+            this.getMessageObjects(sender, receiver, decryptPrivateKey, count)
                 .then((messages: any[]) => {
                     resolve(messages);
                 })
@@ -57,15 +28,46 @@ export class MessagingModule extends ApiModule {
         }));
     }
 
-    public getMessageObjects(sender?: string, receiver?: string, count: number = 100): Promise<any> {
+    public getMessages(receiver: string, decryptPrivateKey: string = '', count: number = 100): Promise<any> {
         return new Promise<any>(((resolve, reject) => {
-            const op = new MessagingOperations.GetMessageObjects(sender, receiver, count);
-            this._message_api.execute(op)
+            this.getMessageObjects(null, receiver, decryptPrivateKey, count)
                 .then((messages: any[]) => {
                     resolve(messages);
                 })
                 .catch(err => reject(this.handleError(MessagingError.query_execution_failed, err)));
         }));
+    }
+
+    public getMessageObjects(sender?: string, receiver?: string, decryptPrivateKey: string = '', count: number = 100): Promise<any> {
+        return new Promise<any>(((resolve, reject) => {
+            const op = new MessagingOperations.GetMessageObjects(sender, receiver, count);
+            this._message_api.execute(op)
+                .then((messages: any[]) => {
+                    resolve(this.decryptMessages(messages, decryptPrivateKey));
+                })
+                .catch(err => reject(this.handleError(MessagingError.query_execution_failed, err)));
+        }));
+    }
+
+    private decryptMessages(messages: DCoreMessagePayload[], decryptPrivateKey: string): DCoreMessagePayload[] {
+        const result = [].concat(messages);
+        result.map((msg: DCoreMessagePayload) => {
+            if (msg.receivers_data.length !== 0) {
+                try {
+                    msg.text = CryptoUtils.decryptWithChecksum(
+                        msg.receivers_data[0].data,
+                        KeyPrivate.fromWif(decryptPrivateKey),
+                        KeyPublic.fromString(msg.receivers_data[0].receiver_pubkey),
+                        msg.receivers_data[0].nonce
+                    ).toString('utf-8');
+                } catch (e) {
+                    msg.text = '';
+                }
+            } else {
+                msg.text = '';
+            }
+        });
+        return result;
     }
 
     public sendMessage(sender: string, receiverId: string, message: string, privateKey: string): Promise<boolean> {
