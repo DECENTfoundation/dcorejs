@@ -12,6 +12,7 @@ import {ChainApi, ChainMethods} from '../api/chain';
 import {Utils} from '../utils';
 import {CryptoUtils} from '../crypt';
 import {ApiConnector} from '../api/apiConnector';
+import {AssetError} from '../model/asset';
 
 export class ProposalModule extends ApiModule {
     private _chainApi: ChainApi;
@@ -77,25 +78,34 @@ export class ProposalModule extends ApiModule {
                     message: CryptoUtils.encryptWithChecksum(memoKey, privateKeyObject, publicKeyObject, nonce)
                 };
 
-                const price = Asset.create(amount, assetObject);
-                const transferOperation = new Operations.TransferOperation(fromAccountId, toAccountId, price, memo);
-                const transaction = new Transaction();
-                transaction.addOperation(transferOperation);
-                const proposalCreateParameters: ProposalCreateParameters = {
-                    fee_paying_account: proposerAccountId,
-                    expiration_time: expiration,
-                    review_period_seconds: this.convertDaysToSeconds(14),
-                    extensions: []
-                };
-                transaction.propose(proposalCreateParameters);
-                transaction.broadcast(privateKey)
-                    .then(() => {
-                        resolve(true);
+                const getGlobalPropertiesOperation = new DatabaseOperations.GetGlobalProperties();
+                this.dbApi.execute(getGlobalPropertiesOperation)
+                    .then(result => {
+                        const price = Asset.create(amount, assetObject);
+                        const transferOperation = new Operations.TransferOperation(fromAccountId, toAccountId, price, memo);
+                        const transaction = new Transaction();
+                        transaction.addOperation(transferOperation);
+                        const proposalCreateParameters: ProposalCreateParameters = {
+                            fee_paying_account: proposerAccountId,
+                            expiration_time: expiration,
+                            review_period_seconds: result.parameters.miner_proposal_review_period,
+                            extensions: []
+                        };
+                        transaction.propose(proposalCreateParameters);
+                        transaction.broadcast(privateKey)
+                            .then(() => {
+                                resolve(true);
+                            })
+                            .catch(error => {
+                                reject(this.handleError(ProposalError.transaction_broadcast_failed, error));
+                                return;
+                            });
                     })
                     .catch(error => {
-                        reject(this.handleError(ProposalError.transaction_broadcast_failed, error));
+                        reject(this.handleError(AssetError.database_operation_failed, error));
                         return;
                     });
+
                 })
             .catch(error => {
                 reject(this.handleError(ProposalError.chain_operation_failed, error));
@@ -176,14 +186,13 @@ export class ProposalModule extends ApiModule {
                     if (proposalParameters.extensions !== undefined) {
                         newParameters.new_parameters.extensions = proposalParameters.extensions;
                     }
-
                     const operation = new Operations.MinerUpdateGlobalParameters(newParameters);
                     const transaction = new Transaction();
                     transaction.addOperation(operation);
                     const proposalCreateParameters: ProposalCreateParameters = {
                         fee_paying_account: proposerAccountId,
                         expiration_time: expiration,
-                        review_period_seconds: this.convertDaysToSeconds(14),
+                        review_period_seconds: result.parameters.miner_proposal_review_period,
                         extensions: [],
                     };
                     transaction.propose(proposalCreateParameters);
@@ -195,7 +204,7 @@ export class ProposalModule extends ApiModule {
                             reject(this.handleError(ProposalError.transaction_broadcast_failed, error));
                             return;
                         });
-                })
+                    })
                 .catch(error => {
                     reject(this.handleError(ProposalError.database_operation_failed, error));
                 });
@@ -361,14 +370,13 @@ export class ProposalModule extends ApiModule {
                     if (feesParameters.renewal_of_subscription !== undefined) {
                         newParameters.new_parameters.current_fees.parameters[45] = [45, feesParameters.renewal_of_subscription];
                     }
-
                     const operation = new Operations.MinerUpdateGlobalParameters(newParameters);
                     const transaction = new Transaction();
                     transaction.addOperation(operation);
                     const proposalCreateParameters: ProposalCreateParameters = {
                         fee_paying_account: proposerAccountId,
                         expiration_time: expiration,
-                        review_period_seconds: this.convertDaysToSeconds(14),
+                        review_period_seconds: currentParameters.parameters.miner_proposal_review_period,
                         extensions: [],
                     };
                     transaction.propose(proposalCreateParameters);
@@ -380,7 +388,7 @@ export class ProposalModule extends ApiModule {
                             reject(this.handleError(ProposalError.transaction_broadcast_failed, error));
                             return;
                         });
-                })
+                    })
                 .catch(error => {
                     reject(this.handleError(ProposalError.database_operation_failed));
                     return;
@@ -428,7 +436,4 @@ export class ProposalModule extends ApiModule {
         }));
     }
 
-    private convertDaysToSeconds(days: number): number {
-        return days * 24 * 60 * 60;
-    }
 }
