@@ -84,6 +84,7 @@ export class ProposalModule extends ApiModule {
                 const proposalCreateParameters: ProposalCreateParameters = {
                     fee_paying_account: proposerAccountId,
                     expiration_time: expiration,
+                    review_period_seconds: this.convertDaysToSeconds(14),
                     extensions: []
                 };
                 transaction.propose(proposalCreateParameters);
@@ -108,15 +109,13 @@ export class ProposalModule extends ApiModule {
      *
      * @param {string} proposerAccountId                    Account which pays fee for propose operation.
      * @param {ProposalParameters} proposalParameters       Global parameters that should be changed.
-     * @param {number} reviewPeriodInDays                   Min is 14, max is 27.
-     * @param {string} expiration                           Date in form of "2018-07-17T16:00:00", depends on reviewPeriodInDays.
-     *                                                      If reviewPeriodInDays is 14, expiration must be at least 14 days since today,
-     *                                                      max is always 27 days since today.
+     * @param {string} expiration                           Date in form of "2018-07-17T16:00:00", min is 14 days since today, max is 28
+     *                                                      days since today.
      * @param {string} privateKey                           Private key for signing transaction.
      * @returns {Promise<boolean>}
      */
-    public proposeParameterChange(proposerAccountId: string, proposalParameters: ProposalParameters, reviewPeriodInDays: number,
-                                  expiration: string, privateKey: string): Promise<boolean> {
+    public proposeParameterChange(proposerAccountId: string, proposalParameters: ProposalParameters, expiration: string,
+                                  privateKey: string): Promise<boolean> {
         return new Promise<boolean>(((resolve, reject) => {
             const databaseOperation = new DatabaseOperations.GetGlobalProperties();
             this.dbApi.execute(databaseOperation)
@@ -184,7 +183,7 @@ export class ProposalModule extends ApiModule {
                     const proposalCreateParameters: ProposalCreateParameters = {
                         fee_paying_account: proposerAccountId,
                         expiration_time: expiration,
-                        review_period_seconds: this.convertDaysToSeconds(reviewPeriodInDays),
+                        review_period_seconds: this.convertDaysToSeconds(14),
                         extensions: [],
                     };
                     transaction.propose(proposalCreateParameters);
@@ -208,15 +207,13 @@ export class ProposalModule extends ApiModule {
      *
      * @param {string} proposerAccountId                Account which pays fee for propose operation.
      * @param {FeesParameters} feesParameters           Fees that should be changed.
-     * @param {number} reviewPeriodInDays               Min is 14, max is 27.
-     * @param {string} expiration                       Date in form of "2018-07-17T16:00:00", depends on reviewPeriodInDays.
-     *                                                  If reviewPeriodInDays is 14, expiration must be at least 14 days since today,
-     *                                                  max is always 27 days since today.
+     * @param {string} expiration                       Date in form of "2018-07-17T16:00:00", min is 14 days since today,
+     *                                                  max is 28 days since today.
      * @param {string} privateKey                       Private key for signing transaction.
      * @returns {Promise<boolean>}
      */
-    public proposeFeeChange(proposerAccountId: string, feesParameters: FeesParameters, reviewPeriodInDays: number, expiration: string,
-                            privateKey: string): Promise<boolean> {
+    public proposeFeeChange(proposerAccountId: string, feesParameters: FeesParameters, expiration: string, privateKey: string):
+                            Promise<boolean> {
         return new Promise<boolean>(((resolve, reject) => {
             const databaseOperation = new DatabaseOperations.GetGlobalProperties();
             this.dbApi.execute(databaseOperation)
@@ -371,7 +368,7 @@ export class ProposalModule extends ApiModule {
                     const proposalCreateParameters: ProposalCreateParameters = {
                         fee_paying_account: proposerAccountId,
                         expiration_time: expiration,
-                        review_period_seconds: this.convertDaysToSeconds(reviewPeriodInDays),
+                        review_period_seconds: this.convertDaysToSeconds(14),
                         extensions: [],
                     };
                     transaction.propose(proposalCreateParameters);
