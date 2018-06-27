@@ -449,51 +449,48 @@ export class AssetModule extends ApiModule {
     public createMonitoredAsset(issuer: string, symbol: string, precision: number, description: string, feedLifetimeSec: number,
                                 minimumFeeds: number, issuerPrivateKey: string): Promise<boolean> {
         return new Promise<any>((resolve, reject) => {
-            this.listAssets(symbol, 1)
-                .then((assets: AssetObject[]) => {
-                    if (assets.length === 0 || !assets[0]) {
-                        reject(this.handleError(AssetError.asset_not_found));
-                        return;
-                    }
-                    const asset = Object.assign({}, assets[0]);
-                    const options: AssetOptions = Object.assign({}, asset.options);
-                    options.max_supply = 0;
-                    options.core_exchange_rate.base.amount = 0;
-                    options.core_exchange_rate.base.asset_id = '1.3.0';
-                    options.core_exchange_rate.quote.amount = 0;
-                    options.core_exchange_rate.quote.asset_id = '1.3.0';
-
-                    const monitoredOptions: MonitoredAssetOptions = {
-                        feeds: [],
-                        current_feed: {
-                            core_exchange_rate: {
-                                base: {
-                                    amount: 0,
-                                    asset_id: '1.3.0'
-                                },
-                                quote: {
-                                    amount: 0,
-                                    asset_id: '1.3.0',
-                                }
-                            }
-                        },
-                        feed_lifetime_sec: this.convertDaysToSeconds(feedLifetimeSec),
-                        minimum_feeds: minimumFeeds
-                    };
-                    const operation = new Operations.AssetCreateOperation(
-                        asset.issuer, symbol, precision, description, options, monitoredOptions
-                    );
+            const coreExchangeRate = {
+                base: {
+                    amount: 0,
+                    asset_id: '1.3.0'
+                },
+                quote: {
+                    amount: 0,
+                    asset_id: '1.3.0'
+                }
+            };
+            const options: AssetOptions = {
+                max_supply: 0,
+                core_exchange_rate: coreExchangeRate,
+                is_exchangeable: true,
+                extensions: []
+            };
+            const monitoredOptions: MonitoredAssetOptions = {
+                feeds: [],
+                current_feed: {
+                    core_exchange_rate: coreExchangeRate,
+                },
+                current_feed_publication_time: this.convertDateToSeconds(),
+                feed_lifetime_sec: feedLifetimeSec,
+                minimum_feeds: minimumFeeds
+            };
+            const operation = new Operations.AssetCreateOperation(
+                issuer, symbol, precision, description, options, monitoredOptions
+            );
+            const getGlobalPropertiesOperation = new DatabaseOperations.GetGlobalProperties();
+            this.dbApi.execute(getGlobalPropertiesOperation)
+                .then(result => {
                     const proposalCreateParameters: ProposalCreateParameters = {
                         fee_paying_account: issuer,
-                        expiration_time: '2018-07-16T02:00:00',
-                        review_period_seconds: this.convertDaysToSeconds(14),
+                        expiration_time: this.getDate(this.convertSecondsToDays(result.parameters.miner_proposal_review_period) + 1),
+                        review_period_seconds: result.parameters.miner_proposal_review_period,
                         extensions: []
                     };
                     const transaction = new Transaction();
                     transaction.addOperation(operation);
                     transaction.propose(proposalCreateParameters);
                     transaction.broadcast(issuerPrivateKey)
-                        .then(() => {
+                        .then(result => {
                             resolve(true);
                         })
                         .catch(error => {
@@ -544,8 +541,20 @@ export class AssetModule extends ApiModule {
         });
     }
 
-    private convertDaysToSeconds(days: number): number {
-        return days * 24 * 60 * 60;
+    private convertDateToSeconds(): number {
+        return new Date().getTime() / 1000 | 0;
+    }
+
+    private convertSecondsToDays(seconds: number): number {
+        return seconds / 24 / 60 / 60;
+    }
+
+    private getDate(days: number = 0): string {
+        const date = new Date();
+        const newDate = new Date();
+        newDate.setDate(date.getDate() + days);
+        newDate.setUTCHours(0, 0, 0);
+        return newDate.toISOString().split('.')[0];
     }
 
 }

@@ -19,7 +19,7 @@ export interface AssetObject {
 export interface MonitoredAssetOptions {
     feeds?: any[];
     current_feed?: AssetCurrentFeed;
-    current_feed_publication_time?: string;
+    current_feed_publication_time?: number;
     feed_lifetime_sec: number;
     minimum_feeds: number;
 }
