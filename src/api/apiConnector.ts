@@ -1,4 +1,4 @@
-const BBPromise = require('bluebird');
+// const BBPromise = require('bluebird');
 
 export enum ApiConnectorError {
     ws_connection_failed = 'ws_connection_failed'
@@ -27,25 +27,30 @@ export class ApiConnector {
     }
 
     constructor(apiAddresses: string[], api: any, connectionStatusCallback: (status: ConnectionState) => void = null) {
-        this.initConnetion(apiAddresses, api, connectionStatusCallback);
         this._apiAddresses = apiAddresses;
+        this.initConnetion(apiAddresses, api, connectionStatusCallback);
     }
 
     private initConnetion(addresses: string[], api: any, connectionStatusCallback: (status: ConnectionState) => void = null): void {
         api.setRpcConnectionStatusCallback((status: string) => this.handleConnectionState(status, connectionStatusCallback));
-        const promises: Promise<any>[] = [];
-        addresses.forEach(address => {
-            promises.push(this.getConnectionPromise(address, api));
-        });
+        this._connectionPromise = this.connectApi(api);
+    }
 
-        this._connectionPromise = new Promise((resolve, reject) => {
-            BBPromise.any(promises)
-                .then((result) => {
-                    resolve(result);
-                })
-                .catch(err => {
-                    reject(this.handleError(ApiConnectorError.ws_connection_failed, err));
-                });
+    private connectApi(api: any): Promise<any> {
+        return new Promise<any>(async (resolve, reject) => {
+            for (let i = 0; i < this._apiAddresses.length; i += 1) {
+                const address = this._apiAddresses[i];
+                try {
+                    const res = await this.getConnectionPromise(address, api);
+                    console.log('Connected to - ', address);
+                    resolve(res);
+                    return;
+                } catch (e) {
+                    console.log('Error connecting - ', address);
+                    api.close();
+                }
+            }
+            reject(this.handleError(ApiConnectorError.ws_connection_failed));
         });
     }
 
@@ -82,7 +87,7 @@ export class ApiConnector {
         callback(connectionState);
     }
 
-    private handleError(message: string, err: any): Error {
+    private handleError(message: string, err: any = ''): Error {
         const error = new Error(message);
         error.stack = err;
         return error;
