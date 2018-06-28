@@ -517,7 +517,7 @@ export class AssetModule extends ApiModule {
         return new Promise<boolean>((resolve, reject) => {
             this.listAssets(symbol, 1)
                 .then((assets: AssetObject[]) => {
-                    if (assets.length === 0 || !assets[0]) {
+                    if (assets.length === 0 || !assets[0] || assets[0].symbol !== symbol) {
                         reject(this.handleError(AssetError.asset_not_found));
                         return;
                     }
