@@ -4,7 +4,7 @@ const el = id => document.getElementById(id);
 
 el('searchButton').onclick = () => {
     const keyword = el('keyword').value;
-    getAccount(keyword);
+    listAssets(keyword);
 };
 const output = el('output');
 
@@ -20,20 +20,23 @@ dcore_js.initialize({
     dcoreNetworkWSPaths: dcoreNetworkAddresses
 }, dcorejs_lib);
 
-function getAccount(accountId) {
+function listAssets(symbol) {
     output.innerHTML = 'Loading ...';
-    dcore_js.account().getAccountById(accountId)
+    let limit = (symbol !== '') ? 1 : 100;
+    dcore_js.asset().listAssets(symbol, limit)
         .then(res => {
             output.innerHTML = '';
-            output.innerHTML += '<h3>Id: ' + res.id + '</h3>';
-            output.innerHTML += '<h3>Name: ' + res.name + '</h3>';
-            output.innerHTML += '<h3>Auth: ' + res.owner.key_auths[0][0] + '</h3>';
-            output.innerHTML += '<h3>Registered by: ' + res.registrar + '</h3>';
-            output.innerHTML += JSON.stringify(res, null, 2);
+            for (var i = 0; i < res.length; i++) {
+                const result = res[i];
+                output.innerHTML += '<h3>Id: ' + result.id + '</h3>';
+                output.innerHTML += '<h3>Symbol: ' + result.symbol + '</h3>';
+                output.innerHTML += '<h3>Description: ' + result.description + '</h3>';
+                output.innerHTML += JSON.stringify(result, null, 2);
+            }
         })
         .catch(err => {
             console.error(err);
-            output.innerHTML = '<p style="color: red;">Error loading user account</p>';
+            output.innerHTML = '<p style="color: red;">Error loading assets</p>';
         });
 }
 
