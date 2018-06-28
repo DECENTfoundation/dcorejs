@@ -1,4 +1,12 @@
 // const BBPromise = require('bluebird');
+// import * as request from 'request';
+import axios from 'axios';
+
+interface ConnectionTestResult {
+    address: string;
+    elapsedTime: number;
+    success: boolean;
+}
 
 export enum ApiConnectorError {
     ws_connection_failed = 'ws_connection_failed'
@@ -36,22 +44,54 @@ export class ApiConnector {
         this._connectionPromise = this.connectApi(api);
     }
 
-    private connectApi(api: any): Promise<any> {
+    private async connectApi(api: any): Promise<any> {
         return new Promise<any>(async (resolve, reject) => {
-            for (let i = 0; i < this._apiAddresses.length; i += 1) {
-                const address = this._apiAddresses[i];
+            const conTestResults = await this.testConnectionTime(this._apiAddresses);
+            const addresses = conTestResults
+                .filter(r => r.success)
+                .sort((a, b) => a.elapsedTime - b.elapsedTime)
+                .map(r => r.address);
+
+            for (let i = 0; i < addresses.length; i += 1) {
+                const address = addresses[i];
                 try {
                     const res = await this.getConnectionPromise(address, api);
-                    console.log('Connected to - ', address);
                     resolve(res);
                     return;
                 } catch (e) {
-                    console.log('Error connecting - ', address);
                     api.close();
                 }
             }
             reject(this.handleError(ApiConnectorError.ws_connection_failed));
         });
+    }
+
+    private testConnectionTime(addresses: string[]): Promise<ConnectionTestResult[]> {
+        const httpAddrses = addresses.map(address => {
+            return ['https', ...address.split(':').slice(1)].join(':');
+        });
+
+        const promises = httpAddrses.map((httpAddress: string) => {
+            return new Promise<ConnectionTestResult>((async resolve => {
+                const refTime = new Date();
+                try {
+                    await axios.get(httpAddress);
+                    const time = new Date();
+                    resolve({
+                        address: httpAddress,
+                        elapsedTime: time.getTime() - refTime.getTime(),
+                        success: true
+                    });
+                } catch (e) {
+                    resolve({
+                        address: httpAddress,
+                        elapsedTime: 0,
+                        success: false
+                    });
+                }
+            }));
+        });
+        return Promise.all(promises);
     }
 
     private getConnectionPromise(forAddress: string, api: any): Promise<any> {
