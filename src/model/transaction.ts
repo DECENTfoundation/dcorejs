@@ -73,6 +73,7 @@ export enum OperationName {
     subscribe = 'subscribe',
     subscribe_by_author = 'subscribe_by_author',
     automatic_renewal_of_subscription = 'automatic_renewal_of_subscription',
+    update_monitored_asset_operation = 'update_monitored_asset_operation',
 }
 
 /**
@@ -563,6 +564,16 @@ export namespace Operations {
                     subscription: subscriptionId,
                     automatic_renewal: automaticRenewal
                 });
+        }
+    }
+
+    export class UpdateMonitoredAssetOperation extends Operation {
+        static getPrototype(): object {
+            return UpdateMonitoredAssetPrototype.getPrototype();
+        }
+
+        constructor(params: UpdateMonitoredAssetParameters) {
+            super(OperationName.update_monitored_asset_operation, params);
         }
     }
 }
