@@ -8,11 +8,11 @@ import {
 import {Memo, Operations} from '../model/transaction';
 import {Transaction} from '../transaction';
 import {Asset} from '../model/account';
-import {ChainApi, ChainMethods} from '../api/chain';
+import {ChainApi} from '../api/chain';
 import {Utils} from '../utils';
 import {CryptoUtils} from '../crypt';
 import {ApiConnector} from '../api/apiConnector';
-import {AssetError} from '../model/asset';
+import {ChainMethods} from '../api/model/chain';
 
 export class ProposalModule extends ApiModule {
     private _chainApi: ChainApi;
@@ -41,12 +41,12 @@ export class ProposalModule extends ApiModule {
         proposerAccountId: string, fromAccountId: string, toAccountId: string, amount: number, assetId: string, memoKey: string,
         expiration: string, privateKey: string): Promise<any> {
         return new Promise<any>(((resolve, reject) => {
-            const operations = new ChainMethods();
-            operations.add(ChainMethods.getAccount, fromAccountId);
-            operations.add(ChainMethods.getAccount, toAccountId);
-            operations.add(ChainMethods.getAsset, assetId);
-
-            this._chainApi.fetch(operations)
+            const operations = [].concat(
+                new ChainMethods.GetAccount(fromAccountId),
+                new ChainMethods.GetAccount(toAccountId),
+                new ChainMethods.GetAsset(assetId)
+            );
+            this._chainApi.fetch(...operations)
             .then(result => {
                 const [senderAccount, receiverAccount, asset] = result;
                 const senderAccountObject = JSON.parse(JSON.stringify(senderAccount));
@@ -216,8 +216,10 @@ export class ProposalModule extends ApiModule {
      *
      * @param {string} proposerAccountId                Account which pays fee for propose operation.
      * @param {FeesParameters} feesParameters           Fees that should be changed.
-     * @param {string} expiration                       Date in form of "2018-07-17T16:00:00", min is 14 days since today,
-     *                                                  max is 28 days since today.
+     * @param {number} reviewPeriodInDays               Min is 14, max is 27.
+     * @param {string} expiration                       Date in form of "2018-07-17T16:00:00", depends on reviewPeriodInDays.
+     *                                                  If reviewPeriodInDays is 14, expiration must be at least 14 days since today,
+     *                                                  max is always 27 days since today.
      * @param {string} privateKey                       Private key for signing transaction.
      * @returns {Promise<boolean>}
      */

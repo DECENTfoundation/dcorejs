@@ -12,3 +12,4 @@ export * from './model/asset';
 export * from './model/mining';
 export * from './model/seeding';
 export * from './model/subscription';
+export { ChainOperationType } from './api/model/chain';

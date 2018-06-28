@@ -9,7 +9,7 @@ import {
     HistoryOptions, UpdateAccountParameters, Authority, Options
 } from '../model/account';
 import { DatabaseApi } from '../api/database';
-import { ChainApi, ChainMethods } from '../api/chain';
+import { ChainApi} from '../api/chain';
 import { CryptoUtils } from '../crypt';
 import { Transaction } from '../transaction';
 import { KeyPrivate, KeyPublic, Utils } from '../utils';
@@ -19,6 +19,7 @@ import { DatabaseError, DatabaseOperations, MinerOrder, SearchAccountHistoryOrde
 import { Memo, Operation, Operations } from '../model/transaction';
 import { ApiModule } from './ApiModule';
 import { DCoreAssetObject } from '../model/asset';
+import {ChainMethods} from '../api/model/chain';
 
 export enum AccountOrder {
     nameAsc = '+name',
@@ -216,13 +217,13 @@ export class AccountApi extends ApiModule {
             if (memo && !privateKey) {
                 reject(AccountError.transfer_missing_pkey);
             }
+            const methods = [].concat(
+                new ChainMethods.GetAccount(fromAccount),
+                new ChainMethods.GetAccount(toAccount),
+                new ChainMethods.GetAsset(assetId || '1.3.0')
+            );
 
-            const operations = new ChainMethods();
-            operations.add(ChainMethods.getAccount, fromAccount);
-            operations.add(ChainMethods.getAccount, toAccount);
-            operations.add(ChainMethods.getAsset, assetId || '1.3.0');
-
-            this._chainApi.fetch(operations)
+            this._chainApi.fetch(...methods)
                 .then(result => {
                     const [senderAccount, receiverAccount, asset] = result;
                     if (!senderAccount) {

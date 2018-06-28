@@ -1,4 +1,4 @@
-import {AssetOptions, UpdateMonitoredAssetParameters} from './asset';
+import {AssetOptions} from './asset';
 import {Key, KeyParts} from './content';
 import {Block} from './explorer';
 import AssetExchangeRate = Block.AssetExchangeRate;
@@ -14,7 +14,7 @@ import {
     MinerUpdatePrototype, OperationWrapperPrototype, ProposalCreatePrototype, ProposalUpdatePrototype,
     SubmitContentPrototype,
     TransferPrototype,
-    UpdateAccountPrototype, UpdateMonitoredAssetPrototype, UpdateUserIssuedAssetPrototype, VestingBalanceWithdrawPrototype
+    UpdateAccountPrototype, UpdateUserIssuedAssetPrototype, VestingBalanceWithdrawPrototype
 } from './operationPrototype';
 
 /**
@@ -70,6 +70,9 @@ export enum OperationName {
     proposal_update = 'proposal_update',
     operation_wrapper = 'op_wrapper',
     vesting_balance_withdraw = 'vesting_balance_withdraw',
+    subscribe = 'subscribe',
+    subscribe_by_author = 'subscribe_by_author',
+    automatic_renewal_of_subscription = 'automatic_renewal_of_subscription',
     update_monitored_asset_operation = 'update_monitored_asset_operation',
 }
 
@@ -529,6 +532,37 @@ export namespace Operations {
                     vesting_balance: vestingBalanceId,
                     owner: ownerId,
                     amount: ammount
+                });
+        }
+    }
+
+    export class Subscribe extends Operation {
+        constructor(fromId: string, toId: string, price: Asset) {
+            super(OperationName.subscribe, {
+                    from: fromId,
+                    to: toId,
+                    price: price
+            });
+        }
+    }
+
+    export class SubscribeByAuthor extends Operation {
+        constructor(fromId: string, toId: string) {
+            super(
+                OperationName.subscribe_by_author, {
+                    from: fromId,
+                    to: toId
+                });
+        }
+    }
+
+    export class SetAutomaticRenewalOfSubscription extends Operation {
+        constructor(accountId: string, subscriptionId: string, automaticRenewal: boolean) {
+            super(
+                OperationName.automatic_renewal_of_subscription, {
+                    consumer: accountId,
+                    subscription: subscriptionId,
+                    automatic_renewal: automaticRenewal
                 });
         }
     }

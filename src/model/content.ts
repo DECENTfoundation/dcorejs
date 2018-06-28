@@ -45,7 +45,7 @@ export interface Content extends ContentExchangeObject {
     times_bought: number;
 }
 
-export interface Synopsis {
+export interface DCoreSynopsis {
     title: string;
     description: string;
     content_type_id: string;
@@ -152,9 +152,19 @@ export interface SubmitObject {
     URI: string;
     hash: string;
     keyParts: KeyParts[];
-    synopsis: any;
+    synopsis: Synopsis;
     assetId?: string;
     publishingFeeAsset?: string;
+}
+
+export interface SynopsisBase {
+    title: string;
+    description: string;
+    content_type_id: string;
+}
+
+export interface Synopsis extends SynopsisBase {
+    [key: string]: any;
 }
 
 export interface ContentExchangeObject {

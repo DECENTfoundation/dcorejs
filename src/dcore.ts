@@ -1,6 +1,6 @@
 import {getLibRef} from './helpers';
 import {ContentApi} from './modules/content';
-import {ChainApi, ChainSubscriptionCallback} from './api/chain';
+import {ChainApi} from './api/chain';
 import {DatabaseApi} from './api/database';
 import {AccountApi} from './modules/account';
 import {HistoryApi} from './api/history';
@@ -12,6 +12,7 @@ import {SubscriptionModule} from './modules/subscription';
 import {SeedingModule} from './modules/seeding';
 import {ProposalModule} from './modules/proposal';
 import {Transaction} from './transaction';
+import {ChainSubscriptionCallback} from './api/model/chain';
 
 let _content: ContentApi;
 let _account: AccountApi;
@@ -60,7 +61,7 @@ export function initialize(config: DcoreConfig,
     _account = new AccountApi(database, _chain, historyApi, connector);
     _explorer = new ExplorerModule(database);
     _assetModule = new AssetModule(database, connector, _chain);
-    _subscription = new SubscriptionModule(database);
+    _subscription = new SubscriptionModule(database, connector);
     _seeding = new SeedingModule(database);
     _mining = new MiningModule(database, connector, _chain);
     _proposal = new ProposalModule(database, _chain, connector);

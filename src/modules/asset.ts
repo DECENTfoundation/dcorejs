@@ -6,8 +6,9 @@ import {Asset, Memo, Operations, PriceFeed} from '../model/transaction';
 import {Transaction} from '../transaction';
 import {Utils} from '../utils';
 
-import {ChainApi, ChainMethods} from '../api/chain';
+import {ChainApi} from '../api/chain';
 import {ApiModule} from './ApiModule';
+import {ChainMethods} from '../api/model/chain';
 import {AssetError, AssetObject, AssetOptions, DCoreAssetObject, MonitoredAssetOptions, UpdateMonitoredAssetParameters, UserIssuedAssetInfo
 } from '../model/asset';
 import {ProposalCreateParameters} from '../model/proposal';
@@ -48,7 +49,7 @@ export class AssetModule extends ApiModule {
                                  isSupplyFixed: boolean,
                                  issuerPrivateKey: string): Promise<boolean> {
         const options: AssetOptions = {
-            max_supply: maxSupply,
+            max_supply: maxSupply.toString(),
             core_exchange_rate: {
                 base: {
                     amount: baseExchangeAmount,
@@ -103,10 +104,11 @@ export class AssetModule extends ApiModule {
                     const issuer = asset.issuer;
                     // TODO: correct memo object
 
-                    const operations = new ChainMethods();
-                    operations.add(ChainMethods.getAccount, issueToAccount);
-                    operations.add(ChainMethods.getAccount, issuer);
-                    this.chainApi.fetch(operations)
+                    const operations = [].concat(
+                        new ChainMethods.GetAccount(issueToAccount),
+                        new ChainMethods.GetAccount(issuer)
+                    );
+                    this.chainApi.fetch(...operations)
                         .then(res => {
                             const [issueToAcc, issuerAcc] = res;
                             const privateKeyIssuer = Utils.privateKeyFromWif(issuerPKey);
@@ -173,6 +175,7 @@ export class AssetModule extends ApiModule {
                         asset.issuer,
                         asset.id,
                         newInfo.description || asset.description,
+                        Number(newInfo.maxSupply || asset.options.max_supply),
                         maxSupply,
                         newInfo.coreExchange || asset.options.core_exchange_rate,
                         isExchangable,

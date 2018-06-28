@@ -129,6 +129,19 @@ export class Utils {
     }
 
     /**
+     * Formats amount to DCT precision.
+     * Value is devided by asset's precision factor
+     * Note: Most of amount values are already formatted for this precision format.
+     *
+     * @param {number} amount
+     * @param {DCoreAssetObject} asset
+     * @returns {number}
+     */
+    public static formatAmountForDCTAsset(amount: number): number {
+        return amount / ChainApi.DCTPower;
+    }
+
+    /**
      * Formats amount to correct precision.
      * Value is devided by asset's precision factor
      * Note: Most of amount values are already formatted for this precision format.
