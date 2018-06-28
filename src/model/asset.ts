@@ -25,7 +25,7 @@ export interface MonitoredAssetOptions {
 }
 
 export interface AssetOptions {
-    max_supply: string;
+    max_supply: number;
     core_exchange_rate?: AssetExchangeRate;
     is_exchangeable: boolean;
     extensions?: Array<any>;

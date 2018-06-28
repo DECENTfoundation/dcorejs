@@ -49,7 +49,7 @@ export class AssetModule extends ApiModule {
                                  isSupplyFixed: boolean,
                                  issuerPrivateKey: string): Promise<boolean> {
         const options: AssetOptions = {
-            max_supply: maxSupply.toString(),
+            max_supply: maxSupply,
             core_exchange_rate: {
                 base: {
                     amount: baseExchangeAmount,
@@ -163,7 +163,7 @@ export class AssetModule extends ApiModule {
                         return;
                     }
                     const asset = assets[0];
-                    let maxSupply = asset.options.max_supply;
+                    let maxSupply = Number(asset.options.max_supply);
                     if (newInfo.maxSupply !== undefined) {
                         maxSupply = newInfo.maxSupply;
                     }
@@ -175,7 +175,6 @@ export class AssetModule extends ApiModule {
                         asset.issuer,
                         asset.id,
                         newInfo.description || asset.description,
-                        Number(newInfo.maxSupply || asset.options.max_supply),
                         maxSupply,
                         newInfo.coreExchange || asset.options.core_exchange_rate,
                         isExchangable,

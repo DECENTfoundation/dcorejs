@@ -13,6 +13,7 @@ import {Utils} from '../utils';
 import {CryptoUtils} from '../crypt';
 import {ApiConnector} from '../api/apiConnector';
 import {ChainMethods} from '../api/model/chain';
+import {AssetError} from '../model/asset';
 
 export class ProposalModule extends ApiModule {
     private _chainApi: ChainApi;
