@@ -8,8 +8,11 @@ import {Utils} from '../utils';
 
 import {ChainApi} from '../api/chain';
 import {ApiModule} from './ApiModule';
-import {AssetError, AssetObject, AssetOptions, DCoreAssetObject, MonitoredAssetOptions, UserIssuedAssetInfo} from '../model/asset';
 import {ChainMethods} from '../api/model/chain';
+import {AssetError, AssetObject, AssetOptions, DCoreAssetObject, MonitoredAssetOptions, UpdateMonitoredAssetParameters, UserIssuedAssetInfo
+} from '../model/asset';
+import {ProposalCreateParameters} from '../model/proposal';
+
 
 export class AssetModule extends ApiModule {
     public MAX_SHARED_SUPPLY = 7319777577456890;
@@ -46,7 +49,7 @@ export class AssetModule extends ApiModule {
                                  isSupplyFixed: boolean,
                                  issuerPrivateKey: string): Promise<boolean> {
         const options: AssetOptions = {
-            max_supply: maxSupply.toString(),
+            max_supply: maxSupply,
             core_exchange_rate: {
                 base: {
                     amount: baseExchangeAmount,
@@ -160,13 +163,21 @@ export class AssetModule extends ApiModule {
                         return;
                     }
                     const asset = assets[0];
+                    let maxSupply = Number(asset.options.max_supply);
+                    if (newInfo.maxSupply !== undefined) {
+                        maxSupply = newInfo.maxSupply;
+                    }
+                    let isExchangable = asset.options.is_exchangeable;
+                    if (newInfo.isExchangable !== undefined) {
+                        isExchangable = newInfo.isExchangable;
+                    }
                     const operation = new Operations.UpdateAssetIssuedOperation(
                         asset.issuer,
                         asset.id,
                         newInfo.description || asset.description,
-                        Number(newInfo.maxSupply || asset.options.max_supply),
+                        maxSupply,
                         newInfo.coreExchange || asset.options.core_exchange_rate,
-                        newInfo.isExchangable || asset.options.is_exchangeable,
+                        isExchangable,
                         newInfo.newIssuer
                     );
                     const transaction = new Transaction();
@@ -423,4 +434,138 @@ export class AssetModule extends ApiModule {
         });
         return res;
     }
+
+    /**
+     * NOTE: only miner can create monitored asset.
+     * @requires dcorejs-lib@1.2.1 - support for asset creation
+     *
+     * @param {string} issuer
+     * @param {string} symbol
+     * @param {number} precision
+     * @param {string} description
+     * @param {number} feedLifetimeSec
+     * @param {number} minimumFeeds
+     * @param {string} issuerPrivateKey
+     * @returns {Promise<any>}
+     */
+    public createMonitoredAsset(issuer: string, symbol: string, precision: number, description: string, feedLifetimeSec: number,
+                                minimumFeeds: number, issuerPrivateKey: string): Promise<boolean> {
+        return new Promise<any>((resolve, reject) => {
+            const coreExchangeRate = {
+                base: {
+                    amount: 0,
+                    asset_id: '1.3.0'
+                },
+                quote: {
+                    amount: 0,
+                    asset_id: '1.3.0'
+                }
+            };
+            const options: AssetOptions = {
+                max_supply: 0,
+                core_exchange_rate: coreExchangeRate,
+                is_exchangeable: true,
+                extensions: []
+            };
+            const monitoredOptions: MonitoredAssetOptions = {
+                feeds: [],
+                current_feed: {
+                    core_exchange_rate: coreExchangeRate,
+                },
+                current_feed_publication_time: this.convertDateToSeconds(),
+                feed_lifetime_sec: feedLifetimeSec,
+                minimum_feeds: minimumFeeds
+            };
+            const operation = new Operations.AssetCreateOperation(
+                issuer, symbol, precision, description, options, monitoredOptions
+            );
+            const getGlobalPropertiesOperation = new DatabaseOperations.GetGlobalProperties();
+            this.dbApi.execute(getGlobalPropertiesOperation)
+                .then(result => {
+                    const proposalCreateParameters1: ProposalCreateParameters = {
+                        fee_paying_account: issuer,
+                        expiration_time: this.getDate(this.convertSecondsToDays(result.parameters.miner_proposal_review_period)  + 2),
+                        review_period_seconds: result.parameters.miner_proposal_review_period,
+                        extensions: []
+                    };
+                    const proposalCreateParameters2: ProposalCreateParameters = {
+                        fee_paying_account: issuer,
+                        expiration_time: this.getDate(this.convertSecondsToDays(result.parameters.miner_proposal_review_period) + 1),
+                        review_period_seconds: result.parameters.miner_proposal_review_period,
+                        extensions: []
+                    };
+                    const transaction = new Transaction();
+                    transaction.addOperation(operation);
+                    transaction.propose(proposalCreateParameters2);
+                    transaction.propose(proposalCreateParameters1);
+                    transaction.broadcast(issuerPrivateKey)
+                        .then(result => {
+                            resolve(true);
+                        })
+                        .catch(error => {
+                            reject(this.handleError(AssetError.transaction_broadcast_failed, error));
+                            return;
+                        });
+                })
+                .catch(error => {
+                    reject(this.handleError(AssetError.database_operation_failed, error));
+                    return;
+                });
+        });
+    }
+
+
+    // TODO not tested, waiting for proposal
+    public updateMonitoredAsset(symbol: string, description: string, feedLifetimeSec: number, minimumFeeds: number, privateKey: string):
+        Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            this.listAssets(symbol, 1)
+                .then((assets: AssetObject[]) => {
+                    if (assets.length === 0 || !assets[0] || assets[0].symbol !== symbol) {
+                        reject(this.handleError(AssetError.asset_not_found));
+                        return;
+                    }
+                    const asset = assets[0];
+                    const parameters: UpdateMonitoredAssetParameters = {
+                        issuer: asset.issuer,
+                        asset_to_update: asset.id,
+                        new_description: description,
+                        new_feed_lifetime_sec: feedLifetimeSec,
+                        new_minimum_feeds: minimumFeeds,
+                    };
+                    const operation = new Operations.UpdateMonitoredAssetOperation(parameters);
+                    const transaction = new Transaction();
+                    transaction.addOperation(operation);
+                    transaction.broadcast(privateKey)
+                        .then(() => {
+                            resolve(true);
+                        })
+                        .catch(error => {
+                            reject(this.handleError(AssetError.transaction_broadcast_failed, error));
+                            return;
+                        });
+                })
+                .catch(error => {
+                    reject(this.handleError(AssetError.database_operation_failed, error));
+                    return;
+                });
+        });
+    }
+
+    private convertDateToSeconds(): number {
+        return new Date().getTime() / 1000 | 0;
+    }
+
+    private convertSecondsToDays(seconds: number): number {
+        return seconds / 24 / 60 / 60;
+    }
+
+    private getDate(days: number = 0): string {
+        const date = new Date();
+        const newDate = new Date();
+        newDate.setDate(date.getDate() + days);
+        newDate.setUTCHours(0, 0, 0);
+        return newDate.toISOString().split('.')[0];
+    }
+
 }
