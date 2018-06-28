@@ -512,6 +512,8 @@ export class AssetModule extends ApiModule {
         });
     }
 
+
+    // TODO not tested, waiting for proposal
     public updateMonitoredAsset(symbol: string, description: string, feedLifetimeSec: number, minimumFeeds: number, privateKey: string):
         Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
