@@ -3,8 +3,14 @@
 const el = id => document.getElementById(id);
 
 el('searchButton').onclick = () => {
-    const keyword = el('keyword').value;
-    createMonitoredAsset(keyword);
+    const issuer = el('issuer').value;
+    const symbol = el('symbol').value;
+    const precision = el('precision').value;
+    const description = el('description').value;
+    const feedLifeTimeSec = el('feedLifeTimeSec').value;
+    const minimumFeeds = el('minimumFeeds').value;
+    const privateKey = el('privateKey').value;
+    createMonitoredAsset(issuer, symbol, precision, description, feedLifeTimeSec, minimumFeeds, privateKey);
 };
 const output = el('output');
 
@@ -20,19 +26,15 @@ dcore_js.initialize({
     dcoreNetworkWSPaths: dcoreNetworkAddresses
 }, dcorejs_lib);
 
-function createMonitoredAsset(assetId) {
+function createMonitoredAsset(issuer, symbol, precision, description, feedLifeTimeSec, minimumFeeds, privateKey) {
     output.innerHTML = 'Loading ...';
-    dcore_js.asset().getAsset(assetId)
-        .then(res => {
-            output.innerHTML = '';
-            output.innerHTML += '<h3>Id: ' + res.id + '</h3>';
-            output.innerHTML += '<h3>Symbol: ' + res.symbol + '</h3>';
-            output.innerHTML += '<h3>Description: ' + res.description + '</h3>';
-            output.innerHTML += JSON.stringify(res, null, 2);
+    dcore_js.asset().createMonitoredAsset(issuer, symbol, Number(precision), description, Number(feedLifeTimeSec), Number(minimumFeeds), privateKey)
+        .then(() => {
+            output.innerHTML = 'Monitored asset successfully proposed';
         })
         .catch(err => {
             console.error(err);
-            output.innerHTML = '<p style="color: red;">Error loading asset</p>';
+            output.innerHTML = '<p style="color: red;">Error creating monitored asset</p>';
         });
 }
 
