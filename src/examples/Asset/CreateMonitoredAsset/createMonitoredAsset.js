@@ -34,7 +34,7 @@ function createMonitoredAsset(issuer, symbol, precision, description, feedLifeTi
         })
         .catch(err => {
             console.error(err);
-            output.innerHTML = '<p style="color: red;">Error creating monitored asset</p>';
+            output.innerHTML = '<p style="color: red;">Error proposing monitored asset</p>';
         });
 }
 

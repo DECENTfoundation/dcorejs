@@ -92,7 +92,7 @@ export class AssetModule extends ApiModule {
      * @requires dcorejs-lib@1.2.1 - support for asset creation
      * @returns {Promise<any>}
      */
-    public issueAsset(assetSymbol: string, amount: number, issueToAccount: string, memo: string, issuerPKey: string): Promise<any> {
+    public issueAsset(assetSymbol: string, amount: number, issueToAccount: string, memo: string, issuerPKey: string): Promise<boolean> {
         return new Promise<any>((resolve, reject) => {
             this.listAssets(assetSymbol, 1)
                 .then((assets: AssetObject[]) => {
