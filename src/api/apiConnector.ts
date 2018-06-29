@@ -53,7 +53,7 @@ export class ApiConnector {
                 .map(r => r.address);
 
             for (let i = 0; i < addresses.length; i += 1) {
-                const address = addresses[i];
+                const address = ['wss', ...addresses[i].split(':').slice(1)].join(':');
                 try {
                     const res = await this.getConnectionPromise(address, api);
                     resolve(res);
