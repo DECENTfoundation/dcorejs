@@ -3,15 +3,12 @@
 const el = id => document.getElementById(id);
 
 el('searchButton').onclick = () => {
-    const proposer = el('proposer').value;
-    const fromAccount = el('fromAccount').value;
-    const toAccount = el('toAccount').value;
+    const from = el('fromAccount').value;
+    const to = el('toAccount').value;
     const amount = el('amount').value;
     const assetId = el('assetId').value;
-    const memoKey = el('memoKey').value;
-    const expiration = el('expiration').value;
     const privateKey = el('privateKey').value;
-    proposeTransfer(proposer, fromAccount, toAccount, amount, assetId, memoKey, expiration, privateKey);
+    subscribeToAuthor(from, to, amount, assetId, privateKey);
 };
 const output = el('output');
 
@@ -27,15 +24,15 @@ dcore_js.initialize({
     dcoreNetworkWSPaths: dcoreNetworkAddresses
 }, dcorejs_lib);
 
-function proposeTransfer(proposer, fromAccount, toAccount, amount, assetId, memoKey, expiration, privateKey) {
+function subscribeToAuthor(from, to, amount, assetId, privateKey) {
     output.innerHTML = 'Loading ...';
-    dcore_js.proposal().proposeTransfer(proposer, fromAccount, toAccount, Number(amount), assetId, memoKey, expiration, privateKey)
+    dcore_js.subscription().subscribeToAuthor(from, to, Number(amount), assetId, privateKey)
         .then(() => {
-            output.innerHTML = 'Transfer successfully proposed';
+            output.innerHTML = 'Subscribed to author is successful';
         })
         .catch(err => {
             console.error(err);
-            output.innerHTML = '<p style="color: red;">Error proposing transfer</p>';
+            output.innerHTML = '<p style="color: red;">Error subscribing to author</p>';
         });
 }
 
