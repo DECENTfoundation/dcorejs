@@ -1,4 +1,4 @@
-import {AssetOptions} from './asset';
+import {AssetOptions, UpdateMonitoredAssetParameters} from './asset';
 import {Key, KeyParts} from './content';
 import {Block} from './explorer';
 import AssetExchangeRate = Block.AssetExchangeRate;
@@ -14,7 +14,7 @@ import {
     MinerUpdatePrototype, OperationWrapperPrototype, ProposalCreatePrototype, ProposalUpdatePrototype,
     SubmitContentPrototype,
     TransferPrototype,
-    UpdateAccountPrototype, UpdateUserIssuedAssetPrototype, VestingBalanceWithdrawPrototype
+    UpdateAccountPrototype, UpdateMonitoredAssetPrototype, UpdateUserIssuedAssetPrototype, VestingBalanceWithdrawPrototype
 } from './operationPrototype';
 
 /**
