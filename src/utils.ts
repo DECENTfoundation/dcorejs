@@ -49,6 +49,10 @@ export class KeyPrivate {
         return this._privateKey.toWif();
     }
 
+    public getPublicKey(): KeyPublic {
+        return new KeyPublic(this._privateKey.toPublicKey());
+    }
+
 }
 
 /**

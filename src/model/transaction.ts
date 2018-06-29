@@ -1,4 +1,4 @@
-import {AssetOptions} from './asset';
+import {AssetOptions, UpdateMonitoredAssetParameters} from './asset';
 import {Key, KeyParts} from './content';
 import {Block} from './explorer';
 import AssetExchangeRate = Block.AssetExchangeRate;
@@ -14,7 +14,7 @@ import {
     MinerUpdatePrototype, OperationWrapperPrototype, ProposalCreatePrototype, ProposalUpdatePrototype,
     SubmitContentPrototype,
     TransferPrototype,
-    UpdateAccountPrototype, UpdateUserIssuedAssetPrototype, VestingBalanceWithdrawPrototype
+    UpdateAccountPrototype, UpdateMonitoredAssetPrototype, UpdateUserIssuedAssetPrototype, VestingBalanceWithdrawPrototype
 } from './operationPrototype';
 
 /**
@@ -73,6 +73,7 @@ export enum OperationName {
     subscribe = 'subscribe',
     subscribe_by_author = 'subscribe_by_author',
     automatic_renewal_of_subscription = 'automatic_renewal_of_subscription',
+    custom_operation = 'custom',
     update_monitored_asset_operation = 'update_monitored_asset_operation',
 }
 
@@ -539,9 +540,9 @@ export namespace Operations {
     export class Subscribe extends Operation {
         constructor(fromId: string, toId: string, price: Asset) {
             super(OperationName.subscribe, {
-                    from: fromId,
-                    to: toId,
-                    price: price
+                from: fromId,
+                to: toId,
+                price: price
             });
         }
     }
@@ -564,6 +565,20 @@ export namespace Operations {
                     subscription: subscriptionId,
                     automatic_renewal: automaticRenewal
                 });
+        }
+    }
+
+    export class CustomOperation extends Operation {
+        constructor(payer: any, required_auths: any, id: number, data: any) {
+            super(
+                OperationName.custom_operation,
+                {
+                    payer,
+                    required_auths,
+                    id,
+                    data
+                }
+            );
         }
     }
 
