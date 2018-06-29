@@ -1,6 +1,6 @@
 import {getLibRef} from './helpers';
 import {ContentApi} from './modules/content';
-import {ChainApi, ChainSubscriptionCallback} from './api/chain';
+import {ChainApi} from './api/chain';
 import {DatabaseApi} from './api/database';
 import {AccountApi} from './modules/account';
 import {HistoryApi} from './api/history';
@@ -12,6 +12,9 @@ import {SubscriptionModule} from './modules/subscription';
 import {SeedingModule} from './modules/seeding';
 import {ProposalModule} from './modules/proposal';
 import {Transaction} from './transaction';
+import {ChainSubscriptionCallback} from './api/model/chain';
+import {MessagingApi} from './api/messaging';
+import {MessagingModule} from './modules/messaging';
 
 let _content: ContentApi;
 let _account: AccountApi;
@@ -23,6 +26,7 @@ let _seeding: SeedingModule;
 let _proposal: ProposalModule;
 let _chain: ChainApi;
 let _transaction: Transaction;
+let _messaging: MessagingModule;
 
 export class DcoreError {
     static app_not_initialized = 'app_not_initialized';
@@ -54,6 +58,7 @@ export function initialize(config: DcoreConfig,
     const connector = new ApiConnector(config.dcoreNetworkWSPaths, dcore.Apis, connectionStatusCallback);
     const database = new DatabaseApi(dcore.Apis, connector);
     const historyApi = new HistoryApi(dcore.Apis, connector);
+    const messagingApi = new MessagingApi(dcore.Apis, connector);
 
     _chain = new ChainApi(connector, dcore.ChainStore);
     _content = new ContentApi(database);
@@ -65,6 +70,7 @@ export function initialize(config: DcoreConfig,
     _mining = new MiningModule(database, connector, _chain);
     _proposal = new ProposalModule(database, _chain, connector);
     _transaction = new Transaction();
+    _messaging = new MessagingModule(database, messagingApi);
 }
 
 /**
@@ -114,6 +120,10 @@ export function seeding(): SeedingModule {
 
 export function proposal(): ProposalModule {
     return _proposal;
+}
+
+export function messaging(): MessagingModule {
+    return _messaging;
 }
 
 export function transaction(): Transaction {

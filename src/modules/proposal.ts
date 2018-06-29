@@ -8,10 +8,12 @@ import {
 import {Memo, Operations} from '../model/transaction';
 import {Transaction} from '../transaction';
 import {Asset} from '../model/account';
-import {ChainApi, ChainMethods} from '../api/chain';
+import {ChainApi} from '../api/chain';
 import {Utils} from '../utils';
 import {CryptoUtils} from '../crypt';
 import {ApiConnector} from '../api/apiConnector';
+import {ChainMethods} from '../api/model/chain';
+import {AssetError} from '../model/asset';
 
 export class ProposalModule extends ApiModule {
     private _chainApi: ChainApi;
@@ -40,12 +42,12 @@ export class ProposalModule extends ApiModule {
         proposerAccountId: string, fromAccountId: string, toAccountId: string, amount: number, assetId: string, memoKey: string,
         expiration: string, privateKey: string): Promise<any> {
         return new Promise<any>(((resolve, reject) => {
-            const operations = new ChainMethods();
-            operations.add(ChainMethods.getAccount, fromAccountId);
-            operations.add(ChainMethods.getAccount, toAccountId);
-            operations.add(ChainMethods.getAsset, assetId);
-
-            this._chainApi.fetch(operations)
+            const operations = [].concat(
+                new ChainMethods.GetAccount(fromAccountId),
+                new ChainMethods.GetAccount(toAccountId),
+                new ChainMethods.GetAsset(assetId)
+            );
+            this._chainApi.fetch(...operations)
             .then(result => {
                 const [senderAccount, receiverAccount, asset] = result;
                 const senderAccountObject = JSON.parse(JSON.stringify(senderAccount));
@@ -77,24 +79,34 @@ export class ProposalModule extends ApiModule {
                     message: CryptoUtils.encryptWithChecksum(memoKey, privateKeyObject, publicKeyObject, nonce)
                 };
 
-                const price = Asset.create(amount, assetObject);
-                const transferOperation = new Operations.TransferOperation(fromAccountId, toAccountId, price, memo);
-                const transaction = new Transaction();
-                transaction.addOperation(transferOperation);
-                const proposalCreateParameters: ProposalCreateParameters = {
-                    fee_paying_account: proposerAccountId,
-                    expiration_time: expiration,
-                    extensions: []
-                };
-                transaction.propose(proposalCreateParameters);
-                transaction.broadcast(privateKey)
-                    .then(() => {
-                        resolve(true);
+                const getGlobalPropertiesOperation = new DatabaseOperations.GetGlobalProperties();
+                this.dbApi.execute(getGlobalPropertiesOperation)
+                    .then(result => {
+                        const price = Asset.create(amount, assetObject);
+                        const transferOperation = new Operations.TransferOperation(fromAccountId, toAccountId, price, memo);
+                        const transaction = new Transaction();
+                        transaction.addOperation(transferOperation);
+                        const proposalCreateParameters: ProposalCreateParameters = {
+                            fee_paying_account: proposerAccountId,
+                            expiration_time: expiration,
+                            review_period_seconds: result.parameters.miner_proposal_review_period,
+                            extensions: []
+                        };
+                        transaction.propose(proposalCreateParameters);
+                        transaction.broadcast(privateKey)
+                            .then(() => {
+                                resolve(true);
+                            })
+                            .catch(error => {
+                                reject(this.handleError(ProposalError.transaction_broadcast_failed, error));
+                                return;
+                            });
                     })
                     .catch(error => {
-                        reject(this.handleError(ProposalError.transaction_broadcast_failed, error));
+                        reject(this.handleError(AssetError.database_operation_failed, error));
                         return;
                     });
+
                 })
             .catch(error => {
                 reject(this.handleError(ProposalError.chain_operation_failed, error));
@@ -108,15 +120,13 @@ export class ProposalModule extends ApiModule {
      *
      * @param {string} proposerAccountId                    Account which pays fee for propose operation.
      * @param {ProposalParameters} proposalParameters       Global parameters that should be changed.
-     * @param {number} reviewPeriodInDays                   Min is 14, max is 27.
-     * @param {string} expiration                           Date in form of "2018-07-17T16:00:00", depends on reviewPeriodInDays.
-     *                                                      If reviewPeriodInDays is 14, expiration must be at least 14 days since today,
-     *                                                      max is always 27 days since today.
+     * @param {string} expiration                           Date in form of "2018-07-17T16:00:00", min is 14 days since today, max is 28
+     *                                                      days since today.
      * @param {string} privateKey                           Private key for signing transaction.
      * @returns {Promise<boolean>}
      */
-    public proposeParameterChange(proposerAccountId: string, proposalParameters: ProposalParameters, reviewPeriodInDays: number,
-                                  expiration: string, privateKey: string): Promise<boolean> {
+    public proposeParameterChange(proposerAccountId: string, proposalParameters: ProposalParameters, expiration: string,
+                                  privateKey: string): Promise<boolean> {
         return new Promise<boolean>(((resolve, reject) => {
             const databaseOperation = new DatabaseOperations.GetGlobalProperties();
             this.dbApi.execute(databaseOperation)
@@ -177,14 +187,13 @@ export class ProposalModule extends ApiModule {
                     if (proposalParameters.extensions !== undefined) {
                         newParameters.new_parameters.extensions = proposalParameters.extensions;
                     }
-
                     const operation = new Operations.MinerUpdateGlobalParameters(newParameters);
                     const transaction = new Transaction();
                     transaction.addOperation(operation);
                     const proposalCreateParameters: ProposalCreateParameters = {
                         fee_paying_account: proposerAccountId,
                         expiration_time: expiration,
-                        review_period_seconds: this.convertDaysToSeconds(reviewPeriodInDays),
+                        review_period_seconds: result.parameters.miner_proposal_review_period,
                         extensions: [],
                     };
                     transaction.propose(proposalCreateParameters);
@@ -196,7 +205,7 @@ export class ProposalModule extends ApiModule {
                             reject(this.handleError(ProposalError.transaction_broadcast_failed, error));
                             return;
                         });
-                })
+                    })
                 .catch(error => {
                     reject(this.handleError(ProposalError.database_operation_failed, error));
                 });
@@ -215,8 +224,8 @@ export class ProposalModule extends ApiModule {
      * @param {string} privateKey                       Private key for signing transaction.
      * @returns {Promise<boolean>}
      */
-    public proposeFeeChange(proposerAccountId: string, feesParameters: FeesParameters, reviewPeriodInDays: number, expiration: string,
-                            privateKey: string): Promise<boolean> {
+    public proposeFeeChange(proposerAccountId: string, feesParameters: FeesParameters, expiration: string, privateKey: string):
+                            Promise<boolean> {
         return new Promise<boolean>(((resolve, reject) => {
             const databaseOperation = new DatabaseOperations.GetGlobalProperties();
             this.dbApi.execute(databaseOperation)
@@ -364,14 +373,13 @@ export class ProposalModule extends ApiModule {
                     if (feesParameters.renewal_of_subscription !== undefined) {
                         newParameters.new_parameters.current_fees.parameters[45] = [45, feesParameters.renewal_of_subscription];
                     }
-
                     const operation = new Operations.MinerUpdateGlobalParameters(newParameters);
                     const transaction = new Transaction();
                     transaction.addOperation(operation);
                     const proposalCreateParameters: ProposalCreateParameters = {
                         fee_paying_account: proposerAccountId,
                         expiration_time: expiration,
-                        review_period_seconds: this.convertDaysToSeconds(reviewPeriodInDays),
+                        review_period_seconds: currentParameters.parameters.miner_proposal_review_period,
                         extensions: [],
                     };
                     transaction.propose(proposalCreateParameters);
@@ -383,7 +391,7 @@ export class ProposalModule extends ApiModule {
                             reject(this.handleError(ProposalError.transaction_broadcast_failed, error));
                             return;
                         });
-                })
+                    })
                 .catch(error => {
                     reject(this.handleError(ProposalError.database_operation_failed));
                     return;
@@ -431,7 +439,4 @@ export class ProposalModule extends ApiModule {
         }));
     }
 
-    private convertDaysToSeconds(days: number): number {
-        return days * 24 * 60 * 60;
-    }
 }

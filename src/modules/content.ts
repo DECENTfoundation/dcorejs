@@ -1,7 +1,7 @@
 import { Asset } from './../model/account';
 import {Rating, Content, Seeder, BuyingContent, SubmitObject, ContentKeys, KeyPair, ContentExchangeObject, Price} from '../model/content';
 import {DatabaseApi} from '../api/database';
-import {ChainApi, ChainMethods} from '../api/chain';
+import {ChainApi} from '../api/chain';
 import {Transaction} from '../transaction';
 import {isUndefined} from 'util';
 import {DatabaseOperations, SearchParams, SearchParamsOrder} from '../api/model/database';
@@ -150,9 +150,6 @@ export class ContentApi extends ApiModule {
             this.getContent(contentId)
                 .then((content: Content) => {
                     const URI = content.URI;
-                    const methods = new ChainMethods();
-                    methods.add(ChainMethods.getAccount, authorId);
-
                     const cancelOperation = new Operations.ContentCancelOperation(authorId, URI);
                     const transaction = new Transaction();
                     transaction.addOperation(cancelOperation);

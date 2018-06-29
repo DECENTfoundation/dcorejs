@@ -11,7 +11,7 @@ export interface AssetObject {
     precision: number;
     issuer: string;
     description: string;
-    monitored_asset_opts: MonitoredAssetOptions;
+    monitored_asset_opts?: MonitoredAssetOptions;
     options: AssetOptions;
     dynamic_asset_data_id: string;
 }
@@ -19,7 +19,7 @@ export interface AssetObject {
 export interface MonitoredAssetOptions {
     feeds?: any[];
     current_feed?: AssetCurrentFeed;
-    current_feed_publication_time?: string;
+    current_feed_publication_time?: number;
     feed_lifetime_sec: number;
     minimum_feeds: number;
 }
@@ -28,7 +28,7 @@ export interface AssetOptions {
     max_supply: number;
     core_exchange_rate?: AssetExchangeRate;
     is_exchangeable: boolean;
-    extensions?: any[];
+    extensions?: Array<any>;
 }
 
 export interface AssetCurrentFeed {
@@ -41,6 +41,14 @@ export interface UserIssuedAssetInfo {
     maxSupply?: number;
     coreExchange?: AssetExchangeRate;
     isExchangable?: boolean;
+}
+
+export interface UpdateMonitoredAssetParameters {
+    issuer: string,
+    asset_to_update: string,
+    new_description: string,
+    new_feed_lifetime_sec: number,
+    new_minimum_feeds: number,
 }
 
 export enum AssetError {

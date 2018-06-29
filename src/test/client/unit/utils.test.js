@@ -1,21 +1,3 @@
-const refPriv = {
-    'd':
-        {
-            '0': 27151925,
-            '1': 41621333,
-            '2': 41055047,
-            '3': 29420413,
-            '4': 11471687,
-            '5': 45279530,
-            '6': 58047144,
-            '7': 66159550,
-            '8': 15684202,
-            '9': 854246,
-            't': 10,
-            's': 0
-        }
-};
-
 describe('(client/unit) Utils methods test', () => {
 
     it('generate keys from brainkey', () => {
@@ -34,10 +16,8 @@ describe('(client/unit) Utils methods test', () => {
     }).timeout(5000);
 
     it('secret from WIF string', () => {
-        const secret = dcorejs.Utils.privateKeyFromWif(priv);
-        Object.keys(secret.key.d).forEach(k => {
-            expect(secret.key.d[k]).to.equal(refPriv.d[k]);
-        });
+        const secret = dcorejs.Utils.privateKeyFromWif(refPrivateKey);
+        expect(secret.stringKey).to.equal(refPrivateKey);
     }).timeout(5000);
 
     it('change amount format', () => {
@@ -50,5 +30,28 @@ describe('(client/unit) Utils methods test', () => {
         const elGamalPublic = dcorejs.Utils.elGamalPublic(elGamalPrivate);
         expect(elGamalPrivate).to.equal(refElGamalPrivate);
         expect(elGamalPublic).to.equal(refElGamalPublic);
+    });
+
+    it('format asset to DCore format', () => {
+        const amount = 100000000;
+        const formattedAmount = dcorejs.Utils.formatAmountForDCTAsset(amount);
+        expect(formattedAmount).to.equal(1);
+    });
+
+    it('format amount to Asset format', () => {
+        const amount = 100000000;
+        const formattedAmount = dcorejs.Utils.formatAmountForAsset(amount, dctAssetObject);
+        expect(formattedAmount).to.equal(1);
+    });
+
+    it('format amount from Asset format', () => {
+        const amount = 1;
+        const formattedAmount = dcorejs.Utils.formatAmountToAsset(amount, dctAssetObject);
+        expect(formattedAmount).to.equal(100000000);
+    });
+
+    it('generate public El Gamal key from private', () => {
+        const elGPub = dcorejs.Utils.elGamalPublic(refElGamalPrivate);
+        expect(elGPub).to.equal(refElGamalPublic);
     });
 });
