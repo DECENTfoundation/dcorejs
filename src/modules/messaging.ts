@@ -18,7 +18,7 @@ export class MessagingModule extends ApiModule {
         this._message_api = messageApi;
     }
 
-    public getSentMessages(sender: string, decryptPrivateKey: string, count: number = 100): Promise<DCoreMessagePayload[]> {
+    public getSentMessages(sender: string, decryptPrivateKey: string = '', count: number = 100): Promise<DCoreMessagePayload[]> {
         return new Promise<DCoreMessagePayload[]>(((resolve, reject) => {
             this.getMessageObjects(sender, null, decryptPrivateKey, count)
                 .then((messages: any[]) => {
