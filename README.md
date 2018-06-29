@@ -370,6 +370,14 @@ setAutomaticRenewalOfSubscription(accountId: string, subscriptionId: string, aut
 setSubscription(accountId: string, options: SubscriptionOptions, privateKey: string): Promise<boolean>
 ```
 
+### Messaging 
+```typescript
+getSentMessages(sender: string, decryptPrivateKey: string = '', count: number = 100): Promise<DCoreMessagePayload[]>
+getMessages(receiver: string, decryptPrivateKey: string = '', count: number = 100): Promise<any> 
+getMessageObjects(sender?: string, receiver?: string, decryptPrivateKey: string = '', count: number = 100): Promise<any> 
+sendMessage(sender: string, receiverId: string, message: string, privateKey: string): Promise<boolean> 
+```
+
 ### Utils
 
 ```typescript
