@@ -4,7 +4,7 @@ const el = id => document.getElementById(id);
 
 el('searchButton').onclick = () => {
     const keyword = el('keyword').value;
-    getAccount(keyword);
+    getAccountByName(keyword);
 };
 const output = el('output');
 
@@ -20,7 +20,7 @@ dcore_js.initialize({
     dcoreNetworkWSPaths: dcoreNetworkAddresses
 }, dcorejs_lib);
 
-function getAccount(accountName) {
+function getAccountByName(accountName) {
     output.innerHTML = 'Loading ...';
     dcore_js.account().getAccountByName(accountName)
         .then(res => {

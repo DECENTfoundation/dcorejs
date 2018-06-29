@@ -3,8 +3,8 @@
 const el = id => document.getElementById(id);
 
 el('searchButton').onclick = () => {
-    const keyword = el('keyword').value;
-    getAccountById(keyword);
+    const accountId = el('accountId').value;
+    getAccountHistory(accountId);
 };
 const output = el('output');
 
@@ -20,20 +20,20 @@ dcore_js.initialize({
     dcoreNetworkWSPaths: dcoreNetworkAddresses
 }, dcorejs_lib);
 
-function getAccountById(accountId) {
+function getAccountHistory(accountId) {
     output.innerHTML = 'Loading ...';
-    dcore_js.account().getAccountById(accountId)
+    dcore_js.account().getAccountHistory(accountId)
         .then(res => {
             output.innerHTML = '';
-            output.innerHTML += '<h3>Id: ' + res.id + '</h3>';
-            output.innerHTML += '<h3>Name: ' + res.name + '</h3>';
-            output.innerHTML += '<h3>Auth: ' + res.owner.key_auths[0][0] + '</h3>';
-            output.innerHTML += '<h3>Registered by: ' + res.registrar + '</h3>';
-            output.innerHTML += JSON.stringify(res, null, 2);
+            for (let i = 0; i < res.length; i++) {
+                const result = res[i];
+                output.innerHTML += '<h3>Id: ' + result.id + '</h3>';
+                output.innerHTML += JSON.stringify(result, null, 2);
+            }
         })
         .catch(err => {
             console.error(err);
-            output.innerHTML = '<p style="color: red;">Error loading user account</p>';
+            output.innerHTML = '<p style="color: red;">Error loading account history</p>';
         });
 }
 

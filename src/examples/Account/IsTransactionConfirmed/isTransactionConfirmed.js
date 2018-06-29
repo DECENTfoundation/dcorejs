@@ -35,7 +35,7 @@ function getTransactionHistory(accountId, transactionId) {
             //     output.innerHTML += '<h3>Asset: ' + result.transactionAsset + '</h3>';
             //     output.innerHTML += JSON.stringify(result, null, 2);
             // }
-            output.innerHTML += res;
+            output.innerHTML += JSON.stringify(res, null, 2);
         })
         .catch(err => {
             console.error(err);
