@@ -7,7 +7,7 @@ import {KeyPrivate, KeyPublic} from '../utils';
 import {DatabaseOperations} from '../api/model/database';
 import {Account} from '../model/account';
 import {CryptoUtils} from '../crypt';
-import {DCoreMessagePayload, MessagePayload, MessagingError} from '../model/messaging';
+import {CustomOperationSubtype, DCoreMessagePayload, MessagePayload, MessagingError} from '../model/messaging';
 import {MessagingOperations} from '../api/model/messaging';
 
 export class MessagingModule extends ApiModule {
@@ -18,9 +18,9 @@ export class MessagingModule extends ApiModule {
         this._message_api = messageApi;
     }
 
-    public getSentMessages(sender: string, receiver: string, decryptPrivateKey: string, count: number = 100): Promise<DCoreMessagePayload[]> {
+    public getSentMessages(sender: string, decryptPrivateKey: string, count: number = 100): Promise<DCoreMessagePayload[]> {
         return new Promise<DCoreMessagePayload[]>(((resolve, reject) => {
-            this.getMessageObjects(sender, receiver, decryptPrivateKey, count)
+            this.getMessageObjects(sender, null, decryptPrivateKey, count)
                 .then((messages: any[]) => {
                     resolve(messages);
                 })

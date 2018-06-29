@@ -34,3 +34,9 @@ export interface DCoreReceiversData {
     nonce: string;
     data: string;
 }
+
+export enum CustomOperationSubtype {
+    undefined,
+    messaging,
+    max
+}
