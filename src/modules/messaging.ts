@@ -3,7 +3,7 @@ import {MessagingApi} from '../api/messaging';
 import {DatabaseApi} from '../api/database';
 import {Operations} from '../model/transaction';
 import {Transaction} from '../transaction';
-import {KeyPrivate, KeyPublic} from '../utils';
+import {KeyPrivate, KeyPublic, Utils} from '../utils';
 import {DatabaseOperations} from '../api/model/database';
 import {Account} from '../model/account';
 import {CryptoUtils} from '../crypt';
@@ -87,18 +87,21 @@ export class MessagingModule extends ApiModule {
                             {
                                 to: receiverId,
                                 pub_to: toAccount.options.memo_key,
-                                nonce: 0,
-                                data: []
+                                nonce: Number(Utils.generateNonce()),
+                                data: ''
                             }
                         ]
                     };
+                    const encryptedMsg = CryptoUtils.encryptWithChecksum(
+                        message,
+                        KeyPrivate.fromWif(privateKey),
+                        KeyPublic.fromString(toAccount.options.memo_key),
+                        messagePayload.receivers_data[0].nonce.toString()
+                    );
+                    messagePayload.receivers_data[0].data = encryptedMsg.toString('hex');
                     const buffer = new Buffer(JSON.stringify(messagePayload)).toString('hex');
-                    const result = [];
-                    for (let i = 0; i < buffer.length; i += 2) {
-                        result.push(buffer[i] + buffer[i + 1]);
-                    }
 
-                    const customOp = new Operations.CustomOperation(sender, [sender], 1, result);
+                    const customOp = new Operations.CustomOperation(sender, [sender], CustomOperationSubtype.messaging, buffer);
                     const transaction = new Transaction();
                     transaction.addOperation(customOp);
                     transaction.broadcast(privateKey)

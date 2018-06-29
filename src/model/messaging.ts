@@ -16,7 +16,7 @@ export interface ReceiversData {
     to: string;
     pub_to: string;
     nonce: number;
-    data: any[];
+    data: string;
 }
 
 export interface DCoreMessagePayload {
