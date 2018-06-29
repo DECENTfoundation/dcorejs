@@ -21,7 +21,7 @@ dcore_js.initialize({
 
 function listSeeders() {
     output.innerHTML = 'Loading ...';
-    dcore_js.seeding().listSeedersByPrice()
+    dcore_js.seeding().listSeedersByRating()
         .then(res => {
             output.innerHTML = '';
             for (let i = 0; i < res.length; i++) {
