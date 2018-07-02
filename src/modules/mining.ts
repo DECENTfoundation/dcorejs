@@ -13,8 +13,6 @@ import {ChainMethods} from '../api/model/chain';
 
 export class MiningModule extends ApiModule {
     static CHAIN_PROXY_TO_SELF = '';
-    private connector: ApiConnector;
-    private chainApi: ChainApi;
 
     private static getSortedMiners(minersVoteIds: string[]): string[] {
         const res = [].concat(...minersVoteIds);
@@ -45,9 +43,11 @@ export class MiningModule extends ApiModule {
     }
 
     constructor(dbApi: DatabaseApi, apiConnector: ApiConnector, chainApi: ChainApi) {
-        super(dbApi);
-        this.connector = apiConnector;
-        this.chainApi = chainApi;
+        super({
+            dbApi,
+            apiConnector,
+            chainApi
+        });
     }
 
     /**
@@ -98,7 +98,7 @@ export class MiningModule extends ApiModule {
 
     public createMiner(minerAccountId: string, URL: string, signingPublicKey: string, privateKey: string): Promise<boolean> {
         return new Promise<boolean>(((resolve, reject) => {
-            this.connector.connect()
+            this.apiConnector.connect()
                 .then(res => {
                     const operation = new Operations.MinerCreate(minerAccountId, URL, signingPublicKey);
                     const transaction = new Transaction();
