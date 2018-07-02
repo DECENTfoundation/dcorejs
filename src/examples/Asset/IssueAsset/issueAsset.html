@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>dcorejs - Issue asset example</title>
+</head>
+
+<body>
+    <h1>Issue asset</h1>
+    <form action="javascript:void(0)">
+        <label for="symbol">Enter symbol: </label><br/>
+        <input id="symbol" type="text" title="symbol" /><br/><br/>
+        <label for="amount">Enter amount: </label><br/>
+        <input id="amount" type="number" title="amount" /><br/><br/>
+        <label for="toAccount">Enter to account id: </label><br/>
+        <input id="toAccount" type="text" title="toAccount" /><br/><br/>
+        <label for="memoKey">Enter memo key: </label><br/>
+        <input id="memoKey" type="text" title="memoKey" /><br/><br/>
+        <label for="privateKey">Enter private key: </label><br/>
+        <input id="privateKey" type="text" title="PrivateKey" /><br/><br/>
+    </form>
+    <button id="searchButton" type="submit" title="searchButton"> Search </button>
+    <pre id="output"></pre>
+    <script src="../../../../dist/dcorejs.umd.js" type="text/javascript"></script>
+    <script type="text/javascript" src="issueAsset.js"></script>
+</body>
+
+</html>
