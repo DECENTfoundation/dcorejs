@@ -6,7 +6,7 @@ import {ApiConnector} from '../api/apiConnector';
 
 export interface ModuleApis {
     dbApi?: DatabaseApi;
-    apiConnector: ApiConnector;
+    apiConnector?: ApiConnector;
     chainApi?: ChainApi;
     historyApi?: HistoryApi;
     messagingApi?: MessagingApi;
@@ -24,7 +24,7 @@ export class ApiModule {
         this.chainApi = apis.chainApi || null;
         this.historyApi = apis.historyApi || null;
         this.messagingApi = apis.messagingApi || null;
-        this.apiConnector = apis.apiConnector;
+        this.apiConnector = apis.apiConnector || null;
     }
 
     protected handleError(message: string, err?: any): Error {
