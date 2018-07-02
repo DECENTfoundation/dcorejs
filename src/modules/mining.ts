@@ -7,7 +7,7 @@ import {ApiModule} from './ApiModule';
 import {ApiConnector} from '../api/apiConnector';
 import {ChainApi} from '../api/chain';
 import {Block, Miner} from '../model/explorer';
-import {MinerUpdateData, MiningError} from '../model/mining';
+import {MinerNameIdPair, MinerUpdateData, MiningError} from '../model/mining';
 import VestingBalance = Block.VestingBalance;
 import {ChainMethods} from '../api/model/chain';
 
@@ -379,6 +379,31 @@ export class MiningModule extends ApiModule {
                         .catch(err => reject(this.handleError(MiningError.transaction_broadcast_failed, err)));
                 })
                 .catch(err => this.handleError(MiningError.account_fetch_failed, err));
+        });
+    }
+    public listMiners(fromId: string, limit: number = 100): Promise<MinerNameIdPair[]> {
+        return new Promise<MinerNameIdPair[]>(((resolve, reject) => {
+            const operation = new DatabaseOperations.LookupMiners(fromId, limit);
+            this.dbApi.execute(operation)
+                .then((miners: MinerNameIdPair[]) => {
+                    resolve(miners);
+                })
+                .catch(err => reject(this.handleError(MiningError.database_fetch_failed, err)));
+        }));
+    }
+
+    public getMiner(minerId: string): Promise<Miner> {
+        return new Promise<Miner>((resolve, reject) => {
+            const operation = new DatabaseOperations.GetMiners([minerId]);
+            this.dbApi.execute(operation)
+                .then((miners: Miner[]) => {
+                    if (!miners || !miners[0]) {
+                        reject(this.handleError(MiningError.miner_does_not_exist));
+                        return;
+                    }
+                    resolve(miners[0]);
+                })
+                .catch(err => reject(this.handleError(MiningError.database_fetch_failed, err)));
         });
     }
 }
