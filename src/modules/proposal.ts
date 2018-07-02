@@ -16,13 +16,12 @@ import {ChainMethods} from '../api/model/chain';
 import {AssetError} from '../model/asset';
 
 export class ProposalModule extends ApiModule {
-    private _chainApi: ChainApi;
-    private _apiConnector: ApiConnector;
-
     constructor(dbApi: DatabaseApi, chainApi: ChainApi, apiConnector: ApiConnector) {
-        super(dbApi);
-        this._chainApi = chainApi;
-        this._apiConnector = apiConnector;
+        super({
+            dbApi,
+            chainApi,
+            apiConnector
+        });
     }
 
     public getProposedTransactions(accountId: string): Promise<ProposalObject[]> {
@@ -47,7 +46,7 @@ export class ProposalModule extends ApiModule {
                 new ChainMethods.GetAccount(toAccountId),
                 new ChainMethods.GetAsset(assetId)
             );
-            this._chainApi.fetch(...operations)
+            this.chainApi.fetch(...operations)
             .then(result => {
                 const [senderAccount, receiverAccount, asset] = result;
                 const senderAccountObject = JSON.parse(JSON.stringify(senderAccount));
@@ -412,7 +411,7 @@ export class ProposalModule extends ApiModule {
     public approveProposal(
         payingAccountId: string, proposalId: string, approvalsDelta: DeltaParameters, privateKey: string): Promise<boolean> {
         return new Promise<boolean>(((resolve, reject) => {
-            this._apiConnector.connect()
+            this.apiConnector.connect()
                 .then(() => {
                     const operation = new Operations.ProposalUpdate(
                         payingAccountId,
