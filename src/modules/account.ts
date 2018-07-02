@@ -367,7 +367,8 @@ export class AccountApi extends ApiModule {
      * Operations can be filtered using Chain.ChainOperationType
      *
      * @param {string} accountId                Users account id, example: '1.2.30'
-     * @param {string} fromId                   ID of operation from what to start list from
+     * @param {string} fromId                   ID of operation from what to start list from. Note, that list is in DESC order.
+     *                                          So id of operation suppose to be last in received list.
      * @param {number} resultLimit              Number of results to be returned, max value is 100
      * @return {Promise<HistoryRecord[]>}       Return variable object types, based on operation in history record
      */
@@ -375,8 +376,8 @@ export class AccountApi extends ApiModule {
         return new Promise((resolve, reject) => {
             const operation = new HistoryOperations.GetAccountHistory(
                 accountId,
-                historyOptions && historyOptions.fromId || '1.7.0',
                 '1.7.0',
+                historyOptions && historyOptions.fromId || '1.7.0',
                 historyOptions && historyOptions.resultLimit || 100
             );
             this._historyApi.execute(operation)
