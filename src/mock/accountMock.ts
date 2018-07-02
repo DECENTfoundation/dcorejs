@@ -2,7 +2,7 @@ import {Account, HistoryRecord} from '../model/account';
 
 export class AccountMock {
 
-    private account1: Account = {
+    public account1: Account = {
         id: '1.2.27',
         registrar: '1.2.15',
         name: 'u46f36fcd24d74ae58c9b0e49a1f0103c',
@@ -22,11 +22,12 @@ export class AccountMock {
             num_miner: 3,
             votes: ['0:1', '0:3', '0:4', '0:10', '0:11'],
             extensions: [],
-            allow_subscription: true,
+            allow_subscription: false,
             price_per_subscribe: {
-                amount: 50000,
+                amount: 0,
                 asset_id: '1.3.0',
             },
+            subscription_period: 0,
         },
         rights_to_publish: {
             is_publishing_manager: false,
@@ -37,7 +38,7 @@ export class AccountMock {
         top_n_control_flags: 0,
     };
 
-    private account2: Account = {
+    public account2: Account = {
         id: '1.2.62',
         registrar: '1.2.27',
         name: 'katkaaa',
@@ -72,7 +73,7 @@ export class AccountMock {
         top_n_control_flags: 0,
     };
 
-    private accountHistory: HistoryRecord = {
+    public accountHistory: HistoryRecord = {
         id: '1.7.2811',
         op: [ 0, {
             fee: { amount: 500000, asset_id: '1.3.0' },
@@ -93,32 +94,4 @@ export class AccountMock {
         op_in_trx: 0,
         virtual_op: 6488,
     };
-
-    public getAccountByIdMock(): Account {
-        return this.account1;
-    }
-
-    public getAccountByNameMock(): Account {
-        return this.account1;
-    }
-
-    public getAccountHistoryMock(): HistoryRecord[] {
-        return [this.accountHistory];
-    }
-
-    public isTransactionConfirmedMock() {
-        return true;
-    }
-
-    public getAccountBalanceMock(): number {
-        return 9921.37702192;
-    }
-
-    public searchAccounts(): Account[] {
-        return [this.account1, this.account2];
-    }
-
-    public countAccounts(): number {
-        return 10;
-    }
 }

@@ -1,10 +1,12 @@
 import * as dcore_js from '../../../../';
 import * as chai from 'chai';
+import * as sinon from 'sinon';
 import {AccountOrder} from '../../../modules/account';
+import {AccountMock} from '../../../mock/accountMock';
 
 const expect = chai.expect;
 chai.should();
-chai.config.showDiff = false;
+chai.config.showDiff = true;
 
 const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
 const dcoreNetworkAddresses = ['wss://stagesocket.decentgo.com:8090'];
@@ -16,6 +18,12 @@ const transactionId = '1.7.190';
 // turn off unverified certificate rejection
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
 
+const database = sinon.mock(new AccountMock());
+// console.log(database.object.account1);
+// const test = sinon.mock(new DatabaseOperations.GetAccountByName('katka'));
+// console.log(test.object);
+
+
 before(() => {
     dcore_js.initialize({
         chainId: chainId,
@@ -26,7 +34,7 @@ describe('(server/integration) Account fetch', () => {
     it('get account by id', (done) => {
         dcore_js.account().getAccountById(accountId)
             .then(res => {
-                expect(res.id).to.equal(accountId);
+                expect(res).to.eql(database.object.account1);
                 done();
             })
             .catch(err => {

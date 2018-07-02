@@ -78,6 +78,7 @@
         "js-sha512": "^0.7.1",
         "moment": "^2.22.2",
         "ripemd160": "2.0.1",
+        "sinon": "^6.0.1",
         "ssl-root-cas": "1.2.4"
     },
     "prettier": {
