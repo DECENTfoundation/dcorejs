@@ -2,7 +2,7 @@ import {DatabaseApi} from '../api/database';
 import {DatabaseOperations} from '../api/model/database';
 import {Operations} from '../model/transaction';
 import {Account, AccountError, Options} from '../model/account';
-import {Transaction} from '../transaction';
+import {TransactionBuilder} from '../transactionBuilder';
 import {ApiModule} from './ApiModule';
 import {ApiConnector} from '../api/apiConnector';
 import {ChainApi} from '../api/chain';
@@ -86,7 +86,7 @@ export class MiningModule extends ApiModule {
                     const operation = new Operations.AccountUpdateOperation(
                         accountId, account.owner, account.active, options, {}
                     );
-                    const transaction = new Transaction();
+                    const transaction = new TransactionBuilder();
                     transaction.addOperation(operation);
                     transaction.broadcast(privateKey)
                         .then(res => resolve(true))
@@ -101,7 +101,7 @@ export class MiningModule extends ApiModule {
             this.connector.connect()
                 .then(res => {
                     const operation = new Operations.MinerCreate(minerAccountId, URL, signingPublicKey);
-                    const transaction = new Transaction();
+                    const transaction = new TransactionBuilder();
                     transaction.addOperation(operation);
                     transaction.broadcast(privateKey)
                         .then(res => resolve(true))
@@ -161,7 +161,7 @@ export class MiningModule extends ApiModule {
                                 voter.options,
                                 {}
                             );
-                            const transaction = new Transaction();
+                            const transaction = new TransactionBuilder();
                             transaction.addOperation(op);
                             transaction.broadcast(privateKeyWif)
                                 .then(res => resolve(true))
@@ -215,7 +215,7 @@ export class MiningModule extends ApiModule {
                                 voter.options,
                                 {}
                             );
-                            const transaction = new Transaction();
+                            const transaction = new TransactionBuilder();
                             transaction.addOperation(op);
                             transaction.broadcast(privateKeyWif)
                                 .then(res => resolve(true))
@@ -272,7 +272,7 @@ export class MiningModule extends ApiModule {
                                 newOptions,
                                 {}
                             );
-                            const transaction = new Transaction();
+                            const transaction = new TransactionBuilder();
                             transaction.addOperation(accountUpdateOp);
                             transaction.broadcast(privateKey)
                                 .then(res => resolve(true))
@@ -309,7 +309,7 @@ export class MiningModule extends ApiModule {
                         updateData.newUrl || miner.url,
                         updateData.newSigningKey || miner.signing_key
                     );
-                    const transaction = new Transaction();
+                    const transaction = new TransactionBuilder();
                     transaction.addOperation(operation);
                     transaction.broadcast(privateKey)
                         .then(res => resolve(true))
@@ -335,7 +335,7 @@ export class MiningModule extends ApiModule {
                     asset_id: assetId
                 }
             );
-            const transaction = new Transaction();
+            const transaction = new TransactionBuilder();
             transaction.addOperation(operation);
             transaction.broadcast(privateKey)
                 .then(res => resolve(true))
@@ -372,7 +372,7 @@ export class MiningModule extends ApiModule {
                         newOptions,
                         {}
                     );
-                    const transaction = new Transaction();
+                    const transaction = new TransactionBuilder();
                     transaction.addOperation(accountUpdateOperation);
                     transaction.broadcast(privateKey)
                         .then(res => resolve(true))

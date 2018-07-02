@@ -2,7 +2,7 @@ import {ApiModule} from './ApiModule';
 import {MessagingApi} from '../api/messaging';
 import {DatabaseApi} from '../api/database';
 import {Operations} from '../model/transaction';
-import {Transaction} from '../transaction';
+import {TransactionBuilder} from '../transactionBuilder';
 import {KeyPrivate, KeyPublic, Utils} from '../utils';
 import {DatabaseOperations} from '../api/model/database';
 import {Account} from '../model/account';
@@ -102,7 +102,7 @@ export class MessagingModule extends ApiModule {
                     const buffer = new Buffer(JSON.stringify(messagePayload)).toString('hex');
 
                     const customOp = new Operations.CustomOperation(sender, [sender], CustomOperationSubtype.messaging, buffer);
-                    const transaction = new Transaction();
+                    const transaction = new TransactionBuilder();
                     transaction.addOperation(customOp);
                     transaction.broadcast(privateKey)
                         .then(res => resolve(true))

@@ -11,7 +11,7 @@ import {MiningModule} from './modules/mining';
 import {SubscriptionModule} from './modules/subscription';
 import {SeedingModule} from './modules/seeding';
 import {ProposalModule} from './modules/proposal';
-import {Transaction} from './transaction';
+import {TransactionBuilder} from './transactionBuilder';
 import {ChainSubscriptionCallback} from './api/model/chain';
 import {MessagingApi} from './api/messaging';
 import {MessagingModule} from './modules/messaging';
@@ -25,7 +25,7 @@ let _subscription: SubscriptionModule;
 let _seeding: SeedingModule;
 let _proposal: ProposalModule;
 let _chain: ChainApi;
-let _transaction: Transaction;
+let _transaction: TransactionBuilder;
 let _messaging: MessagingModule;
 
 export class DcoreError {
@@ -69,7 +69,7 @@ export function initialize(config: DcoreConfig,
     _seeding = new SeedingModule(database);
     _mining = new MiningModule(database, connector, _chain);
     _proposal = new ProposalModule(database, _chain, connector);
-    _transaction = new Transaction();
+    _transaction = new TransactionBuilder();
     _messaging = new MessagingModule(database, messagingApi);
 }
 
@@ -126,6 +126,7 @@ export function messaging(): MessagingModule {
     return _messaging;
 }
 
-export function transaction(): Transaction {
+export function transaction(): TransactionBuilder {
+    _transaction = new TransactionBuilder();
     return _transaction;
 }

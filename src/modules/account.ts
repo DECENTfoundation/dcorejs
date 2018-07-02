@@ -11,7 +11,7 @@ import {
 import { DatabaseApi } from '../api/database';
 import { ChainApi} from '../api/chain';
 import { CryptoUtils } from '../crypt';
-import { Transaction } from '../transaction';
+import { TransactionBuilder } from '../transactionBuilder';
 import { KeyPrivate, KeyPublic, Utils } from '../utils';
 import { HistoryApi, HistoryOperations } from '../api/history';
 import { ApiConnector } from '../api/apiConnector';
@@ -262,7 +262,7 @@ export class AccountApi extends ApiModule {
                     };
 
                     const assetObject = JSON.parse(JSON.stringify(asset));
-                    const transaction = new Transaction();
+                    const transaction = new TransactionBuilder();
                     const transferOperation = new Operations.TransferOperation(
                         senderAccount.get('id'),
                         receiverAccount.get('id'),
@@ -472,7 +472,7 @@ export class AccountApi extends ApiModule {
                         }
                     });
 
-                    const transaction = new Transaction();
+                    const transaction = new TransactionBuilder();
                     transaction.addOperation(operation);
                     transaction.broadcast(regisrarPrivateKey)
                         .then(() => resolve(true))
@@ -700,7 +700,7 @@ export class AccountApi extends ApiModule {
                         {}
                     );
 
-                    const transaction = new Transaction();
+                    const transaction = new TransactionBuilder();
                     transaction.addOperation(accountUpdateOperation);
                     transaction.broadcast(privateKey)
                         .then(() => {
