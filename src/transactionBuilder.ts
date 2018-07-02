@@ -6,7 +6,7 @@ import {ProposalCreateParameters} from './model/proposal';
 /**
  * Class contains available transaction operation names constants
  */
-export class Transaction {
+export class TransactionBuilder {
     /**
      * dcore_js.lib/lib - TransactionBuilder
      */

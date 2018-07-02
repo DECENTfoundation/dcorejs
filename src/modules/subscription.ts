@@ -4,7 +4,7 @@ import {DatabaseOperations} from '../api/model/database';
 import {SubscriptionError, SubscriptionObject, SubscriptionOptions} from '../model/subscription';
 import {Operations} from '../model/transaction';
 import {DCoreAssetObject} from '../model/asset';
-import {Transaction} from '../transaction';
+import {TransactionBuilder} from '../transactionBuilder';
 import {Asset, Account} from '../model/account';
 import {ApiConnector} from '../api/apiConnector';
 
@@ -71,7 +71,7 @@ export class SubscriptionModule extends ApiModule {
                     }
                     const price: Asset = Asset.create(amount, assets[0]);
                     const subscribeToAuthorOperation = new Operations.Subscribe(from, to, price);
-                    const transaction = new Transaction();
+                    const transaction = new TransactionBuilder();
                     transaction.addOperation(subscribeToAuthorOperation);
                     transaction.broadcast(privateKey)
                         .then(result => {
@@ -92,7 +92,7 @@ export class SubscriptionModule extends ApiModule {
             this.connector.connect()
                 .then(res => {
                     const subscribeByAuthorOperation = new Operations.SubscribeByAuthor(from, to);
-                    const transaction = new Transaction();
+                    const transaction = new TransactionBuilder();
                     transaction.addOperation(subscribeByAuthorOperation);
                     transaction.broadcast(privateKey)
                         .then(() => {
@@ -116,7 +116,7 @@ export class SubscriptionModule extends ApiModule {
                         subscriptionId,
                         automaticRenewal
                     );
-                    const transaction = new Transaction();
+                    const transaction = new TransactionBuilder();
                     transaction.addOperation(setAutomaticRenewalOperation);
                     transaction.broadcast(privateKey)
                         .then(() => {
@@ -170,7 +170,7 @@ export class SubscriptionModule extends ApiModule {
                                 newOptions,
                                 {}
                             );
-                            const transaction = new Transaction();
+                            const transaction = new TransactionBuilder();
                             transaction.addOperation(accUpdateOp);
                             transaction.broadcast(privateKey)
                                 .then(res => resolve(true))

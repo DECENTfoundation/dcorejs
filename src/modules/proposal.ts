@@ -6,7 +6,7 @@ import {
     ProposalParameters
 } from '../model/proposal';
 import {Memo, Operations} from '../model/transaction';
-import {Transaction} from '../transaction';
+import {TransactionBuilder} from '../transactionBuilder';
 import {Asset} from '../model/account';
 import {ChainApi} from '../api/chain';
 import {Utils} from '../utils';
@@ -84,7 +84,7 @@ export class ProposalModule extends ApiModule {
                     .then(result => {
                         const price = Asset.create(amount, assetObject);
                         const transferOperation = new Operations.TransferOperation(fromAccountId, toAccountId, price, memo);
-                        const transaction = new Transaction();
+                        const transaction = new TransactionBuilder();
                         transaction.addOperation(transferOperation);
                         const proposalCreateParameters: ProposalCreateParameters = {
                             fee_paying_account: proposerAccountId,
@@ -188,7 +188,7 @@ export class ProposalModule extends ApiModule {
                         newParameters.new_parameters.extensions = proposalParameters.extensions;
                     }
                     const operation = new Operations.MinerUpdateGlobalParameters(newParameters);
-                    const transaction = new Transaction();
+                    const transaction = new TransactionBuilder();
                     transaction.addOperation(operation);
                     const proposalCreateParameters: ProposalCreateParameters = {
                         fee_paying_account: proposerAccountId,
@@ -374,7 +374,7 @@ export class ProposalModule extends ApiModule {
                         newParameters.new_parameters.current_fees.parameters[45] = [45, feesParameters.renewal_of_subscription];
                     }
                     const operation = new Operations.MinerUpdateGlobalParameters(newParameters);
-                    const transaction = new Transaction();
+                    const transaction = new TransactionBuilder();
                     transaction.addOperation(operation);
                     const proposalCreateParameters: ProposalCreateParameters = {
                         fee_paying_account: proposerAccountId,
@@ -424,7 +424,7 @@ export class ProposalModule extends ApiModule {
                         approvalsDelta.key_approvals_to_add,
                         approvalsDelta.key_approvals_to_remove
                     );
-                    const transaction = new Transaction();
+                    const transaction = new TransactionBuilder();
                     transaction.addOperation(operation);
                     transaction.broadcast(privateKey)
                         .then(() => {
