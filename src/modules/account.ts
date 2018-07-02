@@ -32,16 +32,14 @@ export enum AccountOrder {
 /**
  * API class provides wrapper for account information.
  */
-export class AccountApi extends ApiModule {
-    private _chainApi: ChainApi;
-    private _historyApi: HistoryApi;
-    private _connector: ApiConnector;
-
-    constructor(dbApi: DatabaseApi, chainApi: ChainApi, historyApi: HistoryApi, connector: ApiConnector) {
-        super(dbApi);
-        this._chainApi = chainApi;
-        this._historyApi = historyApi;
-        this._connector = connector;
+export class AccountModule extends ApiModule {
+    constructor(dbApi: DatabaseApi, chainApi: ChainApi, historyApi: HistoryApi, apiConnector: ApiConnector) {
+        super({
+            dbApi,
+            apiConnector,
+            historyApi,
+            chainApi
+        });
     }
 
     /**
@@ -223,7 +221,7 @@ export class AccountApi extends ApiModule {
                 new ChainMethods.GetAsset(assetId || '1.3.0')
             );
 
-            this._chainApi.fetch(...methods)
+            this.chainApi.fetch(...methods)
                 .then(result => {
                     const [senderAccount, receiverAccount, asset] = result;
                     if (!senderAccount) {
@@ -346,7 +344,7 @@ export class AccountApi extends ApiModule {
                 start,
                 transactionId
             );
-            this._historyApi.execute(operation)
+            this.historyApi.execute(operation)
                 .then(res => {
                     if (res.length === 0) {
                         reject(this.handleError(AccountError.transaction_history_fetch_failed, ''));
@@ -380,7 +378,7 @@ export class AccountApi extends ApiModule {
                 historyOptions && historyOptions.fromId || '1.7.0',
                 historyOptions && historyOptions.resultLimit || 100
             );
-            this._historyApi.execute(operation)
+            this.historyApi.execute(operation)
                 .then(res => {
                     // TODO: create models for different operations names, placed in dcore/src/chain/src/ChainTypes.js
                     resolve(res);
@@ -453,7 +451,7 @@ export class AccountApi extends ApiModule {
             key_auths: activeKeyAuths
         };
         return new Promise<boolean>((resolve, reject) => {
-            this._connector.connect()
+            this.apiConnector.connect()
                 .then(() => {
                     const operation = new Operations.RegisterAccount({
                         name,
@@ -548,13 +546,13 @@ export class AccountApi extends ApiModule {
                     }));
                     const walletExport: WalletExport = {
                         version: 1,
-                        chain_id: this._chainApi.chainId,
+                        chain_id: this.chainApi.chainId,
                         my_accounts: [acc],
                         cipher_keys: '',
                         extra_keys: [],
                         pending_account_registrations: [],
                         pending_miner_registrations: [],
-                        ws_server: this._connector.apiAddresses[0],
+                        ws_server: this.apiConnector.apiAddresses[0],
                         ws_user: '',
                         ws_password: '',
                     };

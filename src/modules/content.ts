@@ -28,9 +28,11 @@ export enum ContentError {
  * ContentApi provide methods to communication
  * with content stored in dcore_js network.
  */
-export class ContentApi extends ApiModule {
+export class ContentModule extends ApiModule {
     constructor(dbApi: DatabaseApi) {
-        super(dbApi);
+        super({
+            dbApi
+        });
     }
 
     /**
