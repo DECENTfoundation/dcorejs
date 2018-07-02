@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>dcorejs - Set automatic renewal of subscription example</title>
+</head>
+
+<body>
+    <h1>Set automatic renewal of subscription</h1>
+    <form action="javascript:void(0)">
+        <label for="accountId">Enter account id: </label><br/>
+        <input id="accountId" type="text" title="accountId" /><br/><br/>
+        <label for="subscriptionId">Enter subscription id: </label><br/>
+        <input id="subscriptionId" type="text" title="subscriptionId" /><br/><br/>
+        <label for="automaticRenewal">Choose automatic renewal:</label><br/>
+        <select id="automaticRenewal"></select><br /><br />
+        <label for="privateKey">Enter private key: </label><br/>
+        <input id="privateKey" type="text" title="PrivateKey" /><br/><br />
+    </form>
+    <button id="searchButton" type="submit" title="searchButton"> Search </button>
+    <pre id="output"></pre>
+    <script src="../../../../dist/dcorejs.umd.js" type="text/javascript"></script>
+    <script type="text/javascript" src="setAutomaticRenewalOfSubscription.js"></script>
+</body>
+
+</html>

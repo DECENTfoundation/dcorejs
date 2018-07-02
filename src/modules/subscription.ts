@@ -16,7 +16,7 @@ export class SubscriptionModule extends ApiModule {
         this.connector = connector;
     }
 
-    public listActiveSubscriptionByConsumer(consumerId: string, count: number = 100): Promise<SubscriptionObject[]> {
+    public listActiveSubscriptionsByConsumer(consumerId: string, count: number = 100): Promise<SubscriptionObject[]> {
         return new Promise<SubscriptionObject[]>((resolve, reject) => {
             const operation = new DatabaseOperations.ListActiveSubscriptionsByConsumer(consumerId, count);
             this.dbApi.execute(operation)

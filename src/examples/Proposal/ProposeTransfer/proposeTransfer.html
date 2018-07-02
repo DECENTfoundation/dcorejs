@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>dcorejs - Propose transfer example</title>
+</head>
+
+<body>
+    <h1>Propose transfer</h1>
+    <form action="javascript:void(0)">
+        <label for="proposer">Enter proposer account id:</label><br/>
+        <input id="proposer" type="text" title="proposer" /><br/><br/>
+        <label for="fromAccount">Enter from account id:</label><br/>
+        <input id="fromAccount" type="text" title="fromAccount" /><br/><br/>
+        <label for="toAccount">Enter to account id:</label><br/>
+        <input id="toAccount" type="text" title="toAccount" /><br/><br/>
+        <label for="amount">Enter amount:</label><br/>
+        <input id="amount" type="number" title="amount" /><br/><br/>
+        <label for="assetId">Enter asset id: </label><br/>
+        <input id="assetId" type="text" title="assetId" /><br/><br/>
+        <label for="memoKey">Enter memo key: </label><br/>
+        <input id="memoKey" type="text" title="memoKey" /><br/><br/>
+        <label for="expiration">Enter expiration: </label><br/>
+        <input id="expiration" type="text" title="expiration" /><br/><br/>
+        <label for="privateKey">Enter private key: </label><br/>
+        <input id="privateKey" type="text" title="privateKey" /><br/><br/>
+    </form>
+    <button id="searchButton" type="submit" title="searchButton"> Search </button>
+    <pre id="output"></pre>
+    <script src="../../../../dist/dcorejs.umd.js" type="text/javascript"></script>
+    <script type="text/javascript" src="proposeTransfer.js"></script>
+</body>
+
+</html>
