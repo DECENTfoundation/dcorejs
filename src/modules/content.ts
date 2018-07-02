@@ -30,7 +30,9 @@ export enum ContentError {
  */
 export class ContentApi extends ApiModule {
     constructor(dbApi: DatabaseApi) {
-        super(dbApi);
+        super({
+            dbApi
+        });
     }
 
     /**
