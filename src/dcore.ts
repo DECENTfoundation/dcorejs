@@ -2,7 +2,7 @@ import {getLibRef} from './helpers';
 import {ContentApi} from './modules/content';
 import {ChainApi} from './api/chain';
 import {DatabaseApi} from './api/database';
-import {AccountApi} from './modules/account';
+import {AccountModule} from './modules/account';
 import {HistoryApi} from './api/history';
 import {ApiConnector, ConnectionState} from './api/apiConnector';
 import {AssetModule} from './modules/asset';
@@ -17,7 +17,7 @@ import {MessagingApi} from './api/messaging';
 import {MessagingModule} from './modules/messaging';
 
 let _content: ContentApi;
-let _account: AccountApi;
+let _account: AccountModule;
 let _explorer: ExplorerModule;
 let _assetModule: AssetModule;
 let _mining: MiningModule;
@@ -62,7 +62,7 @@ export function initialize(config: DcoreConfig,
 
     _chain = new ChainApi(connector, dcore.ChainStore);
     _content = new ContentApi(database);
-    _account = new AccountApi(database, _chain, historyApi, connector);
+    _account = new AccountModule(database, _chain, historyApi, connector);
     _explorer = new ExplorerModule(database);
     _assetModule = new AssetModule(database, connector, _chain);
     _subscription = new SubscriptionModule(database, connector);
@@ -95,7 +95,7 @@ export function content(): ContentApi {
     return _content;
 }
 
-export function account(): AccountApi {
+export function account(): AccountModule {
     return _account;
 }
 

@@ -32,7 +32,7 @@ export enum AccountOrder {
 /**
  * API class provides wrapper for account information.
  */
-export class AccountApi extends ApiModule {
+export class AccountModule extends ApiModule {
     constructor(dbApi: DatabaseApi, chainApi: ChainApi, historyApi: HistoryApi, apiConnector: ApiConnector) {
         super({
             dbApi,
