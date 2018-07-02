@@ -1,5 +1,5 @@
 import {getLibRef} from './helpers';
-import {ContentApi} from './modules/content';
+import {ContentModule} from './modules/content';
 import {ChainApi} from './api/chain';
 import {DatabaseApi} from './api/database';
 import {AccountModule} from './modules/account';
@@ -16,7 +16,7 @@ import {ChainSubscriptionCallback} from './api/model/chain';
 import {MessagingApi} from './api/messaging';
 import {MessagingModule} from './modules/messaging';
 
-let _content: ContentApi;
+let _content: ContentModule;
 let _account: AccountModule;
 let _explorer: ExplorerModule;
 let _assetModule: AssetModule;
@@ -61,7 +61,7 @@ export function initialize(config: DcoreConfig,
     const messagingApi = new MessagingApi(dcore.Apis, connector);
 
     _chain = new ChainApi(connector, dcore.ChainStore);
-    _content = new ContentApi(database);
+    _content = new ContentModule(database);
     _account = new AccountModule(database, _chain, historyApi, connector);
     _explorer = new ExplorerModule(database);
     _assetModule = new AssetModule(database, connector, _chain);
@@ -91,7 +91,7 @@ export function subscribePendingTransaction(callback: ChainSubscriptionCallback)
     _chain.subscribePendingTransactions(callback);
 }
 
-export function content(): ContentApi {
+export function content(): ContentModule {
     return _content;
 }
 
