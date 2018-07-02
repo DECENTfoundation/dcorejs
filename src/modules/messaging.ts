@@ -11,11 +11,11 @@ import {CustomOperationSubtype, DCoreMessagePayload, MessagePayload, MessagingEr
 import {MessagingOperations} from '../api/model/messaging';
 
 export class MessagingModule extends ApiModule {
-    private _message_api: MessagingApi;
-
     constructor(dbApi: DatabaseApi, messageApi: MessagingApi) {
-        super(dbApi);
-        this._message_api = messageApi;
+        super({
+            dbApi,
+            messagingApi: messageApi
+        });
     }
 
     public getSentMessages(sender: string, decryptPrivateKey: string = '', count: number = 100): Promise<DCoreMessagePayload[]> {
@@ -41,7 +41,7 @@ export class MessagingModule extends ApiModule {
     public getMessageObjects(sender?: string, receiver?: string, decryptPrivateKey: string = '', count: number = 100): Promise<any> {
         return new Promise<any>(((resolve, reject) => {
             const op = new MessagingOperations.GetMessageObjects(sender, receiver, count);
-            this._message_api.execute(op)
+            this.messagingApi.execute(op)
                 .then((messages: any[]) => {
                     resolve(this.decryptMessages(messages, decryptPrivateKey));
                 })
