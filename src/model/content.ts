@@ -143,7 +143,7 @@ export interface Seeder extends ContentExchangeObject {
 
 export interface SubmitObject {
     authorId: string;
-    coAuthors: string[];
+    coAuthors: [string, number][];
     seeders: Seeder[];
     fileName: string;
     date: Date;
