@@ -34,23 +34,32 @@ export class ApiConnector {
         return this._apiAddresses;
     }
 
-    constructor(apiAddresses: string[], api: any, connectionStatusCallback: (status: ConnectionState) => void = null) {
+    constructor(apiAddresses: string[],
+                api: any,
+                testConnectionQuality: boolean = true,
+                connectionStatusCallback: (status: ConnectionState) => void = null) {
         this._apiAddresses = apiAddresses;
-        this.initConnetion(apiAddresses, api, connectionStatusCallback);
+        this.initConnetion(apiAddresses, api, testConnectionQuality, connectionStatusCallback);
     }
 
-    private initConnetion(addresses: string[], api: any, connectionStatusCallback: (status: ConnectionState) => void = null): void {
+    private initConnetion(addresses: string[],
+                          api: any,
+                          testConnectionQuality: boolean = true,
+                          connectionStatusCallback: (status: ConnectionState) => void = null): void {
         api.setRpcConnectionStatusCallback((status: string) => this.handleConnectionState(status, connectionStatusCallback));
-        this._connectionPromise = this.connectApi(api);
+        this._connectionPromise = this.connectApi(api, testConnectionQuality);
     }
 
-    private async connectApi(api: any): Promise<any> {
+    private async connectApi(api: any, testConnectionQuality: boolean): Promise<any> {
         return new Promise<any>(async (resolve, reject) => {
-            const conTestResults = await this.testConnectionTime(this._apiAddresses);
-            const addresses = conTestResults
-                .filter(r => r.success)
-                .sort((a, b) => a.elapsedTime - b.elapsedTime)
-                .map(r => r.address);
+            let addresses: string[] = this._apiAddresses;
+            if (testConnectionQuality) {
+                const conTestResults = await this.testConnectionTime(this._apiAddresses);
+                addresses = conTestResults
+                    .filter(r => r.success)
+                    .sort((a, b) => a.elapsedTime - b.elapsedTime)
+                    .map(r => r.address);
+            }
 
             for (let i = 0; i < addresses.length; i += 1) {
                 const address = ['wss', ...addresses[i].split(':').slice(1)].join(':');

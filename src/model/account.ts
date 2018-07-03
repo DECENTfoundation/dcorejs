@@ -1,7 +1,7 @@
-import {KeyPrivate, Utils} from '../utils';
-import {CryptoUtils} from '../crypt';
-import {ChainApi} from '../api/chain';
-import {DCoreAssetObject} from './asset';
+import { KeyPrivate, Utils } from '../utils';
+import { CryptoUtils } from '../crypt';
+import { ChainApi } from '../api/chain';
+import { DCoreAssetObject } from './asset';
 
 export type AccountNameIdPair = [string, string];
 
@@ -19,6 +19,28 @@ export interface TransactionRaw {
     m_to_account: string;
     m_transaction_amount: Asset;
     m_transaction_fee: Asset;
+}
+
+export interface DCoreAccount {
+    proposals: string[];
+    statistics: string;
+    vesting_balances: any[];
+    orders: any[];
+    active: Authority;
+    call_orders: any[];
+    top_n_control_flags: number;
+    name: string;
+    registrar: string;
+    rights_to_publish: PublishRights;
+    owner: Authority;
+    balances: Balances;
+    id: string;
+    registrar_name: string;
+    options: Options;
+}
+
+export interface Balances {
+    [key: string]: string;
 }
 
 export interface Account {

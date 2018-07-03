@@ -6,7 +6,7 @@ import {SeedingError} from '../model/seeding';
 
 export class SeedingModule extends ApiModule {
     constructor(dbApi: DatabaseApi) {
-        super(dbApi);
+        super({ dbApi });
     }
 
     public listSeedersByPrice(limit: number = 100): Promise<Seeder[]> {

@@ -1,16 +1,17 @@
-import { Asset } from './../model/account';
-import {Rating, Content, Seeder, BuyingContent, SubmitObject, ContentKeys, KeyPair, ContentExchangeObject, Price} from '../model/content';
-import {DatabaseApi} from '../api/database';
-import {ChainApi} from '../api/chain';
-import {Transaction} from '../transaction';
-import {isUndefined} from 'util';
-import {DatabaseOperations, SearchParams, SearchParamsOrder} from '../api/model/database';
-import {ContentObject, Operations} from '../model/transaction';
-import {DCoreAssetObject} from '../model/asset';
-import {ApiModule} from './ApiModule';
-import {Utils} from '../utils';
-import {dcorejs_lib} from '../helpers';
+import { Asset, DCoreAccount } from './../model/account';
+import { Rating, Content, Seeder, BuyingContent, SubmitObject, ContentKeys, KeyPair, ContentExchangeObject, Price } from '../model/content';
+import { DatabaseApi } from '../api/database';
+import { ChainApi } from '../api/chain';
+import { TransactionBuilder } from '../transactionBuilder';
+import { isUndefined } from 'util';
+import { DatabaseOperations, SearchParams, SearchParamsOrder } from '../api/model/database';
+import { ContentObject, Operations } from '../model/transaction';
+import { DCoreAssetObject } from '../model/asset';
+import { ApiModule } from './ApiModule';
+import { Utils } from '../utils';
+import { dcorejs_lib } from '../helpers';
 import * as bigInt from 'big-integer';
+import { ChainMethods } from '../api/model/chain';
 
 const moment = require('moment');
 
@@ -21,16 +22,21 @@ export enum ContentError {
     restore_content_keys_failed = 'restore_content_keys_failed',
     asset_fetch_failed = 'asset_fetch_failed',
     asset_not_found = 'asset_not_found',
-    content_not_exist = 'content_not_exist'
+    content_not_exist = 'content_not_exist',
+    account_fetch_failed = 'account_fetch_failed',
+    parameters_error = 'parameters_error',
 }
 
 /**
  * ContentApi provide methods to communication
  * with content stored in dcore_js network.
  */
-export class ContentApi extends ApiModule {
-    constructor(dbApi: DatabaseApi) {
-        super(dbApi);
+export class ContentModule extends ApiModule {
+    constructor(dbApi: DatabaseApi, chainApi: ChainApi) {
+        super({
+            dbApi,
+            chainApi
+        });
     }
 
     /**
@@ -144,14 +150,14 @@ export class ContentApi extends ApiModule {
      * @return {Promise<void>}
      */
     public removeContent(contentId: string,
-                         authorId: string,
-                         privateKey: string): Promise<void> {
+        authorId: string,
+        privateKey: string): Promise<void> {
         return new Promise((resolve, reject) => {
             this.getContent(contentId)
                 .then((content: Content) => {
                     const URI = content.URI;
                     const cancelOperation = new Operations.ContentCancelOperation(authorId, URI);
-                    const transaction = new Transaction();
+                    const transaction = new TransactionBuilder();
                     transaction.addOperation(cancelOperation);
                     transaction
                         .broadcast(privateKey)
@@ -241,58 +247,75 @@ export class ContentApi extends ApiModule {
      * @param {string} privateKey
      * @return {Promise<void>}
      */
-    public addContent(content: SubmitObject, privateKey: string): Promise<void> {
-        return new Promise((resolve, reject) => {
+    public addContent(content: SubmitObject, privateKey: string): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
             content.size = this.getFileSize(content.size);
             const listAssetOp = new DatabaseOperations.GetAssets([
                 content.assetId || ChainApi.asset_id,
                 content.publishingFeeAsset || ChainApi.asset_id
             ]);
-            this.dbApi.execute(listAssetOp)
-                .then((assets: [DCoreAssetObject, DCoreAssetObject]) => {
-                    if (!assets || !assets[0] || !assets[1]) {
-                        reject(this.handleError(ContentError.fetch_content_failed));
-                        return;
-                    }
-                    const priceAsset = assets[0];
-                    const feeAsset = assets[1];
-                    const submitOperation = new Operations.SubmitContentOperation(
-                        content.size,
-                        content.authorId,
-                        content.coAuthors,
-                        content.URI,
-                        content.seeders.length,
-                        [{
-                            region: 1,
-                            price: {
-                                amount: Utils.formatAmountToAsset(content.price, priceAsset),
-                                asset_id: priceAsset.id
-                            }
-                        }],
-                        content.hash,
-                        content.seeders.map(s => s.seeder),
-                        content.keyParts,
-                        content.date.toString(),
-                        {
-                            amount: this.calculateFee(content),
-                            asset_id: feeAsset.id
-                        },
-                        JSON.stringify(content.synopsis)
-                    );
-                    const transaction = new Transaction();
-                    transaction.addOperation(submitOperation);
-                    transaction
-                        .broadcast(privateKey)
-                        .then(() => {
-                            resolve();
-                        })
-                        .catch(err => {
-                            reject(
-                                this.handleError(ContentError.transaction_broadcast_failed, err)
-                            );
+            const methods = [new ChainMethods.GetAccount(content.authorId)];
+            methods.concat(...content.coAuthors.map(ca => new ChainMethods.GetAccount(ca[0])));
+            this.chainApi.fetch(...methods)
+                .then((accounts: DCoreAccount[]) => {
+                    const authorAccount = JSON.parse(JSON.stringify(accounts[0]));
+                    const coAuthors = JSON.parse(JSON.stringify(accounts))
+                        .slice(1)
+                        .map((coAuthor: DCoreAccount, index: number) => {
+                            return [coAuthor.id, content.coAuthors[index][1]];
                         });
+                    this.dbApi.execute(listAssetOp)
+                        .then((assets: [DCoreAssetObject, DCoreAssetObject]) => {
+                            if (!assets || !assets[0] || !assets[1]) {
+                                reject(this.handleError(ContentError.fetch_content_failed));
+                                return;
+                            }
+                            const priceAsset = assets[0];
+                            const feeAsset = assets[1];
+                            try {
+                                const submitOperation = new Operations.SubmitContentOperation(
+                                    content.size,
+                                    authorAccount.id,
+                                    coAuthors,
+                                    content.URI,
+                                    content.seeders.length,
+                                    [{
+                                        region: 1,
+                                        price: {
+                                            amount: Utils.formatAmountToAsset(content.price, priceAsset),
+                                            asset_id: priceAsset.id
+                                        }
+                                    }],
+                                    content.hash,
+                                    content.seeders.map(s => s.seeder),
+                                    content.keyParts,
+                                    content.date.toString(),
+                                    {
+                                        amount: this.calculateFee(content),
+                                        asset_id: feeAsset.id
+                                    },
+                                    JSON.stringify(content.synopsis)
+                                );
+                                const transaction = new TransactionBuilder();
+                                transaction.addOperation(submitOperation);
+                                transaction
+                                    .broadcast(privateKey)
+                                    .then(() => {
+                                        resolve(true);
+                                    })
+                                    .catch(err => {
+                                        reject(
+                                            this.handleError(ContentError.transaction_broadcast_failed, err)
+                                        );
+                                    });
+                            } catch (e) {
+                                reject(this.handleError(ContentError.account_fetch_failed, e));
+                                return;
+                            }
+                        })
+                        .catch(err => this.handleError(ContentError.database_operation_failed, err));
                 })
-                .catch(err => this.handleError(ContentError.database_operation_failed, err));
+                .catch(err => reject(this.handleError(ContentError.account_fetch_failed, err)));
         });
     }
 
@@ -469,9 +492,9 @@ export class ContentApi extends ApiModule {
      * @return {Promise<void>}
      */
     public buyContent(contentId: string,
-                      buyerId: string,
-                      elGammalPub: string,
-                      privateKey: string): Promise<boolean> {
+        buyerId: string,
+        elGammalPub: string,
+        privateKey: string): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
             this.getContent(contentId)
                 .then((content: Content) => {
@@ -480,9 +503,9 @@ export class ContentApi extends ApiModule {
                         buyerId,
                         content.price.map_price[0][1],
                         1,
-                        {s: elGammalPub}
+                        { s: elGammalPub }
                     );
-                    const transaction = new Transaction();
+                    const transaction = new TransactionBuilder();
                     transaction.addOperation(buyOperation);
                     transaction
                         .broadcast(privateKey)
@@ -532,16 +555,16 @@ export class ContentApi extends ApiModule {
      * @return {Promise<Content[]>}
      */
     public getPurchasedContent(accountId: string,
-                               order: SearchParamsOrder = SearchParamsOrder.createdDesc,
-                               startObjectId: string = '0.0.0',
-                               term: string = '',
-                               resultSize: number = 100): Promise<Content[]> {
+        order: SearchParamsOrder = SearchParamsOrder.createdDesc,
+        startObjectId: string = '0.0.0',
+        term: string = '',
+        resultSize: number = 100): Promise<Content[]> {
         return new Promise((resolve, reject) => {
             if (!accountId) {
                 reject('missing_parameter');
                 return;
             }
-            this.searchContent({count: resultSize})
+            this.searchContent({ count: resultSize })
                 .then(allContent => {
                     const dbOperation = new DatabaseOperations.GetBoughtObjectsByCustomer(
                         accountId,
@@ -632,7 +655,7 @@ export class ContentApi extends ApiModule {
     leaveCommentAndRating(contentURI: string, consumer: string, comment: string, rating: number, consumerPKey: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             const operation = new Operations.LeaveRatingAndComment(contentURI, consumer, comment, rating);
-            const transaction = new Transaction();
+            const transaction = new TransactionBuilder();
             transaction.addOperation(operation);
             transaction.broadcast(consumerPKey)
                 .then(res => resolve(res))

@@ -6,7 +6,9 @@ import {ApiModule} from './ApiModule';
 
 export class ExplorerModule extends ApiModule {
     constructor(databaseApi: DatabaseApi) {
-        super(databaseApi);
+        super({
+            dbApi: databaseApi
+        });
     }
 
     private async getDatabaseObject<T>(space: Space, type: Type.Implementation | Type.Protocol, id: number): Promise<T | null> {
