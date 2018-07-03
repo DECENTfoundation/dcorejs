@@ -2,7 +2,7 @@ import { Asset } from './../model/account';
 import {Rating, Content, Seeder, BuyingContent, SubmitObject, ContentKeys, KeyPair, ContentExchangeObject, Price} from '../model/content';
 import {DatabaseApi} from '../api/database';
 import {ChainApi} from '../api/chain';
-import {Transaction} from '../transaction';
+import {TransactionBuilder} from '../transactionBuilder';
 import {isUndefined} from 'util';
 import {DatabaseOperations, SearchParams, SearchParamsOrder} from '../api/model/database';
 import {ContentObject, Operations} from '../model/transaction';
@@ -28,9 +28,11 @@ export enum ContentError {
  * ContentApi provide methods to communication
  * with content stored in dcore_js network.
  */
-export class ContentApi extends ApiModule {
+export class ContentModule extends ApiModule {
     constructor(dbApi: DatabaseApi) {
-        super(dbApi);
+        super({
+            dbApi
+        });
     }
 
     /**
@@ -151,7 +153,7 @@ export class ContentApi extends ApiModule {
                 .then((content: Content) => {
                     const URI = content.URI;
                     const cancelOperation = new Operations.ContentCancelOperation(authorId, URI);
-                    const transaction = new Transaction();
+                    const transaction = new TransactionBuilder();
                     transaction.addOperation(cancelOperation);
                     transaction
                         .broadcast(privateKey)
@@ -279,7 +281,7 @@ export class ContentApi extends ApiModule {
                         },
                         JSON.stringify(content.synopsis)
                     );
-                    const transaction = new Transaction();
+                    const transaction = new TransactionBuilder();
                     transaction.addOperation(submitOperation);
                     transaction
                         .broadcast(privateKey)
@@ -482,7 +484,7 @@ export class ContentApi extends ApiModule {
                         1,
                         {s: elGammalPub}
                     );
-                    const transaction = new Transaction();
+                    const transaction = new TransactionBuilder();
                     transaction.addOperation(buyOperation);
                     transaction
                         .broadcast(privateKey)
@@ -632,7 +634,7 @@ export class ContentApi extends ApiModule {
     leaveCommentAndRating(contentURI: string, consumer: string, comment: string, rating: number, consumerPKey: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             const operation = new Operations.LeaveRatingAndComment(contentURI, consumer, comment, rating);
-            const transaction = new Transaction();
+            const transaction = new TransactionBuilder();
             transaction.addOperation(operation);
             transaction.broadcast(consumerPKey)
                 .then(res => resolve(res))
