@@ -203,14 +203,11 @@ export class AccountApi extends ApiModule {
      * @param {string} toAccount        Name or id of account
      * @param {string} memo             Message for recipient
      * @param {string} privateKey       Private key used to encrypt memo and sign transaction
+     * @param {boolean} broadcast       true iftransaction should be broadcasted
      * @return {Promise<Operation>}
      */
-    public transfer(amount: number,
-        assetId: string,
-        fromAccount: string,
-        toAccount: string,
-        memo: string,
-        privateKey: string): Promise<Operation> {
+    public transfer(amount: number, assetId: string, fromAccount: string, toAccount: string, memo: string, privateKey: string,
+                    broadcast: boolean = true): Promise<Operation> {
         const pKey = Utils.privateKeyFromWif(privateKey);
 
         return new Promise((resolve, reject) => {
@@ -260,7 +257,6 @@ export class AccountApi extends ApiModule {
                             nonce
                         )
                     };
-
                     const assetObject = JSON.parse(JSON.stringify(asset));
                     const transaction = new Transaction();
                     const transferOperation = new Operations.TransferOperation(
@@ -270,15 +266,19 @@ export class AccountApi extends ApiModule {
                         memo_object
                     );
                     transaction.addOperation(transferOperation);
-                    transaction.broadcast(privateKey)
-                        .then(() => {
-                            resolve(transaction.operations[0]);
-                        })
-                        .catch(err => {
-                            reject(
-                                this.handleError(AccountError.transaction_broadcast_failed, err)
-                            );
-                        });
+                    if (broadcast) {
+                        transaction.broadcast(privateKey)
+                            .then(() => {
+                                resolve(transaction.operations[0]);
+                            })
+                            .catch(err => {
+                                reject(
+                                    this.handleError(AccountError.transaction_broadcast_failed, err)
+                                );
+                            });
+                    } else {
+                        resolve(transaction.operations[0]);
+                    }
                 })
                 .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
         });
