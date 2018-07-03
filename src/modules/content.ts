@@ -247,8 +247,8 @@ export class ContentModule extends ApiModule {
      * @param {string} privateKey
      * @return {Promise<void>}
      */
-    public addContent(content: SubmitObject, privateKey: string): Promise<void> {
-        return new Promise((resolve, reject) => {
+    public addContent(content: SubmitObject, privateKey: string): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
             content.size = this.getFileSize(content.size);
             const listAssetOp = new DatabaseOperations.GetAssets([
                 content.assetId || ChainApi.asset_id,
@@ -301,7 +301,7 @@ export class ContentModule extends ApiModule {
                                 transaction
                                     .broadcast(privateKey)
                                     .then(() => {
-                                        resolve();
+                                        resolve(true);
                                     })
                                     .catch(err => {
                                         reject(
