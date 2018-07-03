@@ -47,6 +47,7 @@ export interface DcoreConfig {
  * @param {(state: ConnectionState) => void} [connectionStatusCallback=null]    Status callback to handle connection
  */
 export function initialize(config: DcoreConfig,
+                           testConnection: boolean = true,
                            dcorejs_lib: any = null,
                            connectionStatusCallback: (state: ConnectionState) => void = null): void {
     if (dcorejs_lib) {
@@ -55,7 +56,7 @@ export function initialize(config: DcoreConfig,
     const dcore = getLibRef();
     ChainApi.setupChain(config.chainId, dcore.ChainConfig);
 
-    const connector = new ApiConnector(config.dcoreNetworkWSPaths, dcore.Apis, connectionStatusCallback);
+    const connector = new ApiConnector(config.dcoreNetworkWSPaths, dcore.Apis, testConnection, connectionStatusCallback);
     const database = new DatabaseApi(dcore.Apis, connector);
     const historyApi = new HistoryApi(dcore.Apis, connector);
     const messagingApi = new MessagingApi(dcore.Apis, connector);
