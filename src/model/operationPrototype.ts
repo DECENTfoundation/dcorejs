@@ -416,8 +416,33 @@ export class MinerUpdatePrototype {
     }
 }
 
+export interface MinerUpdateGlobalParametersType extends OperationType {
+    new_parameters: {
+        current_fees?: {
+            parameters: Array<[number, object]>;
+            scale: number;
+        };
+        block_interval?: number;
+        maintenance_interval?: number;
+        maintenance_skip_slots?: number;
+        miner_proposal_review_period?: number;
+        maximum_transaction_size?: number;
+        maximum_block_size?: number;
+        maximum_time_until_expiration?: number;
+        maximum_proposal_lifetime?: number;
+        maximum_asset_feed_publishers?: number;
+        maximum_miner_count?: number;
+        maximum_authority_membership?: number;
+        cashback_vesting_period_seconds?: number;
+        cashback_vesting_threshold?: number;
+        max_predicate_opcode?: number;
+        max_authority_depth?: number;
+        extensions?: Array<any>;
+    }
+}
+
 export class MinerUpdateGlobalParametersPrototype {
-    static getPrototype(): object {
+    static getPrototype(): MinerUpdateGlobalParametersType {
         return {
             new_parameters: {
                 current_fees: {
@@ -445,8 +470,16 @@ export class MinerUpdateGlobalParametersPrototype {
     }
 }
 
+export interface ProposalCreateType extends OperationType {
+    fee_paying_account: string,
+    proposed_ops: OperationType[],
+    expiration_time: string,
+    review_period_seconds: number,
+    extensions: Array<any>;
+}
+
 export class ProposalCreatePrototype {
-    static getPrototype(): object {
+    static getPrototype(): ProposalCreateType {
         return {
             fee_paying_account: '1.2.X',
             proposed_ops: [{}],
@@ -457,8 +490,20 @@ export class ProposalCreatePrototype {
     }
 }
 
+export interface ProposalUpdateType extends OperationType {
+    fee_paying_account: string,
+    proposal: string,
+    active_approvals_to_add: Array<string>,
+    active_approvals_to_remove: Array<string>,
+    owner_approvals_to_add: Array<string>,
+    owner_approvals_to_remove: Array<string>,
+    key_approvals_to_add: Array<string>,
+    key_approvals_to_remove: Array<string>,
+    extensions: Array<any>,
+}
+
 export class ProposalUpdatePrototype {
-    static getPrototype(): object {
+    static getPrototype(): ProposalUpdateType {
         return {
             fee_paying_account: '1.2.X',
             proposal: '1.6.X',
@@ -473,16 +518,30 @@ export class ProposalUpdatePrototype {
     }
 }
 
+export interface OperationWrapperType extends OperationType {
+    op: object
+}
+
 export class OperationWrapperPrototype {
-    static getPrototype(): object {
+    static getPrototype(): OperationWrapperType {
         return {
             op: {},
         };
     }
 }
 
+export interface CreateAccountType extends OperationType {
+    fee: Asset,
+    name: string,
+    owner: Authority,
+    active: Authority,
+    options: Options,
+    registrar: string,
+    extensions: any
+}
+
 export class CreateAccountPrototype {
-    static getPrototype(): object {
+    static getPrototype(): CreateAccountType {
         return {
             fee: {
                 amount: 0,
@@ -518,8 +577,14 @@ export class CreateAccountPrototype {
     }
 }
 
+export interface VestingBalanceWithdrawType extends OperationType {
+    vesting_balance: string,
+    owner: string,
+    amount: Asset
+}
+
 export class VestingBalanceWithdrawPrototype {
-    static getPrototype(): object {
+    static getPrototype(): VestingBalanceWithdrawType {
         return {
             vesting_balance: '',
             owner: '1.2.X',
@@ -531,8 +596,16 @@ export class VestingBalanceWithdrawPrototype {
     }
 }
 
+export interface UpdateMonitoredAssetType extends OperationType {
+    issuer: string,
+    asset_to_update: string,
+    new_description: string,
+    new_feed_lifetime_sec: number,
+    new_minimum_feeds: number,
+}
+
 export class UpdateMonitoredAssetPrototype {
-    static getPrototype(): object {
+    static getPrototype(): UpdateMonitoredAssetType {
         return {
             issuer: '1.2.X',
             asset_to_update: '1.3.X',
@@ -543,8 +616,14 @@ export class UpdateMonitoredAssetPrototype {
     }
 }
 
+export interface SubscribeType extends OperationType {
+    from: string,
+    to: string,
+    price: Asset
+}
+
 export class SubscribePrototype {
-    static getPrototype(): object {
+    static getPrototype(): SubscribeType {
         return {
             from: '1.2.X',
             to: '1.2.X',
@@ -556,8 +635,13 @@ export class SubscribePrototype {
     }
 }
 
+export interface SubscribeByAuthorType extends OperationType {
+    from: string,
+    to: string,
+}
+
 export class SubscribeByAuthorPrototype {
-    static getPrototype(): object {
+    static getPrototype(): SubscribeByAuthorType {
         return {
             from: '1.2.X',
             to: '1.2.X',
@@ -565,8 +649,14 @@ export class SubscribeByAuthorPrototype {
     }
 }
 
+export interface AutomaticRenewalOfSubscriptionType extends OperationType {
+    consumer: string,
+    subscription: string,
+    automatic_renewal: boolean
+}
+
 export class SetAutomaticRenewalOfSubscriptionPrototype {
-    static getPrototype(): object {
+    static getPrototype(): AutomaticRenewalOfSubscriptionType {
         return {
             consumer: '1.2.X',
             subscription: '2.15.X',

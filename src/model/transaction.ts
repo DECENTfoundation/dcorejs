@@ -6,6 +6,7 @@ import {Authority, Options} from './account';
 import {MonitoredAssetOptions} from './asset';
 import {Proposal} from './proposal';
 import * as prototype from './operationPrototype';
+import {OperationType} from './operationPrototype';
 
 /**
  * OperationType to be broadcasted to blockchain
@@ -281,7 +282,7 @@ export namespace Operations {
 
     export class MinerUpdate extends Operation {
 
-        static getPrototype(): object {
+        static getPrototype(): prototype.MinerUpdateType {
             return prototype.MinerUpdatePrototype.getPrototype();
         }
 
@@ -293,41 +294,35 @@ export namespace Operations {
 
     export class MinerUpdateGlobalParameters extends Operation {
 
-        static getPrototype(): object {
+        static getPrototype(): prototype.MinerUpdateGlobalParametersType {
             return prototype.MinerUpdateGlobalParametersPrototype.getPrototype();
         }
 
         constructor(proposalParameters: Proposal) {
-            super(OperationName.miner_update_global_parameters, proposalParameters);
+            const type: prototype.MinerUpdateGlobalParametersType = Object.assign({}, proposalParameters);
+            super(OperationName.miner_update_global_parameters, type);
         }
     }
 
     export class ProposalCreate extends Operation {
 
-        static getPrototype(): object {
+        static getPrototype(): prototype.ProposalCreateType {
             return prototype.ProposalCreatePrototype.getPrototype();
         }
 
         constructor(feePayingAccount: string,
-                    proposedOperations: object[],
-                    expirationTime: number,
+                    proposedOperations: OperationType[],
+                    expirationTime: string,
                     reviewPeriodSeconds: number = null) {
-            super(
-                OperationName.proposal_create,
-                {
-                    fee_paying_account: feePayingAccount,
-                    proposed_ops: proposedOperations,
-                    expiration_time: expirationTime,
-                    review_period_seconds: reviewPeriodSeconds,
-                    extensions: []
-                }
-            );
+            const type: prototype.ProposalCreateType = {fee_paying_account: feePayingAccount, proposed_ops: proposedOperations,
+                expiration_time: expirationTime, review_period_seconds: reviewPeriodSeconds, extensions: []};
+            super(OperationName.proposal_create, type);
         }
     }
 
     export class ProposalUpdate extends Operation {
 
-        static getPrototype(): object {
+        static getPrototype(): prototype.ProposalUpdateType {
             return prototype.ProposalUpdatePrototype.getPrototype();
         }
 
@@ -339,36 +334,24 @@ export namespace Operations {
                     ownerApprovalsToRemove: Array<string>,
                     keyApprovalsToAdd: Array<string>,
                     keyApprovalsToRemove: Array<string>) {
-            super(
-                OperationName.proposal_update,
-                {
-                    fee_paying_account: feePayingAccount,
-                    proposal: proposal,
-                    active_approvals_to_add: activeApprovalsToAdd,
-                    active_approvals_to_remove: activeApprovalsToRemove,
-                    owner_approvals_to_add: ownerApprovalsToAdd,
-                    owner_approvals_to_remove: ownerApprovalsToRemove,
-                    key_approvals_to_add: keyApprovalsToAdd,
-                    key_approvals_to_remove: keyApprovalsToRemove,
-                    extensions: []
-                }
-            );
+            const type: prototype.ProposalUpdateType = {
+                fee_paying_account: feePayingAccount, proposal: proposal, active_approvals_to_add: activeApprovalsToAdd,
+                active_approvals_to_remove: activeApprovalsToRemove, owner_approvals_to_add: ownerApprovalsToAdd,
+                owner_approvals_to_remove: ownerApprovalsToRemove, key_approvals_to_add: keyApprovalsToAdd,
+                key_approvals_to_remove: keyApprovalsToRemove, extensions: []};
+            super(OperationName.proposal_update, type);
         }
     }
 
     export class OperationWrapper extends Operation {
 
-        static getPrototype(): object {
+        static getPrototype(): prototype.OperationWrapperType {
             return prototype.OperationWrapperPrototype.getPrototype();
         }
 
         constructor(operation: Operation) {
-            super(
-                OperationName.operation_wrapper,
-                {
-                    op: operation
-                }
-            );
+            const type: prototype.OperationWrapperType = {op: operation};
+            super(OperationName.operation_wrapper, type);
         }
     }
 
@@ -384,7 +367,7 @@ export namespace Operations {
 
     export class RegisterAccount extends Operation {
 
-        static getPrototype(): object {
+        static getPrototype(): prototype.CreateAccountType {
             return prototype.CreateAccountPrototype.getPrototype();
         }
 
@@ -395,64 +378,50 @@ export namespace Operations {
 
     export class VestingBalanceWithdraw extends Operation {
 
-        static getPrototype(): object {
+        static getPrototype(): prototype.VestingBalanceWithdrawType {
             return prototype.VestingBalanceWithdrawPrototype.getPrototype();
         }
 
         constructor(vestingBalanceId: string, ownerId: string, ammount: Asset) {
-            super(
-                OperationName.vesting_balance_withdraw,
-                {
-                    vesting_balance: vestingBalanceId,
-                    owner: ownerId,
-                    amount: ammount
-                });
+            const type: prototype.VestingBalanceWithdrawType = {vesting_balance: vestingBalanceId, owner: ownerId, amount: ammount};
+            super(OperationName.vesting_balance_withdraw, type);
         }
     }
 
     export class Subscribe extends Operation {
 
-        static getPrototype(): object {
+        static getPrototype(): prototype.SubscribeType {
             return prototype.SubscribePrototype.getPrototype();
         }
 
         constructor(fromId: string, toId: string, price: Asset) {
-            super(OperationName.subscribe, {
-                from: fromId,
-                to: toId,
-                price: price
-            });
+            const type: prototype.SubscribeType = {from: fromId, to: toId, price: price};
+            super(OperationName.subscribe, type);
         }
     }
 
     export class SubscribeByAuthor extends Operation {
 
-        static getPrototype(): object {
+        static getPrototype(): prototype.SubscribeByAuthorType {
             return prototype.SubscribeByAuthorPrototype.getPrototype();
         }
 
         constructor(fromId: string, toId: string) {
-            super(
-                OperationName.subscribe_by_author, {
-                    from: fromId,
-                    to: toId
-                });
+            const type: prototype.SubscribeByAuthorType = {from: fromId, to: toId};
+            super(OperationName.subscribe_by_author, type);
         }
     }
 
     export class SetAutomaticRenewalOfSubscription extends Operation {
 
-        static getPrototype(): object {
+        static getPrototype(): prototype.AutomaticRenewalOfSubscriptionType {
             return prototype.SetAutomaticRenewalOfSubscriptionPrototype.getPrototype();
         }
 
         constructor(accountId: string, subscriptionId: string, automaticRenewal: boolean) {
-            super(
-                OperationName.automatic_renewal_of_subscription, {
-                    consumer: accountId,
-                    subscription: subscriptionId,
-                    automatic_renewal: automaticRenewal
-                });
+            const type: prototype.AutomaticRenewalOfSubscriptionType = {
+                consumer: accountId, subscription: subscriptionId, automatic_renewal: automaticRenewal};
+            super(OperationName.automatic_renewal_of_subscription, type);
         }
     }
 
@@ -471,12 +440,13 @@ export namespace Operations {
     }
 
     export class UpdateMonitoredAssetOperation extends Operation {
-        static getPrototype(): object {
+        static getPrototype(): prototype.UpdateMonitoredAssetType {
             return prototype.UpdateMonitoredAssetPrototype.getPrototype();
         }
 
         constructor(params: UpdateMonitoredAssetParameters) {
-            super(OperationName.update_monitored_asset_operation, params);
+            const type: prototype.UpdateMonitoredAssetType = Object.assign({}, params);
+            super(OperationName.update_monitored_asset_operation, type);
         }
     }
 }
