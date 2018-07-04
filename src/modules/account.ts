@@ -289,13 +289,13 @@ export class AccountModule extends ApiModule {
      * @param {string} assetId      Id of asset in which balance will be listed
      * @return {Promise<number>}
      */
-    public getBalance(accountId: string, assetId: string = '1.3.0'): Promise<number> {
+    public getBalance(accountId: string, assetId: string = '1.3.0', convertAsset: boolean = false): Promise<number> {
         return new Promise((resolve, reject) => {
             if (!accountId) {
                 reject('missing_parameter');
                 return;
             }
-            const getAssetOp = new DatabaseOperations.GetAssets([assetId]);
+            const getAssetOp = new DatabaseOperations.GetAssets([assetId || '1.3.0']);
             this.dbApi.execute(getAssetOp)
                 .then((assets: DCoreAssetObject[]) => {
                     if (!assets || assets.length === 0) {
@@ -305,8 +305,13 @@ export class AccountModule extends ApiModule {
                     const asset = assets[0];
                     const dbOperation = new DatabaseOperations.GetAccountBalances(accountId, [asset.id]);
                     this.dbApi.execute(dbOperation)
-                        .then(res => {
-                            resolve(Utils.formatAmountForAsset(res[0].amount, asset));
+                        .then(balances => {
+                            if (!balances || !balances[0]) {
+                                reject(this.handleError(AccountError.asset_does_not_exist));
+                                return;
+                            }
+                            const [balance] = balances;
+                            resolve(convertAsset ? Utils.formatAmountForAsset(balance.amount, asset) : balance.amount);
                         })
                         .catch(err => {
                             reject(this.handleError(AccountError.database_operation_failed, err));
@@ -594,7 +599,7 @@ export class AccountModule extends ApiModule {
      * @param {string} id           Account id
      * @returns {Promise<Asset[]>}  List of balances
      */
-    public listAccountBalances(id: string): Promise<Asset[]> {
+    public listAccountBalances(id: string, convertAssets: boolean = false): Promise<Asset[]> {
         return new Promise<Asset[]>((resolve, reject) => {
             const operation = new DatabaseOperations.GetAccountBalances(id, []);
             this.dbApi.execute(operation)
@@ -608,6 +613,10 @@ export class AccountModule extends ApiModule {
                         .then((assets: DCoreAssetObject[]) => {
                             if (!assets || assets.length === 0) {
                                 reject(this.handleError(AccountError.database_operation_failed));
+                                return;
+                            }
+                            if (!convertAssets) {
+                                resolve(balances);
                                 return;
                             }
                             const result = [].concat(...balances);
