@@ -255,7 +255,7 @@ export class ContentModule extends ApiModule {
                 content.publishingFeeAsset || ChainApi.asset_id
             ]);
             const methods = [new ChainMethods.GetAccount(content.authorId)];
-            methods.concat(...content.coAuthors.map(ca => new ChainMethods.GetAccount(ca[0])));
+            methods.push(...content.coAuthors.map(ca => new ChainMethods.GetAccount(ca[0])));
             this.chainApi.fetch(...methods)
                 .then((accounts: DCoreAccount[]) => {
                     const authorAccount = JSON.parse(JSON.stringify(accounts[0]));
