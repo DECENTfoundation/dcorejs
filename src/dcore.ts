@@ -1,8 +1,8 @@
 import {getLibRef} from './helpers';
-import {ContentApi} from './modules/content';
+import {ContentModule} from './modules/content';
 import {ChainApi} from './api/chain';
 import {DatabaseApi} from './api/database';
-import {AccountApi} from './modules/account';
+import {AccountModule} from './modules/account';
 import {HistoryApi} from './api/history';
 import {ApiConnector, ConnectionState} from './api/apiConnector';
 import {AssetModule} from './modules/asset';
@@ -11,13 +11,13 @@ import {MiningModule} from './modules/mining';
 import {SubscriptionModule} from './modules/subscription';
 import {SeedingModule} from './modules/seeding';
 import {ProposalModule} from './modules/proposal';
-import {Transaction} from './transaction';
+import {TransactionBuilder} from './transactionBuilder';
 import {ChainSubscriptionCallback} from './api/model/chain';
 import {MessagingApi} from './api/messaging';
 import {MessagingModule} from './modules/messaging';
 
-let _content: ContentApi;
-let _account: AccountApi;
+let _content: ContentModule;
+let _account: AccountModule;
 let _explorer: ExplorerModule;
 let _assetModule: AssetModule;
 let _mining: MiningModule;
@@ -25,7 +25,7 @@ let _subscription: SubscriptionModule;
 let _seeding: SeedingModule;
 let _proposal: ProposalModule;
 let _chain: ChainApi;
-let _transaction: Transaction;
+let _transaction: TransactionBuilder;
 let _messaging: MessagingModule;
 
 export class DcoreError {
@@ -47,6 +47,7 @@ export interface DcoreConfig {
  * @param {(state: ConnectionState) => void} [connectionStatusCallback=null]    Status callback to handle connection
  */
 export function initialize(config: DcoreConfig,
+                           testConnection: boolean = true,
                            dcorejs_lib: any = null,
                            connectionStatusCallback: (state: ConnectionState) => void = null): void {
     if (dcorejs_lib) {
@@ -55,21 +56,21 @@ export function initialize(config: DcoreConfig,
     const dcore = getLibRef();
     ChainApi.setupChain(config.chainId, dcore.ChainConfig);
 
-    const connector = new ApiConnector(config.dcoreNetworkWSPaths, dcore.Apis, connectionStatusCallback);
+    const connector = new ApiConnector(config.dcoreNetworkWSPaths, dcore.Apis, testConnection, connectionStatusCallback);
     const database = new DatabaseApi(dcore.Apis, connector);
     const historyApi = new HistoryApi(dcore.Apis, connector);
     const messagingApi = new MessagingApi(dcore.Apis, connector);
 
     _chain = new ChainApi(connector, dcore.ChainStore);
-    _content = new ContentApi(database);
-    _account = new AccountApi(database, _chain, historyApi, connector);
+    _content = new ContentModule(database, _chain);
+    _account = new AccountModule(database, _chain, historyApi, connector);
     _explorer = new ExplorerModule(database);
     _assetModule = new AssetModule(database, connector, _chain);
     _subscription = new SubscriptionModule(database, connector);
     _seeding = new SeedingModule(database);
     _mining = new MiningModule(database, connector, _chain);
     _proposal = new ProposalModule(database, _chain, connector);
-    _transaction = new Transaction();
+    _transaction = new TransactionBuilder();
     _messaging = new MessagingModule(database, messagingApi);
 }
 
@@ -91,11 +92,11 @@ export function subscribePendingTransaction(callback: ChainSubscriptionCallback)
     _chain.subscribePendingTransactions(callback);
 }
 
-export function content(): ContentApi {
+export function content(): ContentModule {
     return _content;
 }
 
-export function account(): AccountApi {
+export function account(): AccountModule {
     return _account;
 }
 
@@ -126,6 +127,7 @@ export function messaging(): MessagingModule {
     return _messaging;
 }
 
-export function transaction(): Transaction {
+export function transaction(): TransactionBuilder {
+    _transaction = new TransactionBuilder();
     return _transaction;
 }

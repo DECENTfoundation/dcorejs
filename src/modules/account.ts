@@ -11,7 +11,7 @@ import {
 import { DatabaseApi } from '../api/database';
 import { ChainApi} from '../api/chain';
 import { CryptoUtils } from '../crypt';
-import { Transaction } from '../transaction';
+import { TransactionBuilder } from '../transactionBuilder';
 import { KeyPrivate, KeyPublic, Utils } from '../utils';
 import { HistoryApi, HistoryOperations } from '../api/history';
 import { ApiConnector } from '../api/apiConnector';
@@ -32,16 +32,14 @@ export enum AccountOrder {
 /**
  * API class provides wrapper for account information.
  */
-export class AccountApi extends ApiModule {
-    private _chainApi: ChainApi;
-    private _historyApi: HistoryApi;
-    private _connector: ApiConnector;
-
-    constructor(dbApi: DatabaseApi, chainApi: ChainApi, historyApi: HistoryApi, connector: ApiConnector) {
-        super(dbApi);
-        this._chainApi = chainApi;
-        this._historyApi = historyApi;
-        this._connector = connector;
+export class AccountModule extends ApiModule {
+    constructor(dbApi: DatabaseApi, chainApi: ChainApi, historyApi: HistoryApi, apiConnector: ApiConnector) {
+        super({
+            dbApi,
+            apiConnector,
+            historyApi,
+            chainApi
+        });
     }
 
     /**
@@ -221,7 +219,7 @@ export class AccountApi extends ApiModule {
                 new ChainMethods.GetAsset(assetId || '1.3.0')
             );
 
-            this._chainApi.fetch(...methods)
+            this.chainApi.fetch(...methods)
                 .then(result => {
                     const [senderAccount, receiverAccount, asset] = result;
                     if (!senderAccount) {
@@ -259,7 +257,7 @@ export class AccountApi extends ApiModule {
                         )
                     };
                     const assetObject = JSON.parse(JSON.stringify(asset));
-                    const transaction = new Transaction();
+                    const transaction = new TransactionBuilder();
                     const transferOperation = new Operations.TransferOperation(
                         senderAccount.get('id'),
                         receiverAccount.get('id'),
@@ -292,13 +290,13 @@ export class AccountApi extends ApiModule {
      * @param {string} assetId      Id of asset in which balance will be listed
      * @return {Promise<number>}
      */
-    public getBalance(accountId: string, assetId: string = '1.3.0'): Promise<number> {
+    public getBalance(accountId: string, assetId: string = '1.3.0', convertAsset: boolean = false): Promise<number> {
         return new Promise((resolve, reject) => {
             if (!accountId) {
                 reject('missing_parameter');
                 return;
             }
-            const getAssetOp = new DatabaseOperations.GetAssets([assetId]);
+            const getAssetOp = new DatabaseOperations.GetAssets([assetId || '1.3.0']);
             this.dbApi.execute(getAssetOp)
                 .then((assets: DCoreAssetObject[]) => {
                     if (!assets || assets.length === 0) {
@@ -308,8 +306,13 @@ export class AccountApi extends ApiModule {
                     const asset = assets[0];
                     const dbOperation = new DatabaseOperations.GetAccountBalances(accountId, [asset.id]);
                     this.dbApi.execute(dbOperation)
-                        .then(res => {
-                            resolve(Utils.formatAmountForAsset(res[0].amount, asset));
+                        .then(balances => {
+                            if (!balances || !balances[0]) {
+                                reject(this.handleError(AccountError.asset_does_not_exist));
+                                return;
+                            }
+                            const [balance] = balances;
+                            resolve(convertAsset ? Utils.formatAmountForAsset(balance.amount, asset) : balance.amount);
                         })
                         .catch(err => {
                             reject(this.handleError(AccountError.database_operation_failed, err));
@@ -347,7 +350,7 @@ export class AccountApi extends ApiModule {
                 start,
                 transactionId
             );
-            this._historyApi.execute(operation)
+            this.historyApi.execute(operation)
                 .then(res => {
                     if (res.length === 0) {
                         reject(this.handleError(AccountError.transaction_history_fetch_failed, ''));
@@ -368,7 +371,8 @@ export class AccountApi extends ApiModule {
      * Operations can be filtered using Chain.ChainOperationType
      *
      * @param {string} accountId                Users account id, example: '1.2.30'
-     * @param {string} fromId                   ID of operation from what to start list from
+     * @param {string} fromId                   ID of operation from what to start list from. Note, that list is in DESC order.
+     *                                          So id of operation suppose to be last in received list.
      * @param {number} resultLimit              Number of results to be returned, max value is 100
      * @return {Promise<HistoryRecord[]>}       Return variable object types, based on operation in history record
      */
@@ -376,11 +380,11 @@ export class AccountApi extends ApiModule {
         return new Promise((resolve, reject) => {
             const operation = new HistoryOperations.GetAccountHistory(
                 accountId,
-                historyOptions && historyOptions.fromId || '1.7.0',
                 '1.7.0',
+                historyOptions && historyOptions.fromId || '1.7.0',
                 historyOptions && historyOptions.resultLimit || 100
             );
-            this._historyApi.execute(operation)
+            this.historyApi.execute(operation)
                 .then(res => {
                     // TODO: create models for different operations names, placed in dcore/src/chain/src/ChainTypes.js
                     resolve(res);
@@ -474,7 +478,7 @@ export class AccountApi extends ApiModule {
                         }
                     });
 
-                    const transaction = new Transaction();
+                    const transaction = new TransactionBuilder();
                     transaction.addOperation(operation);
                     if (broadcast) {
                         transaction.broadcast(regisrarPrivateKey)
@@ -554,13 +558,13 @@ export class AccountApi extends ApiModule {
                     }));
                     const walletExport: WalletExport = {
                         version: 1,
-                        chain_id: this._chainApi.chainId,
+                        chain_id: this.chainApi.chainId,
                         my_accounts: [acc],
                         cipher_keys: '',
                         extra_keys: [],
                         pending_account_registrations: [],
                         pending_miner_registrations: [],
-                        ws_server: this._connector.apiAddresses[0],
+                        ws_server: this.apiConnector.apiAddresses[0],
                         ws_user: '',
                         ws_password: '',
                     };
@@ -602,7 +606,7 @@ export class AccountApi extends ApiModule {
      * @param {string} id           Account id
      * @returns {Promise<Asset[]>}  List of balances
      */
-    public listAccountBalances(id: string): Promise<Asset[]> {
+    public listAccountBalances(id: string, convertAssets: boolean = false): Promise<Asset[]> {
         return new Promise<Asset[]>((resolve, reject) => {
             const operation = new DatabaseOperations.GetAccountBalances(id, []);
             this.dbApi.execute(operation)
@@ -616,6 +620,10 @@ export class AccountApi extends ApiModule {
                         .then((assets: DCoreAssetObject[]) => {
                             if (!assets || assets.length === 0) {
                                 reject(this.handleError(AccountError.database_operation_failed));
+                                return;
+                            }
+                            if (!convertAssets) {
+                                resolve(balances);
                                 return;
                             }
                             const result = [].concat(...balances);
@@ -707,7 +715,7 @@ export class AccountApi extends ApiModule {
                         {}
                     );
 
-                    const transaction = new Transaction();
+                    const transaction = new TransactionBuilder();
                     transaction.addOperation(accountUpdateOperation);
                     if (broadcast) {
                         transaction.broadcast(privateKey)

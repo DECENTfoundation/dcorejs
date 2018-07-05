@@ -3,7 +3,7 @@ import {DatabaseApi} from '../api/database';
 import {DatabaseOperations} from '../api/model/database';
 import {CryptoUtils} from '../crypt';
 import {Asset, Memo, Operations, PriceFeed} from '../model/transaction';
-import {Transaction} from '../transaction';
+import {TransactionBuilder} from '../transactionBuilder';
 import {Utils} from '../utils';
 
 import {ChainApi} from '../api/chain';
@@ -16,13 +16,13 @@ import {ProposalCreateParameters} from '../model/proposal';
 
 export class AssetModule extends ApiModule {
     public MAX_SHARED_SUPPLY = 7319777577456890;
-    private chainApi: ChainApi;
-    private connector: ApiConnector;
 
-    constructor(dbApi: DatabaseApi, connector: ApiConnector, chainApi: ChainApi) {
-        super(dbApi);
-        this.chainApi = chainApi;
-        this.connector = connector;
+    constructor(dbApi: DatabaseApi, apiConnector: ApiConnector, chainApi: ChainApi) {
+        super({
+            apiConnector,
+            dbApi,
+            chainApi
+        });
     }
 
     public listAssets(lowerBoundSymbol: string, limit: number = 100, formatAssets: boolean = false): Promise<AssetObject[]> {
@@ -71,11 +71,11 @@ export class AssetModule extends ApiModule {
             issuer, symbol, precision, description, options
         );
 
-        const transaction = new Transaction();
+        const transaction = new TransactionBuilder();
         transaction.addOperation(operation);
 
         return new Promise<boolean>((resolve, reject) => {
-            this.connector.connect()
+            this.apiConnector.connect()
                 .then(() => {
                     transaction.broadcast(issuerPrivateKey)
                         .then(() => resolve(true))
@@ -138,7 +138,7 @@ export class AssetModule extends ApiModule {
                                 issueToAccount,
                                 memoObject
                             );
-                            const transaction = new Transaction();
+                            const transaction = new TransactionBuilder();
                             transaction.addOperation(operation);
                             transaction.broadcast(issuerPKey)
                                 .then(res => resolve(true))
@@ -180,7 +180,7 @@ export class AssetModule extends ApiModule {
                         isExchangable,
                         newInfo.newIssuer
                     );
-                    const transaction = new Transaction();
+                    const transaction = new TransactionBuilder();
                     transaction.addOperation(operation);
                     transaction.broadcast(issuerPKey)
                         .then(res => resolve(true))
@@ -218,7 +218,7 @@ export class AssetModule extends ApiModule {
                             amount: dctAmount
                         }
                     );
-                    const transaction = new Transaction();
+                    const transaction = new TransactionBuilder();
                     transaction.addOperation(operation);
                     transaction.broadcast(privateKey)
                         .then(res => resolve(true))
@@ -243,7 +243,7 @@ export class AssetModule extends ApiModule {
                             amount: amountToReserve
                         }
                     );
-                    const transaction = new Transaction();
+                    const transaction = new TransactionBuilder();
                     transaction.addOperation(operation);
                     transaction.broadcast(privateKey)
                         .then(res => resolve(res))
@@ -279,7 +279,7 @@ export class AssetModule extends ApiModule {
                         amount: dctAmount
                     };
                     const operation = new Operations.AssetClaimFeesOperation(issuer, uiaAsset, dctAsset);
-                    const transaction = new Transaction();
+                    const transaction = new TransactionBuilder();
                     transaction.addOperation(operation);
                     transaction.broadcast(privateKey)
                         .then(res => resolve(true))
@@ -364,7 +364,7 @@ export class AssetModule extends ApiModule {
                         }
                     };
                     const operation = new Operations.AssetPublishFeed(publishingAccount, asset.id, feed);
-                    const transaction = new Transaction();
+                    const transaction = new TransactionBuilder();
                     transaction.addOperation(operation);
                     transaction.broadcast(privateKey)
                         .then(res => resolve(res))
@@ -494,7 +494,7 @@ export class AssetModule extends ApiModule {
                         review_period_seconds: result.parameters.miner_proposal_review_period,
                         extensions: []
                     };
-                    const transaction = new Transaction();
+                    const transaction = new TransactionBuilder();
                     transaction.addOperation(operation);
                     transaction.propose(proposalCreateParameters2);
                     transaction.propose(proposalCreateParameters1);
@@ -534,7 +534,7 @@ export class AssetModule extends ApiModule {
                         new_minimum_feeds: minimumFeeds,
                     };
                     const operation = new Operations.UpdateMonitoredAssetOperation(parameters);
-                    const transaction = new Transaction();
+                    const transaction = new TransactionBuilder();
                     transaction.addOperation(operation);
                     transaction.broadcast(privateKey)
                         .then(() => {

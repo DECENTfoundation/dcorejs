@@ -2,19 +2,17 @@ import {DatabaseApi} from '../api/database';
 import {DatabaseOperations} from '../api/model/database';
 import {Operations} from '../model/transaction';
 import {Account, AccountError, Options} from '../model/account';
-import {Transaction} from '../transaction';
+import {TransactionBuilder} from '../transactionBuilder';
 import {ApiModule} from './ApiModule';
 import {ApiConnector} from '../api/apiConnector';
 import {ChainApi} from '../api/chain';
 import {Block, Miner} from '../model/explorer';
-import {MinerUpdateData, MiningError} from '../model/mining';
+import {MinerNameIdPair, MinerUpdateData, MiningError} from '../model/mining';
 import VestingBalance = Block.VestingBalance;
 import {ChainMethods} from '../api/model/chain';
 
 export class MiningModule extends ApiModule {
     static CHAIN_PROXY_TO_SELF = '';
-    private connector: ApiConnector;
-    private chainApi: ChainApi;
 
     private static getSortedMiners(minersVoteIds: string[]): string[] {
         const res = [].concat(...minersVoteIds);
@@ -45,9 +43,11 @@ export class MiningModule extends ApiModule {
     }
 
     constructor(dbApi: DatabaseApi, apiConnector: ApiConnector, chainApi: ChainApi) {
-        super(dbApi);
-        this.connector = apiConnector;
-        this.chainApi = chainApi;
+        super({
+            dbApi,
+            apiConnector,
+            chainApi
+        });
     }
 
     /**
@@ -86,7 +86,7 @@ export class MiningModule extends ApiModule {
                     const operation = new Operations.AccountUpdateOperation(
                         accountId, account.owner, account.active, options, {}
                     );
-                    const transaction = new Transaction();
+                    const transaction = new TransactionBuilder();
                     transaction.addOperation(operation);
                     transaction.broadcast(privateKey)
                         .then(res => resolve(true))
@@ -98,10 +98,10 @@ export class MiningModule extends ApiModule {
 
     public createMiner(minerAccountId: string, URL: string, signingPublicKey: string, privateKey: string): Promise<boolean> {
         return new Promise<boolean>(((resolve, reject) => {
-            this.connector.connect()
+            this.apiConnector.connect()
                 .then(res => {
                     const operation = new Operations.MinerCreate(minerAccountId, URL, signingPublicKey);
-                    const transaction = new Transaction();
+                    const transaction = new TransactionBuilder();
                     transaction.addOperation(operation);
                     transaction.broadcast(privateKey)
                         .then(res => resolve(true))
@@ -161,7 +161,7 @@ export class MiningModule extends ApiModule {
                                 voter.options,
                                 {}
                             );
-                            const transaction = new Transaction();
+                            const transaction = new TransactionBuilder();
                             transaction.addOperation(op);
                             transaction.broadcast(privateKeyWif)
                                 .then(res => resolve(true))
@@ -215,7 +215,7 @@ export class MiningModule extends ApiModule {
                                 voter.options,
                                 {}
                             );
-                            const transaction = new Transaction();
+                            const transaction = new TransactionBuilder();
                             transaction.addOperation(op);
                             transaction.broadcast(privateKeyWif)
                                 .then(res => resolve(true))
@@ -272,7 +272,7 @@ export class MiningModule extends ApiModule {
                                 newOptions,
                                 {}
                             );
-                            const transaction = new Transaction();
+                            const transaction = new TransactionBuilder();
                             transaction.addOperation(accountUpdateOp);
                             transaction.broadcast(privateKey)
                                 .then(res => resolve(true))
@@ -309,7 +309,7 @@ export class MiningModule extends ApiModule {
                         updateData.newUrl || miner.url,
                         updateData.newSigningKey || miner.signing_key
                     );
-                    const transaction = new Transaction();
+                    const transaction = new TransactionBuilder();
                     transaction.addOperation(operation);
                     transaction.broadcast(privateKey)
                         .then(res => resolve(true))
@@ -335,7 +335,7 @@ export class MiningModule extends ApiModule {
                     asset_id: assetId
                 }
             );
-            const transaction = new Transaction();
+            const transaction = new TransactionBuilder();
             transaction.addOperation(operation);
             transaction.broadcast(privateKey)
                 .then(res => resolve(true))
@@ -372,13 +372,38 @@ export class MiningModule extends ApiModule {
                         newOptions,
                         {}
                     );
-                    const transaction = new Transaction();
+                    const transaction = new TransactionBuilder();
                     transaction.addOperation(accountUpdateOperation);
                     transaction.broadcast(privateKey)
                         .then(res => resolve(true))
                         .catch(err => reject(this.handleError(MiningError.transaction_broadcast_failed, err)));
                 })
                 .catch(err => this.handleError(MiningError.account_fetch_failed, err));
+        });
+    }
+    public listMiners(fromId: string, limit: number = 100): Promise<MinerNameIdPair[]> {
+        return new Promise<MinerNameIdPair[]>(((resolve, reject) => {
+            const operation = new DatabaseOperations.LookupMiners(fromId, limit);
+            this.dbApi.execute(operation)
+                .then((miners: MinerNameIdPair[]) => {
+                    resolve(miners);
+                })
+                .catch(err => reject(this.handleError(MiningError.database_fetch_failed, err)));
+        }));
+    }
+
+    public getMiner(minerId: string): Promise<Miner> {
+        return new Promise<Miner>((resolve, reject) => {
+            const operation = new DatabaseOperations.GetMiners([minerId]);
+            this.dbApi.execute(operation)
+                .then((miners: Miner[]) => {
+                    if (!miners || !miners[0]) {
+                        reject(this.handleError(MiningError.miner_does_not_exist));
+                        return;
+                    }
+                    resolve(miners[0]);
+                })
+                .catch(err => reject(this.handleError(MiningError.database_fetch_failed, err)));
         });
     }
 }

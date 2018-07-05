@@ -1,5 +1,5 @@
 export * from './api/model/database';
-export { ContentApi} from './modules/content';
+export { ContentModule} from './modules/content';
 export * from './modules/account';
 export * from './modules/explorer';
 export { ConnectionState } from './api/apiConnector';

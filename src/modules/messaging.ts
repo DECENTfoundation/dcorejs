@@ -2,7 +2,7 @@ import {ApiModule} from './ApiModule';
 import {MessagingApi} from '../api/messaging';
 import {DatabaseApi} from '../api/database';
 import {Operations} from '../model/transaction';
-import {Transaction} from '../transaction';
+import {TransactionBuilder} from '../transactionBuilder';
 import {KeyPrivate, KeyPublic, Utils} from '../utils';
 import {DatabaseOperations} from '../api/model/database';
 import {Account} from '../model/account';
@@ -11,11 +11,11 @@ import {CustomOperationSubtype, DCoreMessagePayload, MessagePayload, MessagingEr
 import {MessagingOperations} from '../api/model/messaging';
 
 export class MessagingModule extends ApiModule {
-    private _message_api: MessagingApi;
-
     constructor(dbApi: DatabaseApi, messageApi: MessagingApi) {
-        super(dbApi);
-        this._message_api = messageApi;
+        super({
+            dbApi,
+            messagingApi: messageApi
+        });
     }
 
     public getSentMessages(sender: string, decryptPrivateKey: string = '', count: number = 100): Promise<DCoreMessagePayload[]> {
@@ -41,7 +41,7 @@ export class MessagingModule extends ApiModule {
     public getMessageObjects(sender?: string, receiver?: string, decryptPrivateKey: string = '', count: number = 100): Promise<any> {
         return new Promise<any>(((resolve, reject) => {
             const op = new MessagingOperations.GetMessageObjects(sender, receiver, count);
-            this._message_api.execute(op)
+            this.messagingApi.execute(op)
                 .then((messages: any[]) => {
                     resolve(this.decryptMessages(messages, decryptPrivateKey));
                 })
@@ -102,7 +102,7 @@ export class MessagingModule extends ApiModule {
                     const buffer = new Buffer(JSON.stringify(messagePayload)).toString('hex');
 
                     const customOp = new Operations.CustomOperation(sender, [sender], CustomOperationSubtype.messaging, buffer);
-                    const transaction = new Transaction();
+                    const transaction = new TransactionBuilder();
                     transaction.addOperation(customOp);
                     transaction.broadcast(privateKey)
                         .then(res => resolve(true))
