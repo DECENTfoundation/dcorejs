@@ -437,11 +437,11 @@ export class AccountModule extends ApiModule {
      * Creates new account in DCore blockchain network.
      *
      * @param {string} name                 Name of newly created account.
-     * @param {string} ownerKey             Public key to be used as owner key in WIF/HEX(Wallet Import Format) format.
-     * @param {string} activeKey            Public key to be used as active key in WIF/HEX(Wallet Import Format) format.
-     * @param {string} memoKey              Public key used to memo encryption in WIF/HEX(Wallet Import Format) format.
+     * @param {string} ownerKey             Public key to be used as owner key in WIF(hex)(Wallet Import Format) format.
+     * @param {string} activeKey            Public key to be used as active key in WIF(hex)(Wallet Import Format) format.
+     * @param {string} memoKey              Public key used to memo encryption in WIF(hex)(Wallet Import Format) format.
      * @param {string} registrar            Registrar account id who pay account creation transaction fee.
-     * @param {string} regisrarPrivateKey   Registrar private key, in WIF/HEX(Wallet Import Format) format, for account register
+     * @param {string} regisrarPrivateKey   Registrar private key, in WIF(hex)(Wallet Import Format) format, for account register
      *                                      transaction to be signed with.
      * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
      */
@@ -505,7 +505,7 @@ export class AccountModule extends ApiModule {
      * @param {string} brainkey             Brain key for keys derivation. Use brain key from Utils.suggestBrainKey.
      * @param {string} accountName          Name for new account. String with alphanumerical symbols and dash. Example: 'new-account2'
      * @param {string} registrar            Registrar account id, who pay for account registration in format '1.2.X'. Example: '1.2.345'
-     * @param {string} registrarPrivateKey  Registrar private key in WIF/HEX(Wallet Import Format) format.
+     * @param {string} registrarPrivateKey  Registrar private key in WIF(hex)(Wallet Import Format) format.
      * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
      */
     public createAccountWithBrainkey(brainkey: string,
@@ -528,7 +528,7 @@ export class AccountModule extends ApiModule {
      *
      * @param {string} accountId            Account id that about to be exported, in format '1.2.X'. Example: '1.2.345'
      * @param {string} password             Password for keys structure encryption.
-     * @param privateKeys                   Private keys, in WIF/HEX(Wallet Import Format) format, to be exported
+     * @param privateKeys                   Private keys, in WIF(hex)(Wallet Import Format) format, to be exported
      * @param additionalElGamalPrivateKeys  Additional el gamal keys, in case that has been changed over time. Primary el gamal key is
      *                                      calculated from privateKeys.
      * @returns {Promise<WalletExport>}     WalletExport object that can be serialized and used as import for cli_wallet.
@@ -682,7 +682,7 @@ export class AccountModule extends ApiModule {
      * @param {string} accountId                Account id of account that is about to be updated. Example: '1.2.345'.
      * @param {UpdateAccountParameters} params  UpdateAccountParameters object with parameters to be changed.
      * @param {string} privateKey               Private key of account that is about to be changed, to sign transaction.
-     *                                          In WIF/HEX(Wallet Import Format) format.
+     *                                          In WIF(hex)(Wallet Import Format) format.
      * @returns {Promise<Boolean>}
      */
     public updateAccount(accountId: string, params: UpdateAccountParameters, privateKey: string): Promise<Boolean> {
