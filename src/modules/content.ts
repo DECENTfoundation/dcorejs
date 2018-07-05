@@ -9,9 +9,8 @@ import { ContentObject, Operations } from '../model/transaction';
 import { DCoreAssetObject } from '../model/asset';
 import { ApiModule } from './ApiModule';
 import { Utils } from '../utils';
-import { dcorejs_lib } from '../helpers';
-import * as bigInt from 'big-integer';
 import { ChainMethods } from '../api/model/chain';
+import {ApiConnector} from '../api/apiConnector';
 
 const moment = require('moment');
 
@@ -25,6 +24,7 @@ export enum ContentError {
     content_not_exist = 'content_not_exist',
     account_fetch_failed = 'account_fetch_failed',
     parameters_error = 'parameters_error',
+    connection_failed = 'connection_failed',
 }
 
 /**
@@ -32,19 +32,22 @@ export enum ContentError {
  * with content stored in dcore_js network.
  */
 export class ContentModule extends ApiModule {
-    constructor(dbApi: DatabaseApi, chainApi: ChainApi) {
+    constructor(dbApi: DatabaseApi, chainApi: ChainApi, apiConnector: ApiConnector) {
         super({
             dbApi,
-            chainApi
+            chainApi,
+            apiConnector
         });
     }
 
     /**
-     * Searches content submitted to dcore_js network and is not expired.
+     * Searches content submitted to DCore network and is not expired.
      *
-     * @param {SearchParams} searchParams
-     * @param {boolean} convertAsset
-     * @return {Promise<Content[]>}
+     * @param {SearchParams} searchParams       Parameters for content filtering.
+     * @param {boolean} convertAsset            Optional parameter to convert amounts and fees of Content from blockchain asset
+     *                                          amount format to right precision format of asset. Example: 100000000 => 1 DCT.
+     *                                          Default: false.
+     * @return {Promise<Content[]>}             List of Content object that conform search parameters.
      */
     public searchContent(searchParams?: SearchParams, convertAsset: boolean = false): Promise<Content[]> {
         const dbOperation = new DatabaseOperations.SearchContent(searchParams);
@@ -72,13 +75,15 @@ export class ContentModule extends ApiModule {
     }
 
     /**
-     * Fetch content object from blockchain for given content id
+     * Get content object from blockchain for given content id
      *
-     * @param {string} id example: '1.2.345'
-     * @param {boolean} convertAsset
-     * @return {Promise<Content>}
+     * @param {string} id                   Id of content to get. Example: '2.13.345'
+     * @param {boolean} convertAsset        Optional parameter to convert amounts and fees of Content from blockchain asset
+     *                                      amount format to right precision format of asset. Example: 100000000 => 1 DCT.
+     *                                      Default: false.
+     * @return {Promise<Content | null>}    Content object.
      */
-    public getContent(id: string, convertAsset: boolean = false): Promise<Content> {
+    public getContent(id: string, convertAsset: boolean = false): Promise<Content | null> {
         return new Promise((resolve, reject) => {
             const listAssetsOp = new DatabaseOperations.ListAssets('', 100);
             this.dbApi.execute(listAssetsOp)
@@ -88,7 +93,7 @@ export class ContentModule extends ApiModule {
                         .execute(dbOperation)
                         .then(contents => {
                             if (!contents || !contents[0]) {
-                                reject(this.handleError(ContentError.content_not_exist));
+                                resolve(null);
                                 return;
                             }
                             const [content] = contents;
@@ -108,10 +113,13 @@ export class ContentModule extends ApiModule {
     }
 
     /**
+     * Get content with given URI.
      *
-     * @param {string} URI
-     * @param {boolean} convertAsset
-     * @returns {Promise<Content | null>}
+     * @param {string} URI                  Content URI
+     * @param {boolean} convertAsset        Optional parameter to convert amounts and fees of Content from blockchain asset
+     *                                      amount format to right precision format of asset. Example: 100000000 => 1 DCT.
+     *                                      Default: false.
+     * @returns {Promise<Content | null>}   Content object.
      */
     public getContentURI(URI: string, convertAsset: boolean = false): Promise<Content | null> {
         return new Promise((resolve, reject) => {
@@ -142,12 +150,12 @@ export class ContentModule extends ApiModule {
     }
 
     /**
-     * Cancel submitted content record from blockchain.
+     * Cancel submitted content in blockchain.
      *
-     * @param {string} contentId example: '2.13.1234'
-     * @param {string} authorId example: '1.2.532'
-     * @param {string} privateKey
-     * @return {Promise<void>}
+     * @param {string} contentId        Content id in format '2.13.X'. Example: '2.13.1234'
+     * @param {string} authorId         Author id in format'1.2.X'. Example: '1.2.345'
+     * @param {string} privateKey       Author's private key to submit transaction in WIF(hex) (Wallet Import Format) format.
+     * @return {Promise<void>}          Value confirming successful transaction broadcasting.
      */
     public removeContent(contentId: string,
         authorId: string,
@@ -184,11 +192,12 @@ export class ContentModule extends ApiModule {
      * to restore content bought before keys have been changed. Otherwise content keys
      * would not be restored.
      *
-     * @param {string} contentId                example: '1.2.453'
-     * @param {string} accountId                example: '1.2.453'
-     * @param {...string[]} elGamalKeys
-     * @returns {Promise<string>}
-     * @memberof ContentApi
+     * @param {string} contentId                Content id in format '2.13.X', Example: '2.13.453'
+     * @param {string} accountId                Account if in format '1.2.X'. Example: '1.2.345'
+     * @param {...string[]} elGamalKeys         El Gamal keys to identify that user bought content. May contains older keys, if el gamal
+     *                                          keys pair were changed, to restore content bought before keys have been changed.
+     *                                          Otherwise content keys would not be restored.
+     * @returns {Promise<string>}               Content key to decrypt content.
      */
     public restoreContentKeys(contentId: string, accountId: string, ...elGamalKeys: KeyPair[]): Promise<string> {
         return new Promise((resolve, reject) => {
@@ -218,11 +227,11 @@ export class ContentModule extends ApiModule {
     }
 
     /**
-     * Obtains content key with key parts of each seeder to encrypt
+     * Generate content key with key parts of each seeder to encrypt
      * content to be uploaded.
      *
-     * @param {string[]} seeders Array of seeders ids example: ['1.2.12', '1.4.13']
-     * @return {Promise<ContentKeys>}
+     * @param {string[]} seeders        Array of seeder account ids in format '1.2.X'. Example: ['1.2.12', '1.4.13']
+     * @return {Promise<ContentKeys>}   Generated ContentKeys for content encryption.
      */
     public generateContentKeys(seeders: string[]): Promise<ContentKeys> {
         const dbOperation = new DatabaseOperations.GenerateContentKeys(seeders);
@@ -240,12 +249,10 @@ export class ContentModule extends ApiModule {
 
     /**
      * Submit content to blockchain
-     * Need to supply control checksum 'ripemdHash' and
-     * 'key' generated by seeders in getContentKeys
      *
-     * @param {SubmitObject} content
-     * @param {string} privateKey
-     * @return {Promise<void>}
+     * @param {SubmitObject} content    SubmitObject with information about submitted object.
+     * @param {string} privateKey       Private for sign transaction in WIF(hex) (Wallet Import Format) format.
+     * @return {Promise<boolean>}       Value confirming successful transaction broadcasting.
      */
     public addContent(content: SubmitObject, privateKey: string): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
@@ -320,9 +327,12 @@ export class ContentModule extends ApiModule {
     }
 
     /**
+     * Get list of opened, not yet confirmed buy requests by seeders.
      *
-     * @param {boolean} convertAsset
-     * @returns {Promise<BuyingContent[]>}
+     * @param {boolean} convertAsset            Optional parameter to convert amounts and fees of BuyingContent from blockchain asset
+     *                                          amount format to right precision format of asset. Example: 100000000 => 1 DCT.
+     *                                          Default: false.
+     * @returns {Promise<BuyingContent[]>}      BuyingContent list of opened buy requests.
      */
     public getOpenBuyings(convertAsset: boolean = false): Promise<BuyingContent[]> {
         return new Promise<BuyingContent[]>(((resolve, reject) => {
@@ -346,10 +356,13 @@ export class ContentModule extends ApiModule {
     }
 
     /**
+     * Get list of opened, not yet confirmed buy requests by seeders.
      *
-     * @param {string} URI
-     * @param {boolean} convertAsset
-     * @returns {Promise<BuyingContent[]>}
+     * @param {string} URI                  Buy request URI. Example 'ipfs:QmQ9MBkzt6QcDtBhg7qenDcXtm1s6VVSogtSHa2zbXKsFb'
+     * @param {boolean} convertAsset        Optional parameter to convert amounts and fees of BuyingContent from blockchain asset
+     *                                      amount format to right precision format of asset. Example: 100000000 => 1 DCT.
+     *                                      Default: false.
+     * @returns {Promise<BuyingContent[]>}  BuyingContent list of opened buy requests.
      */
     public getOpenBuyingsByURI(URI: string, convertAsset: boolean = false): Promise<BuyingContent[]> {
         return new Promise<BuyingContent[]>(((resolve, reject) => {
@@ -373,10 +386,13 @@ export class ContentModule extends ApiModule {
     }
 
     /**
+     * Get list of opened, not yet confirmed buy requests by seeders.
      *
-     * @param {string} accountId
-     * @param {boolean} convertAsset
-     * @returns {Promise<BuyingContent[]>}
+     * @param {string} accountId            Account id in format '1.2.X'. Example '1.2.345'
+     * @param {boolean} convertAsset        Optional parameter to convert amounts and fees of BuyingContent from blockchain asset
+     *                                      amount format to right precision format of asset. Example: 100000000 => 1 DCT.
+     *                                      Default: false.
+     * @returns {Promise<BuyingContent[]>}  BuyingContent list of opened buy requests.
      */
     public getOpenBuyingsByConsumer(accountId: string, convertAsset: boolean = false): Promise<BuyingContent[]> {
         return new Promise<BuyingContent[]>(((resolve, reject) => {
@@ -400,11 +416,14 @@ export class ContentModule extends ApiModule {
     }
 
     /**
+     *  Get consumer's bought content identified by URI.
      *
-     * @param {string} accountId
-     * @param {string} URI
-     * @param {boolean} convertAsset
-     * @returns {Promise<BuyingContent[] | null>}
+     * @param {string} accountId                    Consumer's account id in format '1.2.X'. Example '1.2.345'
+     * @param {string} URI                          Content URI. Example 'ipfs:QmQ9MBkzt6QcDtBhg7qenDcXtm1s6VVSogtSHa2zbXKsFb'
+     * @param {boolean} convertAsset                Optional parameter to convert amounts and fees of BuyingContent from blockchain asset
+     *                                              amount format to right precision format of asset. Example: 100000000 => 1 DCT.
+     *                                              Default: false.
+     * @returns {Promise<BuyingContent[] | null>}   List of bought content with URI.
      */
     public getBuyingsByConsumerURI(accountId: string, URI: string, convertAsset: boolean = false): Promise<BuyingContent[] | null> {
         return new Promise<BuyingContent[]>(((resolve, reject) => {
@@ -428,10 +447,13 @@ export class ContentModule extends ApiModule {
     }
 
     /**
+     * Bought content history of account.
      *
-     * @param {string} accountId
-     * @param {boolean} convertAsset
-     * @returns {Promise<BuyingContent[]>}
+     * @param {string} accountId            Account id in format '1.2.X'. Example '1.2.345'
+     * @param {boolean} convertAsset        Optional parameter to convert amounts and fees of BuyingContent from blockchain asset
+     *                                      amount format to right precision format of asset. Example: 100000000 => 1 DCT.
+     *                                      Default: false.
+     * @returns {Promise<BuyingContent[]>}  List of BuyingContent.
      */
     public getBuyingHistoryObjectsByConsumer(accountId: string, convertAsset: boolean = false): Promise<BuyingContent[]> {
         return new Promise<BuyingContent[]>((resolve, reject) => {
@@ -454,6 +476,13 @@ export class ContentModule extends ApiModule {
         });
     }
 
+    /**
+     * Format price Asset amounts to asset precision.
+     *
+     * @param {ContentExchangeObject[]} content     List of content to format.
+     * @param {DCoreAssetObject[]} assets           Complete list of assets for formatting.
+     * @returns {ContentExchangeObject[]}           List of content with formatted prices.
+     */
     private formatPrices(content: ContentExchangeObject[], assets: DCoreAssetObject[]): ContentExchangeObject[] {
         const result: ContentExchangeObject[] = content.map(obj => {
             const priceAsset: Asset = obj.price.hasOwnProperty('map_price') ? (obj.price as Price).map_price[0][1] : (obj.price as Asset);
@@ -466,10 +495,20 @@ export class ContentModule extends ApiModule {
         return result;
     }
 
+    /**
+     * Calculate price of content submit for file size.
+     *
+     * @param fileSize  Size of file in bytes
+     */
     private getFileSize(fileSize: number): number {
         return Math.ceil(fileSize / (1024 * 1024));
     }
 
+    /**
+     * Calculate submit price of content based on file size, expiration date and selected seeders.
+     *
+     * @param content SubmitObject for content to be uploaded
+     */
     private calculateFee(content: SubmitObject): number {
         const num_days = moment(content.date).diff(moment(), 'days') + 1;
         const fee = Math.ceil(
@@ -485,11 +524,11 @@ export class ContentModule extends ApiModule {
     /**
      * Request buy content.
      *
-     * @param {string} contentId Id of content to be bought, example: '2.13.'
-     * @param {string} buyerId Account id of user buying content, example: '1.2.123'
-     * @param {string} elGammalPub ElGammal public key which will be used to identify users bought content
-     * @param {string} privateKey
-     * @return {Promise<void>}
+     * @param {string} contentId        Id of content to be bought in format '2.13.X'. Example: '2.13.456'
+     * @param {string} buyerId          Account id of user buying content in format '1.2.X'. Example: '1.2.345'
+     * @param {string} elGammalPub      ElGammal public key which will be used to identify users bought content
+     * @param {string} privateKey       Private key to sign broadcasted transaction in WIF(hex) (Wallet Import Format) format.
+     * @return {Promise<boolean>}       Value confirming successful transaction broadcasting.
      */
     public buyContent(contentId: string,
         buyerId: string,
@@ -527,8 +566,8 @@ export class ContentModule extends ApiModule {
     /**
      * List available seeders ordered by price.
      *
-     * @param {number} resultSize   Number of results per request. Default 100(max)
-     * @return {Promise<Seeder[]>}
+     * @param {number} resultSize       Number of results per request. Default 100(Max)
+     * @return {Promise<Seeder[]>}      List of available Seeder objects.
      */
     public getSeeders(resultSize: number = 100): Promise<Seeder[]> {
         const dbOperation = new DatabaseOperations.ListSeeders(resultSize);
@@ -545,14 +584,14 @@ export class ContentModule extends ApiModule {
     }
 
     /**
-     * Return all purchased content for account id.
+     * Get list of not expired purchased content for account.
      *
-     * @param {string} accountId example: '1.2.345'
-     * @param {string} order example: '1.2.345'
-     * @param {string} startObjectId example: '1.2.345'
-     * @param {string} term example: '1.2.345'
-     * @param {number} resultSize Number of results default = 100
-     * @return {Promise<Content[]>}
+     * @param {string} accountId        Account id in format '1.2.X'. Example: '1.2.345'
+     * @param {string} order            Order of returned content list. Default is SearchParamsOrder.createdDesc
+     * @param {string} startObjectId    Content object id from which list starts in format '2.13.X'. Example '2.13.234'. Default '0.0.0'
+     * @param {string} term             Term to search in purchased content. Default ''
+     * @param {number} resultSize       Number of results. Default 100(Max)
+     * @return {Promise<Content[]>}     List of purchased content.
      */
     public getPurchasedContent(accountId: string,
         order: SearchParamsOrder = SearchParamsOrder.createdDesc,
@@ -604,13 +643,13 @@ export class ContentModule extends ApiModule {
      * List rating for given content id.
      * In case to list all rating for content, leave a parameter forUser empty string.
      *
-     * @param {string} contentId
-     * @param {string} forUser
-     * @param {string} ratingStartId
+     * @param {string} contentId        Content if in format '2.13.X'. Example '2.13.456'
+     * @param {string} forUser          Account id to search for user's ratings for conentnt, in format '1.2.X'. Example '1.2.345'.
+     * @param {string} ratingStartId    Rating id to start list from.
      * @param {number} count
      * @return {Promise<Array<Rating>>}
      */
-    getRating(contentId: string, forUser: string, ratingStartId: string, count: number = 100): Promise<Array<Rating>> {
+    getRating(contentId: string, forUser: string, ratingStartId: string = '', count: number = 100): Promise<Array<Rating>> {
         return new Promise<Array<Rating>>((resolve, reject) => {
             this.getContent(contentId)
                 .then(res => {
@@ -624,6 +663,7 @@ export class ContentModule extends ApiModule {
         });
     }
 
+    // TODO: need to discuss with Riso
     searchFeedback(accountId: string, contentURI: string, ratingStartId: string, count: number = 100): Promise<Array<Rating>> {
         return new Promise<Array<Rating>>((resolve, reject) => {
             const operation = new DatabaseOperations.SearchFeedback(accountId, contentURI, ratingStartId, count);
@@ -637,6 +677,11 @@ export class ContentModule extends ApiModule {
         });
     }
 
+    /**
+     * Get author and co-authors of content.
+     *
+     * @param URI   Content URI. Example 'ipfs:QmQ9MBkzt6QcDtBhg7qenDcXtm1s6VVSogtSHa2zbXKsFb'
+     */
     getAuthorCoAuthors(URI: string): Promise<[string, string[]] | null> {
         return new Promise<[string, string[]]>((resolve, reject) => {
             const operation = new DatabaseOperations.GetContent(URI);
@@ -652,24 +697,30 @@ export class ContentModule extends ApiModule {
         });
     }
 
-    leaveCommentAndRating(contentURI: string, consumer: string, comment: string, rating: number, consumerPKey: string): Promise<any> {
-        return new Promise<any>((resolve, reject) => {
-            const operation = new Operations.LeaveRatingAndComment(contentURI, consumer, comment, rating);
-            const transaction = new TransactionBuilder();
-            transaction.addOperation(operation);
-            transaction.broadcast(consumerPKey)
-                .then(res => resolve(res))
-                .catch(err => reject(this.handleError(ContentError.transaction_broadcast_failed, err)));
+    /**
+     * Send feedback for bought content with comment.
+     *
+     * @param {string} contentURI       Content URI. Example 'ipfs:QmQ9MBkzt6QcDtBhg7qenDcXtm1s6VVSogtSHa2zbXKsFb'
+     * @param {string} consumer         Account id in format '1.2.X'. Example '1.2.345'
+     * @param {string} comment          Comment for feedback.
+     * @param {number} rating           Rating number from interval 1(Bad)-5(Good).
+     * @param {string} consumerPKey     Account's private key to sign transaction in WIF(hex) (Wallet Import Format) format.
+     * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
+     */
+    leaveCommentAndRating(contentURI: string, consumer: string, comment: string, rating: number, consumerPKey: string): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            this.apiConnector.connect()
+                .then(res => {
+                    const operation = new Operations.LeaveRatingAndComment(contentURI, consumer, comment, rating);
+                    const transaction = new TransactionBuilder();
+                    transaction.addOperation(operation);
+                    transaction.broadcast(consumerPKey)
+                        .then(res => resolve(true))
+                        .catch(err => {
+                            reject(this.handleError(ContentError.transaction_broadcast_failed, err));
+                        });
+                })
+                .catch(err => reject(this.handleError(ContentError.connection_failed, err)));
         });
-    }
-
-    public generateEncryptionKey(): string {
-        const randomKey = dcorejs_lib.key.random32ByteBuffer();
-        let hexString = '';
-        for (let i = 0; i < randomKey.length; i++) {
-            hexString += ('0' + randomKey[i].toString(16)).slice(-2);
-        }
-        const key = bigInt(hexString, 16);
-        return key.toString(10) + '.';
     }
 }
