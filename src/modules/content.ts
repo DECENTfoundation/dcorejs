@@ -1,11 +1,11 @@
-import { Asset, DCoreAccount } from './../model/account';
+import { Asset, DCoreAccount } from '../model/account';
 import { Rating, Content, Seeder, BuyingContent, SubmitObject, ContentKeys, KeyPair, ContentExchangeObject, Price } from '../model/content';
 import { DatabaseApi } from '../api/database';
 import { ChainApi } from '../api/chain';
 import { TransactionBuilder } from '../transactionBuilder';
 import { isUndefined } from 'util';
 import { DatabaseOperations, SearchParams, SearchParamsOrder } from '../api/model/database';
-import { ContentObject, Operations } from '../model/transaction';
+import {ContentObject, Operation, Operations} from '../model/transaction';
 import { DCoreAssetObject } from '../model/asset';
 import { ApiModule } from './ApiModule';
 import { Utils } from '../utils';
@@ -299,16 +299,19 @@ export class ContentModule extends ApiModule {
                                 );
                                 const transaction = new TransactionBuilder();
                                 transaction.addOperation(submitOperation);
-                                transaction
-                                    .broadcast(privateKey)
-                                    .then(() => {
-                                        resolve(true);
-                                    })
-                                    .catch(err => {
-                                        reject(
-                                            this.handleError(ContentError.transaction_broadcast_failed, err)
-                                        );
-                                    });
+                                if (broadcast) {
+                                    transaction.broadcast(privateKey)
+                                        .then(() => {
+                                            resolve(transaction.operations[0]);
+                                        })
+                                        .catch(err => {
+                                            reject(
+                                                this.handleError(ContentError.transaction_broadcast_failed, err)
+                                            );
+                                        });
+                                } else {
+                                    resolve(transaction.operations[0]);
+                                }
                             } catch (e) {
                                 reject(this.handleError(ContentError.account_fetch_failed, e));
                                 return;

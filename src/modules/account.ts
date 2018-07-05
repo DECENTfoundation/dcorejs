@@ -288,6 +288,7 @@ export class AccountModule extends ApiModule {
      *
      * @param {string} accountId    Account id, example: '1.2.345'
      * @param {string} assetId      Id of asset in which balance will be listed
+     * @param convertAsset
      * @return {Promise<number>}
      */
     public getBalance(accountId: string, assetId: string = '1.3.0', convertAsset: boolean = false): Promise<number> {
@@ -459,7 +460,7 @@ export class AccountModule extends ApiModule {
             key_auths: activeKeyAuths
         };
         return new Promise<Operation>((resolve, reject) => {
-            this._connector.connect()
+            this.apiConnector.connect()
                 .then(() => {
                     const operation = new Operations.RegisterAccount({
                         name,
@@ -525,8 +526,7 @@ export class AccountModule extends ApiModule {
      *
      * @param {string} accountId
      * @param {string} password
-     * @param brainKey
-     * @param additionalPrivateKeys
+     * @param privateKeys
      * @param additionalElGamalPrivateKeys
      * @returns {Promise<any>}
      */
