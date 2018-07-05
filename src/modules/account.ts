@@ -44,6 +44,7 @@ export class AccountModule extends ApiModule {
 
     /**
      * Gets account from DCore blockchain database for given account name.
+     * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#ac5c1fd29358dcde88ec644292de59304
      *
      * @param {string} name         Account name. Example: "u123456789abcdef123456789"
      * @return {Promise<Account>}
@@ -63,6 +64,7 @@ export class AccountModule extends ApiModule {
 
     /**
      * Gets account from DCore blockchain database for given account id.
+     * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#aa20a30ec92c339c1b186c4ee7825f67b
      *
      * @param {string} id           Account id in format '1.2.X'. Example: "1.2.345"
      * @return {Promise<Account>}
@@ -88,6 +90,7 @@ export class AccountModule extends ApiModule {
 
     /**
      * Gets history of transfer transaction for given account name.
+     * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#a180dc12024aa0e60bcbdf781611680fc
      *
      * @deprecated This method will be removed in future DCore update. Use getAccountHistory or searchAccountHistory instead
      *
@@ -119,6 +122,7 @@ export class AccountModule extends ApiModule {
 
     /**
      * Returns transfer operations for given account.
+     * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#a180dc12024aa0e60bcbdf781611680fc
      *
      * @param {string} accountId                Account id in format '1.2.X'. Example: "1.2.345"
      * @param {string[]} privateKeys            Array of private keys in case private/public pair has been changed in blockchain account,
@@ -196,6 +200,7 @@ export class AccountModule extends ApiModule {
 
     /**
      * Transfers amount of asset between accounts.
+     * https://docs.decent.ch/developer/group___wallet_a_p_i___account.html#gae61c0c78134741c534967260c8ff8a71
      *
      * @param {number} amount           Amount of asset to be send to receiver.
      * @param {string} assetId          Id of asset that amount will be send in. If empty, default 1.3.0 - DCT is selected
@@ -286,6 +291,7 @@ export class AccountModule extends ApiModule {
 
     /**
      * Current account balance of asset on given account
+     * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#a52515490f739d3523c9d842e2e2362ef
      *
      * @param {string} accountId        Account id in format '1.2.X'. Example: '1.2.345'
      * @param {string} assetId          Id of asset in which balance will be listed
@@ -372,6 +378,7 @@ export class AccountModule extends ApiModule {
     /**
      * List of all transaction operations in history of user.
      * NOTE: Operations can be filtered using Chain.ChainOperationType
+     * https://docs.decent.ch/developer/group___history_a_p_i.html#ga2bfce814ce4adde1c30e63662f3fa18c
      *
      * @param {string} accountId                Account id in format '1.2.X'. Example: '1.2.345'
      * @param historyOptions                    Optional HistoryOptions object to configure fromId and resultLimit for paging.
@@ -400,6 +407,7 @@ export class AccountModule extends ApiModule {
 
     /**
      * Search accounts based on given search parameters.
+     * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#a57cbf9b3e799ea70b08885cc5df9b043
      *
      * @param {string} searchTerm   Term to search in account names. Default: ''
      * @param {string} order        AccountOrder to order results. Default: AccountOrder.none
@@ -421,6 +429,7 @@ export class AccountModule extends ApiModule {
 
     /**
      * Returns number of accounts created on network
+     * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#a533c834442d9e8fbaeae5eb24d4fe8c5
      *
      * @returns {Promise<number>}   Number of accounts.
      */
@@ -435,6 +444,7 @@ export class AccountModule extends ApiModule {
 
     /**
      * Creates new account in DCore blockchain network.
+     * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#aed56e5dfd4dc85b40d62dd25cb1fd029
      *
      * @param {string} name                 Name of newly created account.
      * @param {string} ownerKey             Public key to be used as owner key in WIF(hex)(Wallet Import Format) format.
@@ -497,6 +507,7 @@ export class AccountModule extends ApiModule {
 
     /**
      * Create account in DCore blockchain network with keys derived from provided brain key.
+     * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#a758d05a5f090adbc249258881775d222
      *
      * NOTE: This method create account with owner, active and memo key set to same value.
      *       Recommended to use Utils.derivePrivateKey to derive keys from brainkey and then register account
@@ -525,6 +536,7 @@ export class AccountModule extends ApiModule {
 
     /**
      * Exports wallet-cli compatible wallet file.
+     * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#a3cb922b2d88865c509a8e2c91b7416ab
      *
      * @param {string} accountId            Account id that about to be exported, in format '1.2.X'. Example: '1.2.345'
      * @param {string} password             Password for keys structure encryption.
@@ -588,6 +600,7 @@ export class AccountModule extends ApiModule {
 
     /**
      * Fetch list of an accounts.
+     * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#abf203f3002c7e2053c33eb6cb4e147c6
      *
      * @param {string} loweBound                Account id from which accounts are listed, in format '1.2.X'. Default: ''
      * @param {number} limit                    Number of returned accounts. Default: 100(Max)
@@ -604,6 +617,7 @@ export class AccountModule extends ApiModule {
 
     /**
      * Returns account's balances in all assets account have non-zero amount in.
+     * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#a52515490f739d3523c9d842e2e2362ef
      *
      * @param {string} id               Account id in format '1.2.X', Example: '1.2.345'.
      * @param {boolean} convertAssets   Optional parameter to convert balance amount from blockchain asset
@@ -645,6 +659,7 @@ export class AccountModule extends ApiModule {
 
     /**
      * Search for miners with parameters.
+     * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#a6bf2da2d8f11165c8990d3a849c2dd92
      *
      * @param {string} accountName          Account name to search miners for.
      * @param {string} keyword              Search keyword.
@@ -678,6 +693,7 @@ export class AccountModule extends ApiModule {
 
     /**
      * Update account properties.
+     * https://docs.decent.ch/developer/structgraphene_1_1wallet_1_1wallet__data.html#a7e45dcef220b45e13f0918b1036cbf41
      *
      * @param {string} accountId                Account id of account that is about to be updated. Example: '1.2.345'.
      * @param {UpdateAccountParameters} params  UpdateAccountParameters object with parameters to be changed.
