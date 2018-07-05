@@ -146,7 +146,7 @@ export interface SubmitObject {
     coAuthors: string[];
     seeders: Seeder[];
     fileName: string;
-    date: Date;
+    date: string;
     price: number;
     size: number;
     URI: string;

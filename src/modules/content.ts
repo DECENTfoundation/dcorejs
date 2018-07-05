@@ -273,7 +273,7 @@ export class ContentApi extends ApiModule {
                         content.hash,
                         content.seeders.map(s => s.seeder),
                         content.keyParts,
-                        content.date.toString(),
+                        content.date,
                         {
                             amount: this.calculateFee(content),
                             asset_id: feeAsset.id
@@ -496,9 +496,7 @@ export class ContentApi extends ApiModule {
                                 resolve(transaction.operations[0]);
                             })
                             .catch((err: any) => {
-                                reject(
-                                    this.handleError(ContentError.transaction_broadcast_failed, err)
-                                );
+                                reject(this.handleError(ContentError.transaction_broadcast_failed, err));
                             });
                     } else {
                         resolve(transaction.operations[0]);

@@ -34,19 +34,6 @@ before(() => {
 });
 describe('(server/endToEnd) Account fetch', () => {
 
-    it('get transaction history( HistoryAPI )', (done) => {
-        dcore_js.account().getAccountHistory(accountId)
-            .then(res => {
-                expect(res).to.be.a('array');
-                expect(res).to.have.length.above(0);
-                done();
-            })
-            .catch(err => {
-                expect(err).to.be.a('array');
-                done();
-            });
-    });
-
     it('transfer', (done) => {
         const mock = sinon.mock(new DatabaseApi(dcore.Apis, connector).execute(new DatabaseOperations.GetAccounts(['1.2.27', '1.2.24'])));
         mock.object
