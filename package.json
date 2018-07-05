@@ -28,13 +28,16 @@
         "prebuild": "rimraf dist && rimraf lib",
         "build": "tsc && webpack --config webpack.config.js && npm run generate-docs",
         "generate-docs": "rimraf dist/docs && typedoc --out dist/docs --target es6 --theme minimal --excludeExternals --includeDeclarations --excludePrivate --exclude \"**/*+(test|api)/**/*.*\" src",
-        "test": "npm-run-parallel test:unit:server test:unit:client",
-        "test:int": "npm-run-parallel test:integ:client test:integ:server",
+        "test:unit": "npm-run-parallel test:unit:server test:unit:client",
+        "test:integ": "npm-run-parallel test:integ:client test:integ:server",
+        "test:endToEnd": "npm-run-parallel test:endToEnd:client test:EndToEnd:server",
         "test:unit:server": "mocha --exit -r ts-node/register ./src/test/server/unit/*.test.ts",
         "test:unit:client": "./node_modules/karma-cli/bin/karma start ./karma.conf.unit.js --single-run",
         "test:integ:server": "mocha --exit -r ts-node/register ./src/test/server/integration/*.test.ts",
         "test:integ:client": "./node_modules/karma-cli/bin/karma start ./karma.conf.integ.js --single-run",
-        "prepublishOnly": "npm run build && npm run test && npm run test:int"
+        "test:endToEnd:server": "mocha --exit -r ts-node/register ./src/test/server/endToEnd/*.test.ts",
+        "test:endToEnd:client": "./node_modules/karma-cli/bin/karma start ./karma.conf.endToEnd.js --single-run",
+        "prepublishOnly": "npm run build && npm run test:unit && npm run test:integ"
     },
     "devDependencies": {
         "@types/chai": "4.1.1",
@@ -78,6 +81,7 @@
         "js-sha512": "^0.7.1",
         "moment": "^2.22.2",
         "ripemd160": "2.0.1",
+        "sinon": "^6.0.1",
         "ssl-root-cas": "1.2.4"
     },
     "prettier": {
