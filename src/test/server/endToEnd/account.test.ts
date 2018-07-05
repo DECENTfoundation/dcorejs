@@ -19,7 +19,6 @@ const privateKey = '5KcA6ky4Hs9VoDUSdTF4o3a7QDgiiG5gkpLLysRWR8dy6EAgTnZ';
 const ownerKey = 'DCT8cYDtKZvcAyWfFRusy6ja1Hafe9Ys4UPJS92ajTmcrufHnGgjp';
 const activeKey = 'DCT8cYDtKZvcAyWfFRusy6ja1Hafe9Ys4UPJS92ajTmcrufHnGgjp';
 const memoKey = 'DCT8cYDtKZvcAyWfFRusy6ja1Hafe9Ys4UPJS92ajTmcrufHnGgjp';
-// const transactionId = '1.7.190';
 
 // turn off unverified certificate rejection
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';

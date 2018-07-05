@@ -1,4 +1,4 @@
-import { Asset } from './../model/account';
+import { Asset } from '../model/account';
 import {Rating, Content, Seeder, BuyingContent, SubmitObject, ContentKeys, KeyPair, ContentExchangeObject, Price} from '../model/content';
 import {DatabaseApi} from '../api/database';
 import {ChainApi} from '../api/chain';

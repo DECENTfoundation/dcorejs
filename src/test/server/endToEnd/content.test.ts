@@ -110,7 +110,8 @@ describe('(server/endToEnd) Content fetch', () => {
                     });
             })
             .catch(error => {
-                console.log(error);
+                console.log('Mock Error: ', error);
+                chai.assert.isDefined(error);
             });
 
     });
