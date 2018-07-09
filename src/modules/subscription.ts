@@ -125,6 +125,7 @@ export class SubscriptionModule extends ApiModule {
                         .catch(error => {
                             reject(this.handleError(SubscriptionError.transaction_broadcast_failed, error));
                         });
+
                 })
                 .catch(err => reject(this.handleError(SubscriptionError.blockchain_connection_failed, err)));
         });
