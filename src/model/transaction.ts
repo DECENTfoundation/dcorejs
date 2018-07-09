@@ -5,17 +5,8 @@ import AssetExchangeRate = Block.AssetExchangeRate;
 import {Authority, Options} from './account';
 import {MonitoredAssetOptions} from './asset';
 import {Proposal} from './proposal';
-import {
-    AssetClaimFeesPrototype,
-    AssetCreatePrototype, AssetFundPoolsPrototype, AssetPublishFeedPrototype, AssetReservePrototype,
-    BuyContentPrototype, ContentCancelPrototype, CreateAccountPrototype, IssueAssetPrototype, LeaveRatingAndCommentPrototype,
-    MinerCreatePrototype,
-    MinerUpdateGlobalParametersPrototype,
-    MinerUpdatePrototype, OperationWrapperPrototype, ProposalCreatePrototype, ProposalUpdatePrototype,
-    SubmitContentPrototype,
-    TransferPrototype,
-    UpdateAccountPrototype, UpdateMonitoredAssetPrototype, UpdateUserIssuedAssetPrototype, VestingBalanceWithdrawPrototype
-} from './operationPrototype';
+import * as prototype from './operationPrototype';
+import {OperationType} from './operationPrototype';
 
 /**
  * OperationType to be broadcasted to blockchain
@@ -23,16 +14,12 @@ import {
  */
 export abstract class Operation {
     name: OperationName;
-    operation: object;
+    operation: prototype.OperationType;
 
-    constructor(name: OperationName, type?: object) {
+    protected constructor(name: OperationName, type?: prototype.OperationType) {
         this.name = name;
         this.operation = type;
     }
-}
-
-export interface OperationHandler {
-    getPrototype(): object;
 }
 
 /**
@@ -77,6 +64,7 @@ export enum OperationName {
     update_monitored_asset_operation = 'update_monitored_asset_operation',
 }
 
+
 /**
  * Asset represent amount of specific
  * asset.
@@ -90,70 +78,48 @@ export class Asset {
  * Operations collection which can be constructed and send to blockchain network
  */
 export namespace Operations {
+
     export class TransferOperation extends Operation {
 
-        static getPrototype(): object {
-            return TransferPrototype.getPrototype();
+        static getPrototype(): prototype.TransferType {
+            return prototype.TransferPrototype.getPrototype();
         }
 
         constructor(from: string, to: string, amount: Asset, memo: Memo) {
-            super(
-                OperationName.transfer,
-                {
-                    from,
-                    to,
-                    amount,
-                    memo
-                });
+            const type: prototype.TransferType = { from: from, to: to, amount: amount, memo: memo };
+            super(OperationName.transfer, type);
         }
     }
 
     export class ContentCancelOperation extends Operation {
 
-        static getPrototype(): object {
-            return ContentCancelPrototype.getPrototype();
+        static getPrototype(): prototype.ContentCancellationType {
+            return prototype.ContentCancelPrototype.getPrototype();
         }
 
         constructor(author: string, URI: string) {
-            super(
-                OperationName.content_cancellation,
-                {
-                    author,
-                    URI
-                });
+            const type: prototype.ContentCancellationType = { author: author, URI: URI };
+            super(OperationName.content_cancellation, type);
         }
     }
 
     export class BuyContentOperation extends Operation {
 
-        static getPrototype(): object {
-            return BuyContentPrototype.getPrototype();
+        static getPrototype(): prototype.BuyContentType {
+            return prototype.BuyContentPrototype.getPrototype();
         }
 
-        constructor(
-            URI: string,
-            consumer: string,
-            price: Asset,
-            region_code_from: number,
-            pubKey: Key
-        ) {
-            super(
-                OperationName.requestToBuy,
-                {
-                    URI,
-                    consumer,
-                    price,
-                    region_code_from,
-                    pubKey
-                }
-            );
+        constructor(URI: string, consumer: string, price: Asset, region_code_from: number, pubKey: Key) {
+            const type: prototype.BuyContentType = { URI: URI, consumer: consumer, price: price, region_code_from: region_code_from,
+                pubKey: pubKey };
+            super(OperationName.requestToBuy, type);
         }
     }
 
     export class SubmitContentOperation extends Operation {
 
-        static getPrototype(): object {
-            return SubmitContentPrototype.getPrototype();
+        static getPrototype(): prototype.SubmitContentType {
+            return prototype.SubmitContentPrototype.getPrototype();
         }
 
         constructor(
@@ -170,292 +136,194 @@ export namespace Operations {
             publishing_fee: Asset,
             synopsis: string
         ) {
-            super(
-                OperationName.content_submit,
-                {
-                    size,
-                    author,
-                    co_authors,
-                    URI,
-                    quorum,
-                    price,
-                    hash,
-                    seeders,
-                    key_parts,
-                    expiration,
-                    publishing_fee,
-                    synopsis,
-                });
+            const type: prototype.SubmitContentType = {
+                size, author, co_authors, URI, quorum, price, hash, seeders, key_parts, expiration, publishing_fee, synopsis
+            };
+            super(OperationName.content_submit, type);
         }
     }
 
     export class AccountUpdateOperation extends Operation {
 
-        static getPrototype(): object {
-            return UpdateAccountPrototype.getPrototype();
+        static getPrototype(): prototype.UpdateAccountType {
+            return prototype.UpdateAccountPrototype.getPrototype();
         }
 
-        constructor(account: string,
-                    owner: Authority,
-                    active: Authority,
-                    new_options: Options,
-                    extensions: {}
-        ) {
-            super(
-                OperationName.account_update,
-                {
-                    account,
-                    owner,
-                    active,
-                    new_options,
-                    extensions
-                }
-            );
+        constructor(account: string, owner: Authority, active: Authority, new_options: Options, extensions: {}) {
+            const type: prototype.UpdateAccountType = { account, owner, active, new_options, extensions };
+            super(OperationName.account_update, type);
         }
     }
 
     export class AssetCreateOperation extends Operation {
 
-        static getPrototype(): object {
-            return AssetCreatePrototype.getPrototype();
+        static getPrototype(): prototype.AssetCreateType {
+            return prototype.AssetCreatePrototype.getPrototype();
         }
 
-        constructor(issuer: string,
-                    symbol: string,
-                    precision: number,
-                    description: string,
-                    options: AssetOptions,
+        constructor(issuer: string, symbol: string, precision: number, description: string, options: AssetOptions,
                     monitoredOptions: MonitoredAssetOptions = null) {
-            const data = {
-                issuer,
-                symbol,
-                precision,
-                description,
-                options,
-                is_exchangeable: options.is_exchangeable,
-                extensions: []
-            };
+            const type: prototype.AssetCreateType = {issuer, symbol, precision, description, options,
+                is_exchangeable: options.is_exchangeable, extensions: []};
             if (monitoredOptions) {
-                data['monitored_asset_opts'] = monitoredOptions;
+                type['monitored_asset_opts'] = monitoredOptions;
             }
-            super(OperationName.asset_create, data);
+            super(OperationName.asset_create, type);
         }
     }
 
     export class IssueAssetOperation extends Operation {
 
-        static getPrototype(): object {
-            return IssueAssetPrototype.getPrototype();
+        static getPrototype(): prototype.IssueAssetType {
+            return prototype.IssueAssetPrototype.getPrototype();
         }
 
         constructor(issuer: string, assetToIssue: Asset, issueToAccount: string, memo?: Memo) {
-            super(OperationName.issue_asset, {
-                issuer,
-                asset_to_issue: assetToIssue,
-                issue_to_account: issueToAccount,
-                memo,
-                extensions: {}
-            });
+            const type: prototype.IssueAssetType = {
+                issuer, asset_to_issue: assetToIssue, issue_to_account: issueToAccount, memo, extensions: {}
+            };
+            super(OperationName.issue_asset, type);
         }
     }
 
     export class UpdateAssetIssuedOperation extends Operation {
 
-        static getPrototype(): object {
-            return UpdateUserIssuedAssetPrototype.getPrototype();
+        static getPrototype(): prototype.UpdateIssuedAssetType {
+            return prototype.UpdateUserIssuedAssetPrototype.getPrototype();
         }
 
-        constructor(issuer: string,
-                    asset_to_update: string,
-                    new_description: string,
-                    max_supply: number,
-                    core_exchange_rate: AssetExchangeRate,
-                    is_exchangeable: boolean,
-                    new_issuer?: string) {
-            super(
-                OperationName.update_user_issued_asset,
-                {
-                    issuer,
-                    asset_to_update,
-                    new_description,
-                    max_supply,
-                    core_exchange_rate,
-                    is_exchangeable,
-                    new_issuer,
-                    extensions: {}
-                }
-            );
+        constructor(issuer: string, asset_to_update: string, new_description: string, max_supply: number,
+                    core_exchange_rate: AssetExchangeRate, is_exchangeable: boolean, new_issuer?: string) {
+            const type: prototype.UpdateIssuedAssetType = {
+                issuer,
+                asset_to_update,
+                new_description,
+                max_supply,
+                core_exchange_rate,
+                is_exchangeable,
+                new_issuer,
+                extensions: {}
+            };
+            super(OperationName.update_user_issued_asset, type);
         }
     }
 
     export class AssetFundPools extends Operation {
 
-        static getPrototype(): object {
-            return AssetFundPoolsPrototype.getPrototype();
+        static getPrototype(): prototype.AssetFundPoolsType {
+            return prototype.AssetFundPoolsPrototype.getPrototype();
         }
 
         constructor(fromAccountId: string, uiaAsset: Asset, dctAsset: Asset) {
-            super(
-                OperationName.asset_fund_pools_operation,
-                {
-                    from_account: fromAccountId,
-                    uia_asset: uiaAsset,
-                    dct_asset: dctAsset
-                }
-            );
+            const type: prototype.AssetFundPoolsType = {from_account: fromAccountId, uia_asset: uiaAsset, dct_asset: dctAsset};
+            super(OperationName.asset_fund_pools_operation, type);
         }
     }
 
     export class AssetReserve extends Operation {
 
-        static getPrototype(): object {
-            return AssetReservePrototype.getPrototype();
+        static getPrototype(): prototype.AssetReserveType {
+            return prototype.AssetReservePrototype.getPrototype();
         }
 
         constructor(payer: string, assetToReserve: Asset) {
-            super(
-                OperationName.asset_reserve_operation,
-                {
-                    payer,
-                    amount_to_reserve: assetToReserve,
-                    extensions: {}
-                }
-            );
+            const type: prototype.AssetReserveType = {payer, amount_to_reserve: assetToReserve, extensions: {}};
+            super(OperationName.asset_reserve_operation, type);
         }
     }
 
     export class AssetClaimFeesOperation extends Operation {
 
-        static getPrototype(): object {
-            return AssetClaimFeesPrototype.getPrototype();
+        static getPrototype(): prototype.AssetClaimFeesType {
+            return prototype.AssetClaimFeesPrototype.getPrototype();
         }
 
         constructor(issuer: string, uiaAsset: Asset, dctAsset: Asset) {
-            super(
-                OperationName.asset_claim_fees_operation,
-                {
-                    issuer,
-                    uia_asset: uiaAsset,
-                    dct_asset: dctAsset,
-                    extensions: {}
-                }
-            );
+            const type: prototype.AssetClaimFeesType = {issuer, uia_asset: uiaAsset, dct_asset: dctAsset, extensions: {}};
+            super(OperationName.asset_claim_fees_operation, type);
         }
     }
 
     export class LeaveRatingAndComment extends Operation {
 
-        static getPrototype(): object {
-            return LeaveRatingAndCommentPrototype.getPrototype();
+        static getPrototype(): prototype.LeaveRatingAndCommentType {
+            return prototype.LeaveRatingAndCommentPrototype.getPrototype();
         }
 
         constructor(URI: string, consumer: string, comment: string, rating: number) {
-            super(
-                OperationName.leave_rating_and_comment,
-                {
-                    URI,
-                    consumer,
-                    comment,
-                    rating
-                }
-            );
+            const type: prototype.LeaveRatingAndCommentType = {URI, consumer, comment, rating};
+            super(OperationName.leave_rating_and_comment, type);
         }
     }
 
     export class AssetPublishFeed extends Operation {
 
         static getPrototype(): object {
-            return AssetPublishFeedPrototype.getPrototype();
+            return prototype.AssetPublishFeedPrototype.getPrototype();
         }
 
         constructor(publisher: string, assetId: string, feed: PriceFeed) {
-            super(
-                OperationName.asset_publish_feed,
-                {
-                    publisher,
-                    asset_id: assetId,
-                    feed,
-                    extensions: {}
-                }
-            );
+            const type: prototype.AssetPublishFeedType = {publisher, asset_id: assetId, feed, extensions: {}};
+            super(OperationName.asset_publish_feed, type);
         }
     }
 
     export class MinerCreate extends Operation {
 
-        static getPrototype(): object {
-            return MinerCreatePrototype.getPrototype();
+        static getPrototype(): prototype.MinerCreateType {
+            return prototype.MinerCreatePrototype.getPrototype();
         }
 
         constructor(miner_account: string, url: string, block_signing_key: string) {
-            super(
-                OperationName.miner_create,
-                {
-                    miner_account,
-                    url,
-                    block_signing_key
-                }
-            );
+            const type: prototype.MinerCreateType = {miner_account, url, block_signing_key};
+            super(OperationName.miner_create, type);
         }
     }
 
     export class MinerUpdate extends Operation {
 
-        static getPrototype(): object {
-            return MinerUpdatePrototype.getPrototype();
+        static getPrototype(): prototype.MinerUpdateType {
+            return prototype.MinerUpdatePrototype.getPrototype();
         }
 
         constructor(miner: string, minerAccount: string, newURL: string = null, newSigningKey: string = null) {
-            super(
-                OperationName.miner_update,
-                {
-                    miner,
-                    miner_account: minerAccount,
-                    new_url: newURL,
-                    new_signing_key: newSigningKey
-                }
-            );
+            const type: prototype.MinerUpdateType = {miner, miner_account: minerAccount, new_url: newURL, new_signing_key: newSigningKey};
+            super(OperationName.miner_update, type);
         }
     }
 
     export class MinerUpdateGlobalParameters extends Operation {
 
-        static getPrototype(): object {
-            return MinerUpdateGlobalParametersPrototype.getPrototype();
+        static getPrototype(): prototype.MinerUpdateGlobalParametersType {
+            return prototype.MinerUpdateGlobalParametersPrototype.getPrototype();
         }
 
         constructor(proposalParameters: Proposal) {
-            super(OperationName.miner_update_global_parameters, proposalParameters);
+            const type: prototype.MinerUpdateGlobalParametersType = Object.assign({}, proposalParameters);
+            super(OperationName.miner_update_global_parameters, type);
         }
     }
 
     export class ProposalCreate extends Operation {
 
-        static getPrototype(): object {
-            return ProposalCreatePrototype.getPrototype();
+        static getPrototype(): prototype.ProposalCreateType {
+            return prototype.ProposalCreatePrototype.getPrototype();
         }
 
         constructor(feePayingAccount: string,
-                    proposedOperations: object[],
-                    expirationTime: number,
+                    proposedOperations: OperationType[],
+                    expirationTime: string,
                     reviewPeriodSeconds: number = null) {
-            super(
-                OperationName.proposal_create,
-                {
-                    fee_paying_account: feePayingAccount,
-                    proposed_ops: proposedOperations,
-                    expiration_time: expirationTime,
-                    review_period_seconds: reviewPeriodSeconds,
-                    extensions: []
-                }
-            );
+            const type: prototype.ProposalCreateType = {fee_paying_account: feePayingAccount, proposed_ops: proposedOperations,
+                expiration_time: expirationTime, review_period_seconds: reviewPeriodSeconds, extensions: []};
+            super(OperationName.proposal_create, type);
         }
     }
 
     export class ProposalUpdate extends Operation {
 
-        static getPrototype(): object {
-            return ProposalUpdatePrototype.getPrototype();
+        static getPrototype(): prototype.ProposalUpdateType {
+            return prototype.ProposalUpdatePrototype.getPrototype();
         }
 
         constructor(feePayingAccount: string,
@@ -466,36 +334,24 @@ export namespace Operations {
                     ownerApprovalsToRemove: Array<string>,
                     keyApprovalsToAdd: Array<string>,
                     keyApprovalsToRemove: Array<string>) {
-            super(
-                OperationName.proposal_update,
-                {
-                    fee_paying_account: feePayingAccount,
-                    proposal: proposal,
-                    active_approvals_to_add: activeApprovalsToAdd,
-                    active_approvals_to_remove: activeApprovalsToRemove,
-                    owner_approvals_to_add: ownerApprovalsToAdd,
-                    owner_approvals_to_remove: ownerApprovalsToRemove,
-                    key_approvals_to_add: keyApprovalsToAdd,
-                    key_approvals_to_remove: keyApprovalsToRemove,
-                    extensions: []
-                }
-            );
+            const type: prototype.ProposalUpdateType = {
+                fee_paying_account: feePayingAccount, proposal: proposal, active_approvals_to_add: activeApprovalsToAdd,
+                active_approvals_to_remove: activeApprovalsToRemove, owner_approvals_to_add: ownerApprovalsToAdd,
+                owner_approvals_to_remove: ownerApprovalsToRemove, key_approvals_to_add: keyApprovalsToAdd,
+                key_approvals_to_remove: keyApprovalsToRemove, extensions: []};
+            super(OperationName.proposal_update, type);
         }
     }
 
     export class OperationWrapper extends Operation {
 
-        static getPrototype(): object {
-            return OperationWrapperPrototype.getPrototype();
+        static getPrototype(): prototype.OperationWrapperType {
+            return prototype.OperationWrapperPrototype.getPrototype();
         }
 
         constructor(operation: Operation) {
-            super(
-                OperationName.operation_wrapper,
-                {
-                    op: operation
-                }
-            );
+            const type: prototype.OperationWrapperType = {op: operation};
+            super(OperationName.operation_wrapper, type);
         }
     }
 
@@ -511,8 +367,8 @@ export namespace Operations {
 
     export class RegisterAccount extends Operation {
 
-        static getPrototype(): object {
-            return CreateAccountPrototype.getPrototype();
+        static getPrototype(): prototype.CreateAccountType {
+            return prototype.CreateAccountPrototype.getPrototype();
         }
 
         constructor(params: CreateAccountParameters) {
@@ -522,49 +378,50 @@ export namespace Operations {
 
     export class VestingBalanceWithdraw extends Operation {
 
-        static getPrototype(): object {
-            return VestingBalanceWithdrawPrototype.getPrototype();
+        static getPrototype(): prototype.VestingBalanceWithdrawType {
+            return prototype.VestingBalanceWithdrawPrototype.getPrototype();
         }
 
         constructor(vestingBalanceId: string, ownerId: string, ammount: Asset) {
-            super(
-                OperationName.vesting_balance_withdraw,
-                {
-                    vesting_balance: vestingBalanceId,
-                    owner: ownerId,
-                    amount: ammount
-                });
+            const type: prototype.VestingBalanceWithdrawType = {vesting_balance: vestingBalanceId, owner: ownerId, amount: ammount};
+            super(OperationName.vesting_balance_withdraw, type);
         }
     }
 
     export class Subscribe extends Operation {
+
+        static getPrototype(): prototype.SubscribeType {
+            return prototype.SubscribePrototype.getPrototype();
+        }
+
         constructor(fromId: string, toId: string, price: Asset) {
-            super(OperationName.subscribe, {
-                from: fromId,
-                to: toId,
-                price: price
-            });
+            const type: prototype.SubscribeType = {from: fromId, to: toId, price: price};
+            super(OperationName.subscribe, type);
         }
     }
 
     export class SubscribeByAuthor extends Operation {
+
+        static getPrototype(): prototype.SubscribeByAuthorType {
+            return prototype.SubscribeByAuthorPrototype.getPrototype();
+        }
+
         constructor(fromId: string, toId: string) {
-            super(
-                OperationName.subscribe_by_author, {
-                    from: fromId,
-                    to: toId
-                });
+            const type: prototype.SubscribeByAuthorType = {from: fromId, to: toId};
+            super(OperationName.subscribe_by_author, type);
         }
     }
 
     export class SetAutomaticRenewalOfSubscription extends Operation {
+
+        static getPrototype(): prototype.AutomaticRenewalOfSubscriptionType {
+            return prototype.SetAutomaticRenewalOfSubscriptionPrototype.getPrototype();
+        }
+
         constructor(accountId: string, subscriptionId: string, automaticRenewal: boolean) {
-            super(
-                OperationName.automatic_renewal_of_subscription, {
-                    consumer: accountId,
-                    subscription: subscriptionId,
-                    automatic_renewal: automaticRenewal
-                });
+            const type: prototype.AutomaticRenewalOfSubscriptionType = {
+                consumer: accountId, subscription: subscriptionId, automatic_renewal: automaticRenewal};
+            super(OperationName.automatic_renewal_of_subscription, type);
         }
     }
 
@@ -583,12 +440,13 @@ export namespace Operations {
     }
 
     export class UpdateMonitoredAssetOperation extends Operation {
-        static getPrototype(): object {
-            return UpdateMonitoredAssetPrototype.getPrototype();
+        static getPrototype(): prototype.UpdateMonitoredAssetType {
+            return prototype.UpdateMonitoredAssetPrototype.getPrototype();
         }
 
         constructor(params: UpdateMonitoredAssetParameters) {
-            super(OperationName.update_monitored_asset_operation, params);
+            const type: prototype.UpdateMonitoredAssetType = Object.assign({}, params);
+            super(OperationName.update_monitored_asset_operation, type);
         }
     }
 }

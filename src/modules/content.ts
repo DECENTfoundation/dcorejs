@@ -1,11 +1,11 @@
-import { Asset, DCoreAccount } from './../model/account';
+import { Asset, DCoreAccount } from '../model/account';
 import { Rating, Content, Seeder, BuyingContent, SubmitObject, ContentKeys, KeyPair, ContentExchangeObject, Price } from '../model/content';
 import { DatabaseApi } from '../api/database';
 import { ChainApi } from '../api/chain';
 import { TransactionBuilder } from '../transactionBuilder';
 import { isUndefined } from 'util';
 import { DatabaseOperations, SearchParams, SearchParamsOrder } from '../api/model/database';
-import { ContentObject, Operations } from '../model/transaction';
+import {ContentObject, Operation, Operations} from '../model/transaction';
 import { DCoreAssetObject } from '../model/asset';
 import { ApiModule } from './ApiModule';
 import { Utils } from '../utils';
@@ -245,10 +245,11 @@ export class ContentModule extends ApiModule {
      *
      * @param {SubmitObject} content
      * @param {string} privateKey
+     * @param {boolean} broadcast
      * @return {Promise<void>}
      */
-    public addContent(content: SubmitObject, privateKey: string): Promise<boolean> {
-        return new Promise<boolean>((resolve, reject) => {
+    public addContent(content: SubmitObject, privateKey: string, broadcast: boolean = true): Promise<Operation> {
+        return new Promise<Operation>((resolve, reject) => {
             content.size = this.getFileSize(content.size);
             const listAssetOp = new DatabaseOperations.GetAssets([
                 content.assetId || ChainApi.asset_id,
@@ -298,16 +299,19 @@ export class ContentModule extends ApiModule {
                                 );
                                 const transaction = new TransactionBuilder();
                                 transaction.addOperation(submitOperation);
-                                transaction
-                                    .broadcast(privateKey)
-                                    .then(() => {
-                                        resolve(true);
-                                    })
-                                    .catch(err => {
-                                        reject(
-                                            this.handleError(ContentError.transaction_broadcast_failed, err)
-                                        );
-                                    });
+                                if (broadcast) {
+                                    transaction.broadcast(privateKey)
+                                        .then(() => {
+                                            resolve(transaction.operations[0]);
+                                        })
+                                        .catch(err => {
+                                            reject(
+                                                this.handleError(ContentError.transaction_broadcast_failed, err)
+                                            );
+                                        });
+                                } else {
+                                    resolve(transaction.operations[0]);
+                                }
                             } catch (e) {
                                 reject(this.handleError(ContentError.account_fetch_failed, e));
                                 return;
@@ -489,13 +493,15 @@ export class ContentModule extends ApiModule {
      * @param {string} buyerId Account id of user buying content, example: '1.2.123'
      * @param {string} elGammalPub ElGammal public key which will be used to identify users bought content
      * @param {string} privateKey
+     * @param {boolean} broadcast
      * @return {Promise<void>}
      */
     public buyContent(contentId: string,
-        buyerId: string,
-        elGammalPub: string,
-        privateKey: string): Promise<boolean> {
-        return new Promise<boolean>((resolve, reject) => {
+                      buyerId: string,
+                      elGammalPub: string,
+                      privateKey: string,
+                      broadcast: boolean = true): Promise<Operation> {
+        return new Promise<Operation>((resolve, reject) => {
             this.getContent(contentId)
                 .then((content: Content) => {
                     const buyOperation = new Operations.BuyContentOperation(
@@ -507,16 +513,17 @@ export class ContentModule extends ApiModule {
                     );
                     const transaction = new TransactionBuilder();
                     transaction.addOperation(buyOperation);
-                    transaction
-                        .broadcast(privateKey)
-                        .then(() => {
-                            resolve(true);
-                        })
-                        .catch((err: any) => {
-                            reject(
-                                this.handleError(ContentError.transaction_broadcast_failed, err)
-                            );
-                        });
+                    if (broadcast) {
+                        transaction.broadcast(privateKey)
+                            .then(() => {
+                                resolve(transaction.operations[0]);
+                            })
+                            .catch((err: any) => {
+                                reject(this.handleError(ContentError.transaction_broadcast_failed, err));
+                            });
+                    } else {
+                        resolve(transaction.operations[0]);
+                    }
                 })
                 .catch(err => {
                     reject(this.handleError(ContentError.fetch_content_failed, err));

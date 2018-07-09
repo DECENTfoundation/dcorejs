@@ -4,10 +4,10 @@ import {AccountOrder} from '../../../modules/account';
 
 const expect = chai.expect;
 chai.should();
-chai.config.showDiff = false;
+chai.config.showDiff = true;
 
 const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
-const dcoreNetworkAddresses = ['wss://stage.decentgo.com:8090'];
+const dcoreNetworkAddresses = ['wss://stagesocket.decentgo.com:8090'];
 const accountName = 'u46f36fcd24d74ae58c9b0e49a1f0103c';
 const accountId = '1.2.27';
 const privateKey = '5KcA6ky4Hs9VoDUSdTF4o3a7QDgiiG5gkpLLysRWR8dy6EAgTnZ';
@@ -26,24 +26,25 @@ describe('(server/integration) Account fetch', () => {
     it('get account by id', (done) => {
         dcore_js.account().getAccountById(accountId)
             .then(res => {
-                expect(res.id).to.equal(accountId);
+                expect(res.id).to.equals(accountId);
                 done();
             })
             .catch(err => {
-                console.log('Catch: ', err);
+                console.log('Error: ', err);
                 chai.assert.isDefined(err);
             });
+
     });
 
     it('get account by name', (done) => {
         dcore_js.account().getAccountByName(accountName)
             .then(res => {
-                expect(res.name).to.be.equal(accountName);
+                expect(res.name).to.eql(accountName);
                 done();
             })
             .catch(err => {
+                console.log('Error: ', err);
                 chai.assert.isDefined(err);
-                done();
             });
     });
 
@@ -55,8 +56,8 @@ describe('(server/integration) Account fetch', () => {
                 done();
             })
             .catch(err => {
-                expect(err).to.be.a('array');
-                done();
+                console.log('Error: ', err);
+                chai.assert.isDefined(err);
             });
     });
 
@@ -67,8 +68,8 @@ describe('(server/integration) Account fetch', () => {
                 done();
             })
             .catch(err => {
-                expect(err).to.be.equal(true);
-                done();
+                console.log('Error: ', err);
+                chai.assert.isDefined(err);
             });
     });
 
@@ -79,8 +80,8 @@ describe('(server/integration) Account fetch', () => {
                 done();
             })
             .catch(err => {
-                expect(err).to.be.a('number');
-                done();
+                console.log('Error: ', err);
+                chai.assert.isDefined(err);
             });
     });
 
@@ -90,8 +91,8 @@ describe('(server/integration) Account fetch', () => {
                 done();
             })
             .catch(err => {
-                expect(err).to.be.a('number');
-                done();
+                console.log('Error: ', err);
+                chai.assert.isDefined(err);
             });
     }).timeout(15000);
 
@@ -101,6 +102,10 @@ describe('(server/integration) Account fetch', () => {
                 expect(res).to.be.a('array');
                 expect(res).to.have.length.above(0);
                 done();
+            })
+            .catch(err => {
+                console.log('Error: ', err);
+                chai.assert.isDefined(err);
             });
     });
 
@@ -110,6 +115,10 @@ describe('(server/integration) Account fetch', () => {
                 expect(res).to.be.a('number');
                 expect(res).to.be.above(0);
                 done();
+            })
+            .catch(err => {
+                console.log('Error: ', err);
+                chai.assert.isDefined(err);
             });
     });
 });

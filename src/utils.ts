@@ -1,9 +1,9 @@
 import {dcorejs_lib} from './helpers';
 import {CryptoUtils} from './crypt';
 import {ChainApi} from './api/chain';
-import dictionary from './resources/dictionary';
+import {dictionary} from './resources/dictionary';
 import * as BigInteger from 'big-integer';
-import { sha512 } from 'js-sha512';
+import {sha512} from 'js-sha512';
 import {DCoreAssetObject} from './model/asset';
 
 export interface BrainKeyInfo {
@@ -220,7 +220,7 @@ export class Utils {
     }
 
     public static suggestBrainKey(): string {
-        return dcorejs_lib.key.suggest_brain_key(dictionary.en);
+        return dcorejs_lib.key.suggest_brain_key(dictionary.en.join(','));
     }
 
     public static getBrainKeyInfo(brainKey: string): BrainKeyInfo {

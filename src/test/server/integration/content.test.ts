@@ -6,7 +6,7 @@ chai.should();
 chai.config.showDiff = false;
 
 const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
-const dcoreNetworkAddresses = ['wss://stage.decentgo.com:8090'];
+const dcoreNetworkAddresses = ['wss://stagesocket.decentgo.com:8090'];
 const accountId = '1.2.18';
 // const contentId = '2.13.240';
 
