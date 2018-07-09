@@ -29,7 +29,7 @@ export enum ContentError {
 
 /**
  * ContentApi provide methods to communication
- * with content stored in dcore_js network.
+ * with content stored in DCore network.
  */
 export class ContentModule extends ApiModule {
     constructor(dbApi: DatabaseApi, chainApi: ChainApi, apiConnector: ApiConnector) {
@@ -42,6 +42,7 @@ export class ContentModule extends ApiModule {
 
     /**
      * Searches content submitted to DCore network and is not expired.
+     * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#a4526e41a8bf7bc921072d11cec0c894c
      *
      * @param {SearchParams} searchParams       Parameters for content filtering.
      * @param {boolean} convertAsset            Optional parameter to convert amounts and fees of Content from blockchain asset
@@ -114,6 +115,7 @@ export class ContentModule extends ApiModule {
 
     /**
      * Get content with given URI.
+     * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#a1790db302a96536fe8be9794969fbfdb
      *
      * @param {string} URI                  Content URI
      * @param {boolean} convertAsset        Optional parameter to convert amounts and fees of Content from blockchain asset
@@ -151,6 +153,7 @@ export class ContentModule extends ApiModule {
 
     /**
      * Cancel submitted content in blockchain.
+     * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#a51951fe58f271369898d529e537bf45e
      *
      * @param {string} contentId        Content id in format '2.13.X'. Example: '2.13.1234'
      * @param {string} authorId         Author id in format'1.2.X'. Example: '1.2.345'
@@ -191,6 +194,7 @@ export class ContentModule extends ApiModule {
      * May contains older keys, if elGamal keys pair were changed,
      * to restore content bought before keys have been changed. Otherwise content keys
      * would not be restored.
+     * https://docs.decent.ch/developer/group___database_a_p_i___decent.html#gaa952f1c2adc2781d42a3f457e2d18d09
      *
      * @param {string} contentId                Content id in format '2.13.X', Example: '2.13.453'
      * @param {string} accountId                Account if in format '1.2.X'. Example: '1.2.345'
@@ -229,6 +233,7 @@ export class ContentModule extends ApiModule {
     /**
      * Generate content key with key parts of each seeder to encrypt
      * content to be uploaded.
+     * https://docs.decent.ch/developer/group___database_a_p_i___decent.html#ga4efd6c44e7257d496b79b102cd3d9358
      *
      * @param {string[]} seeders        Array of seeder account ids in format '1.2.X'. Example: ['1.2.12', '1.4.13']
      * @return {Promise<ContentKeys>}   Generated ContentKeys for content encryption.
@@ -249,6 +254,7 @@ export class ContentModule extends ApiModule {
 
     /**
      * Submit content to blockchain
+     * https://docs.decent.ch/developer/group___wallet_a_p_i___content.html#gae0af8d611b5d915264a892ad83254370
      *
      * @param {SubmitObject} content    SubmitObject with information about submitted object.
      * @param {string} privateKey       Private for sign transaction in WIF(hex) (Wallet Import Format) format.
@@ -328,6 +334,7 @@ export class ContentModule extends ApiModule {
 
     /**
      * Get list of opened, not yet confirmed buy requests by seeders.
+     * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#ad4e75371b94ea3fd47cf4bd329b622aa
      *
      * @param {boolean} convertAsset            Optional parameter to convert amounts and fees of BuyingContent from blockchain asset
      *                                          amount format to right precision format of asset. Example: 100000000 => 1 DCT.
@@ -357,6 +364,7 @@ export class ContentModule extends ApiModule {
 
     /**
      * Get list of opened, not yet confirmed buy requests by seeders.
+     * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#a030ccb8c903503a700ecbbc87bf552af
      *
      * @param {string} URI                  Buy request URI. Example 'ipfs:QmQ9MBkzt6QcDtBhg7qenDcXtm1s6VVSogtSHa2zbXKsFb'
      * @param {boolean} convertAsset        Optional parameter to convert amounts and fees of BuyingContent from blockchain asset
@@ -387,6 +395,7 @@ export class ContentModule extends ApiModule {
 
     /**
      * Get list of opened, not yet confirmed buy requests by seeders.
+     * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#a767fc3bb252b35c33618f12083aa3064
      *
      * @param {string} accountId            Account id in format '1.2.X'. Example '1.2.345'
      * @param {boolean} convertAsset        Optional parameter to convert amounts and fees of BuyingContent from blockchain asset
@@ -416,7 +425,8 @@ export class ContentModule extends ApiModule {
     }
 
     /**
-     *  Get consumer's bought content identified by URI.
+     * Get consumer's bought content identified by URI.
+     * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#a0b6a59e429592430cd91c6f8c82a5d6c
      *
      * @param {string} accountId                    Consumer's account id in format '1.2.X'. Example '1.2.345'
      * @param {string} URI                          Content URI. Example 'ipfs:QmQ9MBkzt6QcDtBhg7qenDcXtm1s6VVSogtSHa2zbXKsFb'
@@ -448,6 +458,7 @@ export class ContentModule extends ApiModule {
 
     /**
      * Bought content history of account.
+     * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#a58b3b366a008ae2b0b7acd352da9969e
      *
      * @param {string} accountId            Account id in format '1.2.X'. Example '1.2.345'
      * @param {boolean} convertAsset        Optional parameter to convert amounts and fees of BuyingContent from blockchain asset
@@ -523,6 +534,7 @@ export class ContentModule extends ApiModule {
 
     /**
      * Request buy content.
+     * https://docs.decent.ch/developer/group___wallet_a_p_i___content.html#ga5c57a25ade4da4c36466bd12f4b65401
      *
      * @param {string} contentId        Id of content to be bought in format '2.13.X'. Example: '2.13.456'
      * @param {string} buyerId          Account id of user buying content in format '1.2.X'. Example: '1.2.345'
@@ -565,6 +577,7 @@ export class ContentModule extends ApiModule {
 
     /**
      * List available seeders ordered by price.
+     * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#a0fb24b59633fe48d8d4ff0bec4412f7b
      *
      * @param {number} resultSize       Number of results per request. Default 100(Max)
      * @return {Promise<Seeder[]>}      List of available Seeder objects.
@@ -585,6 +598,7 @@ export class ContentModule extends ApiModule {
 
     /**
      * Get list of not expired purchased content for account.
+     * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#a9b19baba864926274ef141c879b29e28
      *
      * @param {string} accountId        Account id in format '1.2.X'. Example: '1.2.345'
      * @param {string} order            Order of returned content list. Default is SearchParamsOrder.createdDesc
@@ -641,7 +655,6 @@ export class ContentModule extends ApiModule {
 
     /**
      * List rating for given content id.
-     * In case to list all rating for content, leave a parameter forUser empty string.
      *
      * @param {string} contentId        Content if in format '2.13.X'. Example '2.13.456'
      * @param {string} forUser          Account id to search for user's ratings for conentnt, in format '1.2.X'. Example '1.2.345'.
@@ -664,6 +677,9 @@ export class ContentModule extends ApiModule {
     }
 
     // TODO: need to discuss with Riso
+    /**
+     * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#a624e679ac58b3edfc7b817e4a46e3746
+     */
     searchFeedback(accountId: string, contentURI: string, ratingStartId: string, count: number = 100): Promise<Array<Rating>> {
         return new Promise<Array<Rating>>((resolve, reject) => {
             const operation = new DatabaseOperations.SearchFeedback(accountId, contentURI, ratingStartId, count);
@@ -680,7 +696,7 @@ export class ContentModule extends ApiModule {
     /**
      * Get author and co-authors of content.
      *
-     * @param URI   Content URI. Example 'ipfs:QmQ9MBkzt6QcDtBhg7qenDcXtm1s6VVSogtSHa2zbXKsFb'
+     * @param {string} URI   Content URI. Example 'ipfs:QmQ9MBkzt6QcDtBhg7qenDcXtm1s6VVSogtSHa2zbXKsFb'
      */
     getAuthorCoAuthors(URI: string): Promise<[string, string[]] | null> {
         return new Promise<[string, string[]]>((resolve, reject) => {
@@ -699,6 +715,7 @@ export class ContentModule extends ApiModule {
 
     /**
      * Send feedback for bought content with comment.
+     * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#a34d9dc81d177f87e5f501f182cf9212f
      *
      * @param {string} contentURI       Content URI. Example 'ipfs:QmQ9MBkzt6QcDtBhg7qenDcXtm1s6VVSogtSHa2zbXKsFb'
      * @param {string} consumer         Account id in format '1.2.X'. Example '1.2.345'
