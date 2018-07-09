@@ -3,13 +3,16 @@
 const el = id => document.getElementById(id);
 
 el('transferButton').onclick = () => {
-    transfer('1.2.27', receiverInput.value, amountInput.value, memoInput.value);
+    transfer(senderInput.value, receiverInput.value, amountInput.value, assetIdInput.value, memoInput.value, privateKey.value);
 };
 const output = el('output');
 
 const amountInput = el('amount');
+const assetIdInput = el('assetId');
+const senderInput = el('sender');
 const receiverInput = el('receiver');
 const memoInput = el('memo');
+const privateKey = el('privateKey');
 
 const dcorejs_lib = window['dcorejs-lib'];
 const dcore_js = window['dcorejs'];
@@ -17,16 +20,15 @@ const dcore_js = window['dcorejs'];
 // Lib initialization
 const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
 const dcoreNetworkAddresses = ['wss://stage.decentgo.com:8090'];
-const privateKey = '5KcA6ky4Hs9VoDUSdTF4o3a7QDgiiG5gkpLLysRWR8dy6EAgTnZ';
 
 dcore_js.initialize({
     chainId: chainId,
     dcoreNetworkWSPaths: dcoreNetworkAddresses
 }, dcorejs_lib);
 
-function transfer(fromAccount, toAccount, amount, memo) {
+function transfer(fromAccount, toAccount, amount, assetId, memo, privateKey) {
     output.innerHTML = 'Loading ...';
-    dcore_js.account().transfer(amount, fromAccount, toAccount, memo, privateKey)
+    dcore_js.account().transfer(Number(amount), assetId, fromAccount, toAccount, memo, privateKey)
         .then(result => {
             output.innerHTML = '<h3 style="color: green;">Payment successful</h3>';
             output.innerHTML += '<br/>';

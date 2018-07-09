@@ -1,7 +1,7 @@
 "use strict";
 
 const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
-const dcoreNetworkAddresses = ['wss://stage.decentgo.com:8090'];
+const dcoreNetworkAddresses = ['wss://stagesocket.decentgo.com:8090'];
 
 const dcorejs_lib = window['dcorejs-lib'];
 const dcore_js = window['dcorejs'];
@@ -19,7 +19,7 @@ const contentDetail = el('contentDetail');
 const contentItems = [];
 
 contentList.innerHTML = 'Loading ...';
-dcore_js.content().searchContent(new dcore_js.SearchParams())
+dcore_js.content().searchContent()
     .then(content => {
         contentList.innerHTML = renderContent(content);
         contentItems.push(...content);

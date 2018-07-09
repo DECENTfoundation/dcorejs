@@ -27,8 +27,9 @@ function listAccountBalances(accountId) {
             output.innerHTML = '';
             for (let i = 0; i < res.length; i++) {
                 const result = res[i];
-                output.innerHTML += '<h3>Amount: ' + result.amount + '</h3>';
-                output.innerHTML += '<h3>Asset: ' + result.asset_id + '</h3>';
+                output.innerHTML += '<h3>Balance</h3>';
+                output.innerHTML += 'Amount: ' + result.amount + '<br />';
+                output.innerHTML += 'Asset: ' + result.asset_id;
             }
         })
         .catch(err => {
