@@ -19,7 +19,7 @@ const dctAssetObject: DCoreAssetObject = {
         'issuer': '1.2.1',
         'description': '',
         'options': {
-            'max_supply': '7319777577456900',
+            'max_supply': 7319777577456900,
             'core_exchange_rate': {'base': {'amount': 1, 'asset_id': '1.3.0'}, 'quote': {'amount': 1, 'asset_id': '1.3.0'}},
             'is_exchangeable': true,
             'extensions': []
