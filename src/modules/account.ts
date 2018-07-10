@@ -47,7 +47,7 @@ export class AccountModule extends ApiModule {
      * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#ac5c1fd29358dcde88ec644292de59304
      *
      * @param {string} name         Account name. Example: "u123456789abcdef123456789"
-     * @return {Promise<Account>}
+     * @return {Promise<Account>}   Account object.
      */
     public getAccountByName(name: string): Promise<Account> {
         const dbOperation = new DatabaseOperations.GetAccountByName(name);
@@ -67,7 +67,7 @@ export class AccountModule extends ApiModule {
      * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#aa20a30ec92c339c1b186c4ee7825f67b
      *
      * @param {string} id           Account id in format '1.2.X'. Example: "1.2.345"
-     * @return {Promise<Account>}
+     * @return {Promise<Account>}   Account object.
      */
     public getAccountById(id: string): Promise<Account> {
         const dbOperation = new DatabaseOperations.GetAccounts([id]);
@@ -298,7 +298,7 @@ export class AccountModule extends ApiModule {
      * @param {boolean} convertAsset    Optional parameter to convert balance amount from blockchain asset
                                         amount format to right precision format of asset. Example: 100000000 => 1 DCT.
      *                                  Default: false.
-     * @return {Promise<number>}        Actual account's balance
+     * @return {Promise<number>}        Account's balance
      */
     public getBalance(accountId: string, assetId: string = '1.3.0', convertAsset: boolean = false): Promise<number> {
         return new Promise((resolve, reject) => {
