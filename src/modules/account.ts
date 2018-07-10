@@ -203,7 +203,7 @@ export class AccountModule extends ApiModule {
      * https://docs.decent.ch/developer/group___wallet_a_p_i___account.html#gae61c0c78134741c534967260c8ff8a71
      *
      * @param {number} amount           Amount of asset to be send to receiver.
-     * @param {string} assetId          Id of asset that amount will be send in. If empty, default 1.3.0 - DCT is selected
+     * @param {string} assetId          Id of asset that amount will be sent in. If empty, default 1.3.0 - DCT is selected
      * @param {string} fromAccount      Name or id of sender account
      * @param {string} toAccount        Name or id of receiver account
      * @param {string} memo             Message for recipient
@@ -742,7 +742,6 @@ export class AccountModule extends ApiModule {
                         newOptions,
                         {}
                     );
-
                     const transaction = new TransactionBuilder();
                     transaction.addOperation(accountUpdateOperation);
                     transaction.broadcast(privateKey)
