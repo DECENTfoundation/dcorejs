@@ -4,10 +4,12 @@ const el = id => document.getElementById(id);
 
 el('searchButton').onclick = () => {
     const payer = el('payer').value;
-    const symbol = el('symbol').value;
-    const amount = Number(el('amount').value);
+    const uiaAmount = Number(el('uiaAmount').value);
+    const uiaSymbol = el('uiaSymbol').value;
+    const dctAmount = Number(el('dctAmount').value);
+    const dctSymbol = el('dctSymbol').value;
     const privateKey = el('privateKey').value;
-    reserveAsset(payer, symbol, amount, privateKey);
+    fundAssetPools(payer, uiaAmount, uiaSymbol, dctAmount, dctSymbol, privateKey);
 };
 const output = el('output');
 
@@ -23,15 +25,15 @@ dcore_js.initialize({
     dcoreNetworkWSPaths: dcoreNetworkAddresses
 }, dcorejs_lib);
 
-function reserveAsset(payer, symbol, amount, privateKey) {
+function fundAssetPools(payer, uiaAmount, uiaSymbol, dctAmount, dctSymbol, privateKey) {
     output.innerHTML = 'Loading ...';
-    dcore_js.asset().assetReserve(payer, symbol, amount, privateKey)
+    dcore_js.asset().fundAssetPools(payer, uiaAmount, uiaSymbol, dctAmount, dctSymbol, privateKey)
         .then(res => {
-            output.innerHTML = 'Asset successfully reserved';
+            output.innerHTML = 'Fund asset pools successful';
         })
         .catch(err => {
             console.error(err);
-            output.innerHTML = '<p style="color: red;">Error reserving asset</p>';
+            output.innerHTML = '<p style="color: red;">Error funding asset pools</p>';
         });
 }
 

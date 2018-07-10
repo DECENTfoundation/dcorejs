@@ -255,7 +255,6 @@ export class AssetModule extends ApiModule {
                             transaction.broadcast(privateKey)
                                 .then(() => resolve(true))
                                 .catch(err => reject(this.handleError(AssetError.transaction_broadcast_failed, err)));
-
                         })
                         .catch();
                     })
