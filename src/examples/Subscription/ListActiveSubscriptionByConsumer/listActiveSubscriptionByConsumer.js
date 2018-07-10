@@ -22,7 +22,7 @@ dcore_js.initialize({
 
 function listActiveSubscriptionByConsumer(consumerId) {
     output.innerHTML = 'Loading ...';
-    dcore_js.subscription().listActiveSubscriptionByConsumer(consumerId)
+    dcore_js.subscription().listActiveSubscriptionsByConsumer(consumerId)
         .then(res => {
             output.innerHTML = '';
             for (let i = 0; i < res.length; i++) {

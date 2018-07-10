@@ -354,7 +354,7 @@ export class AccountModule extends ApiModule {
             this.historyApi.execute(operation)
                 .then(res => {
                     if (res.length === 0) {
-                        reject(this.handleError(AccountError.transaction_history_fetch_failed, ''));
+                        reject(this.handleError(AccountError.transaction_history_fetch_failed, 'No transactions found'));
                     }
                     const dbOp = new DatabaseOperations.GetDynamicGlobalProperties();
                     this.dbApi.execute(dbOp)

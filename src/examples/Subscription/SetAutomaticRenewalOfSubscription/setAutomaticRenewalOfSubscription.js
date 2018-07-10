@@ -35,8 +35,8 @@ function fillValues() {
 fillValues();
 
 function setAutomaticRenewalOfSubscription(accountId, subscriptionId, automaticRenewal, privateKey) {
-    output.innerHTML = 'Loading ...';
-    dcore_js.subscription().subscribeToAuthor(accountId, subscriptionId, Boolean(automaticRenewal), privateKey)
+    output.innerHTML = 'Loading....';
+    dcore_js.subscription().setAutomaticRenewalOfSubscription(accountId, subscriptionId, automaticRenewal === 'true', privateKey)
         .then(() => {
             output.innerHTML = 'Set automatic renewal of subscription is successful';
         })

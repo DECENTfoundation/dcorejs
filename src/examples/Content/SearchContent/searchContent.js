@@ -8,7 +8,7 @@ el('searchButton').onclick = () => {
 };
 
 const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
-const dcoreNetworkAddresses = ['wss://stage.decentgo.com:8090'];
+const dcoreNetworkAddresses = ['wss://stagesocket.decentgo.com:8090'];
 
 const dcorejs_lib = window['dcorejs-lib'];
 const dcore_js = window['dcorejs'];
@@ -22,7 +22,7 @@ const output = el('output');
 
 function searchContent(keyword) {
     output.innerHTML = 'Loading ...';
-    dcore_js.content().searchContent(new dcore_js.SearchParams(keyword))
+    dcore_js.content().searchContent()
         .then(content => {
             output.innerHTML = renderContent(content);
         })

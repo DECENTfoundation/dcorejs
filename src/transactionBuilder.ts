@@ -10,7 +10,7 @@ export class TransactionBuilder {
     /**
      * dcore_js.lib/lib - TransactionBuilder
      */
-    private _transaction: any;
+    private _transaction;
     private _operations: Operation[] = [];
 
     constructor() {
