@@ -622,7 +622,7 @@ export class AccountModule extends ApiModule {
      * @param {string} id               Account id in format '1.2.X', Example: '1.2.345'.
      * @param {boolean} convertAssets   Optional parameter to convert balance amount from blockchain asset
      *                                  amount format to right precision format of asset. Example: 100000000 => 1 DCT. Default: false.
-     * @returns {Promise<Asset[]>}  List of balances
+     * @returns {Promise<Asset[]>}      List of balances
      */
     public listAccountBalances(id: string, convertAssets: boolean = false): Promise<Asset[]> {
         return new Promise<Asset[]>((resolve, reject) => {
@@ -699,7 +699,7 @@ export class AccountModule extends ApiModule {
      * @param {UpdateAccountParameters} params  UpdateAccountParameters object with parameters to be changed.
      * @param {string} privateKey               Private key of account that is about to be changed, to sign transaction.
      *                                          In WIF(hex)(Wallet Import Format) format.
-     * @returns {Promise<Boolean>}
+     * @returns {Promise<Boolean>}              Value confirming successful transaction broadcasting.
      */
     public updateAccount(accountId: string, params: UpdateAccountParameters, privateKey: string): Promise<Boolean> {
         return new Promise<Boolean>(((resolve, reject) => {
