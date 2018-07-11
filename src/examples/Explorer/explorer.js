@@ -223,7 +223,7 @@ function getChainProperty() {
 }
 
 function getWitnessSchedule() {
-    dcore_js.explorer().getWitnessSchedule('0').then(res => {
+    dcore_js.explorer().getMinerSchedule('0').then(res => {
         block = res;
         renderBlock(block);
     });
