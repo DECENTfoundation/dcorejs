@@ -16,6 +16,14 @@ export class SubscriptionModule extends ApiModule {
         });
     }
 
+    /**
+     * List all active subscriptions from given account id.
+     * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#a732057e0cae2f15bac9ab72a8f13ec73
+     *
+     * @param {string} consumerId                       Account id in format '1.2.X'. Example: "1.2.345"
+     * @param {number} count                            Limit of listed subscriptions. If empty, default is 100.
+     * @returns {Promise<SubscriptionObject[]>}
+     */
     public listActiveSubscriptionsByConsumer(consumerId: string, count: number = 100): Promise<SubscriptionObject[]> {
         return new Promise<SubscriptionObject[]>((resolve, reject) => {
             const operation = new DatabaseOperations.ListActiveSubscriptionsByConsumer(consumerId, count);
@@ -27,6 +35,14 @@ export class SubscriptionModule extends ApiModule {
         });
     }
 
+    /**
+     * List all subscriptions from given account id.
+     * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#a4887c65f9c311f542d3af7202893fcd8
+     *
+     * @param {string} consumerId                       Account id in format '1.2.X'. Example: "1.2.345"
+     * @param {number} count                            Limit of listed subscriptions. If empty, default is 100.
+     * @returns {Promise<SubscriptionObject[]>}
+     */
     public listSubscriptionsByConsumer(consumerId: string, count: number = 100): Promise<SubscriptionObject[]> {
         return new Promise<SubscriptionObject[]>((resolve, reject) => {
             const operation = new DatabaseOperations.ListSubscriptionsByConsumer(consumerId, count);
@@ -38,6 +54,14 @@ export class SubscriptionModule extends ApiModule {
         });
     }
 
+    /**
+     * List all active subscriptions from given account id.
+     * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#a01e03e723cd880533deca48fa43fe209
+     *
+     * @param {string} authorId                         Account id in format '1.2.X'. Example: "1.2.345"
+     * @param {number} count                            Limit of listed subscriptions. If empty, default is 100.
+     * @returns {Promise<SubscriptionObject[]>}
+     */
     public listActiveSubscriptionsByAuthor(authorId: string, count: number = 100): Promise<SubscriptionObject[]> {
         return new Promise<SubscriptionObject[]>((resolve, reject) => {
             const operation = new DatabaseOperations.ListActiveSubscriptionsByAuthor(authorId, count);
@@ -49,6 +73,14 @@ export class SubscriptionModule extends ApiModule {
         });
     }
 
+    /**
+     * List all subscriptions from given account id.
+     * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#a46ee4050e3e2579a4c637dfeed6f883b
+     *
+     * @param {string} authorId                         Account id in format '1.2.X'. Example: "1.2.345"
+     * @param {number} count                            Limit of listed subscriptions. If empty, default is 100.
+     * @returns {Promise<SubscriptionObject[]>}
+     */
     public listSubscriptionsByAuthor(authorId: string, count: number = 100): Promise<SubscriptionObject[]> {
         return new Promise<SubscriptionObject[]>((resolve, reject) => {
             const operation = new DatabaseOperations.ListSubscriptionsByConsumer(authorId, count);
@@ -60,6 +92,17 @@ export class SubscriptionModule extends ApiModule {
         });
     }
 
+    /**
+     * Subscribe to author transaction.
+     * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#a6174aa8cf4ab5066c82dde4e51808339
+     *
+     * @param {string} from                             Account id in format '1.2.X'. Example: "1.2.345"
+     * @param {string} to                               Account id in format '1.2.X'. Example: "1.2.345"
+     * @param {number} amount                           Amount that you want to subscribe with.
+     * @param {string} assetId                          Id of asset that you want to subscribe with in format: '1.3.X'. Example: "1.3.0"
+     * @param {string} privateKey                       Private key used to sign transaction.
+     * @returns {Promise<boolean>}
+     */
     public subscribeToAuthor(from: string, to: string, amount: number, assetId: string, privateKey: string): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
             const getAssetOperation = new DatabaseOperations.GetAssets([assetId]);
@@ -87,6 +130,15 @@ export class SubscriptionModule extends ApiModule {
         });
     }
 
+    /**
+     * Subscribe by author transaction.
+     * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#ab3443e059dcbd63a10338351bdbfac84
+     *
+     * @param {string} from                             Account id in format '1.2.X'. Example: "1.2.345"
+     * @param {string} to                               Account id in format '1.2.X'. Example: "1.2.345"
+     * @param {string} privateKey                       Private key used to sign transaction.
+     * @returns {Promise<boolean>}
+     */
     public subscribeByAuthor(from: string, to: string, privateKey: string): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
             this.apiConnector.connect()
@@ -106,6 +158,16 @@ export class SubscriptionModule extends ApiModule {
         });
     }
 
+    /**
+     * Set automatic renewal of subscription from given account id.
+     * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#a7efefe11ee58caad2924e874977f6003
+     *
+     * @param {string} accountId                            Account id in format '1.2.X'. Example: "1.2.345"
+     * @param {string} subscriptionId                       Subscription id in format '1.6.X'. Example: "1.6.100"
+     * @param {boolean} automaticRenewal                    True if enabled, false if disabled automatic renewal of given subscription.
+     * @param {string} privateKey                           Private key used to sign transaction.
+     * @returns {Promise<boolean>}
+     */
     public setAutomaticRenewalOfSubscription(
         accountId: string, subscriptionId: string, automaticRenewal: boolean, privateKey: string): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
@@ -130,6 +192,25 @@ export class SubscriptionModule extends ApiModule {
         });
     }
 
+    /**
+     * Update account with new subscription options.
+     * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#aadb6a2c911db0e578036c8d5a7da19b8
+     *
+     * @param {string} accountId                            Account id in format '1.2.X'. Example: "1.2.345"
+     * @param {SubscriptionOptions} options                 Subscription option in format: {
+     *                                                          allowSubscription: boolean;
+     *                                                          subscriptionPeriod: number;
+     *                                                          amount: number;
+     *                                                          asset?: string;
+     *                                                      }
+     *                                                      Asset is optional, default is '1.3.0'. Example: {
+     *                                                          allowSubscription: true,
+     *                                                          subsctiptionPeriod: 30,
+     *                                                          amount: 0.00000001
+     *                                                      }
+     * @param {string} privateKey                           Private key used to sign transaction
+     * @returns {Promise<boolean>}
+     */
     public setSubscription(accountId: string,
                            options: SubscriptionOptions,
                            privateKey: string): Promise<boolean> {
