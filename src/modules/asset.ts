@@ -54,18 +54,19 @@ export class AssetModule extends ApiModule {
      * Create UIA(User Issued Asset).
      * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#a3f5461005ce7d6fb69a8878a6513fe1f
      *
-     * @param {string} issuer                    Issuer's account id in format '1.2.X'. Example '1.2.345'.
-     * @param {string} symbol                    Symbol of newly created asset. NOTE: Price for create asset is based on number of letters.
-     *                                  used in asset symbol.
-     * @param {number} precision                 Number of fraction digits for asset.
-     * @param {string} description               Asset description. Maximum length is 1000 chars.
-     * @param {number} maxSupply                 The maximum supply of this asset which may exist at any given time
-     * @param {number} baseExchangeAmount        Quote amount price in DCT
-     * @param {number} quoteExchangeAmount       // TODO: always 1 DCT??
-     * @param {boolean} isExchangable             Set 'true' to allow implicit conversion of asst to core asset.
-     * @param {boolean} isSupplyFixed             // TODO: what does it means?
-     * @param {string} issuerPrivateKey          Private key to sign transaction in WIF(hex) (Wallet Import Format) format.
-     * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
+     * @param {string} issuer                   Issuer's account id in format '1.2.X'. Example '1.2.345'.
+     * @param {string} symbol                   Symbol of newly created asset. NOTE: Price for create asset is based on number of letters.
+     *                                          used in asset symbol.
+     * @param {number} precision                Number of fraction digits for asset.
+     * @param {string} description              Asset description. Maximum length is 1000 chars.
+     * @param {number} maxSupply                The maximum supply of this asset which may exist at any given time
+     * @param {number} baseExchangeAmount       Amount of custom tokens for exchange rate to quoteExchangeAmount DCT tokens.
+     * @param {number} quoteExchangeAmount      Number of DCT tokens for rxchange rate.
+     * @param {boolean} isExchangable           Set 'true' to allow implicit conversion of asst to core asset.
+     * @param {boolean} isSupplyFixed           Set value 'true' to fixate token maxSupply, 'false' for changeable maxSupply value.
+     *                                          NOTE: only can be changed from 'false' to 'true'
+     * @param {string} issuerPrivateKey         Private key to sign transaction in WIF(hex) (Wallet Import Format) format.
+     * @returns {Promise<boolean>}              Value confirming successful transaction broadcasting.
      */
     public createUserIssuedAsset(issuer: string,
                                  symbol: string,
@@ -121,12 +122,12 @@ export class AssetModule extends ApiModule {
      * Issue created custom user token to account.
      * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#a995074673211a3a6c4d94cafefd0ad56
      *
-     * @param {string} assetSymbol           Asset symbol of asset to be issued. Example 'DCT'
-     * @param {number} amount                Amount of asset ot be issued
-     * @param {string} issueToAccount        Account id to whom asset will be issued. In format '1.2.X'. Example '1.2.345.
-     * @param {string} memo                  Message for asset receiver
-     * @param {string} issuerPKey            Issuer private key for transaction sign
-     * @returns {Promise<boolean>}  Value confirming successful transaction broadcasting.
+     * @param {string} assetSymbol          Asset symbol of asset to be issued. Example 'DCT'
+     * @param {number} amount               Amount of asset ot be issued
+     * @param {string} issueToAccount       Account id to whom asset will be issued. In format '1.2.X'. Example '1.2.345.
+     * @param {string} memo                 Message for asset receiver
+     * @param {string} issuerPKey           Issuer private key for transaction sign
+     * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
      */
     public issueAsset(assetSymbol: string, amount: number, issueToAccount: string, memo: string, issuerPKey: string): Promise<boolean> {
         return new Promise<any>((resolve, reject) => {
@@ -243,9 +244,9 @@ export class AssetModule extends ApiModule {
      * @param {number} uiaAmount         Amount of custom token to be send to pool.
      * @param {string} uiaSymbol         Asset symbol of custom token which pool to be funded.
      * @param {number} dctAmount         Amount of DCT token to be send to pool.
-     * @param {string} dctSymbol         Asset symbol of DCT asset. // TODO: Needs to be here ???? DCT is always core asset
+     * @param {string} dctSymbol         Asset symbol of DCT asset. Set always to 'DCT'.
      * @param {string} privateKey        Account private key used for signing transaction.
-     * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
+     * @returns {Promise<boolean>}       Value confirming successful transaction broadcasting.
      */
     public fundAssetPools(fromAccountId: string,
                           uiaAmount: number,
@@ -286,12 +287,12 @@ export class AssetModule extends ApiModule {
     }
 
     /**
-     * TODO: RIso ... what ist this ?
+     * Discard asset from network circulation.
      * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#ae79e94dc01997493539ab0e01a505c03
      *
      * @param {string} payer            Account id in format '1.2.X'. Example '1.2.345'.
-     * @param {string} symbol           Asset symbol of asset to be reserved.
-     * @param {number} amountToReserve  Amount of asset to be reserved.
+     * @param {string} symbol           Asset symbol of asset to be removed.
+     * @param {number} amountToReserve  Amount of asset to be removed.
      * @param {string} privateKey       Payer's private key to sign the transaction.
      * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
      */
@@ -321,14 +322,14 @@ export class AssetModule extends ApiModule {
     }
 
     /**
-     * TODO: Riso ... what is this ??
+     * Withdraw from asset pools.
      * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#ac812b96ccef7f81ca97ebda433d98e63
      *
      * @param {string} issuer       Issuer's account id in format '1.2.X'. Example '1.2.345'.
      * @param {string} uiaAmount    Custom asset amount.
      * @param {string} uiaSymbol    Custom asset symbol.
      * @param {string} dctAmount    Amount of core DCT asset.
-     * @param {string} dctSymbol    // TODO: Need to be there? Can be changed? DCT is core asset always
+     * @param {string} dctSymbol    DCT asset symbol. Always set to 'DCT'.
      * @param {string} privateKey   Issuer's private key to sign the transaction.
      * @returns {Promise<boolean>}  Value confirming successful transaction broadcasting.
      */
@@ -378,7 +379,7 @@ export class AssetModule extends ApiModule {
      * @param {string} formatAsset              Optional parameter to convert amounts and fees of DCoreAssetObject from blockchain asset
      *                                          amount format to right precision format of asset. Example: 100000000 => 1 DCT.
      *                                          Default: false.
-     * @returns {Promise<DCoreAssetObject>}     DCoreAssetObject of desrired asset.
+     * @returns {Promise<DCoreAssetObject>}     DCoreAssetObject of desired asset.
      */
     public getAsset(assetId: string, formatAsset: boolean = false): Promise<DCoreAssetObject> {
         const operation = new DatabaseOperations.GetAssets([assetId]);
@@ -403,7 +404,7 @@ export class AssetModule extends ApiModule {
      * @param {boolean} formatAssets            Optional parameter to convert amounts and fees of DCoreAssetObject from blockchain asset
      *                                          amount format to right precision format of asset. Example: 100000000 => 1 DCT.
      *                                          Default: false.
-     * @returns {Promise<DCoreAssetObject>}     DCoreAssetObject of desrired asset.
+     * @returns {Promise<DCoreAssetObject>}     DCoreAssetObject of desired asset.
      */
     public getAssets(assetIds: string[], formatAssets: boolean = false): Promise<DCoreAssetObject[]> {
         const operation = new DatabaseOperations.GetAssets(assetIds);
@@ -439,7 +440,8 @@ export class AssetModule extends ApiModule {
     }
 
     /**
-     * // TODO: what is this?
+     * Miner proposes exchange rate for monitored asset.
+     * NOTE: Only active miners can.
      * https://docs.decent.ch/developer/group___wallet_a_p_i___asset.html#ga4ae6711f7d7ab2912d3e3b0a2997a8c3
      *
      * @param {string} publishingAccount
@@ -488,7 +490,7 @@ export class AssetModule extends ApiModule {
     }
 
     /**
-     * // TODO: what is this?
+     * List miner's proposed feeds.
      * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#a56a36fac11722644d2bdfd9552b13658
      *
      * @param {string} minerAccountId
@@ -505,7 +507,7 @@ export class AssetModule extends ApiModule {
     }
 
     /**
-     * TODO: what?
+     * Amount of active DCT tokens in DCore network circulation.
      * @returns {Promise<any>}
      */
     public getRealSupply(): Promise<any> {
@@ -574,8 +576,8 @@ export class AssetModule extends ApiModule {
      * @param {string} symbol               Asset symbol of newly created asset. Example 'MONAST'.
      * @param {number} precision            Number of digits on the right side of decimal point. Value needs to be lower-equal 12.
      * @param {string} description          Assets's description. Up to 1000 characters.
-     * @param {number} feedLifetimeSec      // TODO: what ??
-     * @param {number} minimumFeeds         // TODO: what ??
+     * @param {number} feedLifetimeSec      Time during which is active miners feed proposals valid.
+     * @param {number} minimumFeeds         Minimum number of feed proposals from miners.
      * @param {string} issuerPrivateKey     Issuer's private key to sign the transaction.
      * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
      */
@@ -646,13 +648,13 @@ export class AssetModule extends ApiModule {
     }
 
     /**
-     * // TODO not tested, waiting for proposal
+     * Update information in monitored asset.
      * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#adfa5687dce7e6cb119dd14151006e8bf
      *
      * @param {string} symbol               Asset symbol to be updated.
      * @param {string} description          New description for monitored asset. Up to 1000 characters.
-     * @param {number} feedLifetimeSec      // TODO: whaat ?
-     * @param {number} minimumFeeds         // TODO: whaat ?
+     * @param {number} feedLifetimeSec      Time during which is active miners feed proposals valid.
+     * @param {number} minimumFeeds         Minimum number of feed proposals from miners.
      * @param {string} privateKey           Issuer's private key to sign the transaction.
      * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
      */
