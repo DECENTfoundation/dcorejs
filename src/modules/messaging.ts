@@ -18,6 +18,15 @@ export class MessagingModule extends ApiModule {
         });
     }
 
+    /**
+     * List sent messages.
+     * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#a2e9a6ada3838f085342b101dd2011b03
+     *
+     * @param {string} sender                       Account id of sender, in format '1.2.X'. Example '1.2.345'.
+     * @param {string} decryptPrivateKey            Private key for memo decryption. Default is ''. Therefore none of messages is decrypted.
+     * @param {number} count                        Limit result size. Default 100(Max).
+     * @returns {Promise<DCoreMessagePayload[]>}    List of DCoreMessagePayload objects.
+     */
     public getSentMessages(sender: string, decryptPrivateKey: string = '', count: number = 100): Promise<DCoreMessagePayload[]> {
         return new Promise<DCoreMessagePayload[]>(((resolve, reject) => {
             this.getMessageObjects(sender, null, decryptPrivateKey, count)
@@ -28,8 +37,17 @@ export class MessagingModule extends ApiModule {
         }));
     }
 
-    public getMessages(receiver: string, decryptPrivateKey: string = '', count: number = 100): Promise<any> {
-        return new Promise<any>(((resolve, reject) => {
+    /**
+     * List messages.
+     * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#a810a737e6edae4bfb28e89f47833a54b
+     *
+     * @param {string} receiver                     Account id of receiver, in format '1.2.X'. Example '1.2.345'.
+     * @param {string} decryptPrivateKey            Private key to sign transaction.
+     * @param {number} count                        Limit result size. Default 100(Max).
+     * @returns {Promise<DCoreMessagePayload[]>}    List of DCoreMessagePayload objects.
+     */
+    public getMessages(receiver: string, decryptPrivateKey: string = '', count: number = 100): Promise<DCoreMessagePayload[]> {
+        return new Promise<DCoreMessagePayload[]>(((resolve, reject) => {
             this.getMessageObjects(null, receiver, decryptPrivateKey, count)
                 .then((messages: any[]) => {
                     resolve(messages);
@@ -38,8 +56,21 @@ export class MessagingModule extends ApiModule {
         }));
     }
 
-    public getMessageObjects(sender?: string, receiver?: string, decryptPrivateKey: string = '', count: number = 100): Promise<any> {
-        return new Promise<any>(((resolve, reject) => {
+    /**
+     * List message objects.
+     * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#a7cb689db3eeba6eb74ea2920d5c96236
+     *
+     * @param {string} sender                       Account id of sender, in format '1.2.X'. Example '1.2.345'.
+     * @param {string} receiver                     Account id of receiver, in format '1.2.X'. Example '1.2.345'.
+     * @param {string} decryptPrivateKey            Private key to decrypt messages content.
+     * @param {number} count                        Limit result count. Default 100(Max)
+     * @returns {Promise<DCoreMessagePayload[]>}    List of DCoreMessagePayload message objects.
+     */
+    public getMessageObjects(sender?: string,
+                             receiver?: string,
+                             decryptPrivateKey: string = '',
+                             count: number = 100): Promise<DCoreMessagePayload[]> {
+        return new Promise<DCoreMessagePayload[]>(((resolve, reject) => {
             const op = new MessagingOperations.GetMessageObjects(sender, receiver, count);
             this.messagingApi.execute(op)
                 .then((messages: any[]) => {
@@ -70,6 +101,16 @@ export class MessagingModule extends ApiModule {
         return result;
     }
 
+    /**
+     * Send encrypted message
+     * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#ab7e7eed9c157ff1c352c2179501b36c6
+     *
+     * @param {string} sender           Account id of sender, in format '1.2.X'. Example '1.2.345'.
+     * @param {string} receiverId       Account id of receiver, in format '1.2.X'. Example '1.2.345'.
+     * @param {string} message          Content of message.
+     * @param {string} privateKey       Private key to encrypt message and sign transaction.
+     * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
+     */
     public sendMessage(sender: string, receiverId: string, message: string, privateKey: string): Promise<boolean> {
         return new Promise<boolean>(((resolve, reject) => {
             const getAccOp = new DatabaseOperations.GetAccounts([receiverId]);
