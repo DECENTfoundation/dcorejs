@@ -52,13 +52,12 @@ export class MiningModule extends ApiModule {
 
     /**
      * Place vote for change of number of active miners.
+     * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#aeffdd3eb57a9f4877d660ca4ccd7d9f5
      *
-     * More details https://docs.decent.ch/UseCases/#proposal_to_change_the_count_of_voted_miners
-     *
-     * @param {string} accountId
-     * @param {number} desiredNumOfMiners
-     * @param {string} privateKey
-     * @returns {Promise<any>}
+     * @param {string} accountId            Id of account which placing vote, in format '1.2.X'. Example '1.2.345'.
+     * @param {number} desiredNumOfMiners   Desired number of active miners in DCore network.
+     * @param {string} privateKey           Private key to sign transaction.
+     * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
      */
     public setDesiredMinerCount(accountId: string, desiredNumOfMiners: number, privateKey: string): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
@@ -96,6 +95,16 @@ export class MiningModule extends ApiModule {
         });
     }
 
+    /**
+     * Create miner.
+     * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#a71fd1099d86cf82f0c4a61f9a2d5803b
+     *
+     * @param {string} minerAccountId       Id of account which will be miner.
+     * @param {string} URL                  URL to miner promotional web page.
+     * @param {string} signingPublicKey     Public key used to signing mining operations.
+     * @param {string} privateKey           Private key to sign transaction.
+     * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
+     */
     public createMiner(minerAccountId: string, URL: string, signingPublicKey: string, privateKey: string): Promise<boolean> {
         return new Promise<boolean>(((resolve, reject) => {
             this.apiConnector.connect()
@@ -114,10 +123,10 @@ export class MiningModule extends ApiModule {
     /**
      * Remove your vote from selected miner.
      *
-     * @param {string} miner
-     * @param {string} account
-     * @param {string} privateKeyWif
-     * @returns {Promise<any>}
+     * @param {string} miner            Miner to un-vote, in format '1.4.X'. Example '1.4.5'.
+     * @param {string} account          Account id to un-vote miner from, in format '1.2.X'. Example '1.2.345'.
+     * @param {string} privateKeyWif    Private key to sign thr transaction.
+     * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
      */
     public unvoteMiner(miner: string, account: string, privateKeyWif: string): Promise<boolean> {
         return this.unvoteMiners([miner], account, privateKeyWif);
@@ -125,12 +134,11 @@ export class MiningModule extends ApiModule {
 
     /**
      * Remove your votes from multiple miners.
-     * This method is also called on unvoteMiner.
      *
-     * @param {string} miner
-     * @param {string} account
-     * @param {string} privateKeyWif
-     * @returns {Promise<any>}
+     * @param {string} miners           List of miners to un-vote, in format '1.4.X'. Example ['1.4.5', '1.4.6'].
+     * @param {string} account          Account id to un-vote miner from, in format '1.2.X'. Example '1.2.345'.
+     * @param {string} privateKeyWif    Private key to sign thr transaction.
+     * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
      */
     public unvoteMiners(miners: string[], account: string, privateKeyWif: string): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
@@ -175,14 +183,14 @@ export class MiningModule extends ApiModule {
 
     /**
      * Vote for selected miner.
-     * More information on https://devdocs.decent.ch/UseCases/#vote_for_a_miner_1
+     * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#ab0e2ae4331187fd07ad60cd090a4711f
      *
-     * @param {string} miner
-     * @param {string} account
-     * @param {string} privateKeyWif
-     * @returns {Promise<any>}
+     * @param {string} miner            Miner to vote for, in format '1.4.X'. Example '1.4.5'.
+     * @param {string} account          Account id to vote miner for, in format '1.2.X'. Example '1.2.345'.
+     * @param {string} privateKeyWif    Private key to sign thr transaction.
+     * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
      */
-    public voteForMiner(miner: string, account: string, privateKeyWif: string): Promise<any> {
+    public voteForMiner(miner: string, account: string, privateKeyWif: string): Promise<boolean> {
         return this.voteForMiners([miner], account, privateKeyWif);
     }
 
@@ -190,10 +198,10 @@ export class MiningModule extends ApiModule {
      * Add votes to multiple miners.
      * This method is also called on voteForMiner.
      *
-     * @param {string[]} miners
-     * @param {string} account
-     * @param {string} privateKeyWif
-     * @returns {Promise<any>}
+     * @param {string} miners           List of miners to vote for, in format '1.4.X'. Example ['1.4.5', '1.4.6'].
+     * @param {string} account          Account id to vote miner for, in format '1.2.X'. Example '1.2.345'.
+     * @param {string} privateKeyWif    Private key to sign thr transaction.
+     * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
      */
     public voteForMiners(miners: string[], account: string, privateKeyWif: string): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
@@ -234,6 +242,15 @@ export class MiningModule extends ApiModule {
         });
     }
 
+    /**
+     * Bulk operation to vote and unvote miners in one operation. Use to avoid paying fee for multiple vote operation.
+     *
+     * @param {string[]} voteMiners     List of miners to vote for, in format '1.4.X'. Example ['1.4.5', '1.4.6'].
+     * @param {string[]} unvoteMiners   List of miners to un-vote, in format '1.4.X'. Example ['1.4.5', '1.4.6'].
+     * @param {string} accountId        Id of account vote changes will be made to, in format '1.2.X'. Example '1.2.345'.
+     * @param {string} privateKey       Private key to sign the transaction.
+     * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
+     */
     public voteUnvoteMiners(voteMiners: string[], unvoteMiners: string[], accountId: string, privateKey: string): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
             this.chainApi.fetch(new ChainMethods.GetAccount(accountId))
@@ -284,6 +301,13 @@ export class MiningModule extends ApiModule {
         });
     }
 
+    /**
+     * List balance for user in vesting.
+     * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#a4e7c681a6c7996225c714f8dc6d061a8
+     *
+     * @param {string} accountId                    Account id of miner in format '1.2.X'. Example '1.2.345'.
+     * @returns {Promise<Block.VestingBalance[]>}   VestingBalance object.
+     */
     public getVestingBalances(accountId: string): Promise<VestingBalance[]> {
         return new Promise<VestingBalance[]>((resolve, reject) => {
             const operation = new DatabaseOperations.GetVestingBalances(accountId);
@@ -293,6 +317,16 @@ export class MiningModule extends ApiModule {
         });
     }
 
+    /**
+     * Update info in miner account.
+     * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#a4d94757da6cc355932fa01a0302e9007
+     *
+     * @param {string} minerId                  Miner id in format '1.4.X'. Example '1.4.56'.
+     * @param {string} minerAccountId           Account id of miner in format '1.2.X'. Example '1.2.345'.
+     * @param {MinerUpdateData} updateData      Information to be changed in miner account.
+     * @param {string} privateKey               Miner's private key to sign the transaction.
+     * @returns {Promise<boolean>}              Value confirming successful transaction broadcasting.
+     */
     public updateMiner(minerId: string, minerAccountId: string, updateData: MinerUpdateData, privateKey: string): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
             const getMinerOp = new DatabaseOperations.GetMiners([minerId]);
@@ -320,6 +354,18 @@ export class MiningModule extends ApiModule {
         });
     }
 
+    /**
+     * Withdraw amount from vesting for account.
+     * NOTE: 24h after amount is vested
+     * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#abb116624419b0f7142d725150561534a
+     *
+     * @param {string} vestinBalanceId      Vesting balance id in format '1.9.X'. Example '1.9.345'.
+     * @param {string} ownerId              Vesting balance owner account id in format '1.2.X'. Example '1.2.345'.
+     * @param {number} amount               Amount of balance to be withdrawn.
+     * @param {string} assetId              Asset id of amount to be withdrawn.
+     * @param {string} privateKey           Owner's private key to sign the transaction.
+     * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
+     */
     public withdrawVesting(
         vestinBalanceId: string,
         ownerId: string,
@@ -343,6 +389,16 @@ export class MiningModule extends ApiModule {
         });
     }
 
+    /**
+     * Account what is selected as proxy, his votes is taken as yours.
+     * Automatically vote for same miners as voting proxy account voted, with your balance.
+     * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#a9c571d810992f8a72142ace75e74eceb
+     *
+     * @param {string} accountId            Account if in format '1.2.X'. Example '1.2.345'.
+     * @param {string} votingAccountId      Id of account to be set as voting proxy, in format '1.2.X'. Example '1.2.345'.
+     * @param {string} privateKey           Private used to sign transaction.
+     * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
+     */
     public setVotingProxy(accountId: string, votingAccountId: string = '', privateKey: string): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
             this.chainApi.fetch(new ChainMethods.GetAccount(accountId))
@@ -381,6 +437,16 @@ export class MiningModule extends ApiModule {
                 .catch(err => this.handleError(MiningError.account_fetch_failed, err));
         });
     }
+
+    /**
+     * List miners in DCore network.
+     * https://docs.decent.ch/developer/group___wallet_a_p_i___mining.html#gadd09ed33a90485888d6d885ddaa82fcd
+     *
+     * @param {string} fromId                   Miner id to start list from, in format '1.4.X'. Example '1.4.56',
+     *                                          Use '0.0.0' to list from the beginning.
+     * @param {number} limit                    Size of result list. Default 100(Max)
+     * @returns {Promise<MinerNameIdPair[]>}    List of MinerNameIdPair.
+     */
     public listMiners(fromId: string, limit: number = 100): Promise<MinerNameIdPair[]> {
         return new Promise<MinerNameIdPair[]>(((resolve, reject) => {
             const operation = new DatabaseOperations.LookupMiners(fromId, limit);
@@ -392,6 +458,13 @@ export class MiningModule extends ApiModule {
         }));
     }
 
+    /**
+     * Get miner object.
+     * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#a43b1380512f11c9f6963ce2a5c9c81c9
+     *
+     * @param {string} minerId      Miner id to be fetched, in format '1.4.X'. Example '1.4.56'.
+     * @returns {Promise<Miner>}    Miner object.
+     */
     public getMiner(minerId: string): Promise<Miner> {
         return new Promise<Miner>((resolve, reject) => {
             const operation = new DatabaseOperations.GetMiners([minerId]);
