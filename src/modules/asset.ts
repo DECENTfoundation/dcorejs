@@ -9,7 +9,15 @@ import {Utils} from '../utils';
 import {ChainApi} from '../api/chain';
 import {ApiModule} from './ApiModule';
 import {ChainMethods} from '../api/model/chain';
-import {AssetError, AssetObject, AssetOptions, DCoreAssetObject, MonitoredAssetOptions, UpdateMonitoredAssetParameters, UserIssuedAssetInfo
+import {
+    AssetError,
+    AssetObject,
+    AssetOptions,
+    DCoreAssetObject,
+    MonitoredAssetOptions,
+    RealSupply,
+    UpdateMonitoredAssetParameters,
+    UserIssuedAssetInfo
 } from '../model/asset';
 import {ProposalCreateParameters} from '../model/proposal';
 
@@ -385,8 +393,8 @@ export class AssetModule extends ApiModule {
         });
     }
 
-    public getRealSupply(): Promise<any> {
-        return new Promise<any>((resolve, reject) => {
+    public getRealSupply(): Promise<RealSupply> {
+        return new Promise<RealSupply>((resolve, reject) => {
             const operation = new DatabaseOperations.GetRealSupply();
             this.dbApi.execute(operation)
                 .then(res => resolve(res))
