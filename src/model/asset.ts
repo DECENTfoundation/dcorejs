@@ -51,6 +51,13 @@ export interface UpdateMonitoredAssetParameters {
     new_minimum_feeds: number,
 }
 
+export interface RealSupply {
+    account_balances: string;
+    vesting_balances: string;
+    escrows: number;
+    pools: string;
+}
+
 export enum AssetError {
     unable_to_list_assets = 'unable_to_list_assets',
     connection_failed = 'connection_failed',
