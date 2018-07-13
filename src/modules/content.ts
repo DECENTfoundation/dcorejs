@@ -460,12 +460,19 @@ export class ContentModule extends ApiModule {
 
     private formatPrices(content: ContentExchangeObject[], assets: DCoreAssetObject[]): ContentExchangeObject[] {
         const result: ContentExchangeObject[] = content.map(obj => {
-            const priceAsset: Asset = obj.price.hasOwnProperty('map_price') ? (obj.price as Price).map_price[0][1] : (obj.price as Asset);
-            const asset = assets.find(a => a.id === priceAsset.asset_id);
-            const c = Object.assign({}, obj);
-            const newAsset: Asset = c.price.hasOwnProperty('map_price') ? (c.price as Price).map_price[0][1] : (c.price as Asset);
-            newAsset.amount = Utils.formatAmountForAsset(priceAsset.amount, asset);
-            return c;
+            const objCopy = Object.assign({}, obj);
+            const assetsToFormat = [objCopy.price.hasOwnProperty('map_price') ? (objCopy.price as Price).map_price[0][1] : (objCopy.price as Asset)];
+            if (objCopy.paid_price_before_exchange) {
+                assetsToFormat.push(objCopy.paid_price_before_exchange);
+            }
+            if (objCopy.paid_price_after_exchange) {
+                assetsToFormat.push(objCopy.paid_price_after_exchange);
+            }
+            assetsToFormat.forEach(priceAsset => {
+                const asset = assets.find(a => a.id === priceAsset.asset_id);
+                priceAsset.amount = Utils.formatAmountForAsset(priceAsset.amount, asset);
+            });
+            return objCopy;
         });
         return result;
     }
