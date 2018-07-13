@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>dcorejs - Approve proposal example</title>
+</head>
+
+<body>
+    <h1>Approve proposal</h1>
+    <form action="javascript:void(0)">
+        <label for="payingId">Enter paying account id:</label><br/>
+        <input id="payingId" type="text" title="payingId" /><br/><br/>
+        <label for="proposalId">Enter proposal id:</label><br/>
+        <input id="proposalId" type="text" title="proposalId" /><br/><br/>
+        <label for="removeActive">Enter remove active key (optional):</label><br/>
+        <input id="removeActive" type="text" title="removeActive" /><br/><br/>
+        <label for="addActive">Enter add active key (optional):</label><br/>
+        <input id="addActive" type="text" title="addActive" /><br/><br/>
+        <label for="removeOwner">Enter remove owner key (optional):</label><br/>
+        <input id="removeOwner" type="text" title="removeOwner" /><br/><br/>
+        <label for="addOwner">Enter add owner key (optional):</label><br/>
+        <input id="addOwner" type="text" title="addOwner" /><br/><br/>
+        <label for="privateKey">Enter private key: </label><br/>
+        <input id="privateKey" type="text" title="privateKey" /><br/><br/>
+    </form>
+    <button id="searchButton" type="submit" title="searchButton"> Search </button>
+    <pre id="output"></pre>
+    <script src="../../../../dist/dcorejs.umd.js" type="text/javascript"></script>
+    <script type="text/javascript" src="approveProposal.js"></script>
+</body>
+
+</html>
