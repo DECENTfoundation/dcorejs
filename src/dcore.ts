@@ -27,6 +27,7 @@ let _proposal: ProposalModule;
 let _chain: ChainApi;
 let _transaction: TransactionBuilder;
 let _messaging: MessagingModule;
+let _connector: ApiConnector;
 
 export class DcoreError {
     static app_not_initialized = 'app_not_initialized';
@@ -56,20 +57,20 @@ export function initialize(config: DcoreConfig,
     const dcore = getLibRef();
     ChainApi.setupChain(config.chainId, dcore.ChainConfig);
 
-    const connector = new ApiConnector(config.dcoreNetworkWSPaths, dcore.Apis, testConnection, connectionStatusCallback);
-    const database = new DatabaseApi(dcore.Apis, connector);
-    const historyApi = new HistoryApi(dcore.Apis, connector);
-    const messagingApi = new MessagingApi(dcore.Apis, connector);
+    _connector = new ApiConnector(config.dcoreNetworkWSPaths, dcore.Apis, testConnection, connectionStatusCallback);
+    const database = new DatabaseApi(dcore.Apis, _connector);
+    const historyApi = new HistoryApi(dcore.Apis, _connector);
+    const messagingApi = new MessagingApi(dcore.Apis, _connector);
 
-    _chain = new ChainApi(connector, dcore.ChainStore);
+    _chain = new ChainApi(_connector, dcore.ChainStore);
     _content = new ContentModule(database, _chain);
-    _account = new AccountModule(database, _chain, historyApi, connector);
+    _account = new AccountModule(database, _chain, historyApi, _connector);
     _explorer = new ExplorerModule(database);
-    _assetModule = new AssetModule(database, connector, _chain);
-    _subscription = new SubscriptionModule(database, connector);
+    _assetModule = new AssetModule(database, _connector, _chain);
+    _subscription = new SubscriptionModule(database, _connector);
     _seeding = new SeedingModule(database);
-    _mining = new MiningModule(database, connector, _chain);
-    _proposal = new ProposalModule(database, _chain, connector);
+    _mining = new MiningModule(database, _connector, _chain);
+    _proposal = new ProposalModule(database, _chain, _connector);
     _transaction = new TransactionBuilder();
     _messaging = new MessagingModule(database, messagingApi);
 }
@@ -134,4 +135,8 @@ export function messaging(): MessagingModule {
 export function transaction(): TransactionBuilder {
     _transaction = new TransactionBuilder();
     return _transaction;
+}
+
+export function connection() {
+    return _connector;
 }

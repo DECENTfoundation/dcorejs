@@ -28,7 +28,12 @@ export enum ConnectionState {
  */
 export class ApiConnector {
     private _connectionPromise: Promise<any>;
-    private _apiAddresses: string[];
+    private readonly _apiAddresses: string[];
+    private readonly _api: any;
+    private isConnected = false;
+    private connectedAddress: string = null;
+    private testConnectionQuality: boolean;
+    private connectionStatusCallback: (status: ConnectionState) => void;
 
     public get apiAddresses(): string[] {
         return this._apiAddresses;
@@ -39,22 +44,40 @@ export class ApiConnector {
                 testConnectionQuality: boolean = true,
                 connectionStatusCallback: (status: ConnectionState) => void = null) {
         this._apiAddresses = apiAddresses;
+        this._api = api;
+        this.connectionStatusCallback = connectionStatusCallback;
+        this.testConnectionQuality = testConnectionQuality;
         this.initConnetion(apiAddresses, api, testConnectionQuality, connectionStatusCallback);
     }
 
+    /**
+     * Create new connection to WS interface of daemon with addresses.
+     *
+     * @param {string[]} addresses
+     * @param api
+     * @param {boolean} testConnectionQuality
+     * @param {(status: ConnectionState) => void} connectionStatusCallback
+     */
     private initConnetion(addresses: string[],
                           api: any,
                           testConnectionQuality: boolean = true,
                           connectionStatusCallback: (status: ConnectionState) => void = null): void {
         api.setRpcConnectionStatusCallback((status: string) => this.handleConnectionState(status, connectionStatusCallback));
-        this._connectionPromise = this.connectApi(api, testConnectionQuality);
+        this._connectionPromise = this.connectApi(addresses, api, testConnectionQuality);
     }
 
-    private async connectApi(api: any, testConnectionQuality: boolean): Promise<any> {
+    /**
+     * Connect DCore network daemon api using dcorejs-lib.
+     *
+     * @param {string[]} addresses              Addresses to connect to.
+     * @param api                               Dcorejs-lib Apis object.
+     * @param {boolean} testConnectionQuality   Parameter to turn on/off connection speed test. Default is 'true'.
+     * @returns {Promise<any>}                  Connection promise.
+     */
+    private async connectApi(addresses: string[], api: any, testConnectionQuality: boolean): Promise<any> {
         return new Promise<any>(async (resolve, reject) => {
-            let addresses: string[] = this._apiAddresses;
             if (testConnectionQuality) {
-                const conTestResults = await this.testConnectionTime(this._apiAddresses);
+                const conTestResults = await this.testConnectionTime(addresses);
                 addresses = conTestResults
                     .filter(r => r.success)
                     .sort((a, b) => a.elapsedTime - b.elapsedTime)
@@ -65,16 +88,26 @@ export class ApiConnector {
                 const address = ['wss', ...addresses[i].split(':').slice(1)].join(':');
                 try {
                     const res = await this.getConnectionPromise(address, api);
+                    this.isConnected = true;
+                    this.connectedAddress = address;
+                    console.log('Connected to', address);
                     resolve(res);
                     return;
                 } catch (e) {
+                    console.log('Fail to connect to', address);
                     api.close();
                 }
             }
+            this.isConnected = false;
             reject(this.handleError(ApiConnectorError.ws_connection_failed));
         });
     }
 
+    /**
+     * Test every address connection time to determine fastest.
+     * @param {string[]} addresses                  Addresses to test.
+     * @returns {Promise<ConnectionTestResult[]>}   List of ConnectionTestResult.
+     */
     private testConnectionTime(addresses: string[]): Promise<ConnectionTestResult[]> {
         const httpAddrses = addresses.map(address => {
             return ['https', ...address.split(':').slice(1)].join(':');
@@ -107,8 +140,39 @@ export class ApiConnector {
         return api.instance(forAddress, true).init_promise;
     }
 
+    /**
+     * Return promise of connection. Once connection is established Promise is resolved and is able to run operations on apis.
+     * Closed connection can be opened using openConnection() method.
+     *
+     * @returns {Promise<void>}     Connection promise.
+     */
     public connect(): Promise<void> {
+        if (!this._connectionPromise) {
+            return new Promise<void>(((resolve, reject) => reject('connection_closed')));
+        }
         return this._connectionPromise;
+    }
+
+    /**
+     * Opens WS connection based on initialize configuration.
+     *
+     * @returns {Promise<void>}     Connection promise.
+     */
+    public openConnection() {
+        if (this._connectionPromise === null) {
+            this.initConnetion(this._apiAddresses, this._api, this.testConnectionQuality, this.connectionStatusCallback);
+        }
+    }
+
+    /**
+     * Closes opened WS connection.
+     */
+    public closeConnection(): void {
+        this.isConnected = false;
+        this._api.close();
+        this._connectionPromise = null;
+        console.log('Closed connection to', this.connectedAddress);
+        this.connectedAddress = null;
     }
 
     private handleConnectionState(state: string, callback: (status: ConnectionState) => void): void {
