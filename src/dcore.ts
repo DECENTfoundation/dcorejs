@@ -12,7 +12,7 @@ import {SubscriptionModule} from './modules/subscription';
 import {SeedingModule} from './modules/seeding';
 import {ProposalModule} from './modules/proposal';
 import {TransactionBuilder} from './transactionBuilder';
-import {ChainSubscriptionCallback} from './api/model/chain';
+import {ChainSubscriptionBlockAppliedCallback, ChainSubscriptionCallback} from './api/model/chain';
 import {MessagingApi} from './api/messaging';
 import {MessagingModule} from './modules/messaging';
 
@@ -81,6 +81,10 @@ export function initialize(config: DcoreConfig,
  */
 export function subscribe(callback: ChainSubscriptionCallback) {
     _chain.subscribe(callback);
+}
+
+export function subscribeBlockApplied(callback: ChainSubscriptionBlockAppliedCallback) {
+    _chain.subscribeBlockApplied(callback);
 }
 
 /**

@@ -195,8 +195,8 @@ export class AssetModule extends ApiModule {
                           uiaSymbol: string,
                           dctAmount: number,
                           dctSymbol: string,
-                          privateKey: string): Promise<any> {
-        return new Promise<any>((resolve, reject) => {
+                          privateKey: string): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
             Promise.all([
                 this.listAssets(uiaSymbol, 1),
                 this.listAssets(dctSymbol, 1)
@@ -221,34 +221,43 @@ export class AssetModule extends ApiModule {
                     const transaction = new TransactionBuilder();
                     transaction.addOperation(operation);
                     transaction.broadcast(privateKey)
-                        .then(res => resolve(true))
+                        .then(() => resolve(true))
                         .catch(err => reject(this.handleError(AssetError.transaction_broadcast_failed, err)));
                 })
                 .catch(err => reject(this.handleError(AssetError.unable_to_list_assets, err)));
         });
     }
 
-    public assetReserve(payer: string, symbol: string, amountToReserve: number, privateKey: string): Promise<any> {
-        return new Promise<any>((resolve, reject) => {
+    public assetReserve(payer: string, symbol: string, amountToReserve: number, privateKey: string): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
             this.listAssets(symbol, 1)
                 .then(res => {
                     if (res.length !== 1 || !res[0]) {
                         reject(this.handleError(AssetError.asset_not_found));
                         return;
                     }
-                    const operation = new Operations.AssetReserve(
-                        payer,
-                        {
-                            asset_id: res[0].id,
-                            amount: amountToReserve
-                        }
-                    );
-                    const transaction = new TransactionBuilder();
-                    transaction.addOperation(operation);
-                    transaction.broadcast(privateKey)
-                        .then(res => resolve(res))
-                        .catch(err => reject(this.handleError(AssetError.transaction_broadcast_failed, err)));
-                })
+                    const dynamicObject = new DatabaseOperations.GetObjects([res[0].dynamic_asset_data_id]);
+                    this.dbApi.execute(dynamicObject)
+                        .then(result => {
+                            if (result[0].current_supply === 0) {
+                                reject(this.handleError('Current supply of dynamic asset data is 0, must be greater than 0'));
+                                return;
+                            }
+                            const operation = new Operations.AssetReserve(
+                                payer,
+                                {
+                                    asset_id: res[0].id,
+                                    amount: amountToReserve
+                                }
+                            );
+                            const transaction = new TransactionBuilder();
+                            transaction.addOperation(operation);
+                            transaction.broadcast(privateKey)
+                                .then(() => resolve(true))
+                                .catch(err => reject(this.handleError(AssetError.transaction_broadcast_failed, err)));
+                        })
+                        .catch();
+                    })
                 .catch(err => reject(this.handleError(AssetError.unable_to_list_assets, err)));
         });
     }
@@ -258,8 +267,8 @@ export class AssetModule extends ApiModule {
                           uiaSymbol: string,
                           dctAmount: number,
                           dctSymbol: string,
-                          privateKey: string): Promise<any> {
-        return new Promise<any>((resolve, reject) => {
+                          privateKey: string): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
             Promise.all([
                 this.listAssets(uiaSymbol, 1),
                 this.listAssets(dctSymbol, 1)
@@ -282,7 +291,7 @@ export class AssetModule extends ApiModule {
                     const transaction = new TransactionBuilder();
                     transaction.addOperation(operation);
                     transaction.broadcast(privateKey)
-                        .then(res => resolve(true))
+                        .then(() => resolve(true))
                         .catch(err => reject('failed_to_broadcast_transaction'));
                 })
                 .catch(err => {

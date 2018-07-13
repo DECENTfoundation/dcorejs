@@ -7,7 +7,6 @@ el('searchButton').onclick = () => {
     const subscriptionId = el('subscriptionId').value;
     const automaticRenewal = el('automaticRenewal').value;
     const privateKey = el('privateKey').value;
-    console.log(automaticRenewal);
     setAutomaticRenewalOfSubscription(accountId, subscriptionId, automaticRenewal, privateKey);
 };
 const output = el('output');

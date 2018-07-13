@@ -19,7 +19,7 @@ export enum SubscriptionError {
 
 export interface SubscriptionOptions {
     allowSubscription: boolean;
-    subscriptionPeriod?: number;
-    amount?: number;
+    subscriptionPeriod: number;
+    amount: number;
     asset?: string;
 }

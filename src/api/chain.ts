@@ -76,6 +76,14 @@ export class ChainApi {
             .catch(err => console.log(err));
     }
 
+    public subscribeBlockApplied(callback: ChainSubscriptionCallback) {
+        this.connect()
+            .then(res => {
+                this._chainStore.subscribeBlockApplied(callback);
+            })
+            .catch(err => console.log(err));
+    }
+
     private connect(): Promise<void> {
         return new Promise<void>(((resolve, reject) => {
             this._apiConnector
