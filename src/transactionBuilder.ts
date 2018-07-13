@@ -35,10 +35,14 @@ export class TransactionBuilder {
      * @param {Operation} operation
      * @return {boolean}
      */
-    public addOperation(operation: Operation): boolean {
-        this._transaction.add_type_operation(operation.name, operation.operation);
-        this._operations.push(operation);
-        return true;
+    public addOperation(operation: Operation): string {
+        try {
+            this._transaction.add_type_operation(operation.name, operation.operation);
+            this._operations.push(operation);
+            return '';
+        } catch (exception) {
+            return exception;
+        }
     }
 
     public propose(proposalParameters: ProposalCreateParameters): void {

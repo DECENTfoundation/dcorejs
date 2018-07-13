@@ -424,17 +424,24 @@ export class ProposalModule extends ApiModule {
                         approvalsDelta.key_approvals_to_remove
                     );
                     const transaction = new TransactionBuilder();
-                    transaction.addOperation(operation);
-                    transaction.broadcast(privateKey)
-                        .then(() => {
-                            resolve(true);
-                        })
-                        .catch(error => {
-                            reject(this.handleError(ProposalError.transaction_broadcast_failed, error));
-                            return;
-                        });
+                    const result = transaction.addOperation(operation);
+                    if (result === '') {
+                        transaction.broadcast(privateKey)
+                            .then(() => {
+                                resolve(true);
+                            })
+                            .catch(error => {
+                                reject(this.handleError(ProposalError.transaction_broadcast_failed, error));
+                                return;
+                            });
+                    } else {
+                        // TODO vypisat aj thrownuty error?
+                        reject(this.handleError(ProposalError.syntactic_error));
+                    }
                 })
-                .catch();
+                .catch(error => {
+                    reject(this.handleError(ProposalError.connection_failed, error));
+                });
         }));
     }
 
