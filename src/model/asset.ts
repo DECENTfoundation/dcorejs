@@ -59,4 +59,5 @@ export enum AssetError {
     failed_to_fetch_account = 'failed_to_fetch_account',
     asset_not_found = 'asset_not_found',
     database_operation_failed = 'database_operation_failed',
+    syntactic_error = 'syntactic_error',
 }

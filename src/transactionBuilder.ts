@@ -115,9 +115,14 @@ export class TransactionBuilder {
      */
     public replaceOperation(operationIndex: number, newOperation: Operation): boolean {
         if (operationIndex >= 0 && operationIndex < this._operations.length) {
-            this._transaction.add_type_operation(newOperation.name, newOperation.operation);
-            this._operations[operationIndex] = newOperation;
-            return true;
+            try {
+                this._transaction.add_type_operation(newOperation.name, newOperation.operation);
+                this._operations[operationIndex] = newOperation;
+                return true;
+            } catch (exception) {
+                console.log(exception);
+                return false;
+            }
         }
         return false;
     }

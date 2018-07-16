@@ -72,14 +72,19 @@ export class SubscriptionModule extends ApiModule {
                     const price: Asset = Asset.create(amount, assets[0]);
                     const subscribeToAuthorOperation = new Operations.Subscribe(from, to, price);
                     const transaction = new TransactionBuilder();
-                    transaction.addOperation(subscribeToAuthorOperation);
-                    transaction.broadcast(privateKey)
-                        .then(result => {
-                            resolve(true);
-                        })
-                        .catch(error => {
-                            reject(this.handleError(SubscriptionError.transaction_broadcast_failed, error));
-                        });
+                    const added = transaction.addOperation(subscribeToAuthorOperation);
+                    if (added === '') {
+                        transaction.broadcast(privateKey)
+                            .then(result => {
+                                resolve(true);
+                            })
+                            .catch(error => {
+                                reject(this.handleError(SubscriptionError.transaction_broadcast_failed, error));
+                            });
+                    } else {
+                        reject(this.handleError(SubscriptionError.syntactic_error, added));
+                        return;
+                    }
                 })
                 .catch((error) => {
                     reject(this.handleError(SubscriptionError.subscription_to_author_failed, error));
@@ -93,14 +98,19 @@ export class SubscriptionModule extends ApiModule {
                 .then(res => {
                     const subscribeByAuthorOperation = new Operations.SubscribeByAuthor(from, to);
                     const transaction = new TransactionBuilder();
-                    transaction.addOperation(subscribeByAuthorOperation);
-                    transaction.broadcast(privateKey)
-                        .then(() => {
-                            resolve(true);
-                        })
-                        .catch((error) => {
-                            reject(this.handleError(SubscriptionError.transaction_broadcast_failed, error));
-                        });
+                    const added = transaction.addOperation(subscribeByAuthorOperation);
+                    if (added === '') {
+                        transaction.broadcast(privateKey)
+                            .then(() => {
+                                resolve(true);
+                            })
+                            .catch((error) => {
+                                reject(this.handleError(SubscriptionError.transaction_broadcast_failed, error));
+                            });
+                    } else {
+                        reject(this.handleError(SubscriptionError.syntactic_error, added));
+                        return;
+                    }
                 })
                 .catch(err => reject(this.handleError(SubscriptionError.blockchain_connection_failed, err)));
         });
@@ -117,15 +127,19 @@ export class SubscriptionModule extends ApiModule {
                         automaticRenewal
                     );
                     const transaction = new TransactionBuilder();
-                    transaction.addOperation(setAutomaticRenewalOperation);
-                    transaction.broadcast(privateKey)
-                        .then(() => {
-                            resolve(true);
-                        })
-                        .catch(error => {
-                            reject(this.handleError(SubscriptionError.transaction_broadcast_failed, error));
-                        });
-
+                    const added = transaction.addOperation(setAutomaticRenewalOperation);
+                    if (added === '') {
+                        transaction.broadcast(privateKey)
+                            .then(() => {
+                                resolve(true);
+                            })
+                            .catch(error => {
+                                reject(this.handleError(SubscriptionError.transaction_broadcast_failed, error));
+                            });
+                    } else {
+                        reject(this.handleError(SubscriptionError.syntactic_error, added));
+                        return;
+                    }
                 })
                 .catch(err => reject(this.handleError(SubscriptionError.blockchain_connection_failed, err)));
         });
@@ -172,10 +186,15 @@ export class SubscriptionModule extends ApiModule {
                                 {}
                             );
                             const transaction = new TransactionBuilder();
-                            transaction.addOperation(accUpdateOp);
-                            transaction.broadcast(privateKey)
-                                .then(res => resolve(true))
-                                .catch(err => reject(this.handleError(SubscriptionError.transaction_broadcast_failed, err)));
+                            const added = transaction.addOperation(accUpdateOp);
+                            if (added === '') {
+                                transaction.broadcast(privateKey)
+                                    .then(res => resolve(true))
+                                    .catch(err => reject(this.handleError(SubscriptionError.transaction_broadcast_failed, err)));
+                            } else {
+                                reject(this.handleError(SubscriptionError.syntactic_error, added));
+                                return;
+                            }
                         })
                         .catch(err => reject(this.handleError(SubscriptionError.asset_does_not_exist, err)));
                 })
