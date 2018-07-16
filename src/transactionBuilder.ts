@@ -1,5 +1,5 @@
 import {dcorejs_lib} from './helpers';
-import {KeyPrivate, KeyPublic, Utils} from './utils';
+import {KeyPrivate, Utils} from './utils';
 import {Operation} from './model/transaction';
 import {ProposalCreateParameters} from './model/proposal';
 
@@ -58,12 +58,11 @@ export class TransactionBuilder {
      */
     public broadcast(privateKey: string, sign: boolean = true): Promise<void> {
         const secret = Utils.privateKeyFromWif(privateKey);
-        const publicKey = Utils.getPublicKey(secret);
         return new Promise((resolve, reject) => {
             this.setTransactionFees()
                 .then(() => {
                     if (sign) {
-                        this.signTransaction(secret, publicKey);
+                        this.signTransaction(secret);
                     }
                     this._transaction.broadcast()
                         .then(() => {
@@ -100,10 +99,10 @@ export class TransactionBuilder {
      * Sign transaction with given private/public key pair.
      *
      * @param {KeyPrivate} privateKey
-     * @param {KeyPublic} publicKey
      */
-    public signTransaction(privateKey: KeyPrivate, publicKey: KeyPublic): void {
-        this._transaction.add_signer(privateKey.key, publicKey.key);
+    public signTransaction(privateKey: KeyPrivate): void {
+        const publicKey = KeyPrivate.fromWif(privateKey.stringKey).getPublicKey().key;
+        this._transaction.add_signer(privateKey.key, publicKey);
     }
 
     /**
