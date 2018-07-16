@@ -71,7 +71,7 @@ dcorejs.initialize(config, dcorejs_lib);
     <script type="text/javascript">
         var dcorejs_lib = window['dcorejs-lib'];
         var chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
-        var dcoreNetworkAddresses = ['wss://server.decentgo.com:8090'];
+        var dcoreNetworkAddresses = ['wss://stagesocket.decentgo.com:8090'];
         
         dcorejs.initialize({chainId: chainId, dcoreNetworkWSPaths: dcoreNetworkAddresses}, dcorejs_lib);
     </script>
@@ -82,7 +82,7 @@ you are about to work on.
 
 ## Usage
 
-Once dcore lib is initialized, you can access methods using `dcorejs` with any of submodule - `account()`, `content()` or `explorer()`
+Once dcore lib is initialized, you can access methods using `dcorejs` with any of submodule - `account()`, `asset()`, `content()`, `explorer()`, `messaging()`, `mining()`, `proposal()`, `seeding()` or `subscription()`
 
 ## Search content
 
@@ -199,26 +199,35 @@ subscribePendingTransaction(callback: ChainSubscriptionCallback)
 ### Content
 
 ```typescript
-ssearchContent(searchParams?: SearchParams, convertAsset: boolean = false): Promise<Content[]>
+searchContent(searchParams?: SearchParams, convertAsset: boolean = false): Promise<Content[]>
 getContent(id: string, convertAsset: boolean = false): Promise<Content>
 getContentURI(URI: string, convertAsset: boolean = false): Promise<Content | null>
-removeContent(contentId: string,
+removeContent(contentId: string, authorId: string, privateKey: string): Promise<void>
 restoreContentKeys(contentId: string, accountId: string, ...elGamalKeys: KeyPair[]): Promise<string>
 generateContentKeys(seeders: string[]): Promise<ContentKeys>
-addContent(content: SubmitObject, privateKey: string): Promise<void>
-getOpenBuyings(convertAsset: boolean = false): Promise<BuyingContent[]>
-getOpenBuyingsByURI(URI: string, convertAsset: boolean = false): Promise<BuyingContent[]>
-getOpenBuyingsByConsumer(accountId: string, convertAsset: boolean = false): Promise<BuyingContent[]>
-getBuyingsByConsumerURI(accountId: string, URI: string, convertAsset: boolean = false): Promise<BuyingContent[] | null>
+addContent(content: SubmitObject, privateKey: string, broadcast: boolean = true): Promise<Operation>
+getOpenBuying(convertAsset: boolean = false): Promise<BuyingContent[]>
+getOpenBuyingByURI(URI: string, convertAsset: boolean = false): Promise<BuyingContent[]>
+getOpenBuyingByConsumer(accountId: string, convertAsset: boolean = false): Promise<BuyingContent[]>
+getBuyingByConsumerURI(accountId: string, URI: string, convertAsset: boolean = false): Promise<BuyingContent[] | null>
 getBuyingHistoryObjectsByConsumer(accountId: string, convertAsset: boolean = false): Promise<BuyingContent[]>
 buyContent(contentId: string,
+            buyerId: string,
+            elGammalPub: string,
+            privateKey: string,
+            broadcast: boolean = true): Promise<Operation>
 getSeeders(resultSize: number = 100): Promise<Seeder[]>
 getPurchasedContent(accountId: string,
-generateEncryptionKey(): string 
+                    order: SearchParamsOrder = SearchParamsOrder.createdDesc,
+                    startObjectId: string = '0.0.0',
+                    term: string = '',
+                    resultSize: number = 100): Promise<Content[]>
+generateEncryptionKey(): string
 getRating(contentId: string, forUser: string, ratingStartId: string, count: number = 100): Promise<Array<Rating>>
 searchFeedback(accountId: string, contentURI: string, ratingStartId: string, count: number = 100): Promise<Array<Rating>>
 getAuthorCoAuthors(URI: string): Promise<[string, string[]] | null>
-leaveCommentAndRating(contentURI: string, consumer: string, comment: string, rating: number, consumerPKey: string): Promise<any>
+leaveCommentAndRating(contentURI: string, consumer: string, comment: string, rating: number, consumerPKey: string): Promise<boolean>
+generateEncryptionKey(): string
 ```
 
 ### Account
@@ -230,14 +239,15 @@ searchAccountHistory(accountId: string,
                                 privateKeys: string[],
                                 order: SearchAccountHistoryOrder = SearchAccountHistoryOrder.timeDesc,
                                 startObjectId: string = '0.0.0',
-                                resultLimit: number = 100,
-                                convertAssets: boolean = false): Promise<TransactionRecord[]>
+                                resultLimit: number = 100): Promise<TransactionRecord[]>
 transfer(amount: number,
-         fromAccount: string,
-         toAccount: string,
-         memo: string,
-         privateKey: string): Promise<void>
-getBalance(account: string): Promise<number>
+        assetId: string,
+        fromAccount: string,
+        toAccount: string,
+        memo: string,
+        privateKey: string,
+        broadcast: boolean = true): Promise<Operation>
+getBalance(account: string, assetId: string = '1.3.0', convertAsset: boolean = false): Promise<number>
 isTransactionConfirmed(accountId: string, transactionId: string): Promise<boolean>
 getAccountHistory(accountId: string, historyOptions?: HistoryOptions): Promise<HistoryRecord[]>
 searchAccounts(searchTerm: string, order: AccountOrder, id: string, limit: number = 100): Promise<Account>
@@ -247,25 +257,27 @@ registerAccount(name: string,
                            activeKey: string,
                            memoKey: string,
                            registrar: string,
-                           regisrarPrivateKey: string): Promise<boolean>
+                           registrarPrivateKey: string): Promise<Operation>
 createAccountWithBrainkey(brainkey: string,
                                      accountName: string,
                                      registrar: string,
-                                     registrarPrivateKey: string): Promise<boolean>
+                                     registrarPrivateKey: string): Promise<Operation>
 exportWallet(accountId: string,
                  password: string,
-                 elGamalPrivateKey: string,
-                 elGamalPublicKey: string,
-                 ...privateKeys: string[]): Promise<any>
-listAccounts(loweBound: string = '', limit: number = 100): Promise<AccountNameIdPair[]>
-listAccountBalances(id: string): Promise<Asset[]>
+                 privateKeys: string[],
+                 additionalElGamalPrivateKeys: string[] = []): Promise<any>
+listAccounts(lowerBound: string = '', limit: number = 100): Promise<AccountNameIdPair[]>
+listAccountBalances(id: string, convertAssets: boolean = false): Promise<Asset[]>
 searchMinerVoting(accountName: string,
                              keyword: string,
                              myVotes: boolean,
                              sort: MinerOrder,
                              fromMinerId: string,
                              limit: number = 1000): Promise<MinerInfo[]>
-updateAccount(accountId: string, params: UpdateAccountParameters, privateKey: string): Promise<Boolean>
+updateAccount(accountId: string,
+                params: UpdateAccountParameters,
+                privateKey: string,
+                broadcast: boolean = true): Promise<Boolean>
 ```
 
 ### Asset
@@ -278,24 +290,24 @@ createUserIssuedAsset(issuer: string,
                                  maxSupply: number,
                                  baseExchangeAmount: number,
                                  quoteExchangeAmount: number,
-                                 isExchangable: boolean,
+                                 isExchangeable: boolean,
                                  isSupplyFixed: boolean,
                                  issuerPrivateKey: string): Promise<boolean>
-issueAsset(assetSymbol: string, amount: number, issueToAccount: string, memo: string, issuerPKey: string): Promise<any>
-updateUserIssuedAsset(symbol: string, newInfo: UserIssuedAssetInfo, issuerPKey: string): Promise<any>
+issueAsset(assetSymbol: string, amount: number, issueToAccount: string, memo: string, issuerPKey: string): Promise<boolean>
+updateUserIssuedAsset(symbol: string, newInfo: UserIssuedAssetInfo, issuerPKey: string): Promise<boolean>
 fundAssetPools(fromAccountId: string,
                           uiaAmount: number,
                           uiaSymbol: string,
                           dctAmount: number,
                           dctSymbol: string,
-                          privateKey: string): Promise<any>
-assetReserve(payer: string, symbol: string, amountToReserve: number, privateKey: string): Promise<any>
+                          privateKey: string): Promise<boolean>
+assetReserve(payer: string, symbol: string, amountToReserve: number, privateKey: string): Promise<boolean>
 assetClaimFees(issuer: string,
                           uiaAmount: number,
                           uiaSymbol: string,
                           dctAmount: number,
                           dctSymbol: string,
-                          privateKey: string): Promise<any>
+                          privateKey: string): Promise<boolean>
 getAsset(assetId: string, formatAsset: boolean = false): Promise<DCoreAssetObject>
 getAssets(assetIds: string[], formatAssets: boolean = false): Promise<DCoreAssetObject[]>
 priceToDCT(symbol: string, amount: number): Promise<Asset>
@@ -303,16 +315,29 @@ publishAssetFeed(publishingAccount: string,
                             symbol: string,
                             exchangeBaseAmount: number,
                             exchangeQuoteAmount: number,
-                            privateKey: string): Promise<any>
+                            privateKey: string): Promise<boolean>
 getFeedsByMiner(minerAccountId: string, limit: number = 100): Promise<any>
-getRealSupply(): Promise<any>
+getRealSupply(): Promise<RealSupply>
 getMonitoredAssetData(assetId: string): Promise<MonitoredAssetOptions | null>
 formatAssets(assets: DCoreAssetObject[]): DCoreAssetObject[]
+createMonitoredAsset(issuer: string,
+                    symbol: string,
+                    precision: number,
+                    description: string,
+                    feedLifetimeSec: number,
+                    minimumFeeds: number,
+                    issuerPrivateKey: string): Promise<boolean>
+updateMonitoredAsset(symbol: string,
+                    description: string,
+                    feedLifetimeSec: number,
+                    minimumFeeds: number,
+                    privateKey: string): Promise<boolean>
 ```
 
 ### Explorer 
 
 ```typescript
+getObject(objectId: string): Promise<any>
 getAccount(id: number): Promise<Account>
 getAsset(id: number): Promise<Block.Asset> 
 getWitness(id: number): Promise<Block.Witness> 
@@ -339,26 +364,72 @@ getBlocks(id: number, count: number): Promise<Array<Block.Block>>
 getAccountCount(): Promise<number> 
 getAccounts(...ids: string[]): Promise<Array<Account>> 
 getTransaction(blockNo: number, txNum: number): Promise<Block.Transaction> 
-listMiners(): Promise<Array<Miner>>
+listMiners(fromId: string = '0.0.0', limit: number = 100): Promise<Array<Miner>>
 getMiners(ids: number[]): Promise<Array<Miner>>
 getMiner(id: number): Promise<Miner|null>
+getMinerCount(): Promise<number>
+getHeadBlockTime(): Promise<string>
 ```
 
 ### Mining
 
 ```typescript
-setDesiredMinerCount(accountId: string, desiredNumOfMiners: number, privateKey: string): Promise<any>
-createMiner(minerAccountId: string, URL: string, signingPublicKey: string, privateKey: string): Promise<any>
-unvoteMiner(miner: string, account: string, privateKeyWif: string): Promise<any>
-unvoteMiners(miners: string[], account: string, privateKeyWif: string): Promise<any>
+setDesiredMinerCount(accountId: string, desiredNumOfMiners: number, privateKey: string): Promise<boolean>
+createMiner(minerAccountId: string, URL: string, signingPublicKey: string, privateKey: string): Promise<boolean>
+unvoteMiner(miner: string, account: string, privateKeyWif: string): Promise<boolean>
+unvoteMiners(miners: string[], account: string, privateKeyWif: string): Promise<boolean>
 voteForMiner(miner: string, account: string, privateKeyWif: string): Promise<any>
 voteForMiners(miners: string[], account: string, privateKeyWif: string): Promise<any>
-voteUnvoteMiners(voteMiners: string[], unvoteMiners: string[], accountId: string, privateKey: string): Promise<any>
+voteUnvoteMiners(voteMiners: string[], unvoteMiners: string[], accountId: string, privateKey: string): Promise<boolean>
 getVestingBalances(accountId: string): Promise<VestingBalance[]>
-updateMiner(minerId: string, minerAccountId: string, updateData: MinerUpdateData, privateKey: string): Promise<any>
+updateMiner(minerId: string, minerAccountId: string, updateData: MinerUpdateData, privateKey: string): Promise<boolean>
+withdrawVesting(vestinBalanceId: string,
+                ownerId: string,
+                amount: number,
+                assetId: string,
+                privateKey: string): Promise<boolean>
+setVotingProxy(accountId: string, votingAccountId: string = '', privateKey: string): Promise<boolean>
+listMiners(fromId: string, limit: number = 100): Promise<MinerNameIdPair[]>
+getMiner(minerId: string): Promise<Miner>
+```
+
+### Proposal
+
+```typescript
+getProposedTransactions(accountId: string): Promise<ProposalObject[]>
+proposeTransfer(proposerAccountId: string,
+                fromAccountId: string,
+                toAccountId: string,
+                amount: number,
+                assetId: string,
+                memoKey: string,
+                expiration: string,
+                privateKey: string): Promise<boolean>
+proposeParameterChange(proposerAccountId: string,
+                        proposalParameters: ProposalParameters,
+                        expiration: string,
+                        privateKey: string): Promise<boolean>
+proposeFeeChange(proposerAccountId: string,
+                feesParameters: FeesParameters,
+                expiration: string,
+                privateKey: string): Promise<boolean>
+approveProposal(payingAccountId: string,
+                proposalId: string,
+                approvalsDelta: DeltaParameters,
+                privateKey: string): Promise<boolean>
+```
+
+### Seeding
+
+```typescript
+listSeedersByPrice(limit: number = 100): Promise<Seeder[]>
+listSeedersByUpload(limit: number = 100): Promise<Seeder[]>
+listSeedersByRegion(region: string): Promise<Seeder[]>
+listSeedersByRating(limit: number = 100): Promise<Seeder[]>
 ```
 
 ### Subscription
+
 ```typescript 
 listActiveSubscriptionByConsumer(consumerId: string, count: number = 100): Promise<SubscriptionObject[]>
 listSubscriptionsByConsumer(consumerId: string, count: number = 100): Promise<SubscriptionObject[]>
@@ -374,19 +445,21 @@ setSubscription(accountId: string, options: SubscriptionOptions, privateKey: str
 ```typescript
 getSentMessages(sender: string, decryptPrivateKey: string = '', count: number = 100): Promise<DCoreMessagePayload[]>
 getMessages(receiver: string, decryptPrivateKey: string = '', count: number = 100): Promise<any> 
-getMessageObjects(sender?: string, receiver?: string, decryptPrivateKey: string = '', count: number = 100): Promise<any> 
+getMessageObjects(sender?: string, receiver?: string, decryptPrivateKey: string = '', count: number = 100): Promise<any>
+decryptMessages(messages: DCoreMessagePayload[], decryptPrivateKey: string): DCoreMessagePayload[]
 sendMessage(sender: string, receiverId: string, message: string, privateKey: string): Promise<boolean> 
 ```
 
 ### Utils
 
 ```typescript
-formatToReadiblePrice(dctAmount: number): string 
+formatToReadiblePrice(dctAmount: number): string
+formatAmountForDCTAsset(amount: number): number
 formatAmountForAsset(amount: number, asset: DCoreAssetObject): number 
 formatAmountToAsset(amount: number, asset: DCoreAssetObject): number 
 ripemdHash(fromBuffer: Buffer): string 
 generateKeys(fromBrainKey: string): [KeyPrivate, KeyPublic] 
-getPublicKey(privkey: KeyPrivate): KeyPublic 
+getPublicKey(privateKey: KeyPrivate): KeyPublic
 privateKeyFromWif(pkWif: string): KeyPrivate 
 publicKeyFromString(pubKeyString: string): KeyPublic 
 suggestBrainKey(): string 
@@ -407,10 +480,21 @@ encryptWithChecksum(message: string, privateKey: KeyPrivate, publicKey: KeyPubli
 decryptWithChecksum(message: string, privateKey: KeyPrivate, publicKey: KeyPublic, nonce: string = ''): Buffer
 ripemdHash(fromBuffer: Buffer): string 
 md5(message: string): string 
-sha512(message: any): string 
+sha512(message: string): string
 sha256(message: string): string 
 encrypt(message: string, password: string): string 
 decrypt(message: string, password: string): string | null 
 encryptToHexString(message: string | Buffer, password: string): string 
-decryptHexString(message: string, password: string): string 
+decryptHexString(message: string, password: string): string
+```
+
+### Transaction builder
+
+```typescript
+addOperation(operation: Operation): string
+propose(proposalParameters: ProposalCreateParameters): void
+broadcast(privateKey: string, sign: boolean = true): Promise<void>
+signTransaction(privateKey: KeyPrivate): void
+replaceOperation(operationIndex: number, newOperation: Operation): boolean
+previewTransaction(): any
 ```

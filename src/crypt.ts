@@ -65,7 +65,7 @@ export class CryptoUtils {
         return cryptoJs.MD5(message).toString();
     }
 
-    public static sha512(message: any): string {
+    public static sha512(message: string): string {
         return cryptoJs.SHA512(message).toString(cryptoJs.enc.Hex);
     }
 
