@@ -35,10 +35,14 @@ export class TransactionBuilder {
      * @param {Operation} operation
      * @return {boolean}
      */
-    public addOperation(operation: Operation): boolean {
-        this._transaction.add_type_operation(operation.name, operation.operation);
-        this._operations.push(operation);
-        return true;
+    public addOperation(operation: Operation): string {
+        try {
+            this._transaction.add_type_operation(operation.name, operation.operation);
+            this._operations.push(operation);
+            return '';
+        } catch (exception) {
+            return exception;
+        }
     }
 
     public propose(proposalParameters: ProposalCreateParameters): void {
@@ -111,9 +115,14 @@ export class TransactionBuilder {
      */
     public replaceOperation(operationIndex: number, newOperation: Operation): boolean {
         if (operationIndex >= 0 && operationIndex < this._operations.length) {
-            this._transaction.add_type_operation(newOperation.name, newOperation.operation);
-            this._operations[operationIndex] = newOperation;
-            return true;
+            try {
+                this._transaction.add_type_operation(newOperation.name, newOperation.operation);
+                this._operations[operationIndex] = newOperation;
+                return true;
+            } catch (exception) {
+                console.log(exception);
+                return false;
+            }
         }
         return false;
     }

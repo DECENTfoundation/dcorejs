@@ -264,19 +264,23 @@ export class AccountModule extends ApiModule {
                         Asset.create(amount, assetObject),
                         memo_object
                     );
-                    transaction.addOperation(transferOperation);
-                    if (broadcast) {
-                        transaction.broadcast(privateKey)
-                            .then(() => {
-                                resolve(transaction.operations[0]);
-                            })
-                            .catch(err => {
-                                reject(
-                                    this.handleError(AccountError.transaction_broadcast_failed, err)
-                                );
-                            });
+                    const added = transaction.addOperation(transferOperation);
+                    if (added === '') {
+                        if (broadcast) {
+                            transaction.broadcast(privateKey)
+                                .then(() => {
+                                    resolve(transaction.operations[0]);
+                                })
+                                .catch(err => {
+                                    reject(this.handleError(AccountError.transaction_broadcast_failed, err));
+                                    return;
+                                });
+                        } else {
+                            resolve(transaction.operations[0]);
+                        }
                     } else {
-                        resolve(transaction.operations[0]);
+                        reject(this.handleError(AccountError.syntactic_error, added));
+                        return;
                     }
                 })
                 .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
@@ -478,15 +482,18 @@ export class AccountModule extends ApiModule {
                             subscription_period: 0,
                         }
                     });
-
                     const transaction = new TransactionBuilder();
-                    transaction.addOperation(operation);
-                    if (broadcast) {
-                        transaction.broadcast(regisrarPrivateKey)
-                            .then(() => resolve(transaction.operations[0]))
-                            .catch(err => reject(err));
+                    const added = transaction.addOperation(operation);
+                    if (added === '') {
+                        if (broadcast) {
+                            transaction.broadcast(regisrarPrivateKey)
+                                .then(() => resolve(transaction.operations[0]))
+                                .catch(err => reject(err));
+                        } else {
+                            resolve(transaction.operations[0]);
+                        }
                     } else {
-                        resolve(transaction.operations[0]);
+                        reject(this.handleError(AccountError.syntactic_error, added));
                     }
                 })
                 .catch(err => console.log(err));
@@ -716,19 +723,23 @@ export class AccountModule extends ApiModule {
                     );
 
                     const transaction = new TransactionBuilder();
-                    transaction.addOperation(accountUpdateOperation);
-                    if (broadcast) {
-                        transaction.broadcast(privateKey)
-                            .then(() => {
-                                resolve(transaction.operations[0]);
-                            })
-                            .catch((error: any) => {
-                                reject(this.handleError(AccountError.transaction_broadcast_failed, error));
-                            });
+                    const added = transaction.addOperation(accountUpdateOperation);
+                    if (added === '') {
+                        if (broadcast) {
+                            transaction.broadcast(privateKey)
+                                .then(() => {
+                                    resolve(transaction.operations[0]);
+                                })
+                                .catch((error: any) => {
+                                    reject(this.handleError(AccountError.transaction_broadcast_failed, error));
+                                });
+                        } else {
+                            resolve(transaction.operations[0]);
+                        }
                     } else {
-                        resolve(transaction.operations[0]);
+                        reject(this.handleError(AccountError.syntactic_error, added));
+                        return;
                     }
-
                     })
                 .catch((error) => {
                     reject(this.handleError(AccountError.account_update_failed, error));

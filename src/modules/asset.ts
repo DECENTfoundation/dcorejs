@@ -78,19 +78,23 @@ export class AssetModule extends ApiModule {
         const operation = new Operations.AssetCreateOperation(
             issuer, symbol, precision, description, options
         );
-
-        const transaction = new TransactionBuilder();
-        transaction.addOperation(operation);
-
         return new Promise<boolean>((resolve, reject) => {
             this.apiConnector.connect()
                 .then(() => {
-                    transaction.broadcast(issuerPrivateKey)
-                        .then(() => resolve(true))
-                        .catch(err => reject(this.handleError(AssetError.transaction_broadcast_failed, err)));
+                    const transaction = new TransactionBuilder();
+                    const added = transaction.addOperation(operation);
+                    if (added === '') {
+                        transaction.broadcast(issuerPrivateKey)
+                            .then(() => resolve(true))
+                            .catch(err => reject(this.handleError(AssetError.transaction_broadcast_failed, err)));
+                    } else {
+                        reject(this.handleError(AssetError.syntactic_error, added));
+                        return;
+                    }
                 })
                 .catch(err => {
                     reject(this.handleError(AssetError.connection_failed, err));
+                    return;
                 });
 
         });
@@ -147,12 +151,16 @@ export class AssetModule extends ApiModule {
                                 memoObject
                             );
                             const transaction = new TransactionBuilder();
-                            transaction.addOperation(operation);
-                            transaction.broadcast(issuerPKey)
-                                .then(res => resolve(true))
-                                .catch(err => {
-                                    reject(this.handleError(AssetError.asset_issue_failure, err));
-                                });
+                            const added = transaction.addOperation(operation);
+                            if (added === '') {
+                                transaction.broadcast(issuerPKey)
+                                    .then(res => resolve(true))
+                                    .catch(err => {
+                                        reject(this.handleError(AssetError.asset_issue_failure, err));
+                                    });
+                            } else {
+                                reject(this.handleError(AssetError.syntactic_error, added));
+                            }
                         })
                         .catch(err => {
                             reject(this.handleError(AssetError.failed_to_fetch_account, err));
@@ -189,10 +197,15 @@ export class AssetModule extends ApiModule {
                         newInfo.newIssuer
                     );
                     const transaction = new TransactionBuilder();
-                    transaction.addOperation(operation);
-                    transaction.broadcast(issuerPKey)
-                        .then(res => resolve(true))
-                        .catch(err => reject(this.handleError(AssetError.transaction_broadcast_failed, err)));
+                    const added = transaction.addOperation(operation);
+                    if (added === '') {
+                        transaction.broadcast(issuerPKey)
+                            .then(res => resolve(true))
+                            .catch(err => reject(this.handleError(AssetError.transaction_broadcast_failed, err)));
+                    } else {
+                        reject(this.handleError(AssetError.syntactic_error, added));
+                        return;
+                    }
                 })
                 .catch(err => reject(this.handleError(AssetError.unable_to_list_assets, err)));
         });
@@ -227,10 +240,15 @@ export class AssetModule extends ApiModule {
                         }
                     );
                     const transaction = new TransactionBuilder();
-                    transaction.addOperation(operation);
-                    transaction.broadcast(privateKey)
-                        .then(() => resolve(true))
-                        .catch(err => reject(this.handleError(AssetError.transaction_broadcast_failed, err)));
+                    const added = transaction.addOperation(operation);
+                    if (added === '') {
+                        transaction.broadcast(privateKey)
+                            .then(() => resolve(true))
+                            .catch(err => reject(this.handleError(AssetError.transaction_broadcast_failed, err)));
+                    } else {
+                        reject(this.handleError(AssetError.syntactic_error, added));
+                        return;
+                    }
                 })
                 .catch(err => reject(this.handleError(AssetError.unable_to_list_assets, err)));
         });
@@ -259,10 +277,15 @@ export class AssetModule extends ApiModule {
                                 }
                             );
                             const transaction = new TransactionBuilder();
-                            transaction.addOperation(operation);
-                            transaction.broadcast(privateKey)
-                                .then(() => resolve(true))
-                                .catch(err => reject(this.handleError(AssetError.transaction_broadcast_failed, err)));
+                            const added = transaction.addOperation(operation);
+                            if (added === '') {
+                                transaction.broadcast(privateKey)
+                                    .then(() => resolve(true))
+                                    .catch(err => reject(this.handleError(AssetError.transaction_broadcast_failed, err)));
+                            } else {
+                                reject(this.handleError(AssetError.syntactic_error, added));
+                                return;
+                            }
                         })
                         .catch();
                     })
@@ -297,10 +320,14 @@ export class AssetModule extends ApiModule {
                     };
                     const operation = new Operations.AssetClaimFeesOperation(issuer, uiaAsset, dctAsset);
                     const transaction = new TransactionBuilder();
-                    transaction.addOperation(operation);
-                    transaction.broadcast(privateKey)
-                        .then(() => resolve(true))
-                        .catch(err => reject('failed_to_broadcast_transaction'));
+                    const added = transaction.addOperation(operation);
+                    if (added === '') {
+                        transaction.broadcast(privateKey)
+                            .then(() => resolve(true))
+                            .catch(err => reject('failed_to_broadcast_transaction'));
+                    } else {
+                        reject(this.handleError(AssetError.syntactic_error, added));
+                    }
                 })
                 .catch(err => {
                     reject('failed_load_assets');
@@ -382,10 +409,15 @@ export class AssetModule extends ApiModule {
                     };
                     const operation = new Operations.AssetPublishFeed(publishingAccount, asset.id, feed);
                     const transaction = new TransactionBuilder();
-                    transaction.addOperation(operation);
-                    transaction.broadcast(privateKey)
-                        .then(res => resolve(res))
-                        .catch(err => reject(this.handleError(AssetError.transaction_broadcast_failed, err)));
+                    const added = transaction.addOperation(operation);
+                    if (added === '') {
+                        transaction.broadcast(privateKey)
+                            .then(res => resolve(res))
+                            .catch(err => reject(this.handleError(AssetError.transaction_broadcast_failed, err)));
+                    } else {
+                        reject(this.handleError(AssetError.syntactic_error, added));
+                        return;
+                    }
                 })
                 .catch(err => {
                     reject(this.handleError(AssetError.unable_to_list_assets, err));
@@ -512,17 +544,22 @@ export class AssetModule extends ApiModule {
                         extensions: []
                     };
                     const transaction = new TransactionBuilder();
-                    transaction.addOperation(operation);
-                    transaction.propose(proposalCreateParameters2);
-                    transaction.propose(proposalCreateParameters1);
-                    transaction.broadcast(issuerPrivateKey)
-                        .then(result => {
-                            resolve(true);
-                        })
-                        .catch(error => {
-                            reject(this.handleError(AssetError.transaction_broadcast_failed, error));
-                            return;
-                        });
+                    const added = transaction.addOperation(operation);
+                    if (added === '') {
+                        transaction.propose(proposalCreateParameters2);
+                        transaction.propose(proposalCreateParameters1);
+                        transaction.broadcast(issuerPrivateKey)
+                            .then(result => {
+                                resolve(true);
+                            })
+                            .catch(error => {
+                                reject(this.handleError(AssetError.transaction_broadcast_failed, error));
+                                return;
+                            });
+                    } else {
+                        reject(this.handleError(AssetError.syntactic_error, added));
+                        return;
+                    }
                 })
                 .catch(error => {
                     reject(this.handleError(AssetError.database_operation_failed, error));
@@ -552,15 +589,20 @@ export class AssetModule extends ApiModule {
                     };
                     const operation = new Operations.UpdateMonitoredAssetOperation(parameters);
                     const transaction = new TransactionBuilder();
-                    transaction.addOperation(operation);
-                    transaction.broadcast(privateKey)
-                        .then(() => {
-                            resolve(true);
-                        })
-                        .catch(error => {
-                            reject(this.handleError(AssetError.transaction_broadcast_failed, error));
-                            return;
-                        });
+                    const added = transaction.addOperation(operation);
+                    if (added === '') {
+                        transaction.broadcast(privateKey)
+                            .then(() => {
+                                resolve(true);
+                            })
+                            .catch(error => {
+                                reject(this.handleError(AssetError.transaction_broadcast_failed, error));
+                                return;
+                            });
+                    } else {
+                        reject(this.handleError(AssetError.syntactic_error, added));
+                        return;
+                    }
                 })
                 .catch(error => {
                     reject(this.handleError(AssetError.database_operation_failed, error));
