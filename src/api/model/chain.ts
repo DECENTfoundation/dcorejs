@@ -89,4 +89,4 @@ export namespace ChainMethods {
     }
 }
 export type ChainSubscriptionCallback = (msg: any) => void;
-export type ChainSubscriptionBlockAppliedCallback = (msg: Array<string>) => void;
+export type ChainSubscriptionBlockAppliedCallback = (msg: string) => void;
