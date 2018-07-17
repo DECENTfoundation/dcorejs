@@ -25,7 +25,7 @@ let _subscription: SubscriptionModule;
 let _seeding: SeedingModule;
 let _proposal: ProposalModule;
 let _chain: ChainApi;
-let _transaction: TransactionBuilder;
+let _transactionBuilder: TransactionBuilder;
 let _messaging: MessagingModule;
 let _connector: ApiConnector;
 
@@ -71,7 +71,7 @@ export function initialize(config: DcoreConfig,
     _seeding = new SeedingModule(database);
     _mining = new MiningModule(database, _connector, _chain);
     _proposal = new ProposalModule(database, _chain, _connector);
-    _transaction = new TransactionBuilder();
+    _transactionBuilder = new TransactionBuilder();
     _messaging = new MessagingModule(database, messagingApi);
 }
 
@@ -132,9 +132,9 @@ export function messaging(): MessagingModule {
     return _messaging;
 }
 
-export function transaction(): TransactionBuilder {
-    _transaction = new TransactionBuilder();
-    return _transaction;
+export function transactionBuilder(): TransactionBuilder {
+    _transactionBuilder = new TransactionBuilder();
+    return _transactionBuilder;
 }
 
 export function connection() {

@@ -498,3 +498,35 @@ signTransaction(privateKey: KeyPrivate): void
 replaceOperation(operationIndex: number, newOperation: Operation): boolean
 previewTransaction(): any
 ```
+
+### Custom transaction
+
+In case you want to create custom transaction, see following example. Replace 'X' values and private key for your own.
+
+```typescript
+const operation = new Operations.AssetFundPools(
+    '1.2.X',
+    {
+        amount: 10,
+        asset_id: '1.3.X'
+    },
+    {
+        amount: 1,
+        asset_id: '1.3.1'
+    }
+);
+const privateKey = 'yourPrivateKey';
+const transactionBuilder = dcorejs.transactionBuilder();
+const result = transactionBuilder.addOperation(operation);
+if (result === '') {
+    transactionBuilder.broadcast(privateKey)
+        .then(result => {
+            console.log(result);
+        })
+        .catch(error => {
+            console.log(error);
+        });
+} else {
+    console.error(result);
+}
+```
