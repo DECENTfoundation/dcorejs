@@ -22,7 +22,7 @@ const dcoreNetworkAddresses = ['wss://stagesocket.decentgo.com:8090'];
 dcore_js.initialize({
     chainId: chainId,
     dcoreNetworkWSPaths: dcoreNetworkAddresses
-}, dcorejs_lib);
+}, false, dcorejs_lib);
 
 function issueAsset(symbol, amount, toAccount, memoKey, privateKey) {
     output.innerHTML = 'Loading ...';

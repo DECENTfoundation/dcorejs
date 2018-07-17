@@ -16,7 +16,7 @@ const dcore_js = window['dcorejs'];
 dcore_js.initialize({
     chainId: chainId,
     dcoreNetworkWSPaths: dcoreNetworkAddresses
-}, dcorejs_lib);
+}, false, dcorejs_lib);
 
 const output = el('output');
 

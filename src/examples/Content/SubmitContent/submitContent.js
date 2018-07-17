@@ -37,7 +37,7 @@ const dcore_js = window['dcorejs'];
 dcore_js.initialize({
     chainId: chainId,
     dcoreNetworkWSPaths: dcoreNetworkAddresses
-}, dcorejs_lib);
+}, false, dcorejs_lib);
 
 let file = null;
 const seeders = [];

@@ -24,7 +24,7 @@ const dcoreNetworkAddresses = ['wss://stagesocket.decentgo.com:8090'];
 dcore_js.initialize({
     chainId: chainId,
     dcoreNetworkWSPaths: dcoreNetworkAddresses
-}, dcorejs_lib);
+}, false, dcorejs_lib);
 
 function createMonitoredAsset(issuer, symbol, precision, description, feedLifeTimeSec, minimumFeeds, privateKey) {
     output.innerHTML = 'Loading ...';
