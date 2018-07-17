@@ -215,9 +215,9 @@ export class AssetModule extends ApiModule {
                           uiaAmount: number,
                           uiaSymbol: string,
                           dctAmount: number,
-                          dctSymbol: string,
                           privateKey: string): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
+            const dctSymbol = ChainApi.asset_id;
             Promise.all([
                 this.listAssets(uiaSymbol, 1),
                 this.listAssets(dctSymbol, 1)
@@ -297,9 +297,9 @@ export class AssetModule extends ApiModule {
                           uiaAmount: number,
                           uiaSymbol: string,
                           dctAmount: number,
-                          dctSymbol: string,
                           privateKey: string): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
+            const dctSymbol = ChainApi.asset_id;
             Promise.all([
                 this.listAssets(uiaSymbol, 1),
                 this.listAssets(dctSymbol, 1)

@@ -299,14 +299,12 @@ fundAssetPools(fromAccountId: string,
                           uiaAmount: number,
                           uiaSymbol: string,
                           dctAmount: number,
-                          dctSymbol: string,
                           privateKey: string): Promise<boolean>
 assetReserve(payer: string, symbol: string, amountToReserve: number, privateKey: string): Promise<boolean>
 assetClaimFees(issuer: string,
                           uiaAmount: number,
                           uiaSymbol: string,
                           dctAmount: number,
-                          dctSymbol: string,
                           privateKey: string): Promise<boolean>
 getAsset(assetId: string, formatAsset: boolean = false): Promise<DCoreAssetObject>
 getAssets(assetIds: string[], formatAssets: boolean = false): Promise<DCoreAssetObject[]>
@@ -512,7 +510,7 @@ const operation = new Operations.AssetFundPools(
     },
     {
         amount: 1,
-        asset_id: '1.3.1'
+        asset_id: '1.3.0'
     }
 );
 const privateKey = 'yourPrivateKey';

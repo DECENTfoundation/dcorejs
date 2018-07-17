@@ -7,9 +7,8 @@ el('searchButton').onclick = () => {
     const uiaAmount = Number(el('uiaAmount').value);
     const uiaSymbol = el('uiaSymbol').value;
     const dctAmount = Number(el('dctAmount').value);
-    const dctSymbol = el('dctSymbol').value;
     const privateKey = el('privateKey').value;
-    fundAssetPools(payer, uiaAmount, uiaSymbol, dctAmount, dctSymbol, privateKey);
+    fundAssetPools(payer, uiaAmount, uiaSymbol, dctAmount, privateKey);
 };
 const output = el('output');
 
@@ -25,9 +24,9 @@ dcore_js.initialize({
     dcoreNetworkWSPaths: dcoreNetworkAddresses
 }, false, dcorejs_lib);
 
-function fundAssetPools(payer, uiaAmount, uiaSymbol, dctAmount, dctSymbol, privateKey) {
+function fundAssetPools(payer, uiaAmount, uiaSymbol, dctAmount, privateKey) {
     output.innerHTML = 'Loading ...';
-    dcore_js.asset().fundAssetPools(payer, uiaAmount, uiaSymbol, dctAmount, dctSymbol, privateKey)
+    dcore_js.asset().fundAssetPools(payer, uiaAmount, uiaSymbol, dctAmount, privateKey)
         .then(res => {
             output.innerHTML = 'Fund asset pools successful';
         })
