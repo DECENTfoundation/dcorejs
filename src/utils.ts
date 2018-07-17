@@ -192,11 +192,11 @@ export class Utils {
     /**
      * Calculate public key from given private key.
      *
-     * @param {KeyPrivate} privkey
+     * @param {KeyPrivate} privateKey
      * @return {KeyPublic}
      */
-    public static getPublicKey(privkey: KeyPrivate): KeyPublic {
-        return KeyPublic.fromPrivateKey(privkey);
+    public static getPublicKey(privateKey: KeyPrivate): KeyPublic {
+        return KeyPublic.fromPrivateKey(privateKey);
     }
 
     /**

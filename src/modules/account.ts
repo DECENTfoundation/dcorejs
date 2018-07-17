@@ -438,7 +438,7 @@ export class AccountModule extends ApiModule {
      * @param {string} activeKey            Public key to be used as active key.
      * @param {string} memoKey              Public key used to memo encryption.
      * @param {string} registrar            Registrar account id who pay account creation transaction
-     * @param {string} regisrarPrivateKey   Registrar private key for account register transaction to be signed with
+     * @param {string} registrarPrivateKey   Registrar private key for account register transaction to be signed with
      * @param {boolean} broadcast           If true, transaction is broadcasted, otherwise is not
      * @returns {Promise<boolean>}
      */
@@ -447,7 +447,7 @@ export class AccountModule extends ApiModule {
         activeKey: string,
         memoKey: string,
         registrar: string,
-        regisrarPrivateKey: string,
+        registrarPrivateKey: string,
         broadcast: boolean = true): Promise<Operation> {
         const ownerKeyAuths: [[string, number]] = [] as [[string, number]];
         ownerKeyAuths.push([ownerKey, 1]);
@@ -486,7 +486,7 @@ export class AccountModule extends ApiModule {
                     const added = transaction.addOperation(operation);
                     if (added === '') {
                         if (broadcast) {
-                            transaction.broadcast(regisrarPrivateKey)
+                            transaction.broadcast(registrarPrivateKey)
                                 .then(() => resolve(transaction.operations[0]))
                                 .catch(err => reject(err));
                         } else {
@@ -594,13 +594,13 @@ export class AccountModule extends ApiModule {
      * Fetch list of an accounts that begins from lower bound account id.
      * If empty string or '1.2.0' is entered, account are listed from the beginning.
      *
-     * @param {string} loweBound                Account id from which accounts are listed.
+     * @param {string} lowerBound                Account id from which accounts are listed.
      * @param {number} limit                    Number of returned accounts
      * @returns {Promise<AccountNameIdPair>}    Listed accounts.
      */
-    public listAccounts(loweBound: string = '', limit: number = 100): Promise<AccountNameIdPair[]> {
+    public listAccounts(lowerBound: string = '', limit: number = 100): Promise<AccountNameIdPair[]> {
         return new Promise<AccountNameIdPair[]>((resolve, reject) => {
-            const operation = new DatabaseOperations.LookupAccounts(loweBound, limit);
+            const operation = new DatabaseOperations.LookupAccounts(lowerBound, limit);
             this.dbApi.execute(operation)
                 .then(res => resolve(res))
                 .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));

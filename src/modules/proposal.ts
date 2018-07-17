@@ -39,8 +39,8 @@ export class ProposalModule extends ApiModule {
 
     public proposeTransfer(
         proposerAccountId: string, fromAccountId: string, toAccountId: string, amount: number, assetId: string, memoKey: string,
-        expiration: string, privateKey: string): Promise<any> {
-        return new Promise<any>(((resolve, reject) => {
+        expiration: string, privateKey: string): Promise<boolean> {
+        return new Promise<boolean>(((resolve, reject) => {
             const operations = [].concat(
                 new ChainMethods.GetAccount(fromAccountId),
                 new ChainMethods.GetAccount(toAccountId),

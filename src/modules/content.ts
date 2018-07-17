@@ -338,7 +338,7 @@ export class ContentModule extends ApiModule {
      * @param {boolean} convertAsset
      * @returns {Promise<BuyingContent[]>}
      */
-    public getOpenBuyings(convertAsset: boolean = false): Promise<BuyingContent[]> {
+    public getOpenBuying(convertAsset: boolean = false): Promise<BuyingContent[]> {
         return new Promise<BuyingContent[]>(((resolve, reject) => {
             const operation = new DatabaseOperations.GetOpenBuyings();
             this.dbApi.execute(operation)
@@ -365,7 +365,7 @@ export class ContentModule extends ApiModule {
      * @param {boolean} convertAsset
      * @returns {Promise<BuyingContent[]>}
      */
-    public getOpenBuyingsByURI(URI: string, convertAsset: boolean = false): Promise<BuyingContent[]> {
+    public getOpenBuyingByURI(URI: string, convertAsset: boolean = false): Promise<BuyingContent[]> {
         return new Promise<BuyingContent[]>(((resolve, reject) => {
             const operation = new DatabaseOperations.GetOpenBuyingsByURI(URI);
             this.dbApi.execute(operation)
@@ -392,7 +392,7 @@ export class ContentModule extends ApiModule {
      * @param {boolean} convertAsset
      * @returns {Promise<BuyingContent[]>}
      */
-    public getOpenBuyingsByConsumer(accountId: string, convertAsset: boolean = false): Promise<BuyingContent[]> {
+    public getOpenBuyingByConsumer(accountId: string, convertAsset: boolean = false): Promise<BuyingContent[]> {
         return new Promise<BuyingContent[]>(((resolve, reject) => {
             const operation = new DatabaseOperations.GetOpenBuyingsByConsumer(accountId);
             this.dbApi.execute(operation)
@@ -420,7 +420,7 @@ export class ContentModule extends ApiModule {
      * @param {boolean} convertAsset
      * @returns {Promise<BuyingContent[] | null>}
      */
-    public getBuyingsByConsumerURI(accountId: string, URI: string, convertAsset: boolean = false): Promise<BuyingContent[] | null> {
+    public getBuyingByConsumerURI(accountId: string, URI: string, convertAsset: boolean = false): Promise<BuyingContent[] | null> {
         return new Promise<BuyingContent[]>(((resolve, reject) => {
             const operation = new DatabaseOperations.GetBuyingByConsumerURI(accountId, URI);
             this.dbApi.execute(operation)
@@ -471,7 +471,9 @@ export class ContentModule extends ApiModule {
     private formatPrices(content: ContentExchangeObject[], assets: DCoreAssetObject[]): ContentExchangeObject[] {
         const result: ContentExchangeObject[] = content.map(obj => {
             const objCopy = Object.assign({}, obj);
-            const assetsToFormat = [objCopy.price.hasOwnProperty('map_price') ? (objCopy.price as Price).map_price[0][1] : (objCopy.price as Asset)];
+            const assetsToFormat = [objCopy.price.hasOwnProperty('map_price')
+                ? (objCopy.price as Price).map_price[0][1]
+                : (objCopy.price as Asset)];
             if (objCopy.paid_price_before_exchange) {
                 assetsToFormat.push(objCopy.paid_price_before_exchange);
             }
@@ -681,14 +683,14 @@ export class ContentModule extends ApiModule {
         });
     }
 
-    leaveCommentAndRating(contentURI: string, consumer: string, comment: string, rating: number, consumerPKey: string): Promise<any> {
-        return new Promise<any>((resolve, reject) => {
+    leaveCommentAndRating(contentURI: string, consumer: string, comment: string, rating: number, consumerPKey: string): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
             const operation = new Operations.LeaveRatingAndComment(contentURI, consumer, comment, rating);
             const transaction = new TransactionBuilder();
             const added = transaction.addOperation(operation);
             if (added === '') {
                 transaction.broadcast(consumerPKey)
-                    .then(res => resolve(res))
+                    .then(() => resolve(true))
                     .catch(err => reject(this.handleError(ContentError.transaction_broadcast_failed, err)));
             } else {
                 reject(this.handleError(ContentError.syntactic_error, added));

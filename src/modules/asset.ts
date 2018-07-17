@@ -53,7 +53,7 @@ export class AssetModule extends ApiModule {
                                  maxSupply: number,
                                  baseExchangeAmount: number,
                                  quoteExchangeAmount: number,
-                                 isExchangable: boolean,
+                                 isExchangeable: boolean,
                                  isSupplyFixed: boolean,
                                  issuerPrivateKey: string): Promise<boolean> {
         const options: AssetOptions = {
@@ -68,7 +68,7 @@ export class AssetModule extends ApiModule {
                     asset_id: '1.3.1'
                 }
             },
-            is_exchangeable: isExchangable,
+            is_exchangeable: isExchangeable,
             extensions: [[
                 1, {
                     'is_fixed_max_supply': isSupplyFixed
@@ -170,8 +170,8 @@ export class AssetModule extends ApiModule {
         });
     }
 
-    public updateUserIssuedAsset(symbol: string, newInfo: UserIssuedAssetInfo, issuerPKey: string): Promise<any> {
-        return new Promise<any>((resolve, reject) => {
+    public updateUserIssuedAsset(symbol: string, newInfo: UserIssuedAssetInfo, issuerPKey: string): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
             this.listAssets(symbol, 1)
                 .then((assets: AssetObject[]) => {
                     if (assets.length === 0 || !assets[0]) {
@@ -386,8 +386,8 @@ export class AssetModule extends ApiModule {
                             symbol: string,
                             exchangeBaseAmount: number,
                             exchangeQuoteAmount: number,
-                            privateKey: string): Promise<any> {
-        return new Promise<any>((resolve, reject) => {
+                            privateKey: string): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
             this.listAssets(symbol, 1)
                 .then((assets: AssetObject[]) => {
                     if (assets.length !== 1 || !assets[0]) {
@@ -412,7 +412,7 @@ export class AssetModule extends ApiModule {
                     const added = transaction.addOperation(operation);
                     if (added === '') {
                         transaction.broadcast(privateKey)
-                            .then(res => resolve(res))
+                            .then(() => resolve(true))
                             .catch(err => reject(this.handleError(AssetError.transaction_broadcast_failed, err)));
                     } else {
                         reject(this.handleError(AssetError.syntactic_error, added));
