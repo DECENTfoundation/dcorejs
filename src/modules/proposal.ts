@@ -101,27 +101,32 @@ export class ProposalModule extends ApiModule {
 
                 const getGlobalPropertiesOperation = new DatabaseOperations.GetGlobalProperties();
                 this.dbApi.execute(getGlobalPropertiesOperation)
-                    .then(result => {
+                    .then(globalProperties => {
                         const price = Asset.create(amount, assetObject);
                         const transferOperation = new Operations.TransferOperation(fromAccountId, toAccountId, price, memo);
                         const transaction = new TransactionBuilder();
-                        transaction.addOperation(transferOperation);
-                        const proposalCreateParameters: ProposalCreateParameters = {
-                            fee_paying_account: proposerAccountId,
-                            expiration_time: expiration,
-                            review_period_seconds: result.parameters.miner_proposal_review_period,
-                            extensions: []
-                        };
-                        transaction.propose(proposalCreateParameters);
-                        transaction.broadcast(privateKey)
-                            .then(() => {
-                                resolve(true);
-                            })
-                            .catch(error => {
-                                reject(this.handleError(ProposalError.transaction_broadcast_failed, error));
-                                return;
-                            });
-                    })
+                        const result = transaction.addOperation(transferOperation);
+                        if (result === '') {
+                            const proposalCreateParameters: ProposalCreateParameters = {
+                                fee_paying_account: proposerAccountId,
+                                expiration_time: expiration,
+                                review_period_seconds: globalProperties.parameters.miner_proposal_review_period,
+                                extensions: []
+                            };
+                            transaction.propose(proposalCreateParameters);
+                            transaction.broadcast(privateKey)
+                                .then(() => {
+                                    resolve(true);
+                                })
+                                .catch(error => {
+                                    reject(this.handleError(ProposalError.transaction_broadcast_failed, error));
+                                    return;
+                                });
+                        } else {
+                            reject(this.handleError(ProposalError.syntactic_error, result));
+                            return;
+                        }
+                        })
                     .catch(error => {
                         reject(this.handleError(AssetError.database_operation_failed, error));
                         return;
@@ -152,8 +157,8 @@ export class ProposalModule extends ApiModule {
         return new Promise<boolean>(((resolve, reject) => {
             const databaseOperation = new DatabaseOperations.GetGlobalProperties();
             this.dbApi.execute(databaseOperation)
-                .then(result => {
-                    const globalParameters = JSON.parse(JSON.stringify(result));
+                .then(globalParam => {
+                    const globalParameters = JSON.parse(JSON.stringify(globalParam));
                     const newParameters: Proposal = {
                         new_parameters: Object.assign({}, globalParameters.parameters),
                     };
@@ -211,25 +216,33 @@ export class ProposalModule extends ApiModule {
                     }
                     const operation = new Operations.MinerUpdateGlobalParameters(newParameters);
                     const transaction = new TransactionBuilder();
-                    transaction.addOperation(operation);
-                    const proposalCreateParameters: ProposalCreateParameters = {
-                        fee_paying_account: proposerAccountId,
-                        expiration_time: expiration,
-                        review_period_seconds: result.parameters.miner_proposal_review_period,
-                        extensions: [],
-                    };
-                    transaction.propose(proposalCreateParameters);
-                    transaction.broadcast(privateKey)
-                        .then(() => {
-                            resolve(true);
-                        })
-                        .catch(error => {
-                            reject(this.handleError(ProposalError.transaction_broadcast_failed, error));
-                            return;
-                        });
+
+                    const result = transaction.addOperation(operation);
+                    if (result === '') {
+                        transaction.addOperation(operation);
+                        const proposalCreateParameters: ProposalCreateParameters = {
+                            fee_paying_account: proposerAccountId,
+                            expiration_time: expiration,
+                            review_period_seconds: globalParam.parameters.miner_proposal_review_period,
+                            extensions: [],
+                        };
+                        transaction.propose(proposalCreateParameters);
+                        transaction.broadcast(privateKey)
+                            .then(() => {
+                                resolve(true);
+                            })
+                            .catch(error => {
+                                reject(this.handleError(ProposalError.transaction_broadcast_failed, error));
+                                return;
+                            });
+                    } else {
+                        reject(this.handleError(ProposalError.syntactic_error, result));
+                        return;
+                    }
                     })
                 .catch(error => {
                     reject(this.handleError(ProposalError.database_operation_failed, error));
+                    return;
                 });
         }));
     }
@@ -397,22 +410,27 @@ export class ProposalModule extends ApiModule {
                     }
                     const operation = new Operations.MinerUpdateGlobalParameters(newParameters);
                     const transaction = new TransactionBuilder();
-                    transaction.addOperation(operation);
-                    const proposalCreateParameters: ProposalCreateParameters = {
-                        fee_paying_account: proposerAccountId,
-                        expiration_time: expiration,
-                        review_period_seconds: currentParameters.parameters.miner_proposal_review_period,
-                        extensions: [],
-                    };
-                    transaction.propose(proposalCreateParameters);
-                    transaction.broadcast(privateKey)
-                        .then(() => {
-                            resolve(true);
-                        })
-                        .catch(error => {
-                            reject(this.handleError(ProposalError.transaction_broadcast_failed, error));
-                            return;
-                        });
+                    const result = transaction.addOperation(operation);
+                    if (result === '') {
+                        const proposalCreateParameters: ProposalCreateParameters = {
+                            fee_paying_account: proposerAccountId,
+                            expiration_time: expiration,
+                            review_period_seconds: currentParameters.parameters.miner_proposal_review_period,
+                            extensions: [],
+                        };
+                        transaction.propose(proposalCreateParameters);
+                        transaction.broadcast(privateKey)
+                            .then(() => {
+                                resolve(true);
+                            })
+                            .catch(error => {
+                                reject(this.handleError(ProposalError.transaction_broadcast_failed, error));
+                                return;
+                            });
+                    } else {
+                        reject(this.handleError(ProposalError.syntactic_error, result));
+                        return;
+                    }
                     })
                 .catch(error => {
                     reject(this.handleError(ProposalError.database_operation_failed));
@@ -448,17 +466,24 @@ export class ProposalModule extends ApiModule {
                         approvalsDelta.key_approvals_to_remove
                     );
                     const transaction = new TransactionBuilder();
-                    transaction.addOperation(operation);
-                    transaction.broadcast(privateKey)
-                        .then(() => {
-                            resolve(true);
-                        })
-                        .catch(error => {
-                            reject(this.handleError(ProposalError.transaction_broadcast_failed, error));
-                            return;
-                        });
+                    const result = transaction.addOperation(operation);
+                    if (result === '') {
+                        transaction.broadcast(privateKey)
+                            .then(() => {
+                                resolve(true);
+                            })
+                            .catch(error => {
+                                reject(this.handleError(ProposalError.transaction_broadcast_failed, error));
+                                return;
+                            });
+                    } else {
+                        reject(this.handleError(ProposalError.syntactic_error, result));
+                        return;
+                    }
                 })
-                .catch();
+                .catch(error => {
+                    reject(this.handleError(ProposalError.connection_failed, error));
+                });
         }));
     }
 

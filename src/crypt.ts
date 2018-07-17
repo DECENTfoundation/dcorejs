@@ -95,7 +95,7 @@ export class CryptoUtils {
      * @param message       Input message.
      * @returns {string}    Hashed input.
      */
-    public static sha512(message: any): string {
+    public static sha512(message: string): string {
         return cryptoJs.SHA512(message).toString(cryptoJs.enc.Hex);
     }
 

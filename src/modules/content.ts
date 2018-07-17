@@ -1,11 +1,11 @@
-import { Asset, DCoreAccount } from './../model/account';
+import { Asset, DCoreAccount } from '../model/account';
 import { Rating, Content, Seeder, BuyingContent, SubmitObject, ContentKeys, KeyPair, ContentExchangeObject, Price } from '../model/content';
 import { DatabaseApi } from '../api/database';
 import { ChainApi } from '../api/chain';
 import { TransactionBuilder } from '../transactionBuilder';
 import { isUndefined } from 'util';
 import { DatabaseOperations, SearchParams, SearchParamsOrder } from '../api/model/database';
-import { ContentObject, Operations } from '../model/transaction';
+import {ContentObject, Operation, Operations} from '../model/transaction';
 import { DCoreAssetObject } from '../model/asset';
 import { ApiModule } from './ApiModule';
 import { Utils } from '../utils';
@@ -25,6 +25,7 @@ export enum ContentError {
     account_fetch_failed = 'account_fetch_failed',
     parameters_error = 'parameters_error',
     connection_failed = 'connection_failed',
+    syntactic_error = 'syntactic_error',
 }
 
 /**
@@ -169,17 +170,21 @@ export class ContentModule extends ApiModule {
                     const URI = content.URI;
                     const cancelOperation = new Operations.ContentCancelOperation(authorId, URI);
                     const transaction = new TransactionBuilder();
-                    transaction.addOperation(cancelOperation);
-                    transaction
-                        .broadcast(privateKey)
-                        .then(() => {
-                            resolve();
-                        })
-                        .catch(err => {
-                            reject(
-                                this.handleError(ContentError.transaction_broadcast_failed, err)
-                            );
-                        });
+                    const added = transaction.addOperation(cancelOperation);
+                    if (added === '') {
+                        transaction.broadcast(privateKey)
+                            .then(() => {
+                                resolve();
+                            })
+                            .catch(err => {
+                                reject(
+                                    this.handleError(ContentError.transaction_broadcast_failed, err)
+                                );
+                            });
+                    } else {
+                        reject(this.handleError(ContentError.syntactic_error, added));
+                        return;
+                    }
                 })
                 .catch(err => {
                     reject(this.handleError(ContentError.fetch_content_failed, err));
@@ -258,10 +263,11 @@ export class ContentModule extends ApiModule {
      *
      * @param {SubmitObject} content    SubmitObject with information about submitted object.
      * @param {string} privateKey       Private for sign transaction in WIF(hex) (Wallet Import Format) format.
+     * @param {boolean} broadcast
      * @return {Promise<boolean>}       Value confirming successful transaction broadcasting.
      */
-    public addContent(content: SubmitObject, privateKey: string): Promise<boolean> {
-        return new Promise<boolean>((resolve, reject) => {
+    public addContent(content: SubmitObject, privateKey: string, broadcast: boolean = true): Promise<Operation> {
+        return new Promise<Operation>((resolve, reject) => {
             content.size = this.getFileSize(content.size);
             const listAssetOp = new DatabaseOperations.GetAssets([
                 content.assetId || ChainApi.asset_id,
@@ -310,17 +316,25 @@ export class ContentModule extends ApiModule {
                                     JSON.stringify(content.synopsis)
                                 );
                                 const transaction = new TransactionBuilder();
-                                transaction.addOperation(submitOperation);
-                                transaction
-                                    .broadcast(privateKey)
-                                    .then(() => {
-                                        resolve(true);
-                                    })
-                                    .catch(err => {
-                                        reject(
-                                            this.handleError(ContentError.transaction_broadcast_failed, err)
-                                        );
-                                    });
+                                const added = transaction.addOperation(submitOperation);
+                                if (added === '') {
+                                    if (broadcast) {
+                                        transaction.broadcast(privateKey)
+                                            .then(() => {
+                                                resolve(transaction.operations[0]);
+                                            })
+                                            .catch(err => {
+                                                reject(
+                                                    this.handleError(ContentError.transaction_broadcast_failed, err)
+                                                );
+                                            });
+                                    } else {
+                                        resolve(transaction.operations[0]);
+                                    }
+                                } else {
+                                    reject(this.handleError(ContentError.syntactic_error, added));
+                                    return;
+                                }
                             } catch (e) {
                                 reject(this.handleError(ContentError.account_fetch_failed, e));
                                 return;
@@ -341,7 +355,7 @@ export class ContentModule extends ApiModule {
      *                                          Default: false.
      * @returns {Promise<BuyingContent[]>}      BuyingContent list of opened buy requests.
      */
-    public getOpenBuyings(convertAsset: boolean = false): Promise<BuyingContent[]> {
+    public getOpenBuying(convertAsset: boolean = false): Promise<BuyingContent[]> {
         return new Promise<BuyingContent[]>(((resolve, reject) => {
             const operation = new DatabaseOperations.GetOpenBuyings();
             this.dbApi.execute(operation)
@@ -372,7 +386,7 @@ export class ContentModule extends ApiModule {
      *                                      Default: false.
      * @returns {Promise<BuyingContent[]>}  BuyingContent list of opened buy requests.
      */
-    public getOpenBuyingsByURI(URI: string, convertAsset: boolean = false): Promise<BuyingContent[]> {
+    public getOpenBuyingByURI(URI: string, convertAsset: boolean = false): Promise<BuyingContent[]> {
         return new Promise<BuyingContent[]>(((resolve, reject) => {
             const operation = new DatabaseOperations.GetOpenBuyingsByURI(URI);
             this.dbApi.execute(operation)
@@ -403,7 +417,7 @@ export class ContentModule extends ApiModule {
      *                                      Default: false.
      * @returns {Promise<BuyingContent[]>}  BuyingContent list of opened buy requests.
      */
-    public getOpenBuyingsByConsumer(accountId: string, convertAsset: boolean = false): Promise<BuyingContent[]> {
+    public getOpenBuyingByConsumer(accountId: string, convertAsset: boolean = false): Promise<BuyingContent[]> {
         return new Promise<BuyingContent[]>(((resolve, reject) => {
             const operation = new DatabaseOperations.GetOpenBuyingsByConsumer(accountId);
             this.dbApi.execute(operation)
@@ -435,7 +449,7 @@ export class ContentModule extends ApiModule {
      *                                              Default: false.
      * @returns {Promise<BuyingContent[] | null>}   List of bought content with URI.
      */
-    public getBuyingsByConsumerURI(accountId: string, URI: string, convertAsset: boolean = false): Promise<BuyingContent[] | null> {
+    public getBuyingByConsumerURI(accountId: string, URI: string, convertAsset: boolean = false): Promise<BuyingContent[] | null> {
         return new Promise<BuyingContent[]>(((resolve, reject) => {
             const operation = new DatabaseOperations.GetBuyingByConsumerURI(accountId, URI);
             this.dbApi.execute(operation)
@@ -496,12 +510,21 @@ export class ContentModule extends ApiModule {
      */
     private formatPrices(content: ContentExchangeObject[], assets: DCoreAssetObject[]): ContentExchangeObject[] {
         const result: ContentExchangeObject[] = content.map(obj => {
-            const priceAsset: Asset = obj.price.hasOwnProperty('map_price') ? (obj.price as Price).map_price[0][1] : (obj.price as Asset);
-            const asset = assets.find(a => a.id === priceAsset.asset_id);
-            const c = Object.assign({}, obj);
-            const newAsset: Asset = c.price.hasOwnProperty('map_price') ? (c.price as Price).map_price[0][1] : (c.price as Asset);
-            newAsset.amount = Utils.formatAmountForAsset(priceAsset.amount, asset);
-            return c;
+            const objCopy = Object.assign({}, obj);
+            const assetsToFormat = [objCopy.price.hasOwnProperty('map_price')
+                ? (objCopy.price as Price).map_price[0][1]
+                : (objCopy.price as Asset)];
+            if (objCopy.paid_price_before_exchange) {
+                assetsToFormat.push(objCopy.paid_price_before_exchange);
+            }
+            if (objCopy.paid_price_after_exchange) {
+                assetsToFormat.push(objCopy.paid_price_after_exchange);
+            }
+            assetsToFormat.forEach(priceAsset => {
+                const asset = assets.find(a => a.id === priceAsset.asset_id);
+                priceAsset.amount = Utils.formatAmountForAsset(priceAsset.amount, asset);
+            });
+            return objCopy;
         });
         return result;
     }
@@ -540,13 +563,15 @@ export class ContentModule extends ApiModule {
      * @param {string} buyerId          Account id of user buying content in format '1.2.X'. Example: '1.2.345'
      * @param {string} elGammalPub      ElGammal public key which will be used to identify users bought content
      * @param {string} privateKey       Private key to sign broadcasted transaction in WIF(hex) (Wallet Import Format) format.
+     * @param {boolean} broadcast
      * @return {Promise<boolean>}       Value confirming successful transaction broadcasting.
      */
     public buyContent(contentId: string,
-        buyerId: string,
-        elGammalPub: string,
-        privateKey: string): Promise<boolean> {
-        return new Promise<boolean>((resolve, reject) => {
+                      buyerId: string,
+                      elGammalPub: string,
+                      privateKey: string,
+                      broadcast: boolean = true): Promise<Operation> {
+        return new Promise<Operation>((resolve, reject) => {
             this.getContent(contentId)
                 .then((content: Content) => {
                     const buyOperation = new Operations.BuyContentOperation(
@@ -557,17 +582,23 @@ export class ContentModule extends ApiModule {
                         { s: elGammalPub }
                     );
                     const transaction = new TransactionBuilder();
-                    transaction.addOperation(buyOperation);
-                    transaction
-                        .broadcast(privateKey)
-                        .then(() => {
-                            resolve(true);
-                        })
-                        .catch((err: any) => {
-                            reject(
-                                this.handleError(ContentError.transaction_broadcast_failed, err)
-                            );
-                        });
+                    const added = transaction.addOperation(buyOperation);
+                    if (added === '') {
+                        if (broadcast) {
+                            transaction.broadcast(privateKey)
+                                .then(() => {
+                                    resolve(transaction.operations[0]);
+                                })
+                                .catch((err: any) => {
+                                    reject(this.handleError(ContentError.transaction_broadcast_failed, err));
+                                });
+                        } else {
+                            resolve(transaction.operations[0]);
+                        }
+                    } else {
+                        reject(this.handleError(ContentError.syntactic_error, added));
+                        return;
+                    }
                 })
                 .catch(err => {
                     reject(this.handleError(ContentError.fetch_content_failed, err));
@@ -726,18 +757,17 @@ export class ContentModule extends ApiModule {
      */
     leaveCommentAndRating(contentURI: string, consumer: string, comment: string, rating: number, consumerPKey: string): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
-            this.apiConnector.connect()
-                .then(res => {
-                    const operation = new Operations.LeaveRatingAndComment(contentURI, consumer, comment, rating);
-                    const transaction = new TransactionBuilder();
-                    transaction.addOperation(operation);
-                    transaction.broadcast(consumerPKey)
-                        .then(res => resolve(true))
-                        .catch(err => {
-                            reject(this.handleError(ContentError.transaction_broadcast_failed, err));
-                        });
-                })
-                .catch(err => reject(this.handleError(ContentError.connection_failed, err)));
+            const operation = new Operations.LeaveRatingAndComment(contentURI, consumer, comment, rating);
+            const transaction = new TransactionBuilder();
+            const added = transaction.addOperation(operation);
+            if (added === '') {
+                transaction.broadcast(consumerPKey)
+                    .then(() => resolve(true))
+                    .catch(err => reject(this.handleError(ContentError.transaction_broadcast_failed, err)));
+            } else {
+                reject(this.handleError(ContentError.syntactic_error, added));
+                return;
+            }
         });
     }
 }

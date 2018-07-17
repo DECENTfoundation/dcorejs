@@ -1,9 +1,9 @@
 import {dcorejs_lib} from './helpers';
 import {CryptoUtils} from './crypt';
 import {ChainApi} from './api/chain';
-import dictionary from './resources/dictionary';
+import {dictionary} from './resources/dictionary';
 import * as BigInteger from 'big-integer';
-import { sha512 } from 'js-sha512';
+import {sha512} from 'js-sha512';
 import {DCoreAssetObject} from './model/asset';
 
 export interface BrainKeyInfo {
@@ -228,8 +228,8 @@ export class Utils {
      * @param {KeyPrivate} privkey      Private key to get public key for.
      * @return {KeyPublic}              KeyPublic object.
      */
-    public static getPublicKey(privkey: KeyPrivate): KeyPublic {
-        return KeyPublic.fromPrivateKey(privkey);
+    public static getPublicKey(privateKey: KeyPrivate): KeyPublic {
+        return KeyPublic.fromPrivateKey(privateKey);
     }
 
     /**
@@ -259,7 +259,7 @@ export class Utils {
      * @returns {string}    Brain key string.
      */
     public static suggestBrainKey(): string {
-        return dcorejs_lib.key.suggest_brain_key(dictionary.en);
+        return dcorejs_lib.key.suggest_brain_key(dictionary.en.join(','));
     }
 
     /**

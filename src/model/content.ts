@@ -146,7 +146,7 @@ export interface SubmitObject {
     coAuthors: [string, number][];
     seeders: Seeder[];
     fileName: string;
-    date: Date;
+    date: string;
     price: number;
     size: number;
     URI: string;
@@ -169,6 +169,8 @@ export interface Synopsis extends SynopsisBase {
 
 export interface ContentExchangeObject {
     price: Price | Asset;
+    paid_price_before_exchange?: Asset;
+    paid_price_after_exchange?: Asset;
 }
 
 export interface Price {

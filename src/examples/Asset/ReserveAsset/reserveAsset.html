@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>dcorejs - Reserve asset example</title>
+</head>
+
+<body>
+    <h1>Reserve asset</h1>
+    <form action="javascript:void(0)">
+        <label for="payer">Enter payer account: </label><br/>
+        <input id="payer" type="text" title="payer" /><br /><br />
+        <label for="symbol">Enter symbol: </label><br/>
+        <input id="symbol" type="text" title="symbol" /><br /><br />
+        <label for="amount">Enter amount: </label><br/>
+        <input id="amount" type="number" title="amount" /><br /><br />
+        <label for="privateKey">Enter private key: </label><br/>
+        <input id="privateKey" type="text" title="privateKey" /><br /><br />
+        <button id="searchButton" type="submit" title="searchButton"> Search </button>
+    </form>
+    <pre id="output"></pre>
+    <script src="../../../../dist/dcorejs.umd.js" type="text/javascript"></script>
+    <script type="text/javascript" src="reserveAsset.js"></script>
+</body>
+
+</html>

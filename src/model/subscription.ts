@@ -14,12 +14,13 @@ export enum SubscriptionError {
     subscription_to_author_failed = 'subscription_to_author_failed',
     subscription_does_not_exist = 'subscription_does_not_exist',
     blockchain_connection_failed = 'blockchain_connection_failed',
-    missing_options_arguments = 'missing_options_arguments'
+    missing_options_arguments = 'missing_options_arguments',
+    syntactic_error = 'syntactic_error',
 }
 
 export interface SubscriptionOptions {
     allowSubscription: boolean;
-    subscriptionPeriod?: number;
-    amount?: number;
+    subscriptionPeriod: number;
+    amount: number;
     asset?: string;
 }

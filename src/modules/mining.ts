@@ -86,10 +86,15 @@ export class MiningModule extends ApiModule {
                         accountId, account.owner, account.active, options, {}
                     );
                     const transaction = new TransactionBuilder();
-                    transaction.addOperation(operation);
-                    transaction.broadcast(privateKey)
-                        .then(res => resolve(true))
-                        .catch(err => reject(this.handleError(MiningError.transaction_broadcast_failed, err)));
+                    const added = transaction.addOperation(operation);
+                    if (added === '') {
+                        transaction.broadcast(privateKey)
+                            .then(res => resolve(true))
+                            .catch(err => reject(this.handleError(MiningError.transaction_broadcast_failed, err)));
+                    } else {
+                        reject(this.handleError(MiningError.syntactic_error, added));
+                        return;
+                    }
                 })
                 .catch(err => reject(this.handleError(MiningError.database_fetch_failed, err)));
         });
@@ -111,10 +116,15 @@ export class MiningModule extends ApiModule {
                 .then(res => {
                     const operation = new Operations.MinerCreate(minerAccountId, URL, signingPublicKey);
                     const transaction = new TransactionBuilder();
-                    transaction.addOperation(operation);
-                    transaction.broadcast(privateKey)
-                        .then(res => resolve(true))
-                        .catch(err => reject(this.handleError(MiningError.transaction_broadcast_failed, err)));
+                    const added = transaction.addOperation(operation);
+                    if (added === '') {
+                        transaction.broadcast(privateKey)
+                            .then(res => resolve(true))
+                            .catch(err => reject(this.handleError(MiningError.transaction_broadcast_failed, err)));
+                    } else {
+                        reject(this.handleError(MiningError.syntactic_error, added));
+                        return;
+                    }
                 })
                 .catch(err => reject(this.handleError(MiningError.connection_failed, err)));
         }));
@@ -170,10 +180,15 @@ export class MiningModule extends ApiModule {
                                 {}
                             );
                             const transaction = new TransactionBuilder();
-                            transaction.addOperation(op);
-                            transaction.broadcast(privateKeyWif)
-                                .then(res => resolve(true))
-                                .catch(err => reject(err));
+                            const added = transaction.addOperation(op);
+                            if (added === '') {
+                                transaction.broadcast(privateKeyWif)
+                                    .then(res => resolve(true))
+                                    .catch(err => reject(err));
+                            } else {
+                                reject(this.handleError(MiningError.syntactic_error, added));
+                                return;
+                            }
                         })
                         .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
                 })
@@ -224,17 +239,22 @@ export class MiningModule extends ApiModule {
                                 {}
                             );
                             const transaction = new TransactionBuilder();
-                            transaction.addOperation(op);
-                            transaction.broadcast(privateKeyWif)
-                                .then(res => resolve(true))
-                                .catch((err: Error) => {
-                                    console.log(err);
-                                    let errorMessage = 'transaction_broadcast_failed';
-                                    if (err.stack.indexOf('duplicate') >= 0) {
-                                        errorMessage = 'duplicate_parameter_set';
-                                    }
-                                    reject(errorMessage);
-                                });
+                            const added = transaction.addOperation(op);
+                            if (added === '') {
+                                transaction.broadcast(privateKeyWif)
+                                    .then(res => resolve(true))
+                                    .catch((err: Error) => {
+                                        console.log(err);
+                                        let errorMessage = 'transaction_broadcast_failed';
+                                        if (err.stack.indexOf('duplicate') >= 0) {
+                                            errorMessage = 'duplicate_parameter_set';
+                                        }
+                                        reject(errorMessage);
+                                    });
+                            } else {
+                                reject(this.handleError(MiningError.syntactic_error, added));
+                                return;
+                            }
                         })
                         .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
                 })
@@ -290,10 +310,15 @@ export class MiningModule extends ApiModule {
                                 {}
                             );
                             const transaction = new TransactionBuilder();
-                            transaction.addOperation(accountUpdateOp);
-                            transaction.broadcast(privateKey)
-                                .then(res => resolve(true))
-                                .catch(err => reject(this.handleError(AccountError.transaction_broadcast_failed, err)));
+                            const added = transaction.addOperation(accountUpdateOp);
+                            if (added === '') {
+                                transaction.broadcast(privateKey)
+                                    .then(res => resolve(true))
+                                    .catch(err => reject(this.handleError(AccountError.transaction_broadcast_failed, err)));
+                            } else {
+                                reject(this.handleError(MiningError.syntactic_error, added));
+                                return;
+                            }
                         })
                         .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
                 })
@@ -344,10 +369,15 @@ export class MiningModule extends ApiModule {
                         updateData.newSigningKey || miner.signing_key
                     );
                     const transaction = new TransactionBuilder();
-                    transaction.addOperation(operation);
-                    transaction.broadcast(privateKey)
-                        .then(res => resolve(true))
-                        .catch(err => reject(this.handleError(MiningError.database_fetch_failed, err)));
+                    const added = transaction.addOperation(operation);
+                    if (added === '') {
+                        transaction.broadcast(privateKey)
+                            .then(res => resolve(true))
+                            .catch(err => reject(this.handleError(MiningError.database_fetch_failed, err)));
+                    } else {
+                        reject(this.handleError(MiningError.syntactic_error, added));
+                        return;
+                    }
                 })
                 .catch(err => reject(this.handleError(MiningError.miner_does_not_exist, err)));
 
@@ -382,10 +412,14 @@ export class MiningModule extends ApiModule {
                 }
             );
             const transaction = new TransactionBuilder();
-            transaction.addOperation(operation);
-            transaction.broadcast(privateKey)
-                .then(res => resolve(true))
-                .catch(err => reject(this.handleError(MiningError.transaction_broadcast_failed, err)));
+            const added = transaction.addOperation(operation);
+            if (added === '') {
+                transaction.broadcast(privateKey)
+                    .then(res => resolve(true))
+                    .catch(err => reject(this.handleError(MiningError.transaction_broadcast_failed, err)));
+            } else {
+                reject(this.handleError(MiningError.syntactic_error, added));
+            }
         });
     }
 
@@ -429,10 +463,15 @@ export class MiningModule extends ApiModule {
                         {}
                     );
                     const transaction = new TransactionBuilder();
-                    transaction.addOperation(accountUpdateOperation);
-                    transaction.broadcast(privateKey)
-                        .then(res => resolve(true))
-                        .catch(err => reject(this.handleError(MiningError.transaction_broadcast_failed, err)));
+                    const added = transaction.addOperation(accountUpdateOperation);
+                    if (added === '') {
+                        transaction.broadcast(privateKey)
+                            .then(res => resolve(true))
+                            .catch(err => reject(this.handleError(MiningError.transaction_broadcast_failed, err)));
+                    } else {
+                        reject(this.handleError(MiningError.syntactic_error, added));
+                        return;
+                    }
                 })
                 .catch(err => this.handleError(MiningError.account_fetch_failed, err));
         });

@@ -7,7 +7,6 @@ el('searchButton').onclick = () => {
     const subscriptionId = el('subscriptionId').value;
     const automaticRenewal = el('automaticRenewal').value;
     const privateKey = el('privateKey').value;
-    console.log(automaticRenewal);
     setAutomaticRenewalOfSubscription(accountId, subscriptionId, automaticRenewal, privateKey);
 };
 const output = el('output');
@@ -23,7 +22,7 @@ const dcoreNetworkAddresses = ['wss://stagesocket.decentgo.com:8090'];
 dcore_js.initialize({
     chainId: chainId,
     dcoreNetworkWSPaths: dcoreNetworkAddresses
-}, dcorejs_lib);
+}, false, dcorejs_lib);
 
 function fillValues() {
     const render = [];
@@ -35,8 +34,8 @@ function fillValues() {
 fillValues();
 
 function setAutomaticRenewalOfSubscription(accountId, subscriptionId, automaticRenewal, privateKey) {
-    output.innerHTML = 'Loading ...';
-    dcore_js.subscription().subscribeToAuthor(accountId, subscriptionId, Boolean(automaticRenewal), privateKey)
+    output.innerHTML = 'Loading....';
+    dcore_js.subscription().setAutomaticRenewalOfSubscription(accountId, subscriptionId, automaticRenewal === 'true', privateKey)
         .then(() => {
             output.innerHTML = 'Set automatic renewal of subscription is successful';
         })

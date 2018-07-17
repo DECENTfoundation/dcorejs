@@ -210,12 +210,8 @@ export class AccountModule extends ApiModule {
      * @param {string} privateKey       Private key used to encrypt memo and sign transaction
      * @return {Promise<Operation>}     Value confirming successful transaction broadcasting.
      */
-    public transfer(amount: number,
-        assetId: string,
-        fromAccount: string,
-        toAccount: string,
-        memo: string,
-        privateKey: string): Promise<Operation> {
+    public transfer(amount: number, assetId: string, fromAccount: string, toAccount: string, memo: string, privateKey: string,
+                    broadcast: boolean = true): Promise<Operation> {
         const pKey = Utils.privateKeyFromWif(privateKey);
 
         return new Promise((resolve, reject) => {
@@ -265,7 +261,6 @@ export class AccountModule extends ApiModule {
                             nonce
                         )
                     };
-
                     const assetObject = JSON.parse(JSON.stringify(asset));
                     const transaction = new TransactionBuilder();
                     const transferOperation = new Operations.TransferOperation(
@@ -274,16 +269,24 @@ export class AccountModule extends ApiModule {
                         Asset.create(amount, assetObject),
                         memo_object
                     );
-                    transaction.addOperation(transferOperation);
-                    transaction.broadcast(privateKey)
-                        .then(() => {
+                    const added = transaction.addOperation(transferOperation);
+                    if (added === '') {
+                        if (broadcast) {
+                            transaction.broadcast(privateKey)
+                                .then(() => {
+                                    resolve(transaction.operations[0]);
+                                })
+                                .catch(err => {
+                                    reject(this.handleError(AccountError.transaction_broadcast_failed, err));
+                                    return;
+                                });
+                        } else {
                             resolve(transaction.operations[0]);
-                        })
-                        .catch(err => {
-                            reject(
-                                this.handleError(AccountError.transaction_broadcast_failed, err)
-                            );
-                        });
+                        }
+                    } else {
+                        reject(this.handleError(AccountError.syntactic_error, added));
+                        return;
+                    }
                 })
                 .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
         });
@@ -362,7 +365,7 @@ export class AccountModule extends ApiModule {
             this.historyApi.execute(operation)
                 .then(res => {
                     if (res.length === 0) {
-                        reject(this.handleError(AccountError.transaction_history_fetch_failed, ''));
+                        reject(this.handleError(AccountError.transaction_history_fetch_failed, 'No transactions found'));
                     }
                     const dbOp = new DatabaseOperations.GetDynamicGlobalProperties();
                     this.dbApi.execute(dbOp)
@@ -460,7 +463,8 @@ export class AccountModule extends ApiModule {
         activeKey: string,
         memoKey: string,
         registrar: string,
-        regisrarPrivateKey: string): Promise<boolean> {
+        registrarPrivateKey: string,
+        broadcast: boolean = true): Promise<Operation> {
         const ownerKeyAuths: [[string, number]] = [] as [[string, number]];
         ownerKeyAuths.push([ownerKey, 1]);
         const activeKeyAuths: [[string, number]] = [] as [[string, number]];
@@ -475,7 +479,7 @@ export class AccountModule extends ApiModule {
             account_auths: [],
             key_auths: activeKeyAuths
         };
-        return new Promise<boolean>((resolve, reject) => {
+        return new Promise<Operation>((resolve, reject) => {
             this.apiConnector.connect()
                 .then(() => {
                     const operation = new Operations.RegisterAccount({
@@ -494,12 +498,19 @@ export class AccountModule extends ApiModule {
                             subscription_period: 0,
                         }
                     });
-
                     const transaction = new TransactionBuilder();
-                    transaction.addOperation(operation);
-                    transaction.broadcast(regisrarPrivateKey)
-                        .then(() => resolve(true))
-                        .catch(err => reject(err));
+                    const added = transaction.addOperation(operation);
+                    if (added === '') {
+                        if (broadcast) {
+                            transaction.broadcast(registrarPrivateKey)
+                                .then(() => resolve(transaction.operations[0]))
+                                .catch(err => reject(err));
+                        } else {
+                            resolve(transaction.operations[0]);
+                        }
+                    } else {
+                        reject(this.handleError(AccountError.syntactic_error, added));
+                    }
                 })
                 .catch(err => console.log(err));
         });
@@ -522,7 +533,7 @@ export class AccountModule extends ApiModule {
     public createAccountWithBrainkey(brainkey: string,
         accountName: string,
         registrar: string,
-        registrarPrivateKey: string): Promise<boolean> {
+        registrarPrivateKey: string): Promise<Operation> {
         const normalizedBrainkey = Utils.normalize(brainkey);
         const keyPair: [KeyPrivate, KeyPublic] = Utils.generateKeys(normalizedBrainkey);
         return this.registerAccount(
@@ -606,9 +617,9 @@ export class AccountModule extends ApiModule {
      * @param {number} limit                    Number of returned accounts. Default: 100(Max)
      * @returns {Promise<AccountNameIdPair>}    List of filtered AccountNameIdPairs.
      */
-    public listAccounts(loweBound: string = '', limit: number = 100): Promise<AccountNameIdPair[]> {
+    public listAccounts(lowerBound: string = '', limit: number = 100): Promise<AccountNameIdPair[]> {
         return new Promise<AccountNameIdPair[]>((resolve, reject) => {
-            const operation = new DatabaseOperations.LookupAccounts(loweBound, limit);
+            const operation = new DatabaseOperations.LookupAccounts(lowerBound, limit);
             this.dbApi.execute(operation)
                 .then(res => resolve(res))
                 .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
@@ -691,6 +702,7 @@ export class AccountModule extends ApiModule {
         });
     }
 
+
     /**
      * Update account properties.
      * https://docs.decent.ch/developer/structgraphene_1_1wallet_1_1wallet__data.html#a7e45dcef220b45e13f0918b1036cbf41
@@ -701,8 +713,9 @@ export class AccountModule extends ApiModule {
      *                                          In WIF(hex)(Wallet Import Format) format.
      * @returns {Promise<Boolean>}              Value confirming successful transaction broadcasting.
      */
-    public updateAccount(accountId: string, params: UpdateAccountParameters, privateKey: string): Promise<Boolean> {
-        return new Promise<Boolean>(((resolve, reject) => {
+    public updateAccount(accountId: string, params: UpdateAccountParameters, privateKey: string, broadcast: boolean = true)
+        : Promise<Operation> {
+        return new Promise<Operation>(((resolve, reject) => {
 
             this.getAccountById(accountId)
                 .then((account: Account) => {
@@ -743,15 +756,23 @@ export class AccountModule extends ApiModule {
                         {}
                     );
                     const transaction = new TransactionBuilder();
-                    transaction.addOperation(accountUpdateOperation);
-                    transaction.broadcast(privateKey)
-                        .then(() => {
-                            resolve(true);
-                        })
-                        .catch((error: any) => {
-                            reject(this.handleError(AccountError.transaction_broadcast_failed, error));
-                        });
-
+                    const added = transaction.addOperation(accountUpdateOperation);
+                    if (added === '') {
+                        if (broadcast) {
+                            transaction.broadcast(privateKey)
+                                .then(() => {
+                                    resolve(transaction.operations[0]);
+                                })
+                                .catch((error: any) => {
+                                    reject(this.handleError(AccountError.transaction_broadcast_failed, error));
+                                });
+                        } else {
+                            resolve(transaction.operations[0]);
+                        }
+                    } else {
+                        reject(this.handleError(AccountError.syntactic_error, added));
+                        return;
+                    }
                     })
                 .catch((error) => {
                     reject(this.handleError(AccountError.account_update_failed, error));
