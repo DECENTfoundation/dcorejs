@@ -7,8 +7,10 @@ import * as cryptoJs from 'crypto-js';
 
 const RIPEMD160 = require('ripemd160');
 
+/**
+ * Custom class for CryptoJS encryption serialization.
+ */
 export class CryptoJSAesJson {
-
     constructor() {
     }
 
@@ -40,11 +42,11 @@ export class CryptoUtils {
     /**
      * Encrypts message with given private-pubic key pair
      *
-     * @param {string} message
-     * @param {KeyPrivate} privateKey
-     * @param {KeyPublic} publicKey
-     * @param {string} [nonce]
-     * @return {Buffer}
+     * @param {string} message          Message to encrypt.
+     * @param {KeyPrivate} privateKey   Private of one side of communication, to encrypt message with.
+     * @param {KeyPublic} publicKey     Public key of other side of communication, used in encryption.
+     * @param {string} [nonce]          Random number user in encryption process. Default ''.
+     * @return {Buffer}                 Buffer with encrypted message.
      */
     public static encryptWithChecksum(message: string,
                                       privateKey: KeyPrivate,
@@ -53,6 +55,15 @@ export class CryptoUtils {
         return dcorejs_lib.Aes.encrypt_with_checksum(privateKey.key, publicKey.key, nonce, message);
     }
 
+    /**
+     * Decrypts message encrypted by CryptoUtils.encryptWithChecksum or memo from DCore network objects.
+     *
+     * @param {string} message          Encrypted message.
+     * @param {KeyPrivate} privateKey   Private key of one of communicating sides. Used to decrypt message.
+     * @param {KeyPublic} publicKey     Public key of other communicating side. Used to decrypt message.
+     * @param {string} nonce            Random number used in decryption. Default ''.
+     * @returns {Buffer}                Buffer with decrypted text.
+     */
     public static decryptWithChecksum(message: string,
                                       privateKey: KeyPrivate,
                                       publicKey: KeyPublic,
@@ -60,18 +71,43 @@ export class CryptoUtils {
         return dcorejs_lib.Aes.decrypt_with_checksum(privateKey.key, publicKey.key, nonce, message);
     }
 
+    /**
+     * Calculate RIPEMD160 hash from input.
+     * Used as 'hash' parameter when submitting content.
+     *
+     * @param {Buffer} fromBuffer   Input to calculate buffer from.
+     * @returns {string}            RIPEMD160 hashed text.
+     */
     public static ripemdHash(fromBuffer: Buffer): string {
         return new RIPEMD160().update(fromBuffer).digest('hex');
     }
 
+    /**
+     * Calculates MD5 hash out of input.
+     *
+     * @param {string} message  Input message.
+     * @returns {string}        Hashed input.
+     */
     public static md5(message: string): string {
         return cryptoJs.MD5(message).toString();
     }
 
+    /**
+     * Calculates SHA512 hash of input.
+     *
+     * @param message       Input message.
+     * @returns {string}    Hashed input.
+     */
     public static sha512(message: string): string {
         return cryptoJs.SHA512(message).toString(cryptoJs.enc.Hex);
     }
 
+    /**
+     * Calculates SHA256 hash of input.
+     *
+     * @param message       Input message.
+     * @returns {string}    Hashed input.
+     */
     public static sha256(message: string): string {
         return cryptoJs.SHA256(message).toString(cryptoJs.enc.Hex);
     }
@@ -84,9 +120,9 @@ export class CryptoUtils {
      *  iv: string,
      *  s: string
      * }
-     * @param {string} message
-     * @param {string} password
-     * @returns {string}
+     * @param {string} message      Message to be encrypted.
+     * @param {string} password     Password for encryption.
+     * @returns {string}            Encrypted serialized message.
      */
     public static encrypt(message: string, password: string): string {
         return cryptoJs.AES.encrypt(message, password, {format: CryptoJSAesJson.prototype}).toString();
@@ -99,9 +135,9 @@ export class CryptoUtils {
      *  iv: string,
      *  s: string
      * }
-     * @param {string} message
-     * @param {string} password
-     * @returns {string | null}
+     * @param {string} message      Serialized encrypted message to be decrypted.
+     * @param {string} password     Password for decryption.
+     * @returns {string | null}     Decrypted message.
      */
     public static decrypt(message: string, password: string): string | null {
         return cryptoJs.AES.decrypt(message, password, {format: CryptoJSAesJson.prototype}).toString(cryptoJs.enc.Utf8) || null;
@@ -110,9 +146,10 @@ export class CryptoUtils {
     /**
      * Encrypt message with AES256-CBC. Result is encrypted hex string.
       * This encryption is compatible with wallet-cli wallet file export key encryption format.
-     * @param {string | Buffer} message
-     * @param {string} password
-     * @returns {string}
+     *
+     * @param {string | Buffer} message     Message to be encrypted.
+     * @param {string} password             Password for encryption.
+     * @returns {string}                    Encrypted message.
      */
     public static encryptToHexString(message: string | Buffer, password: string): string {
         const hash = CryptoUtils.sha512(password);
@@ -130,9 +167,10 @@ export class CryptoUtils {
     /**
      * Decrypts AES256-CBC encrypted hex string message. Result is decrypted string.
      * This decryption is compatible with wallet-cli wallet file export key encryption format.
-     * @param {string} message
-     * @param {string} password
-     * @returns {string}
+     *
+     * @param {string} message          Message to be decrypted.
+     * @param {string} password         Password for decryption.
+     * @returns {string}                Decrypted message.
      */
     public static decryptHexString(message: string, password: string): string {
         const hash = CryptoUtils.sha512(password);
