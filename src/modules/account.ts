@@ -328,7 +328,7 @@ export class AccountModule extends ApiModule {
                                 return;
                             }
                             const [balance] = balances;
-                            resolve(convertAsset ? Utils.formatAmountForAsset(balance.amount, asset) : balance.amount);
+                            resolve(convertAsset ? Utils.formatAmountForAsset(balance.amount, asset) : Number(balance.amount));
                         })
                         .catch(err => {
                             reject(this.handleError(AccountError.database_operation_failed, err));
