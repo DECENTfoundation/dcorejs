@@ -1,3 +1,6 @@
+/**
+ * @module SeedingModule
+ */
 import {ApiModule} from './ApiModule';
 import {DatabaseApi} from '../api/database';
 import {Seeder} from '../model/content';

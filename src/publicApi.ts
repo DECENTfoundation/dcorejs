@@ -1,3 +1,6 @@
+/**
+ * @module PublicApi
+ */
 export * from './api/model/database';
 export { ContentModule} from './modules/content';
 export * from './modules/account';

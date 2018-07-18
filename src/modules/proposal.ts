@@ -1,3 +1,6 @@
+/**
+ * @module ProposalModule
+ */
 import {ApiModule} from './ApiModule';
 import {DatabaseApi} from '../api/database';
 import {DatabaseOperations} from '../api/model/database';

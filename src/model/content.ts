@@ -1,3 +1,6 @@
+/**
+ * @module Model/Content
+ */
 import {Asset} from './account';
 
 export interface BuyingContent extends ContentExchangeObject {

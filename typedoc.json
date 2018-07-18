@@ -1,0 +1,11 @@
+{
+    "out": "dist/docs",
+    "target": "es6",
+    "theme": "default",
+    "excludeExternals": "true",
+    "includeDeclarations": "true",
+    "excludePrivate": "true",
+    "excludeProtected": "true",
+    "exclude": "\"**/*+(test|api)/**/*.*\"",
+    "includes": "src"
+}

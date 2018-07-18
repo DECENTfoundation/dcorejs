@@ -1,3 +1,6 @@
+/**
+ * @module MessagingApi
+ */
 import {ApiConnector} from './apiConnector';
 import {MessagingError, MessagingOperation} from './model/messaging';
 

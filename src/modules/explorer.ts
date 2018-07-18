@@ -1,3 +1,6 @@
+/**
+ * @module ExplorerModule
+ */
 import {DatabaseApi} from '../api/database';
 import {Account} from '../model/account';
 import {DatabaseOperations} from '../api/model/database';
@@ -154,6 +157,14 @@ export class ExplorerModule extends ApiModule {
         return this.dbApi.execute(operation);
     }
 
+    /**
+     * Get list of miners objects.
+     *
+     * @deprecated This method will be removed in next release
+     * @param {string} fromId               Miner id to start from, last part of id -> X from '1.4.X'. Default '0.0.0' -> List from start
+     * @param {number} limit                Limit result list. Default 100(Max)
+     * @returns {Promise<Array<Miner>>}
+     */
     listMiners(fromId: string = '0.0.0', limit: number = 100): Promise<Array<Miner>> {
         return new Promise((resolve, reject) => {
             const operation = new DatabaseOperations.LookupMiners(fromId, limit);

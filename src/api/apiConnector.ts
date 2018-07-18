@@ -1,5 +1,6 @@
-// const BBPromise = require('bluebird');
-// import * as request from 'request';
+/**
+ * @module ApiConnector
+ */
 import axios from 'axios';
 
 interface ConnectionTestResult {
@@ -30,10 +31,14 @@ export class ApiConnector {
     private _connectionPromise: Promise<any>;
     private readonly _apiAddresses: string[];
     private readonly _api: any;
-    private isConnected = false;
+    private _isConnected = false;
     private connectedAddress: string = null;
     private testConnectionQuality: boolean;
     private connectionStatusCallback: (status: ConnectionState) => void;
+
+    public get isConnected(): boolean {
+        return this._isConnected;
+    }
 
     public get apiAddresses(): string[] {
         return this._apiAddresses;
@@ -88,7 +93,7 @@ export class ApiConnector {
                 const address = ['wss', ...addresses[i].split(':').slice(1)].join(':');
                 try {
                     const res = await this.getConnectionPromise(address, api);
-                    this.isConnected = true;
+                    this._isConnected = true;
                     this.connectedAddress = address;
                     console.log('Connected to', address);
                     resolve(res);
@@ -98,7 +103,7 @@ export class ApiConnector {
                     api.close();
                 }
             }
-            this.isConnected = false;
+            this._isConnected = false;
             reject(this.handleError(ApiConnectorError.ws_connection_failed));
         });
     }
@@ -168,7 +173,7 @@ export class ApiConnector {
      * Closes opened WS connection.
      */
     public closeConnection(): void {
-        this.isConnected = false;
+        this._isConnected = false;
         this._api.close();
         this._connectionPromise = null;
         console.log('Closed connection to', this.connectedAddress);

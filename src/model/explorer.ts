@@ -1,3 +1,6 @@
+/**
+ * @module Model/Explorer
+ */
 import {Authority, Options} from './account';
 import {Asset as TransactionAsset} from './transaction';
 

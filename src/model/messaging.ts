@@ -1,3 +1,6 @@
+/**
+ * @module Model/Messaging
+ */
 export enum MessagingError {
     query_execution_failed = 'query_execution_failed',
     api_connection_failed = 'api_connection_failed',

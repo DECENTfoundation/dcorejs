@@ -1,3 +1,6 @@
+/**
+ * @module MessagingModule
+ */
 import {ApiModule} from './ApiModule';
 import {MessagingApi} from '../api/messaging';
 import {DatabaseApi} from '../api/database';

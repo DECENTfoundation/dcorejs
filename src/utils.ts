@@ -1,3 +1,6 @@
+/**
+ * @module Utils
+ */
 import {dcorejs_lib} from './helpers';
 import {CryptoUtils} from './crypt';
 import {ChainApi} from './api/chain';
