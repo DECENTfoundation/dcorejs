@@ -474,7 +474,6 @@ export interface ContentObject {
     last_proof: [string, number];
     seeder_price: [string, any];
     is_blocked: boolean;
-    ripemd160
     _hash: string;
     AVG_rating: number;
     num_of_ratings: number;
