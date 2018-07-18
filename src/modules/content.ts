@@ -580,7 +580,7 @@ export class ContentModule extends ApiModule {
                     const buyOperation = new Operations.BuyContentOperation(
                         content.URI,
                         buyerId,
-                        content.price.price,
+                        content.price.map_price[0][1],
                         1,
                         { s: elGammalPub }
                     );

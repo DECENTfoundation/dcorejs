@@ -2,7 +2,7 @@
  * @module Model/Transaction
  */
 import {AssetOptions, UpdateMonitoredAssetParameters} from './asset';
-import {Key, KeyParts} from './content';
+import {Key, KeyParts, Price} from './content';
 import {Block} from './explorer';
 import AssetExchangeRate = Block.AssetExchangeRate;
 import {Authority, Options} from './account';
@@ -468,7 +468,7 @@ export interface ContentObject {
     co_authors: [string, number];
     expiration: number;
     created: number;
-    price: RegionalPrice;
+    price: Price;
     synopsis: string;
     size: number;
     quorum: number;
