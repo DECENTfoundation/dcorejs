@@ -1,3 +1,6 @@
+/**
+ * @module Model/Proposal
+ */
 import {Block} from './explorer';
 import Transaction = Block.Transaction;
 

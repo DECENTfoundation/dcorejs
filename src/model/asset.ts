@@ -1,3 +1,6 @@
+/**
+ * @module Model/Asset
+ */
 import AssetExchangeRate = Block.AssetExchangeRate;
 import {Block} from './explorer';
 

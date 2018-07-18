@@ -1,3 +1,6 @@
+/**
+ * @module AssetModule
+ */
 import {ApiConnector} from '../api/apiConnector';
 import {DatabaseApi} from '../api/database';
 import {DatabaseOperations} from '../api/model/database';
@@ -150,7 +153,6 @@ export class AssetModule extends ApiModule {
                     }
                     const asset = assets[0];
                     const issuer = asset.issuer;
-                    // TODO: correct memo object
 
                     const operations = [].concat(
                         new ChainMethods.GetAccount(issueToAccount),
@@ -458,7 +460,14 @@ export class AssetModule extends ApiModule {
         });
     }
 
-    // TODO: remove this method
+    /**
+     * Format asset to DCore DCT asset format
+     *
+     * @deprecated                  This method will be removed in future versions
+     * @param {string} symbol       Asset symbol
+     * @param {string} amount       Amount to format
+     * @returns  {Promise<Asset>}   Formatted Asset object
+     */
     public priceToDCT(symbol: string, amount: number): Promise<Asset> {
         return new Promise<any>((resolve, reject) => {
             this.listAssets(symbol, 1)

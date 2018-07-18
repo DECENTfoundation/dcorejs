@@ -1,3 +1,6 @@
+/**
+ * @module Model/Chain
+ */
 export enum ChainOperationType {
     transfer,
     account_create,

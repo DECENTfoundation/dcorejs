@@ -1,3 +1,6 @@
+/**
+ * @module ExplorerModule
+ */
 import {DatabaseApi} from '../api/database';
 import {Account} from '../model/account';
 import {DatabaseOperations} from '../api/model/database';
@@ -316,8 +319,8 @@ export class ExplorerModule extends ApiModule {
 
     /**
      * Get list of miners objects.
-     * TODO: move to MiningModule
      *
+     * @deprecated This method will be removed in next release
      * @param {string} fromId               Miner id to start from, last part of id -> X from '1.4.X'. Default '0.0.0' -> List from start
      * @param {number} limit                Limit result list. Default 100(Max)
      * @returns {Promise<Array<Miner>>}

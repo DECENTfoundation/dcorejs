@@ -1,3 +1,6 @@
+/**
+ * @module Model/Mining
+ */
 export interface MinerUpdateData {
     newUrl?: string;
     newSigningKey?: string;

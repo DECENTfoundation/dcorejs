@@ -1,3 +1,6 @@
+/**
+ * @module CryptoUtils
+ */
 import {KeyPrivate, KeyPublic} from './utils';
 import { dcorejs_lib } from './helpers';
 import * as cryptoJs from 'crypto-js';

@@ -1,3 +1,6 @@
+/**
+ * @module HistoryApi
+ */
 import { ApiConnector } from './apiConnector';
 
 enum HistoryError {

@@ -1,3 +1,6 @@
+/**
+ * @module MiningModule
+ */
 import {DatabaseApi} from '../api/database';
 import {DatabaseOperations} from '../api/model/database';
 import {Operations} from '../model/transaction';

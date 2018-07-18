@@ -1,3 +1,6 @@
+/**
+ * @module ChainApi
+ */
 import {dcorejs_lib} from '../helpers';
 import {ApiConnector} from './apiConnector';
 import {ChainError, ChainSubscriptionCallback, Method} from './model/chain';

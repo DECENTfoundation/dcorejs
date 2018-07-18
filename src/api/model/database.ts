@@ -1,3 +1,6 @@
+/**
+ * @module Model/Database
+ */
 import { Asset } from '../../model/transaction';
 
 export enum DatabaseError {

@@ -1,3 +1,6 @@
+/**
+ * @module DatabaseApi
+ */
 import {ApiConnector} from './apiConnector';
 import {DatabaseError, DatabaseOperation} from './model/database';
 

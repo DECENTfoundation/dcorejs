@@ -1,3 +1,6 @@
+/**
+ * @module ContentModule
+ */
 import { Asset, DCoreAccount } from '../model/account';
 import { Rating, Content, Seeder, BuyingContent, SubmitObject, ContentKeys, KeyPair, ContentExchangeObject, Price } from '../model/content';
 import { DatabaseApi } from '../api/database';

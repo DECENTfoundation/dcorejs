@@ -1,3 +1,6 @@
+/**
+ * @module AccountModule
+ */
 import {
     Account,
     AccountError,
@@ -401,7 +404,6 @@ export class AccountModule extends ApiModule {
             );
             this.historyApi.execute(operation)
                 .then(res => {
-                    // TODO: create models for different operations names, placed in dcore/src/chain/src/ChainTypes.js
                     resolve(res);
                 })
                 .catch(err => reject(this.handleError(AccountError.transaction_history_fetch_failed, err)));

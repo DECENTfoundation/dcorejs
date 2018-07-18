@@ -1,3 +1,6 @@
+/**
+ * @module Model/Transaction
+ */
 import {AssetOptions, UpdateMonitoredAssetParameters} from './asset';
 import {Key, KeyParts} from './content';
 import {Block} from './explorer';

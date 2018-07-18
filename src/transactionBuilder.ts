@@ -1,3 +1,6 @@
+/**
+ * @module TransactionBuilder
+ */
 import {dcorejs_lib} from './helpers';
 import {KeyPrivate, Utils} from './utils';
 import {Operation} from './model/transaction';
@@ -101,7 +104,6 @@ export class TransactionBuilder {
                     resolve();
                 })
                 .catch(() => {
-                    // TODO: error handling
                     reject();
                 });
         });

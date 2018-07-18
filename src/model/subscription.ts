@@ -1,3 +1,6 @@
+/**
+ * @module Model/Subscription
+ */
 export interface SubscriptionObject {
     id: string,
     from: string;

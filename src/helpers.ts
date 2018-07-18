@@ -1,3 +1,6 @@
+/**
+ * @module Helpers
+ */
 import * as dcore from 'dcorejs-lib';
 
 export let dcorejs_lib: any = dcore;

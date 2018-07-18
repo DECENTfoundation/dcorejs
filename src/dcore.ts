@@ -1,3 +1,6 @@
+/**
+ * @module DCore
+ */
 import {getLibRef} from './helpers';
 import {ContentModule} from './modules/content';
 import {ChainApi} from './api/chain';

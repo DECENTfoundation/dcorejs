@@ -1,3 +1,6 @@
+/**
+ * @module Model/Messaging
+ */
 export enum MessagingOperationName {
     getMessageObjects = 'get_message_objects',
 }
