@@ -18,11 +18,23 @@ export interface BrainKeyInfo {
 export class KeyPrivate {
     private _privateKey: any;
 
+    /**
+     * Create KeyPrivate from brain key.
+     *
+     * @param {string} brainKey     Brain key to generate private key from.
+     * @param {number} sequence     Sequence number, for generating derived private key
+     * @returns {KeyPrivate}        KeyPrivate instance.
+     */
     static fromBrainKey(brainKey: string, sequence: number = 0): KeyPrivate {
         const pKey = dcorejs_lib.key.get_brainPrivateKey(brainKey, sequence);
         return new KeyPrivate(pKey);
     }
 
+    /**
+     * Create KeyPrivate from WIF/hex format of private key.
+     * @param {string} privateKeyWif    Private key in WIF(hex) (Wallet Import Format) format.
+     * @returns {KeyPrivate}            KeyPrivate instance.
+     */
     static fromWif(privateKeyWif: string): KeyPrivate {
         const pKey = dcorejs_lib.PrivateKey.fromWif(privateKeyWif);
         return new KeyPrivate(pKey);
@@ -49,6 +61,10 @@ export class KeyPrivate {
         return this._privateKey.toWif();
     }
 
+    /**
+     * Get public key for private key.
+     * @returns {KeyPublic}     KeyPublic instance.
+     */
     public getPublicKey(): KeyPublic {
         return new KeyPublic(this._privateKey.toPublicKey());
     }
@@ -61,11 +77,21 @@ export class KeyPrivate {
 export class KeyPublic {
     private _publicKey: any;
 
+    /**
+     * Create KeyPublic object from public key string.
+     * @param {string} publicString     Public key string.
+     * @returns {KeyPublic}             KeyPublic instance.
+     */
     static fromString(publicString: string): KeyPublic {
         const pubKey = dcorejs_lib.PublicKey.fromPublicKeyString(publicString);
         return new KeyPublic(pubKey);
     }
 
+    /**
+     * Create KeyPublic from KeyPrivate object.
+     * @param {KeyPrivate} privateKey   KeyPrivate object.
+     * @returns {KeyPublic}             KeyPublic instance.
+     */
     static fromPrivateKey(privateKey: KeyPrivate): KeyPublic {
         const publicKey: any = privateKey.key.toPublicKey();
         return new KeyPublic(publicKey);
@@ -86,7 +112,7 @@ export class KeyPublic {
 
     /**
      * String representation of key
-     * @return {string}
+     * @return {string}     String public key.
      */
     get stringKey(): string {
         return this._publicKey.toString();
@@ -105,6 +131,11 @@ export class ElGamalKeys {
         return this._publicKey;
     }
 
+    /**
+     * Generate ElGamalKeys object from public key WIF.
+     * @param {string} privateKey       Private key in WIF(hex) (Wallet Import Format) format
+     * @returns {ElGamalKeys}           ElGamalKeys instance.
+     */
     static generate(privateKey: string): ElGamalKeys {
         const elGPrivate = Utils.elGamalPrivate(privateKey);
         const elGPub = Utils.elGamalPublic(elGPrivate);
@@ -121,12 +152,12 @@ export class ElGamalKeys {
 export class Utils {
 
     /**
-     * Change price amount from blockchain format to real and readable formatted string.
+     * Format DCT price amount from blockchain format to real and readable formatted string.
      *
      * Example: Amount price from blockchain is 1, formatted price 0.00000001 DCT
      *
-     * @param {number} dctAmount
-     * @return {string}
+     * @param {number} dctAmount    Amount of DCT asset.
+     * @return {string}             Formatted amount in string format.
      */
     public static formatToReadiblePrice(dctAmount: number): string {
         return (dctAmount / ChainApi.DCTPower).toFixed(8);
@@ -137,50 +168,52 @@ export class Utils {
      * Value is devided by asset's precision factor
      * Note: Most of amount values are already formatted for this precision format.
      *
-     * @param {number} amount
-     * @param {DCoreAssetObject} asset
-     * @returns {number}
+     * @param {number} amount   Amount to be formatted.
+     * @returns {number}        DCore formatted amount.
      */
     public static formatAmountForDCTAsset(amount: number): number {
         return amount / ChainApi.DCTPower;
     }
 
     /**
-     * Formats amount to correct precision.
-     * Value is devided by asset's precision factor
+     * Formats amount to format with decimal numbers.
      * Note: Most of amount values are already formatted for this precision format.
      *
-     * @param {number} amount
-     * @param {DCoreAssetObject} asset
-     * @returns {number}
+     * @param {number} amount               Amount of asset in DCore network format.
+     * @param {DCoreAssetObject} asset      Asset object to format amount to.
+     * @returns {number}                    Formatted number in format with decimal numbers.
      */
     public static formatAmountForAsset(amount: number, asset: DCoreAssetObject): number {
         return amount / Math.pow(10, asset.precision);
     }
 
     /**
-     * Format amount value for DCore asset precision value.
-     * Value is multiplied by asset's precision factor.
-     * @param {number} amount
-     * @param {DCoreAssetObject} asset
-     * @returns {number}
+     * Format amount value for DCore, to format without decimal numbers.
+     *
+     * @param {number} amount           Amount with decimal numbers to format.
+     * @param {DCoreAssetObject} asset  Asset object for formatting.
+     * @returns {number}                Formatted number.
      */
     public static formatAmountToAsset(amount: number, asset: DCoreAssetObject): number {
         const transformedAmount = amount * Math.pow(10, asset.precision);
         return Number(transformedAmount.toFixed(0));
     }
 
+    /**
+     * RIPEMD 160 hash
+     *
+     * @param {Buffer} fromBuffer       Buffer to calculate hash from.
+     * @returns {string}                RIPEMD160 hash.
+     */
     public static ripemdHash(fromBuffer: Buffer): string {
         return CryptoUtils.ripemdHash(fromBuffer);
     }
 
     /**
-     * Generates private and public key from given brain key.
+     * Generate private and public key from given brain key.
      *
-     * Return array of keys in form [privateKey: KeyPrivate, publicKey: KeyPublic]
-     *
-     * @param {string} fromBrainKey
-     * @return {any[]} [privateKey: KeyPrivate, publicKey: KeyPublic]
+     * @param {string} fromBrainKey                                     Brain key to generate keys from.
+     * @return {any[]} [privateKey: KeyPrivate, publicKey: KeyPublic]   Keys.
      */
     public static generateKeys(fromBrainKey: string): [KeyPrivate, KeyPublic] {
         const normalizedBk = Utils.normalize(fromBrainKey);
@@ -192,8 +225,8 @@ export class Utils {
     /**
      * Calculate public key from given private key.
      *
-     * @param {KeyPrivate} privateKey
-     * @return {KeyPublic}
+     * @param {KeyPrivate} privkey      Private key to get public key for.
+     * @return {KeyPublic}              KeyPublic object.
      */
     public static getPublicKey(privateKey: KeyPrivate): KeyPublic {
         return KeyPublic.fromPrivateKey(privateKey);
@@ -202,8 +235,8 @@ export class Utils {
     /**
      * Create KeyPrivate object from WIF format of private key.
      *
-     * @param {string} pkWif
-     * @return {KeyPrivate}
+     * @param {string} pkWif    Private key in WIF(hex) (Wallet Import Format) format.
+     * @return {KeyPrivate}     KeyPrivate object.
      */
     public static privateKeyFromWif(pkWif: string): KeyPrivate {
         return KeyPrivate.fromWif(pkWif);
@@ -212,17 +245,30 @@ export class Utils {
     /**
      * Create KeyPublic object from string format of public key.
      *
-     * @param {string} pubKeyString
-     * @return {KeyPublic}
+     * @param {string} pubKeyString     Public key string.
+     * @return {KeyPublic}              KeyPublic object.
      */
     public static publicKeyFromString(pubKeyString: string): KeyPublic {
         return KeyPublic.fromString(pubKeyString);
     }
 
+    /**
+     * Get random brain key.
+     * https://docs.decent.ch/developer/group___wallet_a_p_i___account.html#ga4841362854805ef897b8415eb8866424
+     *
+     * @returns {string}    Brain key string.
+     */
     public static suggestBrainKey(): string {
         return dcorejs_lib.key.suggest_brain_key(dictionary.en.join(','));
     }
 
+    /**
+     * Get brainkey info with brain key, private key and public key.
+     * https://docs.decent.ch/developer/group___wallet_a_p_i___account.html#ga1cca4c087c272e07681b2c6d203b7d74
+     *
+     * @param {string} brainKey     Brain keys string.
+     * @returns {BrainKeyInfo}      BrainKeyInfo object.
+     */
     public static getBrainKeyInfo(brainKey: string): BrainKeyInfo {
         const normalizedBK = Utils.normalize(brainKey);
         const keys = Utils.generateKeys(normalizedBK);
@@ -236,6 +282,7 @@ export class Utils {
 
     /**
      * Normalize brain key for futher usage in Utils's methods
+     *
      * @param {string} brainKey         Brain key generated from Utils.suggestBrainKey or from wallet CLI
      * @returns {string}                Normalized brain key
      */
@@ -248,14 +295,19 @@ export class Utils {
         return brainKey.split(/[\t\n\v\f\r ]+/).join(' ');
     }
 
+    /**
+     * Generate random
+     * @returns {string}
+     */
     public static generateNonce(): string {
         return dcorejs_lib.TransactionHelper.unique_nonce_uint64();
     }
 
     /**
      * Generates El Gamal public key from given El Gamal private key
-     * @param {string} elGamalPrivate
-     * @returns {string}
+     *
+     * @param {string} elGamalPrivate   El Gamal private key string.
+     * @returns {string}                ElGamal public key string.
      */
     public static elGamalPublic(elGamalPrivate: string): string {
         const elgPriv = BigInteger(elGamalPrivate);
@@ -267,8 +319,9 @@ export class Utils {
 
     /**
      * Generates El Gamal key for content exchange from given private key WIF string
+     *
      * @param {string} privateKeyWif        WIF formatted private key of account for which generating El Gamal key
-     * @returns {string}
+     * @returns {string}                    El Gamal private key string.
      */
     public static elGamalPrivate(privateKeyWif: string): string {
         const pKey = Utils.privateKeyFromWif(privateKeyWif);
@@ -277,14 +330,19 @@ export class Utils {
     }
 
     /**
-     * Generate El Gamal keys pair from WIF private key
-     * @param {string} privateKeyWif
-     * @returns {ElGamalKeys}
+     * Calculate El Gamal keys pair from WIF private key
+     * @param {string} privateKeyWif    WIF formatted private key of account for which generating El Gamal keys
+     * @returns {ElGamalKeys}           ElGamalKeys object.
      */
     public static generateElGamalKeys(privateKeyWif: string): ElGamalKeys {
         return ElGamalKeys.generate(privateKeyWif);
     }
 
+    /**
+     * Generate random brain key and El Gamal keys from brain key.
+     *
+     * @returns {[BrainKeyInfo , ElGamalKeys]}
+     */
     public static generateBrainKeyElGamalKey(): [BrainKeyInfo, ElGamalKeys] {
         const brainKey = Utils.suggestBrainKey();
         const bkInfo = Utils.getBrainKeyInfo(brainKey);
@@ -292,6 +350,14 @@ export class Utils {
         return [bkInfo, elGamalKeys];
     }
 
+    /**
+     * Calculate derived private key apart from primary(with sequence number 0).
+     * NOTE: May be used as additional keys when creating account - owner, memo key
+     *
+     * @param {string} brainKey     Brain key string.
+     * @param {number} sequence     Sequence number to derive private key from it. If selected 0, primary private key is generated.
+     * @returns {KeyPrivate}        KeyPrivate object.
+     */
     public static derivePrivateKey(brainKey: string, sequence: number): KeyPrivate {
         return KeyPrivate.fromBrainKey(brainKey, sequence);
     }

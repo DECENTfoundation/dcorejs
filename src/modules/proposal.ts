@@ -24,6 +24,13 @@ export class ProposalModule extends ApiModule {
         });
     }
 
+    /**
+     * Gets proposed transactions from account by given account id.
+     * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#acb443f4bc6ab17f303ce3e938382d944
+     *
+     * @param {string} accountId                        Account id in format '1.2.X'. Example: "1.2.345"
+     * @returns {Promise<ProposalObject[]>}
+     */
     public getProposedTransactions(accountId: string): Promise<ProposalObject[]> {
         return new Promise<ProposalObject[]>((resolve, reject) => {
             const operation = new DatabaseOperations.GetProposedTransactions(accountId);
@@ -37,6 +44,20 @@ export class ProposalModule extends ApiModule {
         });
     }
 
+    /**
+     * Propose transfer operation between two accounts.
+     * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#a0409c11498829d114a4827e3c3e7beca
+     *
+     * @param {string} proposerAccountId                Account id in format '1.2.X'. Example: "1.2.345"
+     * @param {string} fromAccountId                    Account id in format '1.2.X'. Example: "1.2.345"
+     * @param {string} toAccountId                      Account id in format '1.2.X'. Example: "1.2.345"
+     * @param {number} amount                           Amount that will be sent.
+     * @param {string} assetId                          Asset id that amount will be sent in. Asset id in format '1.3.X'. Example: "1.3.0"
+     * @param {string} memoKey                          Public key used to memo encryption in WIF(hex)(Wallet Import Format) format.
+     * @param {string} expiration                       Date in ISO format. Example: "2018-07-17T16:00:00"
+     * @param {string} privateKey                       Private key used to sign transaction.
+     * @returns {Promise<boolean>}
+     */
     public proposeTransfer(
         proposerAccountId: string, fromAccountId: string, toAccountId: string, amount: number, assetId: string, memoKey: string,
         expiration: string, privateKey: string): Promise<boolean> {
@@ -120,13 +141,15 @@ export class ProposalModule extends ApiModule {
     }
 
     /**
-     * Propose change of global fees for operations
+     * Propose for global parameters change
+     * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#ab05cd1249b4e3da5ce4707d78160493e
      *
-     * @param {string} proposerAccountId                    Account which pays fee for propose operation.
-     * @param {ProposalParameters} proposalParameters       Global parameters that should be changed.
-     * @param {string} expiration                           Date in form of "2018-07-17T16:00:00", min is 14 days since today, max is 28
-     *                                                      days since today.
-     * @param {string} privateKey                           Private key for signing transaction.
+     * @param {string} proposerAccountId                    Account id in format '1.2.X'. Example: "1.2.345"
+     * @param {ProposalParameters} proposalParameters       Global parameters that are proposed to be changed. Fill only these parameters
+     *                                                      that you wish to be changed.
+     * @param {string} expiration                           Date in ISO format. Example: "2018-07-17T16:00:00", min is 14 days since today,
+     *                                                      max is 28 days since today.
+     * @param {string} privateKey                           Private key used to sign transaction.
      * @returns {Promise<boolean>}
      */
     public proposeParameterChange(proposerAccountId: string, proposalParameters: ProposalParameters, expiration: string,
@@ -226,14 +249,14 @@ export class ProposalModule extends ApiModule {
 
     /**
      * Propose change of global fees for operations
+     * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#a463772cd2a9b5cbe7526d9ac5ace630b
      *
-     * @param {string} proposerAccountId                Account which pays fee for propose operation.
-     * @param {FeesParameters} feesParameters           Fees that should be changed.
-     * @param {number} reviewPeriodInDays               Min is 14, max is 27.
-     * @param {string} expiration                       Date in form of "2018-07-17T16:00:00", depends on reviewPeriodInDays.
-     *                                                  If reviewPeriodInDays is 14, expiration must be at least 14 days since today,
-     *                                                  max is always 27 days since today.
-     * @param {string} privateKey                       Private key for signing transaction.
+     * @param {string} proposerAccountId                    Account id in format '1.2.X'. Example: "1.2.345"
+     * @param {FeesParameters} feesParameters               Fee parameters that are proposed to be changed. Fill only these parameters
+     *                                                      that you wish to be changed.
+     * @param {string} expiration                           Date in ISO format. Example: "2018-07-17T16:00:00", min is 14 days since today,
+     *                                                      max is 28 days since today.
+     * @param {string} privateKey                           Private key used to sign transaction.
      * @returns {Promise<boolean>}
      */
     public proposeFeeChange(proposerAccountId: string, feesParameters: FeesParameters, expiration: string, privateKey: string):
@@ -418,11 +441,12 @@ export class ProposalModule extends ApiModule {
 
     /**
      * Approve proposal operation
+     * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#ac5c00d5de5f1e93f6d1c636a83bf1605
      *
-     * @param {string} payingAccountId                  Account which pays fee for this operation.
-     * @param {string} proposalId                       Id of proposal that you want to approve.
+     * @param {string} payingAccountId                  Account id in format '1.2.X'. Example: "1.2.345"
+     * @param {string} proposalId                       Proposal id in format '1.6.X'. Example "1.6.100"
      * @param {DeltaParameters} approvalsDelta          Active keys, owner keys and key approvals that you can add or remove.
-     * @param {string} privateKey                       Private key for signing transaction.
+     * @param {string} privateKey                       Private key used to sign transaction.
      * @returns {Promise<boolean>}
      */
 

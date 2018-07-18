@@ -105,6 +105,15 @@ export class KeyAuth {
     }
 }
 
+export enum OperationType {
+    transfer,
+    account_create,
+    content_submit,
+    content_buy,
+    content_rate,
+    subscription
+}
+
 export interface Options {
     memo_key?: string;
     voting_account?: string;
@@ -122,7 +131,7 @@ export class TransactionRecord {
     toAccountName: string;
     fromAccountId: string;
     toAccountId: string;
-    operationType: number;
+    operationType: OperationType;
     transactionAmount: number;
     transactionAsset: string;
     transactionFee: number;

@@ -39,7 +39,7 @@ export namespace Block {
         quote: TransactionAsset
     }
 
-    export interface Witness {
+    export interface Miner {
         id: string;
         miner_account: string;
         last_aslot: number;
@@ -184,7 +184,7 @@ export namespace Block {
         };
     }
 
-    export interface WitnessSchedule {
+    export interface MinerSchedule {
         id: string;
         current_shuffled_miners: Array<string>;
     }
@@ -382,12 +382,12 @@ export namespace Type {
         account,
         asset,
         miner,
-        custom,
+        custom, // 5
         proposal,
         operation_history,
         withdraw_permission,
         vesting_balance,
-        OBJECT_TYPE_COUNT
+        OBJECT_TYPE_COUNT // 10
     }
 
     export enum Implementation {
@@ -396,17 +396,17 @@ export namespace Type {
         reserved,
         asset_dynamic_data_type,
         account_balance,
-        account_statistics,
+        account_statistics, // 5
         transaction,
         block_summary,
         account_transaction_history,
         chain_property,
-        miner_schedule,
+        miner_schedule, // 10
         budget_record,
         buying,
         content,
         publisher,
-        subscription,
+        subscription, // 15
         seeding_statistics,
         transaction_detail,
         messaging
