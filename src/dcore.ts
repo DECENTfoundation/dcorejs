@@ -66,7 +66,7 @@ export function initialize(config: DcoreConfig,
     const messagingApi = new MessagingApi(dcore.Apis, _connector);
 
     _chain = new ChainApi(_connector, dcore.ChainStore);
-    _content = new ContentModule(database, _chain);
+    _content = new ContentModule(database, _chain, _connector);
     _account = new AccountModule(database, _chain, historyApi, _connector);
     _explorer = new ExplorerModule(database);
     _assetModule = new AssetModule(database, _connector, _chain);
