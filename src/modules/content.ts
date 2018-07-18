@@ -85,7 +85,7 @@ export class ContentModule extends ApiModule {
      *                                      Default: false.
      * @return {Promise<Content | null>}    Content object.
      */
-    public getContent(id: string, convertAsset: boolean = false): Promise<Content | null> {
+    public getContent(id: string, convertAsset: boolean = false): Promise<ContentObject> {
         return new Promise((resolve, reject) => {
             const listAssetsOp = new DatabaseOperations.ListAssets('', 100);
             this.dbApi.execute(listAssetsOp)
@@ -105,7 +105,7 @@ export class ContentModule extends ApiModule {
                             if (isUndefined(objectified.price['amount']) && convertAsset) {
                                 objectified = this.formatPrices([objectified], assets)[0];
                             }
-                            resolve(objectified as Content);
+                            resolve(objectified as ContentObject);
                         });
                 })
                 .catch(err => {
@@ -124,7 +124,7 @@ export class ContentModule extends ApiModule {
      *                                      Default: false.
      * @returns {Promise<Content | null>}   Content object.
      */
-    public getContentURI(URI: string, convertAsset: boolean = false): Promise<Content | null> {
+    public getContentURI(URI: string, convertAsset: boolean = false): Promise<ContentObject | null> {
         return new Promise((resolve, reject) => {
             const listAssetsOp = new DatabaseOperations.ListAssets('', 100);
             this.dbApi.execute(listAssetsOp)
@@ -143,7 +143,7 @@ export class ContentModule extends ApiModule {
                             if (isUndefined(objectified.price['amount']) && convertAsset) {
                                 objectified = this.formatPrices([objectified], assets);
                             }
-                            resolve(objectified as Content);
+                            resolve(objectified as ContentObject);
                         });
                 })
                 .catch(err => {
@@ -166,7 +166,7 @@ export class ContentModule extends ApiModule {
         privateKey: string): Promise<void> {
         return new Promise((resolve, reject) => {
             this.getContent(contentId)
-                .then((content: Content) => {
+                .then((content: ContentObject) => {
                     const URI = content.URI;
                     const cancelOperation = new Operations.ContentCancelOperation(authorId, URI);
                     const transaction = new TransactionBuilder();
@@ -573,11 +573,11 @@ export class ContentModule extends ApiModule {
                       broadcast: boolean = true): Promise<Operation> {
         return new Promise<Operation>((resolve, reject) => {
             this.getContent(contentId)
-                .then((content: Content) => {
+                .then((content: ContentObject) => {
                     const buyOperation = new Operations.BuyContentOperation(
                         content.URI,
                         buyerId,
-                        content.price.map_price[0][1],
+                        content.price.price,
                         1,
                         { s: elGammalPub }
                     );
