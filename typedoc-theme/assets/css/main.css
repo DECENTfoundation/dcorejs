@@ -607,7 +607,7 @@ code, pre { font-family: "RobotoMono", monospace; padding: 0.2em; margin: 0; fon
 
 pre { padding: 10px; }
 pre code { padding: 0; font-size: 100%; background-color: transparent; }
-
+.decent-link { color: #222;  text-decoration: underline; }
 .tsd-typography { line-height: 1.333em; }
 .tsd-typography ul { list-style: square; padding: 0 0 0 20px; margin: 0; }
 .tsd-typography h4, .tsd-typography .tsd-index-panel h3, .tsd-index-panel .tsd-typography h3, .tsd-typography h5, .tsd-typography h6 { font-size: 1em; margin: 0; }
@@ -701,11 +701,11 @@ footer .tsd-legend { display: inline-block; width: 25%; padding: 0; font-size: 1
 .tsd-index-panel a, .tsd-index-panel .tsd-parent-kind-module a { color: #9600ff; }
 .tsd-index-panel .tsd-parent-kind-interface a { color: #7da01f; }
 .tsd-index-panel .tsd-parent-kind-enum a { color: #cc9900; }
-.tsd-index-panel .tsd-parent-kind-class a { color: #4da6ff; }
+.tsd-index-panel .tsd-parent-kind-class a { color: #1EA637; }
 .tsd-index-panel .tsd-kind-module a { color: #9600ff; }
 .tsd-index-panel .tsd-kind-interface a { color: #7da01f; }
 .tsd-index-panel .tsd-kind-enum a { color: #cc9900; }
-.tsd-index-panel .tsd-kind-class a { color: #4da6ff; }
+.tsd-index-panel .tsd-kind-class a { color:  #1EA637; }
 .tsd-index-panel .tsd-is-private a { color: #808080; }
 
 .tsd-flag { display: inline-block; padding: 1px 5px; border-radius: 4px; color: #fff; background-color: #808080; text-indent: 0; font-size: 14px; font-weight: normal; }
@@ -770,7 +770,7 @@ footer .tsd-legend { display: inline-block; width: 25%; padding: 0; font-size: 1
 
 #tsd-search { transition: background-color 0.2s; }
 #tsd-search .title { position: relative; z-index: 2; }
-#tsd-search .field { position: static; width: 100%; right: 40px; height: 40px; }
+#tsd-search .field { position: static; width: 100%; padding-left: 32px; height: 40px; }
 #tsd-search .field input { box-sizing: border-box; position: relative; top: -50px; z-index: 1; width: 100%; padding: 0 10px; opacity: 0; outline: 0; border: 0; background: transparent; color: #222; }
 #tsd-search .field label { position: absolute; overflow: hidden; right: -40px; }
 #tsd-search .field input, #tsd-search .title { transition: opacity 0.2s; }
@@ -799,6 +799,7 @@ footer .tsd-legend { display: inline-block; width: 25%; padding: 0; font-size: 1
 .tsd-signature-symbol { color: #808080; font-weight: normal; }
 
 .tsd-signature-type { font-style: italic; font-weight: normal; }
+a.tsd-signature-type { color:  #1EA637; }
 
 .tsd-signatures { padding: 0; margin: 0 0 1em 0; border: 1px solid #eee; }
 .tsd-signatures .tsd-signature { margin: 0; border-width: 1px 0 0 0; transition: background-color 0.1s; }
