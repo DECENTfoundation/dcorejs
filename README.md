@@ -89,7 +89,42 @@ you are about to work on.
 
 Once dcore lib is initialized, you can access methods using `dcorejs` with any of submodule - `account()`, `asset()`, `content()`, `explorer()`, `messaging()`, `mining()`, `proposal()`, `seeding()` or `subscription()`
 
-## Search content
+### Create account
+
+There is two ways how to create account in DCore network: `Account.registerAccount` and `Account.createAccountWithBrainkey`.
+<br>
+Recomended way to create account is using `Account.registerAccount` method, because there is option to set keys to be different.
+Also can use `Account.createAccountWithBrainkey`, but keys generated from brainkey for ownerKey, activeKey and memoKey will be the same, which is not recommended for security reasons.
+
+```typescript
+import * as dcorejs from 'dcorejs';
+import { KeyPrivate, Utils } from 'dcorejs';
+
+let sequenceNumber = 0;
+const brainKey = dcorejs.account().suggestBrainKey();
+// owner key is generated with sequenceNumber = 0
+const ownerKey: KeyPrivate = Utils.generateKeys(brainKey)[0];
+const activeKey: KeyPrivate = Utils.derivePrivateKey(brainKey, sequenceNumber + 1);
+const memoKey: KeyPrivate = Utils.derivePrivateKey(brainKey, sequenceNumber + 2);
+
+dcorejs.account().registerAccount(
+    name: 'my-new-account-name',
+    ownerKey: ownerKey,
+    activeKey: activeKey,
+    memoKey: memoKey,
+    registrar: '1.2.345',
+    registrarPrivateKey: '5JawRMmxyeCqKoJvspGyaZvFy6ajh4c3ELfG5meQdii6HWVDBbY',
+    broadcast: boolean = true)
+    .then(res => {
+        // account_create transaction was successfully broadcasted
+    })
+    .catch(err => {
+        // error broadcasting transaction
+    });
+```
+NOTE: Make sure, that `sequenceNumber` you generating keys with, was not used for generating keys for your accounts in past.
+
+### Search content
 
 ```typescript
 import * as dcorejs from 'dcorejs';
@@ -124,7 +159,7 @@ dcorejs.content().searchContent(searchParams)
 Replace all variables with your values to get requested content.
 [Search browser example](https://github.com/DECENTfoundation/dcorejs/tree/master/src/examples/Content/SearchContent)
 
-## Buy content
+### Buy content
 
 ```typescript
 import * as dcorejs from 'dcorejs';
@@ -152,7 +187,7 @@ Otherwise you will not be able to buy content.
 Private key must be in WIF(Wallet Import Format).
 [Buy browser example](https://github.com/DECENTfoundation/dcorejs/tree/master/src/examples/Content/BuyContent)
 
-## Download/Restore content
+### Download/Restore content
 
 Method `restoreContentKeys` will restore your key generated during content submission, used to encrypt content.
 
@@ -177,7 +212,7 @@ dcorejs.content().restoreContentKeys(contentId, elGamalKeyPair)
 [Download browser example](https://github.com/DECENTfoundation/dcorejs/tree/master/src/examples/Content/DownloadContent)
 
 
-## Blockchain event handling
+### Blockchain event handling
 ```typescript
 dcorejs.subscribe((data: any) => {
     // handle fired event
@@ -189,7 +224,7 @@ dcorejs.subscribePendingTransaction((data: any) => {
 ```
 
 
-## Custom transaction
+### Custom transaction
 
 In case you want to create custom transaction, see following example. Replace 'X' values and private key for your own.
 
