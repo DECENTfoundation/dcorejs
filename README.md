@@ -69,8 +69,8 @@ NOTE: If running server from localhost add `NODE_TLS_REJECT_UNAUTHORIZED=0` befo
     <script src="./dcorejs.umd.js" type="text/javascript"></script>
     <script type="text/javascript">
         var testConnection = false;
-        var chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
-        var dcoreNetworkAddresses = ['wss://stagesocket.decentgo.com:8090'];
+        var chainId = 'your-dcore-chain-id';
+        var dcoreNetworkAddresses = ['wss://your.dcore.daemon:8090'];
         
         dcorejs.initialize(
             {
