@@ -1,0 +1,11 @@
+{
+    "out": "dist/docs",
+    "target": "es6",
+    "theme": "typedoc-theme",
+    "excludeExternals": "true",
+    "includeDeclarations": "true",
+    "excludePrivate": "true",
+    "excludeProtected": "true",
+    "exclude": "\"**/*+(test|api)/**/*.*\"",
+    "includes": "src"
+}

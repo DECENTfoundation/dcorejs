@@ -8,7 +8,7 @@ const info = el('info');
 
 // Lib initialization
 const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
-const dcoreNetworkAddresses = ['wss://stage.decentgo.com:8090'];
+const dcoreNetworkAddresses = ['wss://stagesocket.decentgo.com:8090'];
 
 const dcorejs_lib = window['dcorejs-lib'];
 const dcore_js = window['dcorejs'];
@@ -16,7 +16,7 @@ const dcore_js = window['dcorejs'];
 dcore_js.initialize({
     chainId: chainId,
     dcoreNetworkWSPaths: dcoreNetworkAddresses
-}, dcorejs_lib);
+}, false, dcorejs_lib);
 
 // Define own values for variables
 const elGamalPrivate = '10052350047151250452972738120447855146606648325351208980751111128157011481411054178116934354199808094865880555005273718347076878505033381872379935044832438.';

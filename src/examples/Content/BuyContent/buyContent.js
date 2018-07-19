@@ -1,7 +1,7 @@
 "use strict";
 // Lib initialization
 const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
-const dcoreNetworkAddresses = ['wss://stage.decentgo.com:8090'];
+const dcoreNetworkAddresses = ['wss://stagesocket.decentgo.com:8090'];
 
 const dcorejs_lib = window['dcorejs-lib'];
 const dcore_js = window['dcorejs'];
@@ -9,7 +9,7 @@ const dcore_js = window['dcorejs'];
 dcore_js.initialize({
     chainId: chainId,
     dcoreNetworkWSPaths: dcoreNetworkAddresses
-}, dcorejs_lib);
+}, false, dcorejs_lib);
 
 const el = id => document.getElementById(id);
 
@@ -17,9 +17,14 @@ const output = el('output');
 const result = el('result');
 
 output.innerHTML = 'Loading ...';
-dcore_js.content().searchContent(new dcore_js.SearchParams())
+dcore_js.content().searchContent()
     .then(content => {
+        console.log(content);
         output.innerHTML = renderContent(content);
+    })
+    .catch(error => {
+        console.error(error);
+        result.innerHTML = '<p style="color: red;">Error by searching content</p>';
     });
 
 function renderContent(content) {

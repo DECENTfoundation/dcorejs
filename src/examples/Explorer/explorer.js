@@ -9,7 +9,7 @@ const dcore_js = window['dcorejs'];
 dcore_js.initialize({
     chainId: chainId,
     dcoreNetworkWSPaths: dcoreNetworkAddresses
-}, dcorejs_lib);
+}, false, dcorejs_lib);
 
 const el = id => document.getElementById(id);
 
@@ -223,7 +223,7 @@ function getChainProperty() {
 }
 
 function getWitnessSchedule() {
-    dcore_js.explorer().getWitnessSchedule('0').then(res => {
+    dcore_js.explorer().getMinerSchedule('0').then(res => {
         block = res;
         renderBlock(block);
     });

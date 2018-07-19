@@ -1,3 +1,6 @@
+/**
+ * @module ChainApi
+ */
 import {dcorejs_lib} from '../helpers';
 import {ApiConnector} from './apiConnector';
 import {ChainError, ChainSubscriptionCallback, Method} from './model/chain';
@@ -72,6 +75,14 @@ export class ChainApi {
         this.connect()
             .then(res => {
                 this._chainStore.subscribePendingTransaction(callback);
+            })
+            .catch(err => console.log(err));
+    }
+
+    public subscribeBlockApplied(callback: ChainSubscriptionCallback) {
+        this.connect()
+            .then(res => {
+                this._chainStore.subscribeBlockApplied(callback);
             })
             .catch(err => console.log(err));
     }

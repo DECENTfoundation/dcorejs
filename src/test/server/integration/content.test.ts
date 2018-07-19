@@ -1,5 +1,8 @@
 import * as dcore_js from '../../../../';
 import * as chai from 'chai';
+import * as sinon from 'sinon';
+import {SubmitObject, Synopsis} from '../../../model/content';
+import {BuyContentType, SubmitContentType} from '../../../model/operationPrototype';
 
 const expect = chai.expect;
 chai.should();
@@ -7,8 +10,9 @@ chai.config.showDiff = false;
 
 const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
 const dcoreNetworkAddresses = ['wss://stagesocket.decentgo.com:8090'];
-const accountId = '1.2.18';
-// const contentId = '2.13.240';
+const accountId = '1.2.27';
+const privateKey = '5KcA6ky4Hs9VoDUSdTF4o3a7QDgiiG5gkpLLysRWR8dy6EAgTnZ';
+const contentId = '2.13.240';
 
 // turn off unverified certificate rejection
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
@@ -19,89 +23,99 @@ before(() => {
         dcoreNetworkWSPaths: dcoreNetworkAddresses
     });
 });
+
 describe('(server/integration) Content fetch', () => {
-    it('search content', (done) => {
-        dcore_js.content().searchContent()
-            .then(res => {
-                expect(res).to.be.a('array');
-                done();
-            })
-            .catch(err => {
-                console.log('Catch: ', err);
-                chai.assert.isDefined(err);
-            });
-    });
-
-    // TODO: disabled due to lack of content on testnet
-    // it('get content', (done) => {
-    //     dcore_js.content().getContent(contentId)
-    //         .then(res => {
-    //             expect(res.id).to.be.equal(contentId);
-    //             done();
-    //         })
-    //         .catch(err => {
-    //             chai.assert.isDefined(err);
-    //             done();
-    //         });
-    // });
-
-    // TODO: Test is commented due to testnet reset, therefore, no seeders and no content is on testnet yet
-    // it('restore content keys', (done) => {
-    //     const elGamalPublic = '7317752633383033582159088' +
-    //         '0415095934922384683502050702002361917832276924025919' +
-    //         '7334324222430627661202908079769675760465400935084759' +
-    //         '1901976526778157668840202.';
-    //     const privateKey = '5JdZfU9Ni7wopN8JPLPM2SJBkKWB19XJSR4mK27Ww7kyZAidJ1M';
-    //     const keyPair = new dcore_js.KeyPair(privateKey, elGamalPublic);
-    //     const buyContentId = '2.12.114';
-    //     dcore_js.content().restoreContentKeys(buyContentId, accountId, keyPair)
-    //         .then(res => {
-    //             expect(res).a('string');
-    //             done();
-    //         })
-    //         .catch(err => {
-    //             expect(err).to.be.a('array');
-    //             done();
-    //         });
-    // }).timeout(5000);
-
-    it('get seeders', (done) => {
-        dcore_js.content().getSeeders(2)
-            .then(res => {
-                expect(res).to.be.a('array');
-                done();
-            })
-            .catch(err => {
-                expect(err).to.be.a('array');
-                done();
-            });
-    });
-
-    it('generate content keys', (done) => {
-        dcore_js.content().getSeeders(2)
+    it('add content', (done) => {
+        const synopsis: Synopsis = {
+            title: 'contentTesting',
+            description: 'content test',
+            content_type_id: '0',
+        };
+        const seedersMock = sinon.mock(dcore_js.seeding().listSeedersByPrice(2));
+        seedersMock.object
             .then(seeders => {
-                dcore_js.content().generateContentKeys(seeders.map(s => s.seeder))
-                    .then(res => {
-                        expect(res.key).a('string');
+                if (seeders.length === 2) {
+                    const keyMock = sinon.mock(dcore_js.content().generateContentKeys([seeders[0].seeder, seeders[1].seeder]));
+                    keyMock.object
+                        .then(key => {
+                            const submitObject: SubmitObject = {
+                                authorId: accountId,
+                                coAuthors: [],
+                                seeders: seeders,
+                                fileName: '/home/katka/decent/dcorejs/contentTesting.txt',
+                                date: new Date().toISOString().split('.')[0].toString(),
+                                price: 0.000001,
+                                size: 16,
+                                URI: 'ipfs',
+                                hash: key.key,
+                                keyParts: key.parts,
+                                synopsis: synopsis,
+                                assetId: '1.3.0',
+                                publishingFeeAsset: '1.3.0',
+                            };
+                            dcore_js.content().addContent(submitObject, privateKey, false)
+                                .then(result => {
+                                    const operation: SubmitContentType = result.operation as SubmitContentType;
+                                    expect(operation.size).equals(1);
+                                    expect(operation.author).equals(accountId);
+                                    expect(operation.URI).equals('ipfs');
+                                    expect(operation.quorum).equals(2);
+                                    expect(operation.hash).equals(key.key);
+                                    expect(operation.seeders).eql([seeders[0].seeder, seeders[1].seeder]);
+                                    expect(operation.key_parts).eql(key.parts);
+                                    done();
+                                })
+                                .catch(error => {
+                                    console.log(error);
+                                    chai.assert.isDefined(error);
+                                });
+                        })
+                        .catch(error => {
+                            console.log(error);
+                            chai.assert.isDefined(error);
+                        });
+                } else {
+                    const error = 'Not enough seeders. Required minimum is two.';
+                    console.log('Error: ', error);
+                    chai.assert.isDefined(error);
+                }
+            })
+            .catch(error => {
+                console.log(error);
+                chai.assert.isDefined(error);
+            });
+    });
+
+    it('buy content', (done) => {
+
+        const elGammalPrivate = dcore_js.Utils.elGamalPrivate(privateKey);
+        const elGammalPublic = dcore_js.Utils.elGamalPublic(elGammalPrivate);
+        const buyerId = '1.2.62';
+        const buyerPrivateKey = '5Jz3i2MEZNFJAFfRvJwTDtLULzoxmQH6aP7VKbQnc8ZrJa1K4qZ';
+
+        const contentMock = sinon.mock(dcore_js.content().getContent(contentId));
+        contentMock.object
+            .then(content => {
+                dcore_js.content().buyContent(contentId, buyerId, elGammalPublic, buyerPrivateKey, false)
+                    .then(result => {
+                        const operation: BuyContentType = result.operation as BuyContentType;
+                        expect(operation.consumer).equals(buyerId);
+                        expect(operation.URI).equals(content.URI);
+                        expect(operation.pubKey.s).equals(elGammalPublic);
                         done();
                     })
-                    .catch(err => {
-                        expect(err).to.be.equal(true);
-                        done();
+                    .catch(error => {
+                        console.log(error);
+                        chai.assert.isDefined(error);
                     });
-            });
-    }).timeout(5000);
-
-    it('get purchased content', (done) => {
-        dcore_js.content().getPurchasedContent(accountId)
-            .then(res => {
-                expect(res).to.be.a('array');
-                done();
             })
-            .catch(err => {
-                expect(err).to.be.equal(true);
-                done();
+            .catch(error => {
+                console.log('Mock Error: ', error);
+                chai.assert.isDefined(error);
             });
-    }).timeout(5000);
+
+    });
+
+
 });
 

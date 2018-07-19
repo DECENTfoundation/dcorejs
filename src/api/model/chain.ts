@@ -1,3 +1,6 @@
+/**
+ * @module Model/Chain
+ */
 export enum ChainOperationType {
     transfer,
     account_create,
@@ -89,3 +92,4 @@ export namespace ChainMethods {
     }
 }
 export type ChainSubscriptionCallback = (msg: any) => void;
+export type ChainSubscriptionBlockAppliedCallback = (msg: string) => void;

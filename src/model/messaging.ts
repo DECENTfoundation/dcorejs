@@ -1,9 +1,13 @@
+/**
+ * @module Model/Messaging
+ */
 export enum MessagingError {
     query_execution_failed = 'query_execution_failed',
     api_connection_failed = 'api_connection_failed',
     transaction_broadcast_failed = 'transaction_broadcast_failed',
     account_does_not_exist = 'account_does_not_exist',
     message_decryption_failed = 'message_decryption_failed',
+    syntactic_error = 'syntactic_error',
 }
 
 export interface MessagePayload {

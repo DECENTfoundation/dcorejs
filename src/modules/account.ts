@@ -1,3 +1,6 @@
+/**
+ * @module AccountModule
+ */
 import {
     Account,
     AccountError,
@@ -30,7 +33,7 @@ export enum AccountOrder {
 }
 
 /**
- * API class provides wrapper for account information.
+ * AccountModule is class that provides methods to obtain information from DCore node's Account module API.
  */
 export class AccountModule extends ApiModule {
     constructor(dbApi: DatabaseApi, chainApi: ChainApi, historyApi: HistoryApi, apiConnector: ApiConnector) {
@@ -43,10 +46,11 @@ export class AccountModule extends ApiModule {
     }
 
     /**
-     * Gets chain account for given Account name.
+     * Gets account from DCore blockchain database for given account name.
+     * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#ac5c1fd29358dcde88ec644292de59304
      *
-     * @param {string} name         example: "u123456789abcdef123456789"
-     * @return {Promise<Account>}
+     * @param {string} name         Account name. Example: "u123456789abcdef123456789"
+     * @return {Promise<Account>}   Account object.
      */
     public getAccountByName(name: string): Promise<Account> {
         const dbOperation = new DatabaseOperations.GetAccountByName(name);
@@ -62,10 +66,11 @@ export class AccountModule extends ApiModule {
     }
 
     /**
-     * Gets chain account for given Account id.
+     * Gets account from DCore blockchain database for given account id.
+     * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#aa20a30ec92c339c1b186c4ee7825f67b
      *
-     * @param {string} id           example: "1.2.345"
-     * @return {Promise<Account>}
+     * @param {string} id           Account id in format '1.2.X'. Example: "1.2.345"
+     * @return {Promise<Account>}   Account object.
      */
     public getAccountById(id: string): Promise<Account> {
         const dbOperation = new DatabaseOperations.GetAccounts([id]);
@@ -87,18 +92,18 @@ export class AccountModule extends ApiModule {
     }
 
     /**
-     * Gets transaction history for given Account name.
+     * Gets history of transfer transaction for given account name.
+     * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#a180dc12024aa0e60bcbdf781611680fc
      *
      * @deprecated This method will be removed in future DCore update. Use getAccountHistory or searchAccountHistory instead
      *
-     * @param {string} accountId                example: "1.2.345"
-     * @param {string} order                    SearchAccountHistoryOrder class holds all available options.
-     *                                          Default SearchParamsOrder.createdDesc
-     * @param {string[]} privateKeys            Array of private keys in case private/public pair has been changed
-     *                                          to be able of decrypt older memo messages from transactions.
-     * @param {string} startObjectId            Id of object to start search from for paging purposes. Default 0.0.0
-     * @param {number} resultLimit              Number of returned transaction history records for paging. Default 100(max)
-     * @return {Promise<TransactionRecord[]>}
+     * @param {string} accountId                Account id in format '1.2.X'. Example: "1.2.345"
+     * @param {string} order                    Order of TransactionRecords in result. Default is .timeDesc.
+     * @param {string[]} privateKeys            Array of private keys in case private/public pair has been changed in blockchain account,
+     *                                          using for example cli_wallet, to be able of decrypt older memo messages from transactions.
+     * @param {string} startObjectId            Id of TransactionRecord to start search from for paging purposes. Default 0.0.0
+     * @param {number} resultLimit              Number of transaction history records in result. Use for paging. Default 100(max)
+     * @return {Promise<TransactionRecord[]>}   List of TransactionRecord.List of TransactionRecord.
      */
     public getTransactionHistory(accountId: string,
         privateKeys: string[],
@@ -120,14 +125,18 @@ export class AccountModule extends ApiModule {
 
     /**
      * Returns transfer operations for given account.
+     * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#a180dc12024aa0e60bcbdf781611680fc
      *
-     * @param {string} accountId
-     * @param {string[]} privateKeys
-     * @param {string} order
-     * @param {string} startObjectId
-     * @param {number} resultLimit
-     * @param {boolean} convertAssets
-     * @returns {Promise<TransactionRecord[]>}
+     * @param {string} accountId                Account id in format '1.2.X'. Example: "1.2.345"
+     * @param {string[]} privateKeys            Array of private keys in case private/public pair has been changed in blockchain account,
+     *                                          using for example cli_wallet, to be able of decrypt older memo messages from transactions.
+     * @param {string} order                    Order of TransactionRecords in result. Default is .timeDesc.
+     * @param {string} startObjectId            Id of TransactionRecord to start search from for paging purposes. Default 0.0.0
+     * @param {number} resultLimit              Number of transaction history records in result. Use for paging. Default 100(max)
+     * @param {boolean} convertAssets           Optional parameter to convert amounts and fees of TransactionRecords from blockchain asset
+     *                                          amount format to right precision format of asset. Example: 100000000 => 1 DCT.
+     *                                          Default: false.
+     * @returns {Promise<TransactionRecord[]>}  List of TransactionRecord.
      */
     public searchAccountHistory(accountId: string,
                                 privateKeys: string[],
@@ -193,17 +202,16 @@ export class AccountModule extends ApiModule {
     }
 
     /**
-     * Transfers exact amount of DCT between accounts with optional
-     * message for recipient
+     * Transfers amount of asset between accounts.
+     * https://docs.decent.ch/developer/group___wallet_a_p_i___account.html#gae61c0c78134741c534967260c8ff8a71
      *
-     * @param {number} amount
-     * @param {string} assetId          Id of asset amount will be send. If empty, default 1.3.0 - DCT is selected
-     * @param {string} fromAccount      Name or id of account
-     * @param {string} toAccount        Name or id of account
+     * @param {number} amount           Amount of asset to be send to receiver.
+     * @param {string} assetId          Id of asset that amount will be sent in. If empty, default 1.3.0 - DCT is selected
+     * @param {string} fromAccount      Name or id of sender account
+     * @param {string} toAccount        Name or id of receiver account
      * @param {string} memo             Message for recipient
      * @param {string} privateKey       Private key used to encrypt memo and sign transaction
-     * @param {boolean} broadcast       true iftransaction should be broadcasted
-     * @return {Promise<Operation>}
+     * @return {Promise<Operation>}     Value confirming successful transaction broadcasting.
      */
     public transfer(amount: number, assetId: string, fromAccount: string, toAccount: string, memo: string, privateKey: string,
                     broadcast: boolean = true): Promise<Operation> {
@@ -264,19 +272,23 @@ export class AccountModule extends ApiModule {
                         Asset.create(amount, assetObject),
                         memo_object
                     );
-                    transaction.addOperation(transferOperation);
-                    if (broadcast) {
-                        transaction.broadcast(privateKey)
-                            .then(() => {
-                                resolve(transaction.operations[0]);
-                            })
-                            .catch(err => {
-                                reject(
-                                    this.handleError(AccountError.transaction_broadcast_failed, err)
-                                );
-                            });
+                    const added = transaction.addOperation(transferOperation);
+                    if (added === '') {
+                        if (broadcast) {
+                            transaction.broadcast(privateKey)
+                                .then(() => {
+                                    resolve(transaction.operations[0]);
+                                })
+                                .catch(err => {
+                                    reject(this.handleError(AccountError.transaction_broadcast_failed, err));
+                                    return;
+                                });
+                        } else {
+                            resolve(transaction.operations[0]);
+                        }
                     } else {
-                        resolve(transaction.operations[0]);
+                        reject(this.handleError(AccountError.syntactic_error, added));
+                        return;
                     }
                 })
                 .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
@@ -284,12 +296,15 @@ export class AccountModule extends ApiModule {
     }
 
     /**
-     * Current account balance of DCT asset on given account
+     * Current account balance of asset on given account
+     * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#a52515490f739d3523c9d842e2e2362ef
      *
-     * @param {string} accountId    Account id, example: '1.2.345'
-     * @param {string} assetId      Id of asset in which balance will be listed
-     * @param convertAsset
-     * @return {Promise<number>}
+     * @param {string} accountId        Account id in format '1.2.X'. Example: '1.2.345'
+     * @param {string} assetId          Id of asset in which balance will be listed
+     * @param {boolean} convertAsset    Optional parameter to convert balance amount from blockchain asset
+                                        amount format to right precision format of asset. Example: 100000000 => 1 DCT.
+     *                                  Default: false.
+     * @return {Promise<number>}        Account's balance
      */
     public getBalance(accountId: string, assetId: string = '1.3.0', convertAsset: boolean = false): Promise<number> {
         return new Promise((resolve, reject) => {
@@ -313,7 +328,7 @@ export class AccountModule extends ApiModule {
                                 return;
                             }
                             const [balance] = balances;
-                            resolve(convertAsset ? Utils.formatAmountForAsset(balance.amount, asset) : balance.amount);
+                            resolve(convertAsset ? Utils.formatAmountForAsset(balance.amount, asset) : Number(balance.amount));
                         })
                         .catch(err => {
                             reject(this.handleError(AccountError.database_operation_failed, err));
@@ -324,16 +339,15 @@ export class AccountModule extends ApiModule {
     }
 
     /**
-     * Determine if block with transaction is verified and irreversible.
-     * Unverified blocks still can be reversed.
+     * Verifies if block in that transaction was processed to is irreversible.
+     * NOTE: Unverified blocks still can be reversed.
      *
      * NOTICE:
-     * Transaction object with id in form '1.7.X' can be fetched from AccountApi.getAccountHistory(:)
-     * method.
+     * Transaction object with id in form '1.7.X' can be fetched from AccountModule.getAccountHistory method.
      *
-     * @param {string} accountId        User's account id, example: '1.2.30'
+     * @param {string} accountId        Account id in format '1.2.X'. Example: '1.2.30'
      * @param {string} transactionId    Transaction id in format '1.7.X'.
-     * @return {Promise<boolean>}
+     * @return {Promise<boolean>}       Returns 'true' if transaction is in irreversible block, 'false' otherwise.
      */
     public isTransactionConfirmed(accountId: string, transactionId: string): Promise<boolean> {
         return new Promise((resolve, reject) => {
@@ -354,7 +368,7 @@ export class AccountModule extends ApiModule {
             this.historyApi.execute(operation)
                 .then(res => {
                     if (res.length === 0) {
-                        reject(this.handleError(AccountError.transaction_history_fetch_failed, ''));
+                        reject(this.handleError(AccountError.transaction_history_fetch_failed, 'No transactions found'));
                     }
                     const dbOp = new DatabaseOperations.GetDynamicGlobalProperties();
                     this.dbApi.execute(dbOp)
@@ -368,14 +382,17 @@ export class AccountModule extends ApiModule {
     }
 
     /**
-     * List chain operations history list for given user
-     * Operations can be filtered using Chain.ChainOperationType
+     * List of all transaction operations in history of user.
+     * NOTE: Operations can be filtered using Chain.ChainOperationType
+     * https://docs.decent.ch/developer/group___history_a_p_i.html#ga2bfce814ce4adde1c30e63662f3fa18c
      *
-     * @param {string} accountId                Users account id, example: '1.2.30'
-     * @param {string} fromId                   ID of operation from what to start list from. Note, that list is in DESC order.
-     *                                          So id of operation suppose to be last in received list.
-     * @param {number} resultLimit              Number of results to be returned, max value is 100
-     * @return {Promise<HistoryRecord[]>}       Return variable object types, based on operation in history record
+     * @param {string} accountId                Account id in format '1.2.X'. Example: '1.2.345'
+     * @param historyOptions                    Optional HistoryOptions object to configure fromId and resultLimit for paging.
+     *                                          fromId: Id of HistoryRecord from what to start list from. Default: '1.7.0'
+     *                                          resultLimit: Number of HistoryRecords in result. Default: 100(Max)
+     *                                          NOTE: List is in DESC order. Therefore fromId of operation suppose to be last in received
+     *                                          list.
+     * @return {Promise<HistoryRecord[]>}       List of HistoryRecord objects.
      */
     public getAccountHistory(accountId: string, historyOptions?: HistoryOptions): Promise<HistoryRecord[]> {
         return new Promise((resolve, reject) => {
@@ -387,7 +404,6 @@ export class AccountModule extends ApiModule {
             );
             this.historyApi.execute(operation)
                 .then(res => {
-                    // TODO: create models for different operations names, placed in dcore/src/chain/src/ChainTypes.js
                     resolve(res);
                 })
                 .catch(err => reject(this.handleError(AccountError.transaction_history_fetch_failed, err)));
@@ -395,15 +411,19 @@ export class AccountModule extends ApiModule {
     }
 
     /**
-     * Search accounts based on given parameters
+     * Search accounts based on given search parameters.
+     * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#a57cbf9b3e799ea70b08885cc5df9b043
      *
-     * @param {string} searchTerm
-     * @param {string} order
-     * @param {string} id
-     * @param {number} limit
-     * @returns {Promise<Account>}
+     * @param {string} searchTerm   Term to search in account names. Default: ''
+     * @param {string} order        AccountOrder to order results. Default: AccountOrder.none
+     * @param {string} id           Account id to start list from. Default: '0.0.0'
+     * @param {number} limit        Limit result list size. Default: 100(Max)
+     * @returns {Promise<Account>}  List of filtered accounts.
      */
-    public searchAccounts(searchTerm: string, order: AccountOrder, id: string, limit: number = 100): Promise<Account> {
+    public searchAccounts(searchTerm: string = '',
+                          order: AccountOrder = AccountOrder.none,
+                          id: string = '0.0.0',
+                          limit: number = 100): Promise<Account> {
         return new Promise<Account>((resolve, reject) => {
             const operation = new DatabaseOperations.SearchAccounts(searchTerm, order, id, limit);
             this.dbApi.execute(operation)
@@ -414,8 +434,9 @@ export class AccountModule extends ApiModule {
 
     /**
      * Returns number of accounts created on network
+     * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#a533c834442d9e8fbaeae5eb24d4fe8c5
      *
-     * @returns {Promise<number>}
+     * @returns {Promise<number>}   Number of accounts.
      */
     public getAccountCount(): Promise<number> {
         return new Promise<number>((resolve, reject) => {
@@ -427,23 +448,24 @@ export class AccountModule extends ApiModule {
     }
 
     /**
-     * Creates new account in network.
+     * Creates new account in DCore blockchain network.
+     * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#aed56e5dfd4dc85b40d62dd25cb1fd029
      *
      * @param {string} name                 Name of newly created account.
-     * @param {string} ownerKey             Public key to be used as owner key.
-     * @param {string} activeKey            Public key to be used as active key.
-     * @param {string} memoKey              Public key used to memo encryption.
-     * @param {string} registrar            Registrar account id who pay account creation transaction
-     * @param {string} regisrarPrivateKey   Registrar private key for account register transaction to be signed with
-     * @param {boolean} broadcast           If true, transaction is broadcasted, otherwise is not
-     * @returns {Promise<boolean>}
+     * @param {string} ownerKey             Public key to be used as owner key in WIF(hex)(Wallet Import Format) format.
+     * @param {string} activeKey            Public key to be used as active key in WIF(hex)(Wallet Import Format) format.
+     * @param {string} memoKey              Public key used to memo encryption in WIF(hex)(Wallet Import Format) format.
+     * @param {string} registrar            Registrar account id who pay account creation transaction fee.
+     * @param {string} regisrarPrivateKey   Registrar private key, in WIF(hex)(Wallet Import Format) format, for account register
+     *                                      transaction to be signed with.
+     * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
      */
     public registerAccount(name: string,
         ownerKey: string,
         activeKey: string,
         memoKey: string,
         registrar: string,
-        regisrarPrivateKey: string,
+        registrarPrivateKey: string,
         broadcast: boolean = true): Promise<Operation> {
         const ownerKeyAuths: [[string, number]] = [] as [[string, number]];
         ownerKeyAuths.push([ownerKey, 1]);
@@ -478,15 +500,18 @@ export class AccountModule extends ApiModule {
                             subscription_period: 0,
                         }
                     });
-
                     const transaction = new TransactionBuilder();
-                    transaction.addOperation(operation);
-                    if (broadcast) {
-                        transaction.broadcast(regisrarPrivateKey)
-                            .then(() => resolve(transaction.operations[0]))
-                            .catch(err => reject(err));
+                    const added = transaction.addOperation(operation);
+                    if (added === '') {
+                        if (broadcast) {
+                            transaction.broadcast(registrarPrivateKey)
+                                .then(() => resolve(transaction.operations[0]))
+                                .catch(err => reject(err));
+                        } else {
+                            resolve(transaction.operations[0]);
+                        }
                     } else {
-                        resolve(transaction.operations[0]);
+                        reject(this.handleError(AccountError.syntactic_error, added));
                     }
                 })
                 .catch(err => console.log(err));
@@ -494,17 +519,18 @@ export class AccountModule extends ApiModule {
     }
 
     /**
-     * Create account with keys derived from provided brain key.
+     * Create account in DCore blockchain network with keys derived from provided brain key.
+     * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#a758d05a5f090adbc249258881775d222
      *
      * NOTE: This method create account with owner, active and memo key set to same value.
-     *       Use of helper methods from Utils to derive keys from brainkey and then register account
+     *       Recommended to use Utils.derivePrivateKey to derive keys from brainkey and then register account
      *       with option to set these keys to different values.
      *
-     * @param {string} brainkey             Brain key for keys derivation
-     * @param {string} accountName          Name for new account
-     * @param {string} registrar            Registrar account id, who pay for account registration
-     * @param {string} registrarPrivateKey  Registrar private key in WIF
-     * @returns {Promise<boolean>}
+     * @param {string} brainkey             Brain key for keys derivation. Use brain key from Utils.suggestBrainKey.
+     * @param {string} accountName          Name for new account. String with alphanumerical symbols and dash. Example: 'new-account2'
+     * @param {string} registrar            Registrar account id, who pay for account registration in format '1.2.X'. Example: '1.2.345'
+     * @param {string} registrarPrivateKey  Registrar private key in WIF(hex)(Wallet Import Format) format.
+     * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
      */
     public createAccountWithBrainkey(brainkey: string,
         accountName: string,
@@ -523,12 +549,14 @@ export class AccountModule extends ApiModule {
 
     /**
      * Exports wallet-cli compatible wallet file.
+     * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#a3cb922b2d88865c509a8e2c91b7416ab
      *
-     * @param {string} accountId
-     * @param {string} password
-     * @param privateKeys
-     * @param additionalElGamalPrivateKeys
-     * @returns {Promise<any>}
+     * @param {string} accountId            Account id that about to be exported, in format '1.2.X'. Example: '1.2.345'
+     * @param {string} password             Password for keys structure encryption.
+     * @param privateKeys                   Private keys, in WIF(hex)(Wallet Import Format) format, to be exported
+     * @param additionalElGamalPrivateKeys  Additional el gamal keys, in case that has been changed over time. Primary el gamal key is
+     *                                      calculated from privateKeys.
+     * @returns {Promise<WalletExport>}     WalletExport object that can be serialized and used as import for cli_wallet.
      */
     exportWallet(accountId: string,
         password: string,
@@ -584,16 +612,16 @@ export class AccountModule extends ApiModule {
     }
 
     /**
-     * Fetch list of an accounts that begins from lower bound account id.
-     * If empty string or '1.2.0' is entered, account are listed from the beginning.
+     * Fetch list of an accounts.
+     * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#abf203f3002c7e2053c33eb6cb4e147c6
      *
-     * @param {string} loweBound                Account id from which accounts are listed.
-     * @param {number} limit                    Number of returned accounts
-     * @returns {Promise<AccountNameIdPair>}    Listed accounts.
+     * @param {string} loweBound                Account id from which accounts are listed, in format '1.2.X'. Default: ''
+     * @param {number} limit                    Number of returned accounts. Default: 100(Max)
+     * @returns {Promise<AccountNameIdPair>}    List of filtered AccountNameIdPairs.
      */
-    public listAccounts(loweBound: string = '', limit: number = 100): Promise<AccountNameIdPair[]> {
+    public listAccounts(lowerBound: string = '', limit: number = 100): Promise<AccountNameIdPair[]> {
         return new Promise<AccountNameIdPair[]>((resolve, reject) => {
-            const operation = new DatabaseOperations.LookupAccounts(loweBound, limit);
+            const operation = new DatabaseOperations.LookupAccounts(lowerBound, limit);
             this.dbApi.execute(operation)
                 .then(res => resolve(res))
                 .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
@@ -602,9 +630,12 @@ export class AccountModule extends ApiModule {
 
     /**
      * Returns account's balances in all assets account have non-zero amount in.
+     * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#a52515490f739d3523c9d842e2e2362ef
      *
-     * @param {string} id           Account id
-     * @returns {Promise<Asset[]>}  List of balances
+     * @param {string} id               Account id in format '1.2.X', Example: '1.2.345'.
+     * @param {boolean} convertAssets   Optional parameter to convert balance amount from blockchain asset
+     *                                  amount format to right precision format of asset. Example: 100000000 => 1 DCT. Default: false.
+     * @returns {Promise<Asset[]>}      List of balances
      */
     public listAccountBalances(id: string, convertAssets: boolean = false): Promise<Asset[]> {
         return new Promise<Asset[]>((resolve, reject) => {
@@ -641,20 +672,21 @@ export class AccountModule extends ApiModule {
 
     /**
      * Search for miners with parameters.
+     * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#a6bf2da2d8f11165c8990d3a849c2dd92
      *
-     * @param {string} accountName          Account name to search miners for. If not using myVotes, searching in all miners
+     * @param {string} accountName          Account name to search miners for.
      * @param {string} keyword              Search keyword.
      * @param {boolean} myVotes             Flag to search within account's voted miners.
      * @param {MinerOrder} sort             Sorting parameter of search results.
      * @param {string} fromMinerId          Miner id to start form. Use for paging.
      * @param {number} limit                Result count. Default and max is 1000
-     * @returns {Promise<MinerInfo[]>}
+     * @returns {Promise<MinerInfo[]>}      List of filtered MinerInfo objects.
      */
     public searchMinerVoting(accountName: string,
         keyword: string,
-        myVotes: boolean,
-        sort: MinerOrder,
-        fromMinerId: string,
+        myVotes: boolean = true,
+        sort: MinerOrder = MinerOrder.none,
+        fromMinerId: string = '',
         limit: number = 1000): Promise<MinerInfo[]> {
         return new Promise<MinerInfo[]>((resolve, reject) => {
             const operation = new DatabaseOperations.SearchMinerVoting(
@@ -672,6 +704,17 @@ export class AccountModule extends ApiModule {
         });
     }
 
+
+    /**
+     * Update account properties.
+     * https://docs.decent.ch/developer/structgraphene_1_1wallet_1_1wallet__data.html#a7e45dcef220b45e13f0918b1036cbf41
+     *
+     * @param {string} accountId                Account id of account that is about to be updated. Example: '1.2.345'.
+     * @param {UpdateAccountParameters} params  UpdateAccountParameters object with parameters to be changed.
+     * @param {string} privateKey               Private key of account that is about to be changed, to sign transaction.
+     *                                          In WIF(hex)(Wallet Import Format) format.
+     * @returns {Promise<Boolean>}              Value confirming successful transaction broadcasting.
+     */
     public updateAccount(accountId: string, params: UpdateAccountParameters, privateKey: string, broadcast: boolean = true)
         : Promise<Operation> {
         return new Promise<Operation>(((resolve, reject) => {
@@ -714,21 +757,24 @@ export class AccountModule extends ApiModule {
                         newOptions,
                         {}
                     );
-
                     const transaction = new TransactionBuilder();
-                    transaction.addOperation(accountUpdateOperation);
-                    if (broadcast) {
-                        transaction.broadcast(privateKey)
-                            .then(() => {
-                                resolve(transaction.operations[0]);
-                            })
-                            .catch((error: any) => {
-                                reject(this.handleError(AccountError.transaction_broadcast_failed, error));
-                            });
+                    const added = transaction.addOperation(accountUpdateOperation);
+                    if (added === '') {
+                        if (broadcast) {
+                            transaction.broadcast(privateKey)
+                                .then(() => {
+                                    resolve(transaction.operations[0]);
+                                })
+                                .catch((error: any) => {
+                                    reject(this.handleError(AccountError.transaction_broadcast_failed, error));
+                                });
+                        } else {
+                            resolve(transaction.operations[0]);
+                        }
                     } else {
-                        resolve(transaction.operations[0]);
+                        reject(this.handleError(AccountError.syntactic_error, added));
+                        return;
                     }
-
                     })
                 .catch((error) => {
                     reject(this.handleError(AccountError.account_update_failed, error));

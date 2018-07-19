@@ -1,3 +1,6 @@
+/**
+ * @module ApiModule
+ */
 import {DatabaseApi} from '../api/database';
 import {ChainApi} from '../api/chain';
 import {HistoryApi} from '../api/history';

@@ -1,5 +1,8 @@
+/**
+ * @module TransactionBuilder
+ */
 import {dcorejs_lib} from './helpers';
-import {KeyPrivate, KeyPublic, Utils} from './utils';
+import {KeyPrivate, Utils} from './utils';
 import {Operation} from './model/transaction';
 import {ProposalCreateParameters} from './model/proposal';
 
@@ -10,7 +13,7 @@ export class TransactionBuilder {
     /**
      * dcore_js.lib/lib - TransactionBuilder
      */
-    private _transaction: any;
+    private _transaction;
     private _operations: Operation[] = [];
 
     constructor() {
@@ -25,6 +28,11 @@ export class TransactionBuilder {
         return this._operations;
     }
 
+    /**
+     * Get dcorejs-lib format transaction.
+     *
+     * @returns {any}   dcorejs-lib transaction object.
+     */
     get transaction(): any {
         return this._transaction;
     }
@@ -32,34 +40,43 @@ export class TransactionBuilder {
     /**
      * Append new operation to transaction object.
      *
-     * @param {Operation} operation
-     * @return {boolean}
+     * @param {Operation} operation     Operation to append to transaction.
+     * @return {boolean}                Successful operation add value.
      */
-    public addOperation(operation: Operation): boolean {
-        this._transaction.add_type_operation(operation.name, operation.operation);
-        this._operations.push(operation);
-        return true;
+    public addOperation(operation: Operation): string {
+        try {
+            this._transaction.add_type_operation(operation.name, operation.operation);
+            this._operations.push(operation);
+            return '';
+        } catch (exception) {
+            return exception;
+        }
     }
 
+    /**
+     * Transform transaction into proposal type transaction.
+     *
+     * @param {ProposalCreateParameters} proposalParameters     Proposal transaction parameters.
+     */
     public propose(proposalParameters: ProposalCreateParameters): void {
         this._transaction.propose(proposalParameters);
     }
 
     /**
-     * Broadcast transaction to dcore_js blockchain.
+     * Broadcast transaction to DCore blockchain.
      *
-     * @param {string} privateKey
-     * @param sign
-     * @return {Promise<void>}
+     * @param {string} privateKey       Private key to sign transaction in WIF(hex)(Wallet Import Format) format .
+     * @param sign                      If value is 'true' transaction will be singed, in 'false' transaction will not be signed.
+     *                                  Default 'true'
+     * @return {Promise<void>}          Void.
      */
     public broadcast(privateKey: string, sign: boolean = true): Promise<void> {
         const secret = Utils.privateKeyFromWif(privateKey);
-        const publicKey = Utils.getPublicKey(secret);
         return new Promise((resolve, reject) => {
             this.setTransactionFees()
                 .then(() => {
                     if (sign) {
-                        this.signTransaction(secret, publicKey);
+                        this.signTransaction(secret);
                     }
                     this._transaction.broadcast()
                         .then(() => {
@@ -77,7 +94,8 @@ export class TransactionBuilder {
 
     /**
      * Set transaction fee required for transaction operation
-     * @return {Promise<void>}
+     *
+     * @return {Promise<void>}  Void.
      */
     private setTransactionFees(): Promise<void> {
         return new Promise((resolve, reject) => {
@@ -86,7 +104,6 @@ export class TransactionBuilder {
                     resolve();
                 })
                 .catch(() => {
-                    // TODO: error handling
                     reject();
                 });
         });
@@ -95,31 +112,39 @@ export class TransactionBuilder {
     /**
      * Sign transaction with given private/public key pair.
      *
-     * @param {KeyPrivate} privateKey
-     * @param {KeyPublic} publicKey
+     * @param {KeyPrivate} privateKey   Private key to sign transaction.
+     * @param {KeyPublic} publicKey     Public key related to private key.
      */
-    public signTransaction(privateKey: KeyPrivate, publicKey: KeyPublic): void {
-        this._transaction.add_signer(privateKey.key, publicKey.key);
+    public signTransaction(privateKey: KeyPrivate): void {
+        const publicKey = KeyPrivate.fromWif(privateKey.stringKey).getPublicKey().key;
+        this._transaction.add_signer(privateKey.key, publicKey);
     }
 
     /**
      * Replace operation on operationIndex with newOperation
      *
-     * @param {number} operationIndex               Must be greater than 0 and smaller than length of operations.
-     * @param {Operation} newOperation
+     * @param {number} operationIndex               Index of operation to replace. Must be greater than 0 and smaller than
+     *                                              length of operations.
+     * @param {Operation} newOperation              Operation to be placed to index.
      * @returns {boolean}                           Returns true if replaced, false otherwise.
      */
     public replaceOperation(operationIndex: number, newOperation: Operation): boolean {
         if (operationIndex >= 0 && operationIndex < this._operations.length) {
-            this._transaction.add_type_operation(newOperation.name, newOperation.operation);
-            this._operations[operationIndex] = newOperation;
-            return true;
+            try {
+                this._transaction.add_type_operation(newOperation.name, newOperation.operation);
+                this._operations[operationIndex] = newOperation;
+                return true;
+            } catch (exception) {
+                console.log(exception);
+                return false;
+            }
         }
         return false;
     }
 
     /**
      * Displays current transaction
+     * @returns {any}   dcorejs-lib format transaction object.
      */
     public previewTransaction(): any {
         return this._transaction;

@@ -1,3 +1,6 @@
+/**
+ * @module Model/Mining
+ */
 export interface MinerUpdateData {
     newUrl?: string;
     newSigningKey?: string;
@@ -10,6 +13,7 @@ export enum MiningError {
     miner_does_not_exist = 'miner_does_not_exist',
     account_fetch_failed = 'account_fetch_failed',
     duplicate_settings = 'duplicate_settings',
+    syntactic_error = 'syntactic_error',
 }
 
 export type MinerNameIdPair = [string, string];

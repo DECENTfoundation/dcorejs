@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>dcorejs - Fund asset pools example</title>
+</head>
+
+<body>
+    <h1>Fund asset pools</h1>
+    <form action="javascript:void(0)">
+        <label for="payer">Enter payer account: </label><br/>
+        <input id="payer" type="text" title="payer" /><br /><br />
+        <label for="uiaAmount">Enter uia amount: </label><br/>
+        <input id="uiaAmount" type="number" title="uiaAmount" /><br /><br />
+        <label for="uiaSymbol">Enter uia symbol: </label><br/>
+        <input id="uiaSymbol" type="text" title="uiaSymbol" /><br /><br />
+        <label for="dctAmount">Enter dct amount: </label><br/>
+        <input id="dctAmount" type="number" title="dctAmount" /><br /><br />
+        <label for="privateKey">Enter private key: </label><br/>
+        <input id="privateKey" type="text" title="privateKey" /><br /><br />
+        <button id="searchButton" type="submit" title="searchButton"> Search </button>
+    </form>
+    <pre id="output"></pre>
+    <script src="../../../../dist/dcorejs.umd.js" type="text/javascript"></script>
+    <script type="text/javascript" src="fundAssetPools.js"></script>
+</body>
+
+</html>

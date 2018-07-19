@@ -1,5 +1,7 @@
+/**
+ * @module Model/Content
+ */
 import {Asset} from './account';
-
 
 export interface BuyingContent extends ContentExchangeObject {
     consumer: string;
@@ -25,7 +27,7 @@ export interface BuyingContent extends ContentExchangeObject {
 
 export interface Content extends ContentExchangeObject {
     /**
-     * If of the content.
+     * Id of the content.
      */
     id: string;
     /**
@@ -34,10 +36,10 @@ export interface Content extends ContentExchangeObject {
     buy_id?: string;
     author: string;
     price: Price;
-    synopsis: any;
-    status: Status;
-    URI: string;
+    synopsis: string;
     _hash: string;
+    status: string;
+    URI: string;
     AVG_rating: number;
     size: number;
     expiration: string;
@@ -169,6 +171,8 @@ export interface Synopsis extends SynopsisBase {
 
 export interface ContentExchangeObject {
     price: Price | Asset;
+    paid_price_before_exchange?: Asset;
+    paid_price_after_exchange?: Asset;
 }
 
 export interface Price {

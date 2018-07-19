@@ -1,3 +1,6 @@
+/**
+ * @module Model/Account
+ */
 import { KeyPrivate, Utils } from '../utils';
 import { CryptoUtils } from '../crypt';
 import { ChainApi } from '../api/chain';
@@ -105,6 +108,15 @@ export class KeyAuth {
     }
 }
 
+export enum OperationType {
+    transfer,
+    account_create,
+    content_submit,
+    content_buy,
+    content_rate,
+    subscription
+}
+
 export interface Options {
     memo_key?: string;
     voting_account?: string;
@@ -122,7 +134,7 @@ export class TransactionRecord {
     toAccountName: string;
     fromAccountId: string;
     toAccountId: string;
-    operationType: number;
+    operationType: OperationType;
     transactionAmount: number;
     transactionAsset: string;
     transactionFee: number;
@@ -252,4 +264,5 @@ export enum AccountError {
     votes_does_not_changed = 'votes_does_not_changed',
     asset_does_not_exist = 'asset_does_not_exist',
     account_update_failed = 'account_update_failed',
+    syntactic_error = 'syntactic_error',
 }
