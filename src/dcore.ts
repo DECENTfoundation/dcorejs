@@ -45,9 +45,7 @@ export interface DcoreConfig {
 /**
  * Intialize dcorejs library with custom data that are used for library operations
  *
- * @export
  * @param {DcoreConfig} config                                                  Configuration of dcore network yout about to connect to
- * @param {*} [dcorejs_lib=null]                                                Deprecated - Reference to low level dcorejs-lib library
  * @param {(state: ConnectionState) => void} [connectionStatusCallback=null]    Status callback to handle connection
  */
 export function initialize(config: DcoreConfig,
