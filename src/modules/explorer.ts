@@ -454,7 +454,7 @@ export class ExplorerModule extends ApiModule {
      * Get list of miners objects.
      *
      * @deprecated This method will be removed in next release
-     * @param {string} fromId               Miner id to start from. Default '0.0.0' -> List from start
+     * @param {string} fromId               Miner id to start from, last part of id -> X from '1.4.X'. Default '0.0.0' -> List from start
      * @param {number} limit                Limit result list. Default 100(Max)
      * @returns {Promise<Array<Miner>>}
      */

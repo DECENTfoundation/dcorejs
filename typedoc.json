@@ -1,7 +1,7 @@
 {
     "out": "dist/docs",
     "target": "es6",
-    "theme": "default",
+    "theme": "typedoc-theme",
     "excludeExternals": "true",
     "includeDeclarations": "true",
     "excludePrivate": "true",
