@@ -70,9 +70,8 @@ export class ExplorerModule extends ApiModule {
         if (this.hasIdCorrectFormat(id, Space.protocol_ids, Type.Protocol.account)) {
             return this.getDatabaseObject<any>(Space.protocol_ids, Type.Protocol.account, this.getLastPartOfId(id));
         }
-        return new Promise<Account>((reject) => {
-            console.error(`Wrong id! Id should be in format: ${Space.protocol_ids}.${Type.Protocol.account}.X`);
-            reject(null);
+        return new Promise<Account>((resolve, reject) => {
+            reject(this.handleError('Error', `Wrong id! Id should be in format: ${Space.protocol_ids}.${Type.Protocol.account}.X`));
         });
     }
 
@@ -86,9 +85,8 @@ export class ExplorerModule extends ApiModule {
         if (this.hasIdCorrectFormat(id, Space.protocol_ids, Type.Protocol.asset)) {
             return this.getDatabaseObject(Space.protocol_ids, Type.Protocol.asset, this.getLastPartOfId(id));
         }
-        return new Promise<Block.Asset>((reject) => {
-            console.error(`Wrong id! Id should be in format: ${Space.protocol_ids}.${Type.Protocol.asset}.X`);
-            reject(null);
+        return new Promise<Block.Asset>((resolve, reject) => {
+            reject(this.handleError('Error', `Wrong id! Id should be in format: ${Space.protocol_ids}.${Type.Protocol.asset}.X`));
         });
     }
 
@@ -102,9 +100,8 @@ export class ExplorerModule extends ApiModule {
         if (this.hasIdCorrectFormat(id, Space.protocol_ids, Type.Protocol.miner)) {
             return this.getDatabaseObject(Space.protocol_ids, Type.Protocol.miner, this.getLastPartOfId(id));
         }
-        return new Promise<Block.Miner>((reject) => {
-            console.error(`Wrong id! Id should be in format: ${Space.protocol_ids}.${Type.Protocol.miner}.X`);
-            reject(null);
+        return new Promise<Block.Miner>((resolve, reject) => {
+            reject(this.handleError('Error', `Wrong id! Id should be in format: ${Space.protocol_ids}.${Type.Protocol.miner}.X`));
         });
     }
 
@@ -117,9 +114,9 @@ export class ExplorerModule extends ApiModule {
         if (this.hasIdCorrectFormat(id, Space.protocol_ids, Type.Protocol.operation_history)) {
             return this.getDatabaseObject(Space.protocol_ids, Type.Protocol.operation_history, this.getLastPartOfId(id));
         }
-        return new Promise<Block.Transaction>((reject) => {
-            console.error(`Wrong id! Id should be in format: ${Space.protocol_ids}.${Type.Protocol.operation_history}.X`);
-            reject(null);
+        return new Promise<Block.Transaction>((resolve, reject) => {
+            reject(this.handleError('Error',
+                `Wrong id! Id should be in format: ${Space.protocol_ids}.${Type.Protocol.operation_history}.X`));
         });
     }
 
@@ -133,9 +130,8 @@ export class ExplorerModule extends ApiModule {
         if (this.hasIdCorrectFormat(id, Space.protocol_ids, Type.Protocol.vesting_balance)) {
             return this.getDatabaseObject(Space.protocol_ids, Type.Protocol.vesting_balance, this.getLastPartOfId(id));
         }
-        return new Promise<Block.VestingBalance>((reject) => {
-            console.error(`Wrong id! Id should be in format: ${Space.protocol_ids}.${Type.Protocol.vesting_balance}.X`);
-            reject(null);
+        return new Promise<Block.VestingBalance>((resolve, reject) => {
+            reject(this.handleError('Error', `Wrong id! Id should be in format: ${Space.protocol_ids}.${Type.Protocol.vesting_balance}.X`));
         });
     }
 
@@ -167,9 +163,9 @@ export class ExplorerModule extends ApiModule {
         if (this.hasIdCorrectFormat(id, Space.implementation_ids, Type.Implementation.asset_dynamic_data_type)) {
             return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.asset_dynamic_data_type, this.getLastPartOfId(id));
         }
-        return new Promise<Block.AssetDynamicProperty>((reject) => {
-            console.error(`Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.asset_dynamic_data_type}.X`);
-            reject(null);
+        return new Promise<Block.AssetDynamicProperty>((resolve, reject) => {
+            reject(this.handleError('Error',
+                `Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.asset_dynamic_data_type}.X`));
         });
     }
 
@@ -183,9 +179,9 @@ export class ExplorerModule extends ApiModule {
         if (this.hasIdCorrectFormat(id, Space.implementation_ids, Type.Implementation.account_balance)) {
             return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.account_balance, this.getLastPartOfId(id));
         }
-        return new Promise<Block.AccountBalance>((reject) => {
-            console.error(`Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.account_balance}.X`);
-            reject(null);
+        return new Promise<Block.AccountBalance>((resolve, reject) => {
+            reject(this.handleError('Error',
+                `Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.account_balance}.X`));
         });
     }
 
@@ -199,9 +195,9 @@ export class ExplorerModule extends ApiModule {
         if (this.hasIdCorrectFormat(id, Space.implementation_ids, Type.Implementation.account_statistics)) {
             return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.account_statistics, this.getLastPartOfId(id));
         }
-        return new Promise<Block.AccountStatistics>((reject) => {
-            console.error(`Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.account_statistics}.X`);
-            reject(null);
+        return new Promise<Block.AccountStatistics>((resolve, reject) => {
+            reject(this.handleError('Error',
+                `Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.account_statistics}.X`));
         });
     }
 
@@ -215,9 +211,9 @@ export class ExplorerModule extends ApiModule {
         if (this.hasIdCorrectFormat(id, Space.implementation_ids, Type.Implementation.block_summary)) {
             return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.block_summary, this.getLastPartOfId(id));
         }
-        return new Promise<Block.BlockSummary>((reject) => {
-            console.error(`Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.block_summary}.X`);
-            reject(null);
+        return new Promise<Block.BlockSummary>((resolve, reject) => {
+            reject(this.handleError('Error',
+                `Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.block_summary}.X`));
         });
     }
 
@@ -233,9 +229,9 @@ export class ExplorerModule extends ApiModule {
                 Type.Implementation.account_transaction_history,
                 this.getLastPartOfId(id));
         }
-        return new Promise<Block.AccountTransactionHistory>((reject) => {
-            console.error(`Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.account_transaction_history}.X`);
-            reject(null);
+        return new Promise<Block.AccountTransactionHistory>((resolve, reject) => {
+            reject(this.handleError('Error',
+                `Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.account_transaction_history}.X`));
         });
     }
 
@@ -249,9 +245,9 @@ export class ExplorerModule extends ApiModule {
         if (this.hasIdCorrectFormat(id, Space.implementation_ids, Type.Implementation.chain_property)) {
             return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.chain_property, this.getLastPartOfId(id));
         }
-        return new Promise<Block.ChainProperty>((reject) => {
-            console.error(`Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.chain_property}.X`);
-            reject(null);
+        return new Promise<Block.ChainProperty>((resolve, reject) => {
+            reject(this.handleError('Error',
+                `Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.chain_property}.X`));
         });
     }
 
@@ -265,9 +261,9 @@ export class ExplorerModule extends ApiModule {
         if (this.hasIdCorrectFormat(id, Space.implementation_ids, Type.Implementation.miner_schedule)) {
             return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.miner_schedule, this.getLastPartOfId(id));
         }
-        return new Promise<Block.MinerSchedule>((reject) => {
-            console.error(`Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.miner_schedule}.X`);
-            reject(null);
+        return new Promise<Block.MinerSchedule>((resolve, reject) => {
+            reject(this.handleError('Error',
+                `Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.miner_schedule}.X`));
         });
     }
 
@@ -281,9 +277,9 @@ export class ExplorerModule extends ApiModule {
         if (this.hasIdCorrectFormat(id, Space.implementation_ids, Type.Implementation.budget_record)) {
             return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.budget_record, this.getLastPartOfId(id));
         }
-        return new Promise<Block.BudgetReport>((reject) => {
-            console.error(`Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.budget_record}.X`);
-            reject(null);
+        return new Promise<Block.BudgetReport>((resolve, reject) => {
+            reject(this.handleError('Error',
+                `Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.budget_record}.X`));
         });
     }
 
@@ -297,9 +293,9 @@ export class ExplorerModule extends ApiModule {
         if (this.hasIdCorrectFormat(id, Space.implementation_ids, Type.Implementation.buying)) {
             return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.buying, this.getLastPartOfId(id));
         }
-        return new Promise<Block.Buying>((reject) => {
-            console.error(`Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.buying}.X`);
-            reject(null);
+        return new Promise<Block.Buying>((resolve, reject) => {
+            reject(this.handleError('Error',
+                `Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.buying}.X`));
         });
     }
 
@@ -313,9 +309,9 @@ export class ExplorerModule extends ApiModule {
         if (this.hasIdCorrectFormat(id, Space.implementation_ids, Type.Implementation.content)) {
             return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.content, this.getLastPartOfId(id));
         }
-        return new Promise<Block.Content>((reject) => {
-            console.error(`Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.content}.X`);
-            reject(null);
+        return new Promise<Block.Content>((resolve, reject) => {
+            reject(this.handleError('Error',
+                `Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.content}.X`));
         });
     }
 
@@ -329,9 +325,9 @@ export class ExplorerModule extends ApiModule {
         if (this.hasIdCorrectFormat(id, Space.implementation_ids, Type.Implementation.publisher)) {
             return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.publisher, this.getLastPartOfId(id));
         }
-        return new Promise<Block.Publisher>((reject) => {
-            console.error(`Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.publisher}.X`);
-            reject(null);
+        return new Promise<Block.Publisher>((resolve, reject) => {
+            reject(this.handleError('Error',
+                `Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.publisher}.X`));
         });
     }
 
@@ -345,9 +341,9 @@ export class ExplorerModule extends ApiModule {
         if (this.hasIdCorrectFormat(id, Space.implementation_ids, Type.Implementation.subscription)) {
             return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.subscription, this.getLastPartOfId(id));
         }
-        return new Promise<Block.Subscription>((reject) => {
-            console.error(`Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.subscription}.X`);
-            reject(null);
+        return new Promise<Block.Subscription>((resolve, reject) => {
+            reject(this.handleError('Error',
+                `Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.subscription}.X`));
         });
     }
 
@@ -361,9 +357,9 @@ export class ExplorerModule extends ApiModule {
         if (this.hasIdCorrectFormat(id, Space.implementation_ids, Type.Implementation.seeding_statistics)) {
             return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.seeding_statistics, this.getLastPartOfId(id));
         }
-        return new Promise<Block.SeedingStatistics>((reject) => {
-            console.error(`Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.seeding_statistics}.X`);
-            reject(null);
+        return new Promise<Block.SeedingStatistics>((resolve, reject) => {
+            reject(this.handleError('Error',
+                `Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.seeding_statistics}.X`));
         });
     }
 
@@ -377,9 +373,9 @@ export class ExplorerModule extends ApiModule {
         if (this.hasIdCorrectFormat(id, Space.implementation_ids, Type.Implementation.transaction_detail)) {
             return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.transaction_detail, this.getLastPartOfId(id));
         }
-        return new Promise<Block.TransactionDetail>((reject) => {
-            console.error(`Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.transaction_detail}.X`);
-            reject(null);
+        return new Promise<Block.TransactionDetail>((resolve, reject) => {
+            reject(this.handleError('Error',
+                `Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.transaction_detail}.X`));
         });
     }
 
