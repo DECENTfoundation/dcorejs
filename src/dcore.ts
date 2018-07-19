@@ -45,18 +45,12 @@ export interface DcoreConfig {
 /**
  * Intialize dcorejs library with custom data that are used for library operations
  *
- * @export
  * @param {DcoreConfig} config                                                  Configuration of dcore network yout about to connect to
- * @param {*} [dcorejs_lib=null]                                                Deprecated - Reference to low level dcorejs-lib library
  * @param {(state: ConnectionState) => void} [connectionStatusCallback=null]    Status callback to handle connection
  */
 export function initialize(config: DcoreConfig,
                            testConnection: boolean = true,
-                           dcorejs_lib: any = null,
                            connectionStatusCallback: (state: ConnectionState) => void = null): void {
-    if (dcorejs_lib) {
-        console.warn('Parameter dcorejs_lib of DCorejs.initialize is deprecated since 2.3.1');
-    }
     const dcore = getLibRef();
     ChainApi.setupChain(config.chainId, dcore.ChainConfig);
 
@@ -66,7 +60,7 @@ export function initialize(config: DcoreConfig,
     const messagingApi = new MessagingApi(dcore.Apis, _connector);
 
     _chain = new ChainApi(_connector, dcore.ChainStore);
-    _content = new ContentModule(database, _chain);
+    _content = new ContentModule(database, _chain, _connector);
     _account = new AccountModule(database, _chain, historyApi, _connector);
     _explorer = new ExplorerModule(database);
     _assetModule = new AssetModule(database, _connector, _chain);

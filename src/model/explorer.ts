@@ -6,8 +6,9 @@ import {Asset as TransactionAsset} from './transaction';
 
 import {Key} from './content';
 
-export class ErrorExplorer {
-    static get_object_error = 'get_object_error';
+export enum ErrorExplorer {
+    get_object_error = 'get_object_error',
+    wrong_id_error = 'wrong_id_error'
 }
 
 export namespace Block {

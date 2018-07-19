@@ -52,7 +52,6 @@ Supported browsers versions:
 ## Server
 
 ```typescript
-import * as dcorejs_lib from 'dcorejs-lib';
 import * as dcorejs from 'dcorejs';
 
 const config = {
@@ -60,22 +59,28 @@ const config = {
     chainId: 'your-dcore-chain-id'
 };
 
-dcorejs.initialize(config, dcorejs_lib);
+dcorejs.initialize(config);
 ```
+NOTE: If running server from localhost add `NODE_TLS_REJECT_UNAUTHORIZED=0` before library initialization.
 
 ## Browser
 
 ```html
-    <script src="./node_modules/dcorejs-lib/dist/bundle.js" type="text/javascript"></script>
     <script src="./dcorejs.umd.js" type="text/javascript"></script>
     <script type="text/javascript">
-        var dcorejs_lib = window['dcorejs-lib'];
-        var chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
-        var dcoreNetworkAddresses = ['wss://stagesocket.decentgo.com:8090'];
+        var testConnection = false;
+        var chainId = 'your-dcore-chain-id';
+        var dcoreNetworkAddresses = ['wss://your.dcore.daemon:8090'];
         
-        dcorejs.initialize({chainId: chainId, dcoreNetworkWSPaths: dcoreNetworkAddresses}, dcorejs_lib);
+        dcorejs.initialize(
+            {
+                chainId: chainId, 
+                dcoreNetworkWSPaths: dcoreNetworkAddresses
+            }, 
+            testConnection);
     </script>
 ```
+NOTE: Use `testConnection = false` if CORS problem appear.
 
 Replace `dcoreNetworkWSPaths` with active dcore daemon instance and `chainId` with blockchain id which
 you are about to work on.
@@ -84,7 +89,42 @@ you are about to work on.
 
 Once dcore lib is initialized, you can access methods using `dcorejs` with any of submodule - `account()`, `asset()`, `content()`, `explorer()`, `messaging()`, `mining()`, `proposal()`, `seeding()` or `subscription()`
 
-## Search content
+### Create account
+
+There is two ways how to create account in DCore network: `Account.registerAccount` and `Account.createAccountWithBrainkey`.
+<br>
+Recomended way to create account is using `Account.registerAccount` method, because there is option to set keys to be different.
+Also can use `Account.createAccountWithBrainkey`, but keys generated from brainkey for ownerKey, activeKey and memoKey will be the same, which is not recommended for security reasons.
+
+```typescript
+import * as dcorejs from 'dcorejs';
+import { KeyPrivate, Utils } from 'dcorejs';
+
+let sequenceNumber = 0;
+const brainKey = dcorejs.account().suggestBrainKey();
+// owner key is generated with sequenceNumber = 0
+const ownerKey: KeyPrivate = Utils.generateKeys(brainKey)[0];
+const activeKey: KeyPrivate = Utils.derivePrivateKey(brainKey, sequenceNumber + 1);
+const memoKey: KeyPrivate = Utils.derivePrivateKey(brainKey, sequenceNumber + 2);
+
+dcorejs.account().registerAccount(
+    name: 'my-new-account-name',
+    ownerKey: ownerKey,
+    activeKey: activeKey,
+    memoKey: memoKey,
+    registrar: '1.2.345',
+    registrarPrivateKey: '5JawRMmxyeCqKoJvspGyaZvFy6ajh4c3ELfG5meQdii6HWVDBbY',
+    broadcast: boolean = true)
+    .then(res => {
+        // account_create transaction was successfully broadcasted
+    })
+    .catch(err => {
+        // error broadcasting transaction
+    });
+```
+NOTE: Make sure, that `sequenceNumber` you generating keys with, was not used for generating keys for your accounts in past.
+
+### Search content
 
 ```typescript
 import * as dcorejs from 'dcorejs';
@@ -117,9 +157,9 @@ dcorejs.content().searchContent(searchParams)
 ```
 
 Replace all variables with your values to get requested content.
-[Search browser example](https://github.com/DECENTfoundation/dcorejs/tree/master/src/examples/SearchContent)
+[Search browser example](https://github.com/DECENTfoundation/dcorejs/tree/master/src/examples/Content/SearchContent)
 
-## Buy content
+### Buy content
 
 ```typescript
 import * as dcorejs from 'dcorejs';
@@ -145,9 +185,9 @@ dcorejs.content()
 Replace variables with keys from your dcore account to buy content.
 Otherwise you will not be able to buy content.
 Private key must be in WIF(Wallet Import Format).
-[Buy browser example](https://github.com/DECENTfoundation/dcorejs/tree/master/src/examples/BuyContent)
+[Buy browser example](https://github.com/DECENTfoundation/dcorejs/tree/master/src/examples/Content/BuyContent)
 
-## Download/Restore content
+### Download/Restore content
 
 Method `restoreContentKeys` will restore your key generated during content submission, used to encrypt content.
 
@@ -169,10 +209,10 @@ dcorejs.content().restoreContentKeys(contentId, elGamalKeyPair)
     });
 ```
 
-[Download browser example](https://github.com/DECENTfoundation/dcorejs/tree/master/src/examples/DownloadContent)
+[Download browser example](https://github.com/DECENTfoundation/dcorejs/tree/master/src/examples/Content/DownloadContent)
 
 
-## Blockchain event handling
+### Blockchain event handling
 ```typescript
 dcorejs.subscribe((data: any) => {
     // handle fired event
@@ -184,7 +224,7 @@ dcorejs.subscribePendingTransaction((data: any) => {
 ```
 
 
-## Custom transaction
+### Custom transaction
 
 In case you want to create custom transaction, see following example. Replace 'X' values and private key for your own.
 
@@ -233,9 +273,11 @@ subscribePendingTransaction(callback: ChainSubscriptionCallback)
 
 ```typescript
 searchContent(searchParams?: SearchParams, convertAsset: boolean = false): Promise<Content[]>
-getContent(id: string, convertAsset: boolean = false): Promise<Content>
-getContentURI(URI: string, convertAsset: boolean = false): Promise<Content | null>
-removeContent(contentId: string, authorId: string, privateKey: string): Promise<void>
+getContent(id: string, convertAsset: boolean = false): Promise<ContentObject>
+getContentURI(URI: string, convertAsset: boolean = false): Promise<ContentObject | null>
+removeContent(contentId: string, 
+			  authorId: string,
+			  privateKey: string): Promise<void>
 restoreContentKeys(contentId: string, accountId: string, ...elGamalKeys: KeyPair[]): Promise<string>
 generateContentKeys(seeders: string[]): Promise<ContentKeys>
 addContent(content: SubmitObject, privateKey: string, broadcast: boolean = true): Promise<Operation>
@@ -244,23 +286,29 @@ getOpenBuyingByURI(URI: string, convertAsset: boolean = false): Promise<BuyingCo
 getOpenBuyingByConsumer(accountId: string, convertAsset: boolean = false): Promise<BuyingContent[]>
 getBuyingByConsumerURI(accountId: string, URI: string, convertAsset: boolean = false): Promise<BuyingContent[] | null>
 getBuyingHistoryObjectsByConsumer(accountId: string, convertAsset: boolean = false): Promise<BuyingContent[]>
-buyContent(contentId: string,
-            buyerId: string,
-            elGammalPub: string,
-            privateKey: string,
-            broadcast: boolean = true): Promise<Operation>
+buyContent(contentId: string, 
+		   buyerId: string,
+		   elGammalPub: string,
+		   privateKey: string,
+		   broadcast: boolean = true): Promise<Operation>
 getSeeders(resultSize: number = 100): Promise<Seeder[]>
-getPurchasedContent(accountId: string,
-                    order: SearchParamsOrder = SearchParamsOrder.createdDesc,
-                    startObjectId: string = '0.0.0',
-                    term: string = '',
-                    resultSize: number = 100): Promise<Content[]>
-generateEncryptionKey(): string
-getRating(contentId: string, forUser: string, ratingStartId: string, count: number = 100): Promise<Array<Rating>>
-searchFeedback(accountId: string, contentURI: string, ratingStartId: string, count: number = 100): Promise<Array<Rating>>
+getPurchasedContent(accountId: string, 
+					order: SearchParamsOrder = SearchParamsOrder.createdDesc,
+					startObjectId: string = '0.0.0',
+					term: string = '',
+					resultSize: number = 100): Promise<Content[]>
+getRating(contentId: string, forUser: string, ratingStartId: string = '', count: number = 100): Promise<Array<Rating>>
+searchFeedback(accountId: string, 
+               contentURI: string, 
+               ratingStartId: string, 
+               count: number = 100): Promise<Array<Rating>>
 getAuthorCoAuthors(URI: string): Promise<[string, string[]] | null>
-leaveCommentAndRating(contentURI: string, consumer: string, comment: string, rating: number, consumerPKey: string): Promise<boolean>
-generateEncryptionKey(): string
+leaveCommentAndRating(contentURI: string, 
+                      consumer: string, 
+                      comment: string, 
+                      rating: number, 
+                      consumerPKey: string): Promise<boolean>
+
 ```
 
 ### Account
@@ -268,101 +316,115 @@ generateEncryptionKey(): string
 ```typescript
 getAccountByName(name: string): Promise<Account>
 getAccountById(id: string): Promise<Account>
-searchAccountHistory(accountId: string,
-                                privateKeys: string[],
-                                order: SearchAccountHistoryOrder = SearchAccountHistoryOrder.timeDesc,
-                                startObjectId: string = '0.0.0',
-                                resultLimit: number = 100): Promise<TransactionRecord[]>
-transfer(amount: number,
-        assetId: string,
-        fromAccount: string,
-        toAccount: string,
-        memo: string,
-        privateKey: string,
-        broadcast: boolean = true): Promise<Operation>
-getBalance(account: string, assetId: string = '1.3.0', convertAsset: boolean = false): Promise<number>
+getTransactionHistory(accountId: string, 
+                      privateKeys: string[],
+                      order: SearchAccountHistoryOrder = SearchAccountHistoryOrder.timeDesc, startObjectId: string = '0.0.0',
+                      resultLimit: number = 100): Promise<TransactionRecord[]>
+searchAccountHistory(accountId: string, privateKeys: string[],
+                     order: SearchAccountHistoryOrder = SearchAccountHistoryOrder.timeDesc,
+                     startObjectId: string = '0.0.0',
+                     resultLimit: number = 100,
+                     convertAssets: boolean = false): Promise<TransactionRecord[]>
+transfer(amount: number, 
+         assetId: string, 
+         fromAccount: string, 
+         toAccount: string, 
+         memo: string, #
+         privateKey: string,
+         broadcast: boolean = true): Promise<Operation>
+getBalance(accountId: string, 
+           assetId: string = '1.3.0', 
+           convertAsset: boolean = false): Promise<number>
 isTransactionConfirmed(accountId: string, transactionId: string): Promise<boolean>
 getAccountHistory(accountId: string, historyOptions?: HistoryOptions): Promise<HistoryRecord[]>
-searchAccounts(searchTerm: string, order: AccountOrder, id: string, limit: number = 100): Promise<Account>
+searchAccounts(searchTerm: string = '', 
+               order: AccountOrder = AccountOrder.none,
+               id: string = '0.0.0',
+               limit: number = 100): Promise<Account>
 getAccountCount(): Promise<number>
-registerAccount(name: string,
-                           ownerKey: string,
-                           activeKey: string,
-                           memoKey: string,
-                           registrar: string,
-                           registrarPrivateKey: string): Promise<Operation>
-createAccountWithBrainkey(brainkey: string,
-                                     accountName: string,
-                                     registrar: string,
-                                     registrarPrivateKey: string): Promise<Operation>
-exportWallet(accountId: string,
-                 password: string,
-                 privateKeys: string[],
-                 additionalElGamalPrivateKeys: string[] = []): Promise<any>
+registerAccount(name: string, 
+                ownerKey: string,
+                activeKey: string,
+                memoKey: string,
+                registrar: string,
+                registrarPrivateKey: string,
+                broadcast: boolean = true): Promise<Operation>
+createAccountWithBrainkey(brainkey: string, 
+                          accountName: string,
+                          registrar: string,
+                          registrarPrivateKey: string): Promise<Operation>
 listAccounts(lowerBound: string = '', limit: number = 100): Promise<AccountNameIdPair[]>
 listAccountBalances(id: string, convertAssets: boolean = false): Promise<Asset[]>
-searchMinerVoting(accountName: string,
-                             keyword: string,
-                             myVotes: boolean,
-                             sort: MinerOrder,
-                             fromMinerId: string,
-                             limit: number = 1000): Promise<MinerInfo[]>
-updateAccount(accountId: string,
-                params: UpdateAccountParameters,
-                privateKey: string,
-                broadcast: boolean = true): Promise<Boolean>
+searchMinerVoting(accountName: string, 
+                  keyword: string,
+                  myVotes: boolean = true,
+                  sort: MinerOrder = MinerOrder.none,
+                  fromMinerId: string = '',
+                  limit: number = 1000): Promise<MinerInfo[]>
+updateAccount(accountId: string, 
+              params: UpdateAccountParameters, 
+              privateKey: string, 
+              broadcast: boolean = true): Promise<Operation>
 ```
 
 ### Asset
 ```typescript
-listAssets(lowerBoundSymbol: string, limit: number = 100, formatAssets: boolean = false): Promise<AssetObject[]>
+listAssets(lowerBoundSymbol: string, 
+           limit: number = 100, 
+           formatAssets: boolean = false): Promise<AssetObject[]>
 createUserIssuedAsset(issuer: string,
-                                 symbol: string,
-                                 precision: number,
-                                 description: string,
-                                 maxSupply: number,
-                                 baseExchangeAmount: number,
-                                 quoteExchangeAmount: number,
-                                 isExchangeable: boolean,
-                                 isSupplyFixed: boolean,
-                                 issuerPrivateKey: string): Promise<boolean>
-issueAsset(assetSymbol: string, amount: number, issueToAccount: string, memo: string, issuerPKey: string): Promise<boolean>
+                      symbol: string,
+                      precision: number,
+                      description: string,
+                      maxSupply: number,
+                      baseExchangeAmount: number,
+                      quoteExchangeAmount: number,
+                      isExchangeable: boolean,
+                      isSupplyFixed: boolean,
+                      issuerPrivateKey: string): Promise<boolean>
+issueAsset(assetSymbol: string, 
+           amount: number, 
+           issueToAccount: string, 
+           memo: string, 
+           issuerPKey: string): Promise<boolean>
 updateUserIssuedAsset(symbol: string, newInfo: UserIssuedAssetInfo, issuerPKey: string): Promise<boolean>
 fundAssetPools(fromAccountId: string,
-                          uiaAmount: number,
-                          uiaSymbol: string,
-                          dctAmount: number,
-                          privateKey: string): Promise<boolean>
-assetReserve(payer: string, symbol: string, amountToReserve: number, privateKey: string): Promise<boolean>
+			   uiaAmount: number,
+               uiaSymbol: string,
+               dctAmount: number,
+               privateKey: string): Promise<boolean>
+assetReserve(payer: string, 
+             symbol: string, 
+             amountToReserve: number, 
+             privateKey: string): Promise<boolean>
 assetClaimFees(issuer: string,
-                          uiaAmount: number,
-                          uiaSymbol: string,
-                          dctAmount: number,
-                          privateKey: string): Promise<boolean>
+			   uiaAmount: number,
+               uiaSymbol: string,
+               dctAmount: number,
+               privateKey: string): Promise<boolean>
 getAsset(assetId: string, formatAsset: boolean = false): Promise<DCoreAssetObject>
 getAssets(assetIds: string[], formatAssets: boolean = false): Promise<DCoreAssetObject[]>
 priceToDCT(symbol: string, amount: number): Promise<Asset>
 publishAssetFeed(publishingAccount: string,
-                            symbol: string,
-                            exchangeBaseAmount: number,
-                            exchangeQuoteAmount: number,
-                            privateKey: string): Promise<boolean>
+			     symbol: string,
+                 exchangeBaseAmount: number,
+                 exchangeQuoteAmount: number,
+                 privateKey: string): Promise<boolean>
 getFeedsByMiner(minerAccountId: string, limit: number = 100): Promise<any>
 getRealSupply(): Promise<RealSupply>
 getMonitoredAssetData(assetId: string): Promise<MonitoredAssetOptions | null>
-formatAssets(assets: DCoreAssetObject[]): DCoreAssetObject[]
-createMonitoredAsset(issuer: string,
-                    symbol: string,
-                    precision: number,
-                    description: string,
-                    feedLifetimeSec: number,
-                    minimumFeeds: number,
-                    issuerPrivateKey: string): Promise<boolean>
-updateMonitoredAsset(symbol: string,
-                    description: string,
-                    feedLifetimeSec: number,
-                    minimumFeeds: number,
-                    privateKey: string): Promise<boolean>
+createMonitoredAsset(issuer: string, 
+                     symbol: string, 
+                     precision: number, 
+                     description: string, 
+                     feedLifetimeSec: number,
+                     minimumFeeds: number, 
+                     issuerPrivateKey: string): Promise<boolean>
+updateMonitoredAsset(symbol: string, 
+                     description: string, 
+                     feedLifetimeSec: number, 
+                     minimumFeeds: number, 
+                     privateKey: string): Promise<boolean>
 ```
 
 ### Explorer 
@@ -406,14 +468,23 @@ getHeadBlockTime(): Promise<string>
 
 ```typescript
 setDesiredMinerCount(accountId: string, desiredNumOfMiners: number, privateKey: string): Promise<boolean>
-createMiner(minerAccountId: string, URL: string, signingPublicKey: string, privateKey: string): Promise<boolean>
+createMiner(minerAccountId: string, 
+            URL: string, 
+            signingPublicKey: string, 
+            privateKey: string): Promise<boolean>
 unvoteMiner(miner: string, account: string, privateKeyWif: string): Promise<boolean>
 unvoteMiners(miners: string[], account: string, privateKeyWif: string): Promise<boolean>
-voteForMiner(miner: string, account: string, privateKeyWif: string): Promise<any>
-voteForMiners(miners: string[], account: string, privateKeyWif: string): Promise<any>
-voteUnvoteMiners(voteMiners: string[], unvoteMiners: string[], accountId: string, privateKey: string): Promise<boolean>
+voteForMiner(miner: string, account: string, privateKeyWif: string): Promise<boolean>
+voteForMiners(miners: string[], account: string, privateKeyWif: string): Promise<boolean>
+voteUnvoteMiners(voteMiners: string[], 
+                 unvoteMiners: string[], 
+                 accountId: string, 
+                 privateKey: string): Promise<boolean>
 getVestingBalances(accountId: string): Promise<VestingBalance[]>
-updateMiner(minerId: string, minerAccountId: string, updateData: MinerUpdateData, privateKey: string): Promise<boolean>
+updateMiner(minerId: string, 
+            minerAccountId: string, 
+            updateData: MinerUpdateData, 
+             privateKey: string): Promise<boolean>
 withdrawVesting(vestinBalanceId: string,
                 ownerId: string,
                 amount: number,
@@ -428,25 +499,24 @@ getMiner(minerId: string): Promise<Miner>
 
 ```typescript
 getProposedTransactions(accountId: string): Promise<ProposalObject[]>
-proposeTransfer(proposerAccountId: string,
-                fromAccountId: string,
-                toAccountId: string,
-                amount: number,
-                assetId: string,
+proposeTransfer(proposerAccountId: string, 
+                fromAccountId: string, 
+                toAccountId: string, 
+                amount: number, 
+                assetId: string, 
                 memoKey: string,
-                expiration: string,
+                expiration: string, 
                 privateKey: string): Promise<boolean>
-proposeParameterChange(proposerAccountId: string,
-                        proposalParameters: ProposalParameters,
-                        expiration: string,
-                        privateKey: string): Promise<boolean>
-proposeFeeChange(proposerAccountId: string,
-                feesParameters: FeesParameters,
-                expiration: string,
-                privateKey: string): Promise<boolean>
-approveProposal(payingAccountId: string,
-                proposalId: string,
-                approvalsDelta: DeltaParameters,
+proposeParameterChange(proposerAccountId: string, 
+                       proposalParameters: ProposalParameters, 
+                       expiration: string,privateKey: string): Promise<boolean>
+proposeFeeChange(proposerAccountId: string, 
+                 feesParameters: FeesParameters, 
+                 expiration: string, 
+                 privateKey: string): Promise<boolean>
+approveProposal(payingAccountId: string, 
+                proposalId: string, 
+                approvalsDelta: DeltaParameters, 
                 privateKey: string): Promise<boolean>
 ```
 
@@ -462,23 +532,34 @@ listSeedersByRating(limit: number = 100): Promise<Seeder[]>
 ### Subscription
 
 ```typescript 
-listActiveSubscriptionByConsumer(consumerId: string, count: number = 100): Promise<SubscriptionObject[]>
+listActiveSubscriptionsByConsumer(consumerId: string, count: number = 100): Promise<SubscriptionObject[]>
 listSubscriptionsByConsumer(consumerId: string, count: number = 100): Promise<SubscriptionObject[]>
 listActiveSubscriptionsByAuthor(authorId: string, count: number = 100): Promise<SubscriptionObject[]>
 listSubscriptionsByAuthor(authorId: string, count: number = 100): Promise<SubscriptionObject[]>
-subscribeToAuthor(from: string, to: string, amount: number, assetId: string, privateKey: string): Promise<boolean>
+subscribeToAuthor(from: string, 
+                  to: string, 
+                  amount: number, 
+                  assetId: string, 
+                  privateKey: string): Promise<boolean>
 subscribeByAuthor(from: string, to: string, privateKey: string): Promise<boolean>
-setAutomaticRenewalOfSubscription(accountId: string, subscriptionId: string, automaticRenewal: boolean, privateKey: string): Promise<boolean>
-setSubscription(accountId: string, options: SubscriptionOptions, privateKey: string): Promise<boolean>
+setAutomaticRenewalOfSubscription(accountId: string, 
+                                  subscriptionId: string, 
+                                  automaticRenewal: boolean, 
+                                  privateKey: string): Promise<boolean>
+setSubscription(accountId: string,
+                options: SubscriptionOptions,
+                privateKey: string): Promise<boolean>
 ```
 
 ### Messaging 
 ```typescript
 getSentMessages(sender: string, decryptPrivateKey: string = '', count: number = 100): Promise<DCoreMessagePayload[]>
-getMessages(receiver: string, decryptPrivateKey: string = '', count: number = 100): Promise<any> 
-getMessageObjects(sender?: string, receiver?: string, decryptPrivateKey: string = '', count: number = 100): Promise<any>
-decryptMessages(messages: DCoreMessagePayload[], decryptPrivateKey: string): DCoreMessagePayload[]
-sendMessage(sender: string, receiverId: string, message: string, privateKey: string): Promise<boolean> 
+getMessages(receiver: string, decryptPrivateKey: string = '', count: number = 100): Promise<DCoreMessagePayload[]>
+getMessageObjects(sender?: string,
+                  receiver?: string,
+                  decryptPrivateKey: string = '',
+                  count: number = 100): Promise<DCoreMessagePayload[]>
+sendMessage(sender: string, receiverId: string, message: string, privateKey: string): Promise<boolean>
 ```
 
 ### Utils
@@ -486,22 +567,22 @@ sendMessage(sender: string, receiverId: string, message: string, privateKey: str
 ```typescript
 formatToReadiblePrice(dctAmount: number): string
 formatAmountForDCTAsset(amount: number): number
-formatAmountForAsset(amount: number, asset: DCoreAssetObject): number 
-formatAmountToAsset(amount: number, asset: DCoreAssetObject): number 
-ripemdHash(fromBuffer: Buffer): string 
-generateKeys(fromBrainKey: string): [KeyPrivate, KeyPublic] 
+formatAmountForAsset(amount: number, asset: DCoreAssetObject): number
+formatAmountToAsset(amount: number, asset: DCoreAssetObject): number
+ripemdHash(fromBuffer: Buffer): string
+generateKeys(fromBrainKey: string): [KeyPrivate, KeyPublic]
 getPublicKey(privateKey: KeyPrivate): KeyPublic
-privateKeyFromWif(pkWif: string): KeyPrivate 
-publicKeyFromString(pubKeyString: string): KeyPublic 
-suggestBrainKey(): string 
-getBrainKeyInfo(brainKey: string): BrainKeyInfo 
-normalize(brainKey: string): string 
-generateNonce(): string 
-elGamalPublic(elGamalPrivate: string): string 
-elGamalPrivate(privateKeyWif: string): string 
-generateElGamalKeys(privateKeyWif: string): ElGamalKeys 
-generateBrainKeyElGamalKey(): [BrainKeyInfo, ElGamalKeys] 
-derivePrivateKey(brainKey: string, sequence: number): KeyPrivate 
+privateKeyFromWif(pkWif: string): KeyPrivate
+publicKeyFromString(pubKeyString: string): KeyPublic
+suggestBrainKey(): string
+getBrainKeyInfo(brainKey: string): BrainKeyInfo
+normalize(brainKey: string): string
+generateNonce(): string
+elGamalPublic(elGamalPrivate: string): string
+elGamalPrivate(privateKeyWif: string): string
+generateElGamalKeys(privateKeyWif: string): ElGamalKeys
+generateBrainKeyElGamalKey(): [BrainKeyInfo, ElGamalKeys]
+derivePrivateKey(brainKey: string, sequence: number): KeyPrivate
 ```
 
 ### Crypto utils
@@ -509,13 +590,13 @@ derivePrivateKey(brainKey: string, sequence: number): KeyPrivate
 ```typescript
 encryptWithChecksum(message: string, privateKey: KeyPrivate, publicKey: KeyPublic, nonce: string = ''): Buffer
 decryptWithChecksum(message: string, privateKey: KeyPrivate, publicKey: KeyPublic, nonce: string = ''): Buffer
-ripemdHash(fromBuffer: Buffer): string 
-md5(message: string): string 
+ripemdHash(fromBuffer: Buffer): string
+md5(message: string): string
 sha512(message: string): string
-sha256(message: string): string 
-encrypt(message: string, password: string): string 
-decrypt(message: string, password: string): string | null 
-encryptToHexString(message: string | Buffer, password: string): string 
+sha256(message: string): string
+encrypt(message: string, password: string): string
+decrypt(message: string, password: string): string | null
+encryptToHexString(message: string | Buffer, password: string): string
 decryptHexString(message: string, password: string): string
 ```
 
