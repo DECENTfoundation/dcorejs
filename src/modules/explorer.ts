@@ -51,53 +51,92 @@ export class ExplorerModule extends ApiModule {
         });
     }
 
+    private hasIdCorrectFormat(id: string, first: number, second: number): boolean {
+        const parts = id.split('.').map(Number);
+        return (parts.length === 3 && parts[0] === first && parts[1] === second);
+    }
+
+    private getLastPartOfId(id: string): number {
+        return Number(id.split('.')[2]);
+    }
+
     /**
      * Get account object.
      *
-     * @param {number} id           Account id, last part of id -> X from '1.2.X'.
+     * @param {string} id           Account id in format '1.2.X'.
      * @returns {Promise<Account>}  Account object.
      */
-    getAccount(id: number): Promise<Account> {
-        return this.getDatabaseObject<any>(Space.protocol_ids, Type.Protocol.account, id);
+    getAccount(id: string): Promise<Account> {
+        if (this.hasIdCorrectFormat(id, Space.protocol_ids, Type.Protocol.account)) {
+            return this.getDatabaseObject<any>(Space.protocol_ids, Type.Protocol.account, this.getLastPartOfId(id));
+        }
+        return new Promise<Account>((reject) => {
+            console.error(`Wrong id! Id should be in format: ${Space.protocol_ids}.${Type.Protocol.account}.X`);
+            reject(null);
+        });
     }
 
     /**
      * Get asset object.
      *
-     * @param {number} id               Asset id, last part of id -> X from '1.3.X'.
+     * @param {number} id               Asset id in format '1.3.X'.
      * @returns {Promise<Block.Asset>}  Asset object.
      */
-    getAsset(id: number): Promise<Block.Asset> {
-        return this.getDatabaseObject(Space.protocol_ids, Type.Protocol.asset, id);
+    getAsset(id: string): Promise<Block.Asset> {
+        if (this.hasIdCorrectFormat(id, Space.protocol_ids, Type.Protocol.asset)) {
+            return this.getDatabaseObject(Space.protocol_ids, Type.Protocol.asset, this.getLastPartOfId(id));
+        }
+        return new Promise<Block.Asset>((reject) => {
+            console.error(`Wrong id! Id should be in format: ${Space.protocol_ids}.${Type.Protocol.asset}.X`);
+            reject(null);
+        });
     }
 
     /**
      * Get miner object.
      *
-     * @param {number} id               Miner id, last part of id -> X from '1.4.X'.
+     * @param {number} id               Miner id in format '1.4.X'.
      * @returns {Promise<Block.Miner>}  Miner object.
      */
-    getWitness(id: number): Promise<Block.Miner> {
-        return this.getDatabaseObject(Space.protocol_ids, Type.Protocol.miner, id);
+    getWitness(id: string): Promise<Block.Miner> {
+        if (this.hasIdCorrectFormat(id, Space.protocol_ids, Type.Protocol.miner)) {
+            return this.getDatabaseObject(Space.protocol_ids, Type.Protocol.miner, this.getLastPartOfId(id));
+        }
+        return new Promise<Block.Miner>((reject) => {
+            console.error(`Wrong id! Id should be in format: ${Space.protocol_ids}.${Type.Protocol.miner}.X`);
+            reject(null);
+        });
     }
 
     /**
      * Get list of history objects.
-     * @param {number} id                       History object id, last part of id -> X from '1.7.X'.
+     * @param {number} id                       History id in format '1.7.X'.
      * @returns {Promise<Block.Transaction>}
      */
-    getOperationHistory(id: number): Promise<Block.Transaction> {
-        return this.getDatabaseObject(Space.protocol_ids, Type.Protocol.operation_history, id);
+    getOperationHistory(id: string): Promise<Block.Transaction> {
+        if (this.hasIdCorrectFormat(id, Space.protocol_ids, Type.Protocol.operation_history)) {
+            return this.getDatabaseObject(Space.protocol_ids, Type.Protocol.operation_history, this.getLastPartOfId(id));
+        }
+        return new Promise<Block.Transaction>((reject) => {
+            console.error(`Wrong id! Id should be in format: ${Space.protocol_ids}.${Type.Protocol.operation_history}.X`);
+            reject(null);
+        });
     }
 
     /**
      * Get vesting balance object.
      *
-     * @param {number} id                       Vesting balance id, last part of id -> X from '1.9.X'.
+     * @param {number} id                       Vesting balance id in format '1.9.X'.
      * @returns {Promise<Block.VestingBalance>}
      */
-    getVestingBalance(id: number): Promise<Block.VestingBalance> {
-        return this.getDatabaseObject(Space.protocol_ids, Type.Protocol.vesting_balance, id);
+    getVestingBalance(id: string): Promise<Block.VestingBalance> {
+        if (this.hasIdCorrectFormat(id, Space.protocol_ids, Type.Protocol.vesting_balance)) {
+            return this.getDatabaseObject(Space.protocol_ids, Type.Protocol.vesting_balance, this.getLastPartOfId(id));
+        }
+        return new Promise<Block.VestingBalance>((reject) => {
+            console.error(`Wrong id! Id should be in format: ${Space.protocol_ids}.${Type.Protocol.vesting_balance}.X`);
+            reject(null);
+        });
     }
 
     /**
@@ -121,141 +160,227 @@ export class ExplorerModule extends ApiModule {
     /**
      * Get asset dynamic data property object.
      *
-     * @param {number} id                               Asset balance id, last part of id -> X from '2.3.X'.
+     * @param {number} id                               Asset balance id in format '2.3.X'.
      * @returns {Promise<Block.AssetDynamicProperty>}   AssetDynamicProperty object.
      */
-    getAssetDynamicDataType(id: number): Promise<Block.AssetDynamicProperty> {
-        return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.asset_dynamic_data_type, id);
+    getAssetDynamicDataType(id: string): Promise<Block.AssetDynamicProperty> {
+        if (this.hasIdCorrectFormat(id, Space.implementation_ids, Type.Implementation.asset_dynamic_data_type)) {
+            return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.asset_dynamic_data_type, this.getLastPartOfId(id));
+        }
+        return new Promise<Block.AssetDynamicProperty>((reject) => {
+            console.error(`Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.asset_dynamic_data_type}.X`);
+            reject(null);
+        });
     }
 
     /**
      * Get account balance object.
      *
-     * @param {number} id                           Account balance id, last part of id -> X from '2.4.X'.
+     * @param {number} id                           Account balance id in format '2.4.X'.
      * @returns {Promise<Block.AccountBalance>}     AccountBalance object.
      */
-    getAccountBalance(id: number): Promise<Block.AccountBalance> {
-        return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.account_balance, id);
+    getAccountBalance(id: string): Promise<Block.AccountBalance> {
+        if (this.hasIdCorrectFormat(id, Space.implementation_ids, Type.Implementation.account_balance)) {
+            return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.account_balance, this.getLastPartOfId(id));
+        }
+        return new Promise<Block.AccountBalance>((reject) => {
+            console.error(`Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.account_balance}.X`);
+            reject(null);
+        });
     }
 
     /**
      * Get account statistics object.
      *
-     * @param {number} id                           Account statistics id, last part of id -> X from '2.5.X'.
+     * @param {number} id                           Account statistics id in format '2.5.X'.
      * @returns {Promise<Block.AccountStatistics>}  AccountStatistics object.
      */
-    getAccountStatistics(id: number): Promise<Block.AccountStatistics> {
-        return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.account_statistics, id);
+    getAccountStatistics(id: string): Promise<Block.AccountStatistics> {
+        if (this.hasIdCorrectFormat(id, Space.implementation_ids, Type.Implementation.account_statistics)) {
+            return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.account_statistics, this.getLastPartOfId(id));
+        }
+        return new Promise<Block.AccountStatistics>((reject) => {
+            console.error(`Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.account_statistics}.X`);
+            reject(null);
+        });
     }
 
     /**
      * Get block summary object.
      *
-     * @param {number} id                       Block summary id, last part of id -> X from '2.7.X'.
+     * @param {number} id                       Block summary id in format '2.7.X'.
      * @returns {Promise<Block.BlockSummary>}
      */
-    getBlockSummary(id: number): Promise<Block.BlockSummary> {
-        return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.block_summary, id);
+    getBlockSummary(id: string): Promise<Block.BlockSummary> {
+        if (this.hasIdCorrectFormat(id, Space.implementation_ids, Type.Implementation.block_summary)) {
+            return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.block_summary, this.getLastPartOfId(id));
+        }
+        return new Promise<Block.BlockSummary>((reject) => {
+            console.error(`Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.block_summary}.X`);
+            reject(null);
+        });
     }
 
     /**
      * Get list of account's transaction history objects.
      *
-     * @param {number} id                                   Account transaction history id, last part of id -> X from '2.8.X'.
+     * @param {number} id                                   Account transaction history id in format '2.8.X'.
      * @returns {Promise<Block.AccountTransactionHistory>}  List of account transaction history objects.
      */
-    getAccountTransactionHistory(id: number): Promise<Block.AccountTransactionHistory> {
-        return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.account_transaction_history, id);
+    getAccountTransactionHistory(id: string): Promise<Block.AccountTransactionHistory> {
+        if (this.hasIdCorrectFormat(id, Space.implementation_ids, Type.Implementation.account_transaction_history)) {
+            return this.getDatabaseObject(Space.implementation_ids,
+                Type.Implementation.account_transaction_history,
+                this.getLastPartOfId(id));
+        }
+        return new Promise<Block.AccountTransactionHistory>((reject) => {
+            console.error(`Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.account_transaction_history}.X`);
+            reject(null);
+        });
     }
 
     /**
      * Get chain property.
      *
-     * @param {number} id                       Account transaction history id, last part of id -> X from '2.9.X'.
+     * @param {number} id                       Chain property id in format '2.9.X'.
      * @returns {Promise<Block.ChainProperty>}  ChainProperty object.
      */
-    getChainProperty(id: number): Promise<Block.ChainProperty> {
-        return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.chain_property, id);
+    getChainProperty(id: string): Promise<Block.ChainProperty> {
+        if (this.hasIdCorrectFormat(id, Space.implementation_ids, Type.Implementation.chain_property)) {
+            return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.chain_property, this.getLastPartOfId(id));
+        }
+        return new Promise<Block.ChainProperty>((reject) => {
+            console.error(`Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.chain_property}.X`);
+            reject(null);
+        });
     }
 
     /**
      * Get miner's schedule object.
      *
-     * @param {number} id                       Miner schedule id, last part of id -> X from '2.10.X'.
+     * @param {number} id                       Miner schedule id in format '2.10.X'.
      * @returns {Promise<Block.MinerSchedule>}  Miner schedule object.
      */
-    getMinerSchedule(id: number): Promise<Block.MinerSchedule> {
-        return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.miner_schedule, id);
+    getMinerSchedule(id: string): Promise<Block.MinerSchedule> {
+        if (this.hasIdCorrectFormat(id, Space.implementation_ids, Type.Implementation.miner_schedule)) {
+            return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.miner_schedule, this.getLastPartOfId(id));
+        }
+        return new Promise<Block.MinerSchedule>((reject) => {
+            console.error(`Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.miner_schedule}.X`);
+            reject(null);
+        });
     }
 
     /**
      * Get budget record object
      *
-     * @param {number} id                       Budget record id, last part of id -> X from '2.11.X'.
+     * @param {number} id                       Budget record id in format '2.11.X'.
      * @returns {Promise<Block.BudgetReport>}   Budget record object.
      */
-    getBudgetRecord(id: number): Promise<Block.BudgetReport> {
-        return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.budget_record, id);
+    getBudgetRecord(id: string): Promise<Block.BudgetReport> {
+        if (this.hasIdCorrectFormat(id, Space.implementation_ids, Type.Implementation.budget_record)) {
+            return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.budget_record, this.getLastPartOfId(id));
+        }
+        return new Promise<Block.BudgetReport>((reject) => {
+            console.error(`Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.budget_record}.X`);
+            reject(null);
+        });
     }
 
     /**
      * Get buying object.
      *
-     * @param {number} id                   Buying object id, last part of id -> X from '2.12.X'.
+     * @param {number} id                   Buying object id in format '2.12.X'.
      * @returns {Promise<Block.Buying>}     Buying object.
      */
-    getBuying(id: number): Promise<Block.Buying> {
-        return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.buying, id);
+    getBuying(id: string): Promise<Block.Buying> {
+        if (this.hasIdCorrectFormat(id, Space.implementation_ids, Type.Implementation.buying)) {
+            return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.buying, this.getLastPartOfId(id));
+        }
+        return new Promise<Block.Buying>((reject) => {
+            console.error(`Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.buying}.X`);
+            reject(null);
+        });
     }
 
     /**
      * Get content object.
      *
-     * @param {number} id                   Content object id, last part of id -> X from '2.13.X'.
+     * @param {number} id                   Content object id in format '2.13.X'.
      * @returns {Promise<Block.Content>}    Content object.
      */
-    getContent(id: number): Promise<Block.Content> {
-        return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.content, id);
+    getContent(id: string): Promise<Block.Content> {
+        if (this.hasIdCorrectFormat(id, Space.implementation_ids, Type.Implementation.content)) {
+            return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.content, this.getLastPartOfId(id));
+        }
+        return new Promise<Block.Content>((reject) => {
+            console.error(`Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.content}.X`);
+            reject(null);
+        });
     }
 
     /**
      * Get publisher object.
      *
-     * @param {number} id                   Publisher id, last part of id -> X from '2.14.X'.
+     * @param {number} id                   Publisher object id in format '2.14.X'.
      * @returns {Promise<Block.Publisher>}  Publisher object.
      */
-    getPublisher(id: number): Promise<Block.Publisher> {
-        return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.publisher, id);
+    getPublisher(id: string): Promise<Block.Publisher> {
+        if (this.hasIdCorrectFormat(id, Space.implementation_ids, Type.Implementation.publisher)) {
+            return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.publisher, this.getLastPartOfId(id));
+        }
+        return new Promise<Block.Publisher>((reject) => {
+            console.error(`Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.publisher}.X`);
+            reject(null);
+        });
     }
 
     /**
      * Get subscription object.
      *
-     * @param {number} id                       Subscription id, last part of id -> X from '2.15.X'.
+     * @param {number} id                       Subscription object id in format '2.15.X'.
      * @returns {Promise<Block.Subscription>}   Subscription object.
      */
-    getSubscription(id: number): Promise<Block.Subscription> {
-        return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.subscription, id);
+    getSubscription(id: string): Promise<Block.Subscription> {
+        if (this.hasIdCorrectFormat(id, Space.implementation_ids, Type.Implementation.subscription)) {
+            return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.subscription, this.getLastPartOfId(id));
+        }
+        return new Promise<Block.Subscription>((reject) => {
+            console.error(`Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.subscription}.X`);
+            reject(null);
+        });
     }
 
     /**
      * Get seeding statistics object.
      *
-     * @param {number} id                           Seeding statistics id, last part of id -> X from '2.16.X'.
+     * @param {number} id                           Seeding statistics object id in format '2.16.X'.
      * @returns {Promise<Block.SeedingStatistics>}  SeedingStatistics object.
      */
-    getSeedingStatistics(id: number): Promise<Block.SeedingStatistics> {
-        return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.seeding_statistics, id);
+    getSeedingStatistics(id: string): Promise<Block.SeedingStatistics> {
+        if (this.hasIdCorrectFormat(id, Space.implementation_ids, Type.Implementation.seeding_statistics)) {
+            return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.seeding_statistics, this.getLastPartOfId(id));
+        }
+        return new Promise<Block.SeedingStatistics>((reject) => {
+            console.error(`Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.seeding_statistics}.X`);
+            reject(null);
+        });
     }
 
     /**
      * Get transaction detail object.
      *
-     * @param {number} id                           Transaction detail id, last part of id -> X from '2.17.X'.
+     * @param {number} id                           Transaction detail object id in format '2.17.X'.
      * @returns {Promise<Block.TransactionDetail>}  TransactionDetail object.
      */
-    getTransactionDetail(id: number): Promise<Block.TransactionDetail> {
-        return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.transaction_detail, id);
+    getTransactionDetail(id: string): Promise<Block.TransactionDetail> {
+        if (this.hasIdCorrectFormat(id, Space.implementation_ids, Type.Implementation.transaction_detail)) {
+            return this.getDatabaseObject(Space.implementation_ids, Type.Implementation.transaction_detail, this.getLastPartOfId(id));
+        }
+        return new Promise<Block.TransactionDetail>((reject) => {
+            console.error(`Wrong id! Id should be in format: ${Space.implementation_ids}.${Type.Implementation.transaction_detail}.X`);
+            reject(null);
+        });
     }
 
     /**
@@ -297,11 +422,11 @@ export class ExplorerModule extends ApiModule {
     /**
      * Get accounts objects.
      *
-     * @param {number} ids                  Blocks start id, last part of id -> X from '1.2.X'.
+     * @param {number} ids                  Account ids in format '1.2.X'.
      * @returns {Promise<Array<Account>>}   List of account objects.
      */
-    getAccounts(...ids: number[]): Promise<Array<Account>> {
-        const operation = new DatabaseOperations.GetAccounts(ids.map(id => `${Space.protocol_ids}.${Type.Protocol.account}.${id}`));
+    getAccounts(ids: string[]): Promise<Array<Account>> {
+        const operation = new DatabaseOperations.GetAccounts(ids);
         return this.dbApi.execute(operation);
     }
 
@@ -321,7 +446,7 @@ export class ExplorerModule extends ApiModule {
      * Get list of miners objects.
      *
      * @deprecated This method will be removed in next release
-     * @param {string} fromId               Miner id to start from, last part of id -> X from '1.4.X'. Default '0.0.0' -> List from start
+     * @param {string} fromId               Miner id to start from. Default '0.0.0' -> List from start
      * @param {number} limit                Limit result list. Default 100(Max)
      * @returns {Promise<Array<Miner>>}
      */
@@ -330,7 +455,7 @@ export class ExplorerModule extends ApiModule {
             const operation = new DatabaseOperations.LookupMiners(fromId, limit);
             this.dbApi.execute(operation)
                 .then((res: [string, string][]) => {
-                    const ids = res.map(el => Number(el[1].split('.')[2]));
+                    const ids = res.map(el => el[1]);
                     this.getMiners(ids)
                         .then(res => {
                             resolve(res);
@@ -344,11 +469,11 @@ export class ExplorerModule extends ApiModule {
     /**
      * Get miners objects.
      *
-     * @param {number[]} ids                List of miner ids, last part of id -> X from '1.4.X'.
+     * @param {number[]} ids                List of miner ids in format '1.4.X'.
      * @returns {Promise<Array<Miner>>}     List of miner objects.
      */
-    getMiners(ids: number[]): Promise<Array<Miner>> {
-        const op = new DatabaseOperations.GetMiners(ids.map(el => `${Space.protocol_ids}.${Type.Protocol.miner}.${el}`));
+    getMiners(ids: string[]): Promise<Array<Miner>> {
+        const op = new DatabaseOperations.GetMiners(ids);
         return new Promise<Array<Miner>>((resolve, reject) => {
             this.dbApi.execute(op)
                 .then(res => resolve(res))
@@ -359,10 +484,10 @@ export class ExplorerModule extends ApiModule {
     /**
      * Get miner object.
      *
-     * @param {number} id                   Miner id, last part of id -> X from '2.8.X'.
+     * @param {number} id                   Miner id in format '2.8.X'.
      * @returns {Promise<Miner | null>}     Miner object
      */
-    getMiner(id: number): Promise<Miner|null> {
+    getMiner(id: string): Promise<Miner|null> {
         return new Promise<Miner>((resolve, reject) => {
             this.getMiners([id])
                 .then(res => {
