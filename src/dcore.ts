@@ -52,11 +52,7 @@ export interface DcoreConfig {
  */
 export function initialize(config: DcoreConfig,
                            testConnection: boolean = true,
-                           dcorejs_lib: any = null,
                            connectionStatusCallback: (state: ConnectionState) => void = null): void {
-    if (dcorejs_lib) {
-        console.warn('Parameter dcorejs_lib of DCorejs.initialize is deprecated since 2.3.1');
-    }
     const dcore = getLibRef();
     ChainApi.setupChain(config.chainId, dcore.ChainConfig);
 
