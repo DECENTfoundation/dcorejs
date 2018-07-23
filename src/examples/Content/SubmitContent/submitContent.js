@@ -66,6 +66,9 @@ function getContentKeys(forSeeders) {
 }
 
 function onSubmit() {
+    if (!validateInputs()) {
+        return;
+    }
     output.innerHTML = 'Submitting...';
     const [year, month, day] = el('expirationDate').value.split('-');
     const date = new Date(year, month, day, 0, 0, 0);
@@ -73,11 +76,20 @@ function onSubmit() {
         const synopsis = JSON.parse(el('meta').value);
         getContentKeys(seeders.map(s => s.seeder))
             .then(keys => {
+                const publisherId = el('publisherId').value;
+                const publisherKey = el('publisherKey').value;
+                let coAuthors = [];
+                if (el('coAuthors').value) {
+                    const cas = el('coAuthors').value.split(',').map(ca => [ca.split('-')[0].trim(), Number(ca.split('-')[1])])
+                    coAuthors.push(...cas);
+                }
+                
                 const submitObject = {
-                    authorId: authorId,
+                    authorId: publisherId,
+                    coAuthors: coAuthors,
                     seeders: seeders,
                     fileName: file.name,
-                    date: date.toString(),
+                    date: date.toISOString(),
                     price: el('price').value,
                     size: file.size,
                     URI: el('uri').value,
@@ -88,15 +100,59 @@ function onSubmit() {
                     publishingFeeAsset: '1.3.0'
                 };
 
-                dcore_js.content().addContent(submitObject, privateKey)
+                dcore_js.content().addContent(submitObject, publisherKey)
                     .then(res => {
-                        output.innerHTML = '<h3 style="color: green;">Content sucessfully submitted</h3>'
+                        successOutput('Content sucessfully submitted');
                     })
                     .catch(err => {
-                        output.innerHTML = '<h3 style="color: red;">!!! Error submitting content</h3>'
+                        errorOutput('!!! Error submitting content');
                     });
             });
     });
+}
+
+function errorOutput(message) {
+    output.innerHTML = `<h3 style="color: red;">${message}</h3>`;
+}
+
+function successOutput(message) {
+    output.innerHTML = `<h3 style="color: green;">${message}</h3>`;
+}
+
+function validateInputs() {
+    if (!el('publisherId').value) {
+        errorOutput('Author id missing');
+        return false;
+    }
+    if (!el('publisherKey').value) {
+        errorOutput('Private key missing');
+        return false;
+    }
+    if (!el('file').value) {
+        errorOutput('File missing');
+        return false;
+    }
+    if (!el('expirationDate').value) {
+        errorOutput('Expiration date missing');
+        return false;
+    }
+    if (!el('title').value) {
+        errorOutput('Title missing');
+        return false;
+    }
+    if (!el('description').value) {
+        errorOutput('Description missing');
+        return false;
+    }
+    if (!el('uri').value) {
+        errorOutput('URI missing');
+        return false;
+    }
+    if (!el('hash').value) {
+        errorOutput('Uniqe hash missing');
+        return false;
+    }
+    return true;
 }
 
 function onCategorySelect(event) {
