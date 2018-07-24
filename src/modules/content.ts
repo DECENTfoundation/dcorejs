@@ -8,12 +8,12 @@ import { ChainApi } from '../api/chain';
 import { TransactionBuilder } from '../transactionBuilder';
 import { isUndefined } from 'util';
 import { DatabaseOperations, SearchParams, SearchParamsOrder } from '../api/model/database';
-import {ContentObject, Operation, Operations} from '../model/transaction';
+import { ContentObject, Operation, Operations } from '../model/transaction';
 import { DCoreAssetObject } from '../model/asset';
 import { ApiModule } from './ApiModule';
 import { Utils } from '../utils';
 import { ChainMethods } from '../api/model/chain';
-import {ApiConnector} from '../api/apiConnector';
+import { ApiConnector } from '../api/apiConnector';
 
 const moment = require('moment');
 
@@ -570,10 +570,10 @@ export class ContentModule extends ApiModule {
      * @return {Promise<boolean>}       Value confirming successful transaction broadcasting.
      */
     public buyContent(contentId: string,
-                      buyerId: string,
-                      elGammalPub: string,
-                      privateKey: string,
-                      broadcast: boolean = true): Promise<Operation> {
+        buyerId: string,
+        elGammalPub: string,
+        privateKey: string,
+        broadcast: boolean = true): Promise<Operation> {
         return new Promise<Operation>((resolve, reject) => {
             this.getContent(contentId)
                 .then((content: ContentObject) => {
@@ -764,9 +764,14 @@ export class ContentModule extends ApiModule {
             const transaction = new TransactionBuilder();
             const added = transaction.addOperation(operation);
             if (added === '') {
-                transaction.broadcast(consumerPKey)
-                    .then(() => resolve(true))
-                    .catch(err => reject(this.handleError(ContentError.transaction_broadcast_failed, err)));
+                this.apiConnector.connect()
+                    .then(res => {
+                        console.log(res);
+                        transaction.broadcast(consumerPKey)
+                            .then(() => resolve(true))
+                            .catch(err => reject(this.handleError(ContentError.transaction_broadcast_failed, err)));
+                    })
+                    .catch(err => reject(this.handleError(ContentError.connection_failed, err)));
             } else {
                 reject(this.handleError(ContentError.syntactic_error, added));
                 return;
