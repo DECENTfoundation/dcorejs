@@ -229,7 +229,9 @@ dcorejs.subscribePendingTransaction((data: any) => {
 In case you want to create custom transaction, see following example. Replace 'X' values and private key for your own.
 
 ```typescript
-const operation = new Operations.AssetFundPools(
+import * as dcorejs from 'dcorejs';
+
+const operation = new dcorejs.TransactionOperations.AssetFundPools(
     '1.2.X',
     {
         amount: 10,
