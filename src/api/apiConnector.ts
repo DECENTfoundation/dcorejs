@@ -95,11 +95,15 @@ export class ApiConnector {
                     const res = await this.getConnectionPromise(address, api);
                     this._isConnected = true;
                     this.connectedAddress = address;
-                    console.log('Connected to', address);
+                    if (process.env.ENVIRONMENT === 'DEV') {
+                        console.log('Connected to', address);
+                    }
                     resolve(res);
                     return;
                 } catch (e) {
-                    console.log('Fail to connect to', address);
+                    if (process.env.ENVIRONMENT === 'DEV') {
+                        console.log('Fail to connect to', address);
+                    }
                     api.close();
                 }
             }
@@ -176,7 +180,9 @@ export class ApiConnector {
         this._isConnected = false;
         this._api.close();
         this._connectionPromise = null;
-        console.log('Closed connection to', this.connectedAddress);
+        if (process.env.ENVIRONMENT === 'DEV') {
+            console.log('Closed connection to', this.connectedAddress);
+        }
         this.connectedAddress = null;
     }
 

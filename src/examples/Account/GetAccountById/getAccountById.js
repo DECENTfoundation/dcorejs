@@ -18,7 +18,7 @@ const dcoreNetworkAddresses = ['wss://stagesocket.decentgo.com:8090'];
 dcore_js.initialize({
     chainId: chainId,
     dcoreNetworkWSPaths: dcoreNetworkAddresses
-}, false, dcorejs_lib);
+}, false, 'DEV', dcorejs_lib);
 
 function getAccountById(accountId) {
     output.innerHTML = 'Loading ...';

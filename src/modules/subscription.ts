@@ -282,7 +282,9 @@ export class SubscriptionModule extends ApiModule {
                         })
                         .catch(err => reject(this.handleError(SubscriptionError.asset_does_not_exist, err)));
                 })
-                .catch(err => console.log(err));
+                .catch(err => {
+                    reject(this.handleError(SubscriptionError.database_operation_failed, err));
+                });
         });
     }
 }
