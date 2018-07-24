@@ -157,7 +157,9 @@ export class MessagingModule extends ApiModule {
                         return;
                     }
                 })
-                .catch(err => console.log(err));
+                .catch(err => {
+                    reject(this.handleError(MessagingError.api_connection_failed, err));
+                });
         }));
     }
 }

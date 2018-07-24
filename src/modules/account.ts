@@ -514,7 +514,9 @@ export class AccountModule extends ApiModule {
                         reject(this.handleError(AccountError.syntactic_error, added));
                     }
                 })
-                .catch(err => console.log(err));
+                .catch(err => {
+                    reject(this.handleError(AccountError.api_connection_failed, err));
+                });
         });
     }
 

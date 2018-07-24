@@ -68,7 +68,11 @@ export class ChainApi {
             .then(res => {
                 this._chainStore.subscribe(callback);
             })
-            .catch(err => console.log(err));
+            .catch(err => {
+                if (process.env.ENVIRONMENT === 'DEV') {
+                    console.log(err);
+                }
+            });
     }
 
     public subscribePendingTransactions(callback: ChainSubscriptionCallback) {
@@ -76,7 +80,11 @@ export class ChainApi {
             .then(res => {
                 this._chainStore.subscribePendingTransaction(callback);
             })
-            .catch(err => console.log(err));
+            .catch(err => {
+                if (process.env.ENVIRONMENT === 'DEV') {
+                    console.log(err);
+                }
+            });
     }
 
     public subscribeBlockApplied(callback: ChainSubscriptionCallback) {
@@ -84,7 +92,11 @@ export class ChainApi {
             .then(res => {
                 this._chainStore.subscribeBlockApplied(callback);
             })
-            .catch(err => console.log(err));
+            .catch(err => {
+                if (process.env.ENVIRONMENT === 'DEV') {
+                    console.log(err);
+                }
+            });
     }
 
     private connect(): Promise<void> {

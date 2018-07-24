@@ -247,7 +247,9 @@ export class MiningModule extends ApiModule {
                                 transaction.broadcast(privateKeyWif)
                                     .then(res => resolve(true))
                                     .catch((err: Error) => {
-                                        console.log(err);
+                                        if (process.env.ENVIRONMENT === 'DEV') {
+                                            console.log(err);
+                                        }
                                         let errorMessage = 'transaction_broadcast_failed';
                                         if (err.stack.indexOf('duplicate') >= 0) {
                                             errorMessage = 'duplicate_parameter_set';

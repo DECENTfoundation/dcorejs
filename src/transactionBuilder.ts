@@ -135,7 +135,9 @@ export class TransactionBuilder {
                 this._operations[operationIndex] = newOperation;
                 return true;
             } catch (exception) {
-                console.log(exception);
+                if (process.env.ENVIRONMENT === 'DEV') {
+                    console.log(exception);
+                }
                 return false;
             }
         }

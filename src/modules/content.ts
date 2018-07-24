@@ -71,7 +71,9 @@ export class ContentModule extends ApiModule {
                                 return c;
                             }));
                         })
-                        .catch(err => console.log(err));
+                        .catch(err => {
+                            reject(this.handleError(ContentError.database_operation_failed, err));
+                        });
                 })
                 .catch((err: any) => {
                     reject(this.handleError(ContentError.database_operation_failed, err));

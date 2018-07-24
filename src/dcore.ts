@@ -47,18 +47,19 @@ export interface DcoreConfig {
  *
  * @param {DcoreConfig} config                                                  Configuration of dcore network yout about to connect to
  * @param {(state: ConnectionState) => void} [connectionStatusCallback=null]    Status callback to handle connection
+ * @param {string} environment                                                   Determines environment, possibilities: DEV, PROD
  */
 export function initialize(config: DcoreConfig,
                            testConnection: boolean = true,
+                           environment: string = 'PROD',
                            connectionStatusCallback: (state: ConnectionState) => void = null): void {
     const dcore = getLibRef();
     ChainApi.setupChain(config.chainId, dcore.ChainConfig);
-
+    process.env.ENVIRONMENT = environment;
     _connector = new ApiConnector(config.dcoreNetworkWSPaths, dcore.Apis, testConnection, connectionStatusCallback);
     const database = new DatabaseApi(dcore.Apis, _connector);
     const historyApi = new HistoryApi(dcore.Apis, _connector);
     const messagingApi = new MessagingApi(dcore.Apis, _connector);
-
     _chain = new ChainApi(_connector, dcore.ChainStore);
     _content = new ContentModule(database, _chain, _connector);
     _account = new AccountModule(database, _chain, historyApi, _connector);

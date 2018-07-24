@@ -251,6 +251,7 @@ export interface UpdateAccountParameters {
 export enum AccountError {
     account_does_not_exist = 'account_does_not_exist',
     account_fetch_failed = 'account_fetch_failed',
+    api_connection_failed = 'api_connection_failed',
     transaction_history_fetch_failed = 'transaction_history_fetch_failed',
     transfer_missing_pkey = 'transfer_missing_pkey',
     transfer_sender_account_not_found = 'transfer_sender_account_not_found',
