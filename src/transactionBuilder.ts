@@ -47,7 +47,6 @@ export class TransactionBuilder {
         try {
             this._transaction.add_type_operation(operation.name, operation.operation);
             this._operations.push(operation);
-            throw new Error('test');
         } catch (exception) {
             throw new Error(exception);
         }
