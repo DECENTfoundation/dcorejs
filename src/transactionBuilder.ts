@@ -43,13 +43,13 @@ export class TransactionBuilder {
      * @param {Operation} operation     Operation to append to transaction.
      * @return {boolean}                Successful operation add value.
      */
-    public addOperation(operation: Operation): string {
+    public addOperation(operation: Operation): void {
         try {
             this._transaction.add_type_operation(operation.name, operation.operation);
             this._operations.push(operation);
-            return '';
+            throw new Error('test');
         } catch (exception) {
-            return exception;
+            throw new Error(exception);
         }
     }
 
