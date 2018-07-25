@@ -14,17 +14,20 @@ export class ExplorerModule extends ApiModule {
         });
     }
 
-    private async getDatabaseObject<T>(space: Space, type: Type.Implementation | Type.Protocol, id: number): Promise<T | null> {
+    private async getDatabaseObject<T>(space: Space, type: Type.Implementation | Type.Protocol, id: number): Promise<T> {
         const operation = new DatabaseOperations.GetObjects([`${space}.${type}.${id}`]);
         try {
             const objects: Array<any> = await this.dbApi.execute(operation);
-            if (objects.length > 0) {
+            if (objects.length > 0 && objects[0] !== null) {
                 return objects[0];
-            } else {
-                return null;
             }
+            return new Promise<T>((resolve, reject) => {
+                reject(this.handleError(ErrorExplorer.wrong_id_error));
+            });
         } catch (err) {
-            return null;
+            return new Promise<T>((resolve, reject) => {
+                reject(this.handleError(ErrorExplorer.get_object_error));
+            });
         }
     }
 
@@ -116,6 +119,7 @@ export class ExplorerModule extends ApiModule {
 
     /**
      * Get list of history objects.
+     *
      * @param {number} id                       History id in format '1.7.X'.
      * @returns {Promise<Block.Transaction>}
      */
