@@ -112,7 +112,6 @@ export class TransactionBuilder {
      * Sign transaction with given private/public key pair.
      *
      * @param {KeyPrivate} privateKey   Private key to sign transaction.
-     * @param {KeyPublic} publicKey     Public key related to private key.
      */
     public signTransaction(privateKey: KeyPrivate): void {
         const publicKey = KeyPrivate.fromWif(privateKey.stringKey).getPublicKey().key;
