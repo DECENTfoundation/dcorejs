@@ -176,21 +176,16 @@ export class ContentModule extends ApiModule {
                     const URI = content.URI;
                     const cancelOperation = new Operations.ContentCancelOperation(authorId, URI);
                     const transaction = new TransactionBuilder();
-                    const added = transaction.addOperation(cancelOperation);
-                    if (added === '') {
-                        transaction.broadcast(privateKey)
-                            .then(() => {
-                                resolve();
-                            })
-                            .catch(err => {
-                                reject(
-                                    this.handleError(ContentError.transaction_broadcast_failed, err)
-                                );
-                            });
-                    } else {
-                        reject(this.handleError(ContentError.syntactic_error, added));
-                        return;
-                    }
+                    transaction.addOperation(cancelOperation);
+                    transaction.broadcast(privateKey)
+                        .then(() => {
+                            resolve();
+                        })
+                        .catch(err => {
+                            reject(
+                                this.handleError(ContentError.transaction_broadcast_failed, err)
+                            );
+                        });
                 })
                 .catch(err => {
                     reject(this.handleError(ContentError.fetch_content_failed, err));
@@ -322,24 +317,19 @@ export class ContentModule extends ApiModule {
                                     JSON.stringify(content.synopsis)
                                 );
                                 const transaction = new TransactionBuilder();
-                                const added = transaction.addOperation(submitOperation);
-                                if (added === '') {
-                                    if (broadcast) {
-                                        transaction.broadcast(privateKey)
-                                            .then(() => {
-                                                resolve(transaction.operations[0]);
-                                            })
-                                            .catch(err => {
-                                                reject(
-                                                    this.handleError(ContentError.transaction_broadcast_failed, err)
-                                                );
-                                            });
-                                    } else {
-                                        resolve(transaction.operations[0]);
-                                    }
+                                transaction.addOperation(submitOperation);
+                                if (broadcast) {
+                                    transaction.broadcast(privateKey)
+                                        .then(() => {
+                                            resolve(transaction.operations[0]);
+                                        })
+                                        .catch(err => {
+                                            reject(
+                                                this.handleError(ContentError.transaction_broadcast_failed, err)
+                                            );
+                                        });
                                 } else {
-                                    reject(this.handleError(ContentError.syntactic_error, added));
-                                    return;
+                                    resolve(transaction.operations[0]);
                                 }
                             } catch (e) {
                                 reject(this.handleError(ContentError.account_fetch_failed, e));
@@ -588,22 +578,17 @@ export class ContentModule extends ApiModule {
                         { s: elGammalPub }
                     );
                     const transaction = new TransactionBuilder();
-                    const added = transaction.addOperation(buyOperation);
-                    if (added === '') {
-                        if (broadcast) {
-                            transaction.broadcast(privateKey)
-                                .then(() => {
-                                    resolve(transaction.operations[0]);
-                                })
-                                .catch((err: any) => {
-                                    reject(this.handleError(ContentError.transaction_broadcast_failed, err));
-                                });
-                        } else {
-                            resolve(transaction.operations[0]);
-                        }
+                    transaction.addOperation(buyOperation);
+                    if (broadcast) {
+                        transaction.broadcast(privateKey)
+                            .then(() => {
+                                resolve(transaction.operations[0]);
+                            })
+                            .catch((err: any) => {
+                                reject(this.handleError(ContentError.transaction_broadcast_failed, err));
+                            });
                     } else {
-                        reject(this.handleError(ContentError.syntactic_error, added));
-                        return;
+                        resolve(transaction.operations[0]);
                     }
                 })
                 .catch(err => {
@@ -702,9 +687,9 @@ export class ContentModule extends ApiModule {
     getRating(contentId: string, forUser: string, ratingStartId: string = '', count: number = 100): Promise<Array<BuyingContent>> {
         return new Promise<Array<BuyingContent>>((resolve, reject) => {
             this.getContent(contentId)
-                .then(content => {
-                    this.searchFeedback(forUser, content.URI, ratingStartId, count)
-                        .then((ratedBuying: BuyingContent[]) => resolve(ratedBuying))
+                .then(res => {
+                    this.searchFeedback(forUser, res.URI, ratingStartId, count)
+                        .then(res => resolve(res))
                         .catch(err => reject(this.handleError(ContentError.database_operation_failed, err)));
                 })
                 .catch(err => {
@@ -779,25 +764,20 @@ export class ContentModule extends ApiModule {
         return new Promise<Operation>((resolve, reject) => {
             const operation = new Operations.LeaveRatingAndComment(contentURI, consumer, comment, rating);
             const transaction = new TransactionBuilder();
-            const added = transaction.addOperation(operation);
-            if (added === '') {
-                this.apiConnector.connect()
-                    .then(res => {
-                        transaction.broadcast(consumerPKey)
-                            .then(() => resolve(transaction.operations[0]))
-                            .catch((err: Error) => {
-                                if (err.stack.indexOf('content != idx.end') >= 0) {
-                                    reject(this.handleError(ContentError.content_not_bought, err));
-                                } else {
-                                    reject(this.handleError(ContentError.transaction_broadcast_failed, err));
-                                }
-                            });
-                    })
-                    .catch(err => reject(this.handleError(ContentError.connection_failed, err)));
-            } else {
-                reject(this.handleError(ContentError.syntactic_error, added));
-                return;
-            }
+            transaction.addOperation(operation);
+            this.apiConnector.connect()
+                .then(res => {
+                    transaction.broadcast(consumerPKey)
+                        .then(() => resolve(transaction.operations[0]))
+                        .catch((err: Error) => {
+                            if (err.stack.indexOf('content != idx.end') >= 0) {
+                                reject(this.handleError(ContentError.content_not_bought, err));
+                            } else {
+                                reject(this.handleError(ContentError.transaction_broadcast_failed, err));
+                            }
+                        });
+                })
+                .catch(err => reject(this.handleError(ContentError.connection_failed, err)));
         });
     }
 }

@@ -43,13 +43,12 @@ export class TransactionBuilder {
      * @param {Operation} operation     Operation to append to transaction.
      * @return {boolean}                Successful operation add value.
      */
-    public addOperation(operation: Operation): string {
+    public addOperation(operation: Operation): void {
         try {
             this._transaction.add_type_operation(operation.name, operation.operation);
             this._operations.push(operation);
-            return '';
         } catch (exception) {
-            return exception;
+            throw new Error(exception);
         }
     }
 
@@ -113,7 +112,6 @@ export class TransactionBuilder {
      * Sign transaction with given private/public key pair.
      *
      * @param {KeyPrivate} privateKey   Private key to sign transaction.
-     * @param {KeyPublic} publicKey     Public key related to private key.
      */
     public signTransaction(privateKey: KeyPrivate): void {
         const publicKey = KeyPrivate.fromWif(privateKey.stringKey).getPublicKey().key;

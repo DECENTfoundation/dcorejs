@@ -147,15 +147,10 @@ export class MessagingModule extends ApiModule {
 
                     const customOp = new Operations.CustomOperation(sender, [sender], CustomOperationSubtype.messaging, buffer);
                     const transaction = new TransactionBuilder();
-                    const added = transaction.addOperation(customOp);
-                    if (added === '') {
-                        transaction.broadcast(privateKey)
-                            .then(res => resolve(true))
-                            .catch(err => reject(this.handleError(MessagingError.query_execution_failed)));
-                    } else {
-                        reject(this.handleError(MessagingError.syntactic_error, added));
-                        return;
-                    }
+                    transaction.addOperation(customOp);
+                    transaction.broadcast(privateKey)
+                        .then(res => resolve(true))
+                        .catch(err => reject(this.handleError(MessagingError.query_execution_failed)));
                 })
                 .catch(err => {
                     reject(this.handleError(MessagingError.api_connection_failed, err));
