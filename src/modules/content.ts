@@ -1,19 +1,19 @@
 /**
  * @module ContentModule
  */
-import { Asset, DCoreAccount } from '../model/account';
-import { Rating, Content, Seeder, BuyingContent, SubmitObject, ContentKeys, KeyPair, ContentExchangeObject, Price } from '../model/content';
+import { Asset, DCoreAccount, Account } from '../model/account';
+import { Content, Seeder, BuyingContent, SubmitObject, ContentKeys, KeyPair, ContentExchangeObject, Price } from '../model/content';
 import { DatabaseApi } from '../api/database';
 import { ChainApi } from '../api/chain';
 import { TransactionBuilder } from '../transactionBuilder';
 import { isUndefined } from 'util';
 import { DatabaseOperations, SearchParams, SearchParamsOrder } from '../api/model/database';
-import {ContentObject, Operation, Operations} from '../model/transaction';
+import { ContentObject, Operation, Operations } from '../model/transaction';
 import { DCoreAssetObject } from '../model/asset';
 import { ApiModule } from './ApiModule';
 import { Utils } from '../utils';
 import { ChainMethods } from '../api/model/chain';
-import {ApiConnector} from '../api/apiConnector';
+import { ApiConnector } from '../api/apiConnector';
 
 const moment = require('moment');
 
@@ -29,6 +29,7 @@ export enum ContentError {
     parameters_error = 'parameters_error',
     connection_failed = 'connection_failed',
     syntactic_error = 'syntactic_error',
+    content_not_bought = 'content_not_bought',
 }
 
 /**
@@ -572,10 +573,10 @@ export class ContentModule extends ApiModule {
      * @return {Promise<boolean>}       Value confirming successful transaction broadcasting.
      */
     public buyContent(contentId: string,
-                      buyerId: string,
-                      elGammalPub: string,
-                      privateKey: string,
-                      broadcast: boolean = true): Promise<Operation> {
+        buyerId: string,
+        elGammalPub: string,
+        privateKey: string,
+        broadcast: boolean = true): Promise<Operation> {
         return new Promise<Operation>((resolve, reject) => {
             this.getContent(contentId)
                 .then((content: ContentObject) => {
@@ -698,12 +699,12 @@ export class ContentModule extends ApiModule {
      * @param {number} count
      * @return {Promise<Array<Rating>>}
      */
-    getRating(contentId: string, forUser: string, ratingStartId: string = '', count: number = 100): Promise<Array<Rating>> {
-        return new Promise<Array<Rating>>((resolve, reject) => {
+    getRating(contentId: string, forUser: string, ratingStartId: string = '', count: number = 100): Promise<Array<BuyingContent>> {
+        return new Promise<Array<BuyingContent>>((resolve, reject) => {
             this.getContent(contentId)
-                .then(res => {
-                    this.searchFeedback(forUser, res.URI, ratingStartId, count)
-                        .then(res => resolve(res))
+                .then(content => {
+                    this.searchFeedback(forUser, content.URI, ratingStartId, count)
+                        .then((ratedBuying: BuyingContent[]) => resolve(ratedBuying))
                         .catch(err => reject(this.handleError(ContentError.database_operation_failed, err)));
                 })
                 .catch(err => {
@@ -716,11 +717,25 @@ export class ContentModule extends ApiModule {
     /**
      * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#a624e679ac58b3edfc7b817e4a46e3746
      */
-    searchFeedback(accountId: string, contentURI: string, ratingStartId: string, count: number = 100): Promise<Array<Rating>> {
-        return new Promise<Array<Rating>>((resolve, reject) => {
-            const operation = new DatabaseOperations.SearchFeedback(accountId, contentURI, ratingStartId, count);
-            this.dbApi.execute(operation)
-                .then(res => {
+    searchFeedback(accountId: string, contentURI: string, ratingStartId: string, count: number = 100): Promise<Array<BuyingContent>> {
+        return new Promise<Array<BuyingContent>>(async (resolve, reject) => {
+            const getAccountOp = new DatabaseOperations.GetAccounts([accountId]);
+            let accounts = [];
+            if (accountId) {
+                try {
+                    accounts = await this.dbApi.execute<Account[]>(getAccountOp);
+                } catch (err) {
+                    reject(this.handleError(ContentError.connection_failed, err));
+                }
+            }
+            if (accounts.length !== 0 && !accounts[0]) {
+                reject(this.handleError(ContentError.account_fetch_failed));
+                return;
+            }
+            const [account] = accounts;
+            const operation = new DatabaseOperations.SearchFeedback(account ? account.name : '', contentURI, ratingStartId, count);
+            this.dbApi.execute<BuyingContent[]>(operation)
+                .then((res: BuyingContent[]) => {
                     resolve(res);
                 })
                 .catch(err => {
@@ -760,15 +775,25 @@ export class ContentModule extends ApiModule {
      * @param {string} consumerPKey     Account's private key to sign transaction in WIF(hex) (Wallet Import Format) format.
      * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
      */
-    leaveCommentAndRating(contentURI: string, consumer: string, comment: string, rating: number, consumerPKey: string): Promise<boolean> {
-        return new Promise<boolean>((resolve, reject) => {
+    leaveCommentAndRating(contentURI: string, consumer: string, comment: string, rating: number, consumerPKey: string): Promise<Operation> {
+        return new Promise<Operation>((resolve, reject) => {
             const operation = new Operations.LeaveRatingAndComment(contentURI, consumer, comment, rating);
             const transaction = new TransactionBuilder();
             const added = transaction.addOperation(operation);
             if (added === '') {
-                transaction.broadcast(consumerPKey)
-                    .then(() => resolve(true))
-                    .catch(err => reject(this.handleError(ContentError.transaction_broadcast_failed, err)));
+                this.apiConnector.connect()
+                    .then(res => {
+                        transaction.broadcast(consumerPKey)
+                            .then(() => resolve(transaction.operations[0]))
+                            .catch((err: Error) => {
+                                if (err.stack.indexOf('content != idx.end') >= 0) {
+                                    reject(this.handleError(ContentError.content_not_bought, err));
+                                } else {
+                                    reject(this.handleError(ContentError.transaction_broadcast_failed, err));
+                                }
+                            });
+                    })
+                    .catch(err => reject(this.handleError(ContentError.connection_failed, err)));
             } else {
                 reject(this.handleError(ContentError.syntactic_error, added));
                 return;
