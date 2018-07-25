@@ -211,6 +211,7 @@ export class AccountModule extends ApiModule {
      * @param {string} toAccount        Name or id of receiver account
      * @param {string} memo             Message for recipient
      * @param {string} privateKey       Private key used to encrypt memo and sign transaction
+     * @param {boolean} broadcast       Transaction is broadcasted if set to true
      * @return {Promise<Operation>}     Value confirming successful transaction broadcasting.
      */
     public transfer(amount: number, assetId: string, fromAccount: string, toAccount: string, memo: string, privateKey: string,
@@ -272,23 +273,18 @@ export class AccountModule extends ApiModule {
                         Asset.create(amount, assetObject),
                         memo_object
                     );
-                    const added = transaction.addOperation(transferOperation);
-                    if (added === '') {
-                        if (broadcast) {
-                            transaction.broadcast(privateKey)
-                                .then(() => {
-                                    resolve(transaction.operations[0]);
-                                })
-                                .catch(err => {
-                                    reject(this.handleError(AccountError.transaction_broadcast_failed, err));
-                                    return;
-                                });
-                        } else {
-                            resolve(transaction.operations[0]);
-                        }
+                    transaction.addOperation(transferOperation);
+                    if (broadcast) {
+                        transaction.broadcast(privateKey)
+                            .then(() => {
+                                resolve(transaction.operations[0]);
+                            })
+                            .catch(err => {
+                                reject(this.handleError(AccountError.transaction_broadcast_failed, err));
+                                return;
+                            });
                     } else {
-                        reject(this.handleError(AccountError.syntactic_error, added));
-                        return;
+                        resolve(transaction.operations[0]);
                     }
                 })
                 .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
@@ -456,8 +452,9 @@ export class AccountModule extends ApiModule {
      * @param {string} activeKey            Public key to be used as active key in WIF(hex)(Wallet Import Format) format.
      * @param {string} memoKey              Public key used to memo encryption in WIF(hex)(Wallet Import Format) format.
      * @param {string} registrar            Registrar account id who pay account creation transaction fee.
-     * @param {string} regisrarPrivateKey   Registrar private key, in WIF(hex)(Wallet Import Format) format, for account register
+     * @param {string} registrarPrivateKey   Registrar private key, in WIF(hex)(Wallet Import Format) format, for account register
      *                                      transaction to be signed with.
+     * @param {boolean} broadcast           Transaction is broadcasted if set to true
      * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
      */
     public registerAccount(name: string,
@@ -501,17 +498,13 @@ export class AccountModule extends ApiModule {
                         }
                     });
                     const transaction = new TransactionBuilder();
-                    const added = transaction.addOperation(operation);
-                    if (added === '') {
-                        if (broadcast) {
-                            transaction.broadcast(registrarPrivateKey)
-                                .then(() => resolve(transaction.operations[0]))
-                                .catch(err => reject(err));
-                        } else {
-                            resolve(transaction.operations[0]);
-                        }
+                    transaction.addOperation(operation);
+                    if (broadcast) {
+                        transaction.broadcast(registrarPrivateKey)
+                            .then(() => resolve(transaction.operations[0]))
+                            .catch(err => reject(err));
                     } else {
-                        reject(this.handleError(AccountError.syntactic_error, added));
+                        resolve(transaction.operations[0]);
                     }
                 })
                 .catch(err => {
@@ -617,7 +610,7 @@ export class AccountModule extends ApiModule {
      * Fetch list of an accounts.
      * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#abf203f3002c7e2053c33eb6cb4e147c6
      *
-     * @param {string} loweBound                Account id from which accounts are listed, in format '1.2.X'. Default: ''
+     * @param {string} lowerBound                Account id from which accounts are listed, in format '1.2.X'. Default: ''
      * @param {number} limit                    Number of returned accounts. Default: 100(Max)
      * @returns {Promise<AccountNameIdPair>}    List of filtered AccountNameIdPairs.
      */
@@ -715,6 +708,7 @@ export class AccountModule extends ApiModule {
      * @param {UpdateAccountParameters} params  UpdateAccountParameters object with parameters to be changed.
      * @param {string} privateKey               Private key of account that is about to be changed, to sign transaction.
      *                                          In WIF(hex)(Wallet Import Format) format.
+     * @param {boolean} broadcast               Transaction is broadcasted if set to true
      * @returns {Promise<Boolean>}              Value confirming successful transaction broadcasting.
      */
     public updateAccount(accountId: string, params: UpdateAccountParameters, privateKey: string, broadcast: boolean = true)
@@ -760,22 +754,17 @@ export class AccountModule extends ApiModule {
                         {}
                     );
                     const transaction = new TransactionBuilder();
-                    const added = transaction.addOperation(accountUpdateOperation);
-                    if (added === '') {
-                        if (broadcast) {
-                            transaction.broadcast(privateKey)
-                                .then(() => {
-                                    resolve(transaction.operations[0]);
-                                })
-                                .catch((error: any) => {
-                                    reject(this.handleError(AccountError.transaction_broadcast_failed, error));
-                                });
-                        } else {
-                            resolve(transaction.operations[0]);
-                        }
+                    transaction.addOperation(accountUpdateOperation);
+                    if (broadcast) {
+                        transaction.broadcast(privateKey)
+                            .then(() => {
+                                resolve(transaction.operations[0]);
+                            })
+                            .catch((error: any) => {
+                                reject(this.handleError(AccountError.transaction_broadcast_failed, error));
+                            });
                     } else {
-                        reject(this.handleError(AccountError.syntactic_error, added));
-                        return;
+                        resolve(transaction.operations[0]);
                     }
                     })
                 .catch((error) => {
