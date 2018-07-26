@@ -29,7 +29,7 @@ export class MiningModule extends ApiModule {
         const res: string[] = [].concat(...voted);
         toUnvote.forEach(u => {
             const index = res.indexOf(u);
-            if (index > 0) {
+            if (index >= 0) {
                 res.splice(index, 1);
             }
         });
