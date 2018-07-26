@@ -124,6 +124,51 @@ dcorejs.account().registerAccount(
 ```
 NOTE: Make sure, that `sequenceNumber` you generating keys with, was not used for generating keys for your accounts in past.
 
+### Submit content
+
+```typescript 
+import * as dcorejs from 'dcorejs';
+
+const priveteKey = '5KcA6ky4Hs9VoDUSdTF4o3a2QDgiiG5gkpLLysRWR8dy6EAgTni';
+
+dcorejs.content().getSeeders(2)
+    .then((seeders: Seeder[]) => {
+        const seederIds = seeders.map(s => s.seeder);
+        dcorejs.content().generateContentKeys(seederIds)
+            .then((contentKeys: ContentKeys) => {
+                const submitObject = {
+                    authorId: "1.2.345",
+                    coAuthors: [["1.2.456", 1000]],
+                    seeders: seeders,
+                    fileName: "wallet-export.json",
+                    date: "2018-09-30T22:00:00.000Z",
+                    price: "134",
+                    size: 2386,
+                    URI: "http://test.uri.com",
+                    hash: "014abb5fcbb2db96baf317f2f039e736c95a5269",
+                    keyParts: contentKeys.parts,
+                    synopsis: {
+                        title: "Foo book",
+                        description: "This book is about Fooing",
+                        content_type_id: "1.3.6.0"
+                    },
+                    assetId: "1.3.0",
+                    publishingFeeAsset: "1.3.0"
+                };
+                dcorejs.content().addContent(submitObject, privateKey)
+                    .then(res => {
+                        // content successfully submitted
+                    })
+                    .catch(err => {
+                        // error occured during content submition
+                    })
+            })
+    })
+```
+Example show above is for case when content is already uploaded to seeders using DCore `IPFS` node.
+Tought, is also able to submit content uploaded to different storage (e.g. CDN). Then 
+omit parameters `seeders` and `keyParts`, and use empty arrays instead.
+
 ### Search content
 
 ```typescript
