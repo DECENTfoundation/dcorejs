@@ -262,12 +262,16 @@ export class ContentModule extends ApiModule {
      * Submit content to blockchain
      * https://docs.decent.ch/developer/group___wallet_a_p_i___content.html#gae0af8d611b5d915264a892ad83254370
      *
+     * @throws {TypeError}              Error is thrown in case of invalid input parameters.
      * @param {SubmitObject} content    SubmitObject with information about submitted object.
      * @param {string} privateKey       Private for sign transaction in WIF(hex) (Wallet Import Format) format.
      * @param {boolean} broadcast
      * @return {Promise<boolean>}       Value confirming successful transaction broadcasting.
      */
     public addContent(content: SubmitObject, privateKey: string, broadcast: boolean = true): Promise<Operation> {
+        if (!this.validateObject<SubmitObject>(content, SubmitObject) || !this.validateGeneralParams(privateKey, broadcast)) {
+            throw new TypeError('Invalid parameters');
+        }
         return new Promise<Operation>((resolve, reject) => {
             content.size = this.getFileSize(content.size);
             const listAssetOp = new DatabaseOperations.GetAssets([
@@ -779,5 +783,21 @@ export class ContentModule extends ApiModule {
                 })
                 .catch(err => reject(this.handleError(ContentError.connection_failed, err)));
         });
+    }
+
+    private validateObject<T>(object: T | any, typeContructor: {new (): T}): boolean {
+        const t = new typeContructor();
+        let isValid = true;
+        Object.keys(t).forEach(key => {
+            if (t[key] !== null && typeof t[key] !== typeof object[key]) {
+                if (isValid) {
+                    isValid = false;
+                }
+            }
+        });
+        return isValid;
+    }
+    private validateGeneralParams(privateKey: string | any, broadcast: boolean | any): boolean {
+        return privateKey && typeof privateKey === 'string' && broadcast && typeof broadcast === 'boolean';
     }
 }
