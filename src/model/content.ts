@@ -143,7 +143,7 @@ export interface Seeder extends ContentExchangeObject {
     region_code: string;
 }
 
-export interface SubmitObject {
+export interface ISubmitObject {
     authorId: string;
     coAuthors: [string, number][];
     seeders: Seeder[];
@@ -157,6 +157,22 @@ export interface SubmitObject {
     synopsis: Synopsis;
     assetId?: string;
     publishingFeeAsset?: string;
+}
+
+export class SubmitObject implements ISubmitObject {
+    authorId = '';
+    coAuthors: [string, number][] = [];
+    seeders: Seeder[] = [];
+    fileName = '';
+    date = '';
+    price = 0;
+    size = 0;
+    URI = '';
+    hash = '';
+    keyParts: KeyParts[] = [];
+    synopsis: Synopsis = {title: '', description: '', content_type_id: ''};
+    assetId? = null;
+    publishingFeeAsset? = null;
 }
 
 export interface SynopsisBase {
