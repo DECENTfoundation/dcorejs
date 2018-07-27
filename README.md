@@ -128,24 +128,24 @@ NOTE: Make sure, that `sequenceNumber` you generating keys with, was not used fo
 ```typescript 
 import * as dcorejs from 'dcorejs';
 
-const priveteKey = '5KcA6ky4Hs9VoDUSdTF4o3a2QDgiiG5gkpLLysRWR8dy6EAgTni';
+const privateKey = '5KcA6ky4Hs9VoDUSdTF4o3a2QDgiiG5gkpLLysRWR8dy6EAgTni';
 
 dcorejs.content().getSeeders(2)
-    .then((seeders: Seeder[]) => {
+    .then((seeders: dcorejs.Seeder[]) => {
         const seederIds = seeders.map(s => s.seeder);
         dcorejs.content().generateContentKeys(seederIds)
-            .then((contentKeys: ContentKeys) => {
-                const submitObject = {
+            .then((contentKeys: dcorejs.ContentKeys) => {
+                const submitObject: SubmitObject = {
                     authorId: "1.2.345",
                     coAuthors: [["1.2.456", 1000]],
-                    seeders: seeders,
+                    seeders: [],
                     fileName: "wallet-export.json",
                     date: "2018-09-30T22:00:00.000Z",
-                    price: "134",
+                    price: 134,
                     size: 2386,
                     URI: "http://test.uri.com",
                     hash: "014abb5fcbb2db96baf317f2f039e736c95a5269",
-                    keyParts: contentKeys.parts,
+                    keyParts: [],
                     synopsis: {
                         title: "Foo book",
                         description: "This book is about Fooing",
@@ -164,10 +164,21 @@ dcorejs.content().getSeeders(2)
             })
     })
 ```
-Example show above is for case when content is already uploaded to seeders using DCore `IPFS` node.
-Tought, is also able to submit content uploaded to different storage (e.g. CDN). Then 
+Example shown above is for case when content is already uploaded to seeders using DCore `IPFS` node.
+It is also possible to submit content uploaded to different storage (e.g. CDN). Then 
 omit parameters `seeders` and `keyParts`, and use empty arrays instead.
 
+Note following:
+
+- Each newly submitted content **must** have unique `URI`.
+
+- If submitting content with same `URI`, then parameters `hash`, `author`, `date`, `seeders` and `keyParts` must stay same. All other data are updated.
+
+- Hash needs to be RIPEMD-160, and can be generated using `dcorejs.Utils.ripemdHash()` method
+
+- Synopsis need to contain at least parameters `title`, `description` and `content_type_id`. 
+`content_type_id` is composed of `'<app_id>.<category>.<sub_category>.<is_adult_content>'`, for example `1.1.2.0`.
+ 
 ### Search content
 
 ```typescript
