@@ -151,11 +151,11 @@ export class ApiConnector {
 
     /**
      * Return promise of connection. Once connection is established Promise is resolved and is able to run operations on apis.
-     * Closed connection can be opened using openConnection() method.
+     * Closed connection wil not be connected. To reopen closed connection use `openConnection()`.
      *
      * @returns {Promise<void>}     Connection promise.
      */
-    public connect(): Promise<void> {
+    public connection(): Promise<void> {
         if (!this._connectionPromise) {
             return new Promise<void>(((resolve, reject) => reject('connection_closed')));
         }
@@ -165,12 +165,13 @@ export class ApiConnector {
     /**
      * Opens WS connection based on initialize configuration.
      *
-     * @returns {Promise<void>}     Connection promise.
+     * @returns {Promise<any>}     Connection promise.
      */
-    public openConnection() {
+    public openConnection(): Promise<any> {
         if (this._connectionPromise === null) {
             this.initConnetion(this._apiAddresses, this._api, this.testConnectionQuality, this.connectionStatusCallback);
         }
+        return this._connectionPromise;
     }
 
     /**

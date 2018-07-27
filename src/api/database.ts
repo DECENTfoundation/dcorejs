@@ -23,7 +23,7 @@ export class DatabaseApi {
 
     public execute<T = any>(operation: DatabaseOperation): Promise<T> {
         return new Promise((resolve, reject) => {
-            this._apiConnector.connect()
+            this._apiConnector.connection()
                 .then(() => {
                     this.dbApi()
                         .exec(operation.name, operation.parameters)
