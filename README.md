@@ -89,6 +89,27 @@ you are about to work on.
 
 Once dcore lib is initialized, you can access methods using `dcorejs` with any of submodule - `account()`, `asset()`, `content()`, `explorer()`, `messaging()`, `mining()`, `proposal()`, `seeding()` or `subscription()`
 
+### Connection control
+
+Library dcorejs offer methods to control connection.
+
+```typescript
+import * as dcorejs from 'dcorejs';
+
+const connection = dcorejs.connection();
+
+// ...
+
+connection.closeConnection();
+
+// ...
+
+connection.openConnection()
+    .then(res => {
+        // connection opened, connection.isConnected === true
+    })
+```
+
 ### Create account
 
 There is two ways how to create account in DCore network: `Account.registerAccount` and `Account.createAccountWithBrainkey`.
