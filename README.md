@@ -176,6 +176,9 @@ Note following:
 - If submitting content with same `URI`, then parameters `hash`, `author`, `date`, `seeders` and `keyParts` must stay same. All other data are updated.
 
 - Hash needs to be RIPEMD-160, and can be generated using `dcorejs.Utils.ripemdHash()` method
+
+- Synopsis need to contain at least parameters `title`, `description` and `content_type_id`. 
+`content_type_id` is composed of `'<app_id>.<category>.<sub_category>.<is_adult_content>'`, for example `1.1.2.0`.
  
 ### Search content
 
