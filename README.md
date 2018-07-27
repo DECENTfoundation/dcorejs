@@ -139,14 +139,14 @@ dcorejs.content().getSeeders(2)
                 const submitObject = {
                     authorId: "1.2.345",
                     coAuthors: [["1.2.456", 1000]],
-                    seeders: seeders,
+                    seeders: [],
                     fileName: "wallet-export.json",
                     date: "2018-09-30T22:00:00.000Z",
                     price: "134",
                     size: 2386,
                     URI: "http://test.uri.com",
                     hash: "014abb5fcbb2db96baf317f2f039e736c95a5269",
-                    keyParts: contentKeys.parts,
+                    keyParts: [],
                     synopsis: {
                         title: "Foo book",
                         description: "This book is about Fooing",
@@ -168,6 +168,12 @@ dcorejs.content().getSeeders(2)
 Example show above is for case when content is already uploaded to seeders using DCore `IPFS` node.
 Tought, is also able to submit content uploaded to different storage (e.g. CDN). Then 
 omit parameters `seeders` and `keyParts`, and use empty arrays instead.
+
+Note folowing:
+
+- Each newly submitted content **must** have unique `URI`.
+
+- If submitting content with same `URI`, then parameters `hash`, `author`, `date`, `seeders` and `keyParts` must stay same. All other data are updated.
 
 ### Search content
 
