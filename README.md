@@ -323,7 +323,19 @@ within `dist/dcorejs.umd.js`. Node version in `lib/dcorejs.js`.
 ### dcorejs
 ```typescript
 subscribe(callback: ChainSubscriptionCallback)
-subscribePendingTransaction(callback: ChainSubscriptionCallback)
+subscribeBlockApplied(callback: ChainSubscriptionBlockAppliedCallback) 
+subscribePendingTransaction(callback: ChainSubscriptionCallback) 
+content(): ContentModule 
+account(): AccountModule 
+explorer(): ExplorerModule 
+asset(): AssetModule 
+mining(): MiningModule 
+subscription(): SubscriptionModule 
+seeding(): SeedingModule 
+proposal(): ProposalModule 
+messaging(): MessagingModule 
+transactionBuilder(): TransactionBuilder 
+connection(): ApiConnector
 ```
 
 ### Content
