@@ -108,13 +108,12 @@ const activeKey: KeyPrivate = Utils.derivePrivateKey(brainKey, sequenceNumber + 
 const memoKey: KeyPrivate = Utils.derivePrivateKey(brainKey, sequenceNumber + 2);
 
 dcorejs.account().registerAccount(
-    name: 'my-new-account-name',
-    ownerKey: ownerKey,
-    activeKey: activeKey,
-    memoKey: memoKey,
-    registrar: '1.2.345',
-    registrarPrivateKey: '5JawRMmxyeCqKoJvspGyaZvFy6ajh4c3ELfG5meQdii6HWVDBbY',
-    broadcast: boolean = true)
+    'myNewAccountName',
+    'ownerKey',
+    'activeKey',
+    'memoKey',
+    'accountId',
+    'privateKeyOfRegistrar')
     .then(res => {
         // account_create transaction was successfully broadcasted
     })
