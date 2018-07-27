@@ -135,6 +135,6 @@ export function transactionBuilder(): TransactionBuilder {
     return _transactionBuilder;
 }
 
-export function connection() {
+export function connection(): ApiConnector {
     return _connector;
 }
