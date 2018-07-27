@@ -111,7 +111,7 @@ export class AssetModule extends ApiModule {
             issuer, symbol, precision, description, options
         );
         return new Promise<boolean>((resolve, reject) => {
-            this.apiConnector.connect()
+            this.apiConnector.connection()
                 .then(() => {
                     const transaction = new TransactionBuilder();
                     transaction.addOperation(operation);

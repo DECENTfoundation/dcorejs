@@ -110,7 +110,7 @@ export class MiningModule extends ApiModule {
      */
     public createMiner(minerAccountId: string, URL: string, signingPublicKey: string, privateKey: string): Promise<boolean> {
         return new Promise<boolean>(((resolve, reject) => {
-            this.apiConnector.connect()
+            this.apiConnector.connection()
                 .then(res => {
                     const operation = new Operations.MinerCreate(minerAccountId, URL, signingPublicKey);
                     const transaction = new TransactionBuilder();

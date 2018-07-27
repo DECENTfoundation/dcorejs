@@ -19,7 +19,7 @@ export class MessagingApi {
 
     public execute<T = any>(operation: MessagingOperation): Promise<T> {
         return new Promise((resolve, reject) => {
-            this._apiConnector.connect()
+            this._apiConnector.connection()
                 .then(() => {
                     this.msgApi()
                         .exec(operation.name, operation.parameters)

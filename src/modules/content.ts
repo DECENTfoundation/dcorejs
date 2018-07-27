@@ -769,7 +769,7 @@ export class ContentModule extends ApiModule {
             const operation = new Operations.LeaveRatingAndComment(contentURI, consumer, comment, rating);
             const transaction = new TransactionBuilder();
             transaction.addOperation(operation);
-            this.apiConnector.connect()
+            this.apiConnector.connection()
                 .then(res => {
                     transaction.broadcast(consumerPKey)
                         .then(() => resolve(transaction.operations[0]))

@@ -144,7 +144,7 @@ export class SubscriptionModule extends ApiModule {
      */
     public subscribeByAuthor(from: string, to: string, privateKey: string): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
-            this.apiConnector.connect()
+            this.apiConnector.connection()
                 .then(res => {
                     const subscribeByAuthorOperation = new Operations.SubscribeByAuthor(from, to);
                     const transaction = new TransactionBuilder();
@@ -174,7 +174,7 @@ export class SubscriptionModule extends ApiModule {
     public setAutomaticRenewalOfSubscription(
         accountId: string, subscriptionId: string, automaticRenewal: boolean, privateKey: string): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
-            this.apiConnector.connect()
+            this.apiConnector.connection()
                 .then(res => {
                     const setAutomaticRenewalOperation = new Operations.SetAutomaticRenewalOfSubscription(
                         accountId,

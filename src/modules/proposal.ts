@@ -440,7 +440,7 @@ export class ProposalModule extends ApiModule {
     public approveProposal(
         payingAccountId: string, proposalId: string, approvalsDelta: DeltaParameters, privateKey: string): Promise<boolean> {
         return new Promise<boolean>(((resolve, reject) => {
-            this.apiConnector.connect()
+            this.apiConnector.connection()
                 .then(() => {
                     const operation = new Operations.ProposalUpdate(
                         payingAccountId,

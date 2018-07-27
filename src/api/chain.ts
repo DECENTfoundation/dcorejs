@@ -102,7 +102,7 @@ export class ChainApi {
     private connect(): Promise<void> {
         return new Promise<void>(((resolve, reject) => {
             this._apiConnector
-                .connect()
+                .connection()
                 .then(() => {
                     this._chainStore.init()
                         .then(() => resolve())

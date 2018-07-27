@@ -53,7 +53,7 @@ export class HistoryApi {
 
     public execute(operation: HistoryOperation): Promise<any> {
         return new Promise((resolve, reject) => {
-            this._apiConnector.connect()
+            this._apiConnector.connection()
                 .then(() => {
                     this.histApi()
                         .exec(operation.name, operation.parameters)

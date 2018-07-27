@@ -479,7 +479,7 @@ export class AccountModule extends ApiModule {
             key_auths: activeKeyAuths
         };
         return new Promise<Operation>((resolve, reject) => {
-            this.apiConnector.connect()
+            this.apiConnector.connection()
                 .then(() => {
                     const operation = new Operations.RegisterAccount({
                         name,
