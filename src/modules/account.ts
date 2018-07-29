@@ -115,11 +115,19 @@ export class AccountModule extends ApiModule {
      * @param {number} resultLimit              Number of transaction history records in result. Use for paging. Default 100(max)
      * @return {Promise<TransactionRecord[]>}   List of TransactionRecord.List of TransactionRecord.
      */
-    public getTransactionHistory(accountId: string,
-        privateKeys: string[],
+    public getTransactionHistory(
+        accountId: string,
+        privateKeys: string[] = [],
         order: SearchAccountHistoryOrder = SearchAccountHistoryOrder.timeDesc,
         startObjectId: string = '0.0.0',
         resultLimit: number = 100): Promise<TransactionRecord[]> {
+            if (!accountId === undefined || typeof accountId !== 'string'
+                || privateKeys.constructor !== Array
+                || typeof order !== 'string'
+                || typeof startObjectId !== 'string'
+                || typeof resultLimit !== 'number') {
+                    throw new TypeError(AccountError.invalid_parameters);
+            }
         return new Promise((resolve, reject) => {
             this.searchAccountHistory(accountId, privateKeys, order, startObjectId, resultLimit)
                 .then((transactions: any[]) => {
