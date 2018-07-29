@@ -471,10 +471,17 @@ export class AccountModule extends ApiModule {
      * @param {number} limit        Limit result list size. Default: 100(Max)
      * @returns {Promise<Account>}  List of filtered accounts.
      */
-    public searchAccounts(searchTerm: string = '',
+    public searchAccounts(
+        searchTerm: string = '',
         order: AccountOrder = AccountOrder.none,
         id: string = '0.0.0',
         limit: number = 100): Promise<Account> {
+        if (typeof searchTerm !== 'string'
+            || typeof order !== 'string'
+            || typeof id !== 'string'
+            || typeof limit !== 'number') {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         return new Promise<Account>((resolve, reject) => {
             const operation = new DatabaseOperations.SearchAccounts(searchTerm, order, id, limit);
             this.dbApi.execute(operation)
