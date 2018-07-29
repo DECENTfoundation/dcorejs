@@ -699,6 +699,10 @@ export class AccountModule extends ApiModule {
      * @returns {Promise<AccountNameIdPair>}    List of filtered AccountNameIdPairs.
      */
     public listAccounts(lowerBound: string = '', limit: number = 100): Promise<AccountNameIdPair[]> {
+        if (typeof lowerBound !== 'string'
+            || typeof limit !== 'number') {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         return new Promise<AccountNameIdPair[]>((resolve, reject) => {
             const operation = new DatabaseOperations.LookupAccounts(lowerBound, limit);
             this.dbApi.execute(operation)
