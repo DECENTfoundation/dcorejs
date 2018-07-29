@@ -775,6 +775,13 @@ export class AccountModule extends ApiModule {
         sort: MinerOrder = MinerOrder.none,
         fromMinerId: string = '',
         limit: number = 1000): Promise<MinerInfo[]> {
+        if (keyword === undefined || typeof keyword !== 'string'
+            || typeof myVotes !== 'boolean'
+            || typeof sort !== 'string'
+            || typeof fromMinerId !== 'string'
+            || typeof limit !== 'number') {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         return new Promise<MinerInfo[]>((resolve, reject) => {
             const operation = new DatabaseOperations.SearchMinerVoting(
                 accountName,
