@@ -8,9 +8,14 @@ import { DCoreAssetObject } from './asset';
 
 export type AccountNameIdPair = [string, string];
 
-export interface HistoryOptions {
+export interface IHistoryOptions {
     fromId?: string
     resultLimit?: number
+}
+
+export class HistoryOptions implements IHistoryOptions {
+    fromId? = null;
+    resultLimit? = null;
 }
 
 export interface TransactionRaw {
