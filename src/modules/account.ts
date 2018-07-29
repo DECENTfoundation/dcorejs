@@ -630,10 +630,17 @@ export class AccountModule extends ApiModule {
      *                                      calculated from privateKeys.
      * @returns {Promise<WalletExport>}     WalletExport object that can be serialized and used as import for cli_wallet.
      */
-    exportWallet(accountId: string,
+    exportWallet(
+        accountId: string,
         password: string,
         privateKeys: string[],
         additionalElGamalPrivateKeys: string[] = []): Promise<WalletExport> {
+        if (accountId === undefined || typeof accountId !== 'string'
+            || password === undefined || typeof password !== 'string'
+            || !this.validateObject<Array<string>>(privateKeys, Array)
+            || !this.validateObject<Array<string>>(additionalElGamalPrivateKeys, Array)) {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         return new Promise((resolve, reject) => {
             this.getAccountById(accountId)
                 .then((acc) => {
