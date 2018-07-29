@@ -244,13 +244,22 @@ export interface SubscriptionParameters {
     subscriptionPeriod: number;
 }
 
-export interface UpdateAccountParameters {
+export interface IUpdateAccountParameters {
     newOwnerKey?: string;
     newActiveKey?: string;
     newMemoKey?: string;
     newNumMiner?: number;
     newVotes?: Array<string>;
     newSubscription?: SubscriptionParameters;
+}
+
+export class UpdateAccountParameters implements IUpdateAccountParameters {
+    newOwnerKey?: string = null;
+    newActiveKey?: string = null;
+    newMemoKey?: string = null;
+    newNumMiner?: number = null;
+    newVotes?: Array<string> = null;
+    newSubscription?: SubscriptionParameters = null;
 }
 
 export enum AccountError {

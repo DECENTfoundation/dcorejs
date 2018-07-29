@@ -812,6 +812,12 @@ export class AccountModule extends ApiModule {
      */
     public updateAccount(accountId: string, params: UpdateAccountParameters, privateKey: string, broadcast: boolean = true)
         : Promise<Operation> {
+        if (accountId === undefined || typeof accountId !== 'string'
+            || this.validateObject<UpdateAccountParameters>(params, UpdateAccountParameters)
+            || typeof privateKey !== 'string'
+            || typeof broadcast !== 'boolean') {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         return new Promise<Operation>(((resolve, reject) => {
 
             this.getAccountById(accountId)
