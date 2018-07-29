@@ -345,6 +345,11 @@ export class AccountModule extends ApiModule {
      * @return {Promise<number>}        Account's balance
      */
     public getBalance(accountId: string, assetId: string = '1.3.0', convertAsset: boolean = false): Promise<number> {
+        if (accountId === undefined || typeof accountId !== 'string'
+            || typeof assetId !== 'string'
+            || typeof convertAsset !== 'boolean') {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         return new Promise((resolve, reject) => {
             if (!accountId) {
                 reject('missing_parameter');
