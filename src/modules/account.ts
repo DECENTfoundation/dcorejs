@@ -603,6 +603,11 @@ export class AccountModule extends ApiModule {
         accountName: string,
         registrar: string,
         registrarPrivateKey: string): Promise<Operation> {
+        if (accountName === undefined || typeof accountName !== 'string'
+            || registrar === undefined || typeof registrar !== 'string'
+            || registrarPrivateKey === undefined || typeof registrarPrivateKey !== 'string') {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         const normalizedBrainkey = Utils.normalize(brainkey);
         const keyPair: [KeyPrivate, KeyPublic] = Utils.generateKeys(normalizedBrainkey);
         return this.registerAccount(
