@@ -393,6 +393,10 @@ export class AccountModule extends ApiModule {
      * @return {Promise<boolean>}       Returns 'true' if transaction is in irreversible block, 'false' otherwise.
      */
     public isTransactionConfirmed(accountId: string, transactionId: string): Promise<boolean> {
+        if (accountId === undefined || typeof accountId !== 'string'
+            || transactionId === undefined || typeof transactionId !== 'string') {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         return new Promise((resolve, reject) => {
             let start = transactionId;
             if (transactionId !== '1.7.0') {
