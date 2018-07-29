@@ -57,7 +57,7 @@ export class AccountModule extends ApiModule {
      * @return {Promise<Account>}   Account object.
      */
     public getAccountByName(name: string): Promise<Account> {
-        if (!name || typeof name !== 'string') {
+        if (!name === undefined || typeof name !== 'string') {
             throw new TypeError(AccountError.invalid_parameters);
         }
         const dbOperation = new DatabaseOperations.GetAccountByName(name);
@@ -80,6 +80,9 @@ export class AccountModule extends ApiModule {
      * @return {Promise<Account>}   Account object.
      */
     public getAccountById(id: string): Promise<Account> {
+        if (id === undefined || typeof id !== 'string') {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         const dbOperation = new DatabaseOperations.GetAccounts([id]);
         return new Promise((resolve, reject) => {
             this.dbApi.execute(dbOperation)
