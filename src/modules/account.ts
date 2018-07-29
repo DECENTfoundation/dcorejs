@@ -1,28 +1,32 @@
 /**
  * @module AccountModule
  */
+import { ApiConnector } from '../api/apiConnector';
+import { ChainApi } from '../api/chain';
+import { DatabaseApi } from '../api/database';
+import { HistoryApi, HistoryOperations } from '../api/history';
+import { ChainMethods } from '../api/model/chain';
+import { DatabaseError, DatabaseOperations, MinerOrder, SearchAccountHistoryOrder } from '../api/model/database';
+import { CryptoUtils } from '../crypt';
 import {
     Account,
     AccountError,
     AccountNameIdPair,
-    Asset, HistoryRecord,
+    Asset,
+    Authority,
+    HistoryOptions,
+    HistoryRecord,
     MinerInfo,
+    Options,
     TransactionRecord,
-    WalletExport,
-    HistoryOptions, UpdateAccountParameters, Authority, Options
+    UpdateAccountParameters,
+    WalletExport
 } from '../model/account';
-import { DatabaseApi } from '../api/database';
-import { ChainApi} from '../api/chain';
-import { CryptoUtils } from '../crypt';
+import { DCoreAssetObject } from '../model/asset';
+import { Memo, Operation, Operations } from '../model/transaction';
 import { TransactionBuilder } from '../transactionBuilder';
 import { KeyPrivate, KeyPublic, Utils } from '../utils';
-import { HistoryApi, HistoryOperations } from '../api/history';
-import { ApiConnector } from '../api/apiConnector';
-import { DatabaseError, DatabaseOperations, MinerOrder, SearchAccountHistoryOrder } from '../api/model/database';
-import { Memo, Operation, Operations } from '../model/transaction';
 import { ApiModule } from './ApiModule';
-import { DCoreAssetObject } from '../model/asset';
-import {ChainMethods} from '../api/model/chain';
 
 export enum AccountOrder {
     nameAsc = '+name',
@@ -53,6 +57,9 @@ export class AccountModule extends ApiModule {
      * @return {Promise<Account>}   Account object.
      */
     public getAccountByName(name: string): Promise<Account> {
+        if (!name || typeof name !== 'string') {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         const dbOperation = new DatabaseOperations.GetAccountByName(name);
         return new Promise((resolve, reject) => {
             this.dbApi.execute(dbOperation)
@@ -139,11 +146,11 @@ export class AccountModule extends ApiModule {
      * @returns {Promise<TransactionRecord[]>}  List of TransactionRecord.
      */
     public searchAccountHistory(accountId: string,
-                                privateKeys: string[],
-                                order: SearchAccountHistoryOrder = SearchAccountHistoryOrder.timeDesc,
-                                startObjectId: string = '0.0.0',
-                                resultLimit: number = 100,
-                                convertAssets: boolean = false): Promise<TransactionRecord[]> {
+        privateKeys: string[],
+        order: SearchAccountHistoryOrder = SearchAccountHistoryOrder.timeDesc,
+        startObjectId: string = '0.0.0',
+        resultLimit: number = 100,
+        convertAssets: boolean = false): Promise<TransactionRecord[]> {
         return new Promise<TransactionRecord[]>((resolve, reject) => {
             const dbOperation = new DatabaseOperations.SearchAccountHistory(
                 accountId,
@@ -215,7 +222,7 @@ export class AccountModule extends ApiModule {
      * @return {Promise<Operation>}     Value confirming successful transaction broadcasting.
      */
     public transfer(amount: number, assetId: string, fromAccount: string, toAccount: string, memo: string, privateKey: string,
-                    broadcast: boolean = true): Promise<Operation> {
+        broadcast: boolean = true): Promise<Operation> {
         const pKey = Utils.privateKeyFromWif(privateKey);
 
         return new Promise((resolve, reject) => {
@@ -417,9 +424,9 @@ export class AccountModule extends ApiModule {
      * @returns {Promise<Account>}  List of filtered accounts.
      */
     public searchAccounts(searchTerm: string = '',
-                          order: AccountOrder = AccountOrder.none,
-                          id: string = '0.0.0',
-                          limit: number = 100): Promise<Account> {
+        order: AccountOrder = AccountOrder.none,
+        id: string = '0.0.0',
+        limit: number = 100): Promise<Account> {
         return new Promise<Account>((resolve, reject) => {
             const operation = new DatabaseOperations.SearchAccounts(searchTerm, order, id, limit);
             this.dbApi.execute(operation)
@@ -766,7 +773,7 @@ export class AccountModule extends ApiModule {
                     } else {
                         resolve(transaction.operations[0]);
                     }
-                    })
+                })
                 .catch((error) => {
                     reject(this.handleError(AccountError.account_update_failed, error));
                 });
