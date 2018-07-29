@@ -156,12 +156,21 @@ export class AccountModule extends ApiModule {
      *                                          Default: false.
      * @returns {Promise<TransactionRecord[]>}  List of TransactionRecord.
      */
-    public searchAccountHistory(accountId: string,
-        privateKeys: string[],
+    public searchAccountHistory(
+        accountId: string,
+        privateKeys: string[] = [],
         order: SearchAccountHistoryOrder = SearchAccountHistoryOrder.timeDesc,
         startObjectId: string = '0.0.0',
         resultLimit: number = 100,
         convertAssets: boolean = false): Promise<TransactionRecord[]> {
+            if (!accountId === undefined || typeof accountId !== 'string'
+                || privateKeys.constructor !== Array
+                || typeof order !== 'string'
+                || typeof startObjectId !== 'string'
+                || typeof resultLimit !== 'number'
+                || typeof convertAssets !== 'boolean') {
+                    throw new TypeError(AccountError.invalid_parameters);
+            }
         return new Promise<TransactionRecord[]>((resolve, reject) => {
             const dbOperation = new DatabaseOperations.SearchAccountHistory(
                 accountId,
