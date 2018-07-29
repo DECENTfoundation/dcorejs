@@ -121,13 +121,13 @@ export class AccountModule extends ApiModule {
         order: SearchAccountHistoryOrder = SearchAccountHistoryOrder.timeDesc,
         startObjectId: string = '0.0.0',
         resultLimit: number = 100): Promise<TransactionRecord[]> {
-            if (!accountId === undefined || typeof accountId !== 'string'
-                || privateKeys.constructor !== Array
-                || typeof order !== 'string'
-                || typeof startObjectId !== 'string'
-                || typeof resultLimit !== 'number') {
-                    throw new TypeError(AccountError.invalid_parameters);
-            }
+        if (!accountId === undefined || typeof accountId !== 'string'
+            || privateKeys.constructor !== Array
+            || typeof order !== 'string'
+            || typeof startObjectId !== 'string'
+            || typeof resultLimit !== 'number') {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         return new Promise((resolve, reject) => {
             this.searchAccountHistory(accountId, privateKeys, order, startObjectId, resultLimit)
                 .then((transactions: any[]) => {
@@ -163,14 +163,14 @@ export class AccountModule extends ApiModule {
         startObjectId: string = '0.0.0',
         resultLimit: number = 100,
         convertAssets: boolean = false): Promise<TransactionRecord[]> {
-            if (!accountId === undefined || typeof accountId !== 'string'
-                || privateKeys.constructor !== Array
-                || typeof order !== 'string'
-                || typeof startObjectId !== 'string'
-                || typeof resultLimit !== 'number'
-                || typeof convertAssets !== 'boolean') {
-                    throw new TypeError(AccountError.invalid_parameters);
-            }
+        if (accountId === undefined || typeof accountId !== 'string'
+            || privateKeys.constructor !== Array
+            || typeof order !== 'string'
+            || typeof startObjectId !== 'string'
+            || typeof resultLimit !== 'number'
+            || typeof convertAssets !== 'boolean') {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         return new Promise<TransactionRecord[]>((resolve, reject) => {
             const dbOperation = new DatabaseOperations.SearchAccountHistory(
                 accountId,
@@ -241,8 +241,23 @@ export class AccountModule extends ApiModule {
      * @param {boolean} broadcast       Transaction is broadcasted if set to true
      * @return {Promise<Operation>}     Value confirming successful transaction broadcasting.
      */
-    public transfer(amount: number, assetId: string, fromAccount: string, toAccount: string, memo: string, privateKey: string,
+    public transfer(
+        amount: number,
+        assetId: string,
+        fromAccount: string,
+        toAccount: string,
+        memo: string,
+        privateKey: string,
         broadcast: boolean = true): Promise<Operation> {
+        if (amount === undefined || typeof amount !== 'number'
+            || assetId === undefined || typeof assetId !== 'string'
+            || fromAccount === undefined || typeof fromAccount !== 'string'
+            || toAccount === undefined || typeof toAccount !== 'string'
+            || memo === undefined || typeof memo !== 'string'
+            || privateKey === undefined || typeof privateKey !== 'string'
+            || broadcast === undefined || typeof broadcast !== 'boolean') {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         const pKey = Utils.privateKeyFromWif(privateKey);
 
         return new Promise((resolve, reject) => {
