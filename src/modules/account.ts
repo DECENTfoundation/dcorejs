@@ -721,6 +721,10 @@ export class AccountModule extends ApiModule {
      * @returns {Promise<Asset[]>}      List of balances
      */
     public listAccountBalances(id: string, convertAssets: boolean = false): Promise<Asset[]> {
+        if (id === undefined || typeof id !== 'string'
+            || typeof convertAssets !== 'boolean') {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         return new Promise<Asset[]>((resolve, reject) => {
             const operation = new DatabaseOperations.GetAccountBalances(id, []);
             this.dbApi.execute(operation)
