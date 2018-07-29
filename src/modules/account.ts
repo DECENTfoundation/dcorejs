@@ -519,13 +519,23 @@ export class AccountModule extends ApiModule {
      * @param {boolean} broadcast           Transaction is broadcasted if set to true
      * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
      */
-    public registerAccount(name: string,
+    public registerAccount(
+        name: string,
         ownerKey: string,
         activeKey: string,
         memoKey: string,
         registrar: string,
         registrarPrivateKey: string,
         broadcast: boolean = true): Promise<Operation> {
+        if (name === undefined || typeof name !== 'string'
+            || ownerKey === undefined || typeof ownerKey !== 'string'
+            || activeKey === undefined || typeof activeKey !== 'string'
+            || memoKey === undefined || typeof memoKey !== 'string'
+            || registrar === undefined || typeof registrar !== 'string'
+            || registrarPrivateKey === undefined || typeof registrarPrivateKey !== 'string'
+            || broadcast === undefined || typeof broadcast !== 'boolean') {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         const ownerKeyAuths: [[string, number]] = [] as [[string, number]];
         ownerKeyAuths.push([ownerKey, 1]);
         const activeKeyAuths: [[string, number]] = [] as [[string, number]];
