@@ -785,18 +785,6 @@ export class ContentModule extends ApiModule {
         });
     }
 
-    private validateObject<T>(object: T | any, typeContructor: {new (): T}): boolean {
-        const t = new typeContructor();
-        let isValid = true;
-        Object.keys(t).forEach(key => {
-            if (t[key] !== null && typeof t[key] !== typeof object[key]) {
-                if (isValid) {
-                    isValid = false;
-                }
-            }
-        });
-        return isValid;
-    }
     private validateGeneralParams(privateKey: string | any, broadcast: boolean | any): boolean {
         return privateKey && typeof privateKey === 'string' && broadcast && typeof broadcast === 'boolean';
     }
