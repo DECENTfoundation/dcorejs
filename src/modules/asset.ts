@@ -682,8 +682,17 @@ export class AssetModule extends ApiModule {
      * @param {string} issuerPrivateKey     Issuer's private key to sign the transaction.
      * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
      */
-    public createMonitoredAsset(issuer: string, symbol: string, precision: number, description: string, feedLifetimeSec: number,
-        minimumFeeds: number, issuerPrivateKey: string): Promise<boolean> {
+    public createMonitoredAsset(
+        issuer: string,
+        symbol: string,
+        precision: number,
+        description: string,
+        feedLifetimeSec: number,
+        minimumFeeds: number,
+        issuerPrivateKey: string): Promise<boolean> {
+        if (!this.validateArguments(arguments, ['string', 'string', 'number', 'string', 'number', 'number', 'string'])) {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
         return new Promise<boolean>((resolve, reject) => {
             const coreExchangeRate = {
                 base: {

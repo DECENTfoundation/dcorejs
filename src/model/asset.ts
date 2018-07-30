@@ -4,7 +4,7 @@
 import AssetExchangeRate = Block.AssetExchangeRate;
 import {Block} from './explorer';
 
-export interface DCoreAssetObject extends AssetObject {
+export interface IDCoreAssetObject extends AssetObject {
     dynamic_asset_data_id: string;
 }
 
@@ -17,6 +17,17 @@ export interface AssetObject {
     monitored_asset_opts?: MonitoredAssetOptions;
     options: AssetOptions;
     dynamic_asset_data_id: string;
+}
+
+export class DCoreAssetObject implements IDCoreAssetObject {
+    id = '';
+    symbol = '';
+    precision = 0;
+    issuer = '';
+    description = '';
+    monitored_asset_opts?: MonitoredAssetOptions = null;
+    options: AssetOptions = {} as AssetOptions;
+    dynamic_asset_data_id = '';
 }
 
 export interface MonitoredAssetOptions {
