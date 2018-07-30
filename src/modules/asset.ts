@@ -234,6 +234,11 @@ export class AssetModule extends ApiModule {
      * @returns {Promise<any>}                  Value confirming successful transaction broadcasting.
      */
     public updateUserIssuedAsset(symbol: string, newInfo: UserIssuedAssetInfo, issuerPKey: string): Promise<boolean> {
+        if (symbol === undefined || typeof symbol !== 'string'
+            || !this.validateObject<UserIssuedAssetInfo>(newInfo, UserIssuedAssetInfo)
+            || issuerPKey === undefined || typeof issuerPKey !== 'string') {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
         return new Promise<boolean>((resolve, reject) => {
             this.listAssets(symbol, 1)
                 .then((assets: AssetObject[]) => {
