@@ -17,6 +17,7 @@ export enum ProposalError {
     propose_object_not_found = 'propose_object_not_found',
     connection_failed = 'connection_failed',
     syntactic_error = 'syntactic_error',
+    invalid_parameters = 'invalid_parameters',
 }
 
 export interface ProposalObject {
@@ -30,7 +31,7 @@ export interface ProposalObject {
     available_key_approvals: Array<string>;
 }
 
-export interface ProposalParameters {
+export interface IProposalParameters {
     current_fees?: {
         parameters: Array<[number, object]>;
         scale: number;
@@ -53,6 +54,29 @@ export interface ProposalParameters {
     extensions?: Array<any>;
 }
 
+export class ProposalParameters implements IProposalParameters {
+    current_fees?: {
+        parameters: undefined;
+        scale: undefined;
+    };
+    block_interval?: undefined;
+    maintenance_interval?: undefined;
+    maintenance_skip_slots?: undefined;
+    miner_proposal_review_period?: undefined;
+    maximum_transaction_size?: undefined;
+    maximum_block_size?: undefined;
+    maximum_time_until_expiration?: undefined;
+    maximum_proposal_lifetime?: undefined;
+    maximum_asset_feed_publishers?: undefined;
+    maximum_miner_count?: undefined;
+    maximum_authority_membership?: undefined;
+    cashback_vesting_period_seconds?: undefined;
+    cashback_vesting_threshold?: undefined;
+    max_predicate_opcode?: undefined;
+    max_authority_depth?: undefined;
+    extensions?: undefined;
+}
+
 export interface ProposalCreateParameters {
     fee_paying_account: string,
     expiration_time: string,
@@ -69,7 +93,7 @@ export interface BasicFee {
     basic_fee: number
 }
 
-export interface FeesParameters {
+export interface IFeesParameters {
     transfer?: Fee; // 0
     account_create?: BasicFee;
     account_update?: Fee;
@@ -118,11 +142,69 @@ export interface FeesParameters {
     renewal_of_subscription?: Fee; // 45
 }
 
-export interface Proposal {
-    new_parameters: ProposalParameters;
+export class FeesParameters implements IFeesParameters {
+    transfer?: undefined; // 0
+    account_create?: undefined;
+    account_update?: undefined;
+    asset_create?: undefined;
+    asset_update?: undefined;
+    asset_publish_feed?: undefined; // 5
+    miner_create?: undefined;
+    miner_update?: undefined;
+    miner_update_global_parameters?: undefined;
+    proposal_create?: undefined;
+    proposal_update?: undefined; // 10
+    proposal_delete?: undefined;
+    withdraw_permission_create?: undefined;
+    withdraw_permission_update?: undefined;
+    withdraw_permission_claim?: undefined;
+    withdraw_permission_delete?: undefined; // 15
+    vesting_balance_create?: undefined;
+    vesting_balance_withdraw?: undefined;
+    custom?: undefined;
+    assert?: undefined;
+    content_submit?: undefined; // 20
+    request_to_buy?: undefined;
+    leave_rating_and_comment?: undefined;
+    ready_to_publish?: undefined;
+    proof_of_custody?: undefined;
+    deliver_keys?: undefined; // 25
+    subscribe?: undefined;
+    subscribe_by_author?: undefined;
+    automatic_renewal_of_subscription?: undefined;
+    report_stats?: undefined;
+    set_publishing_manager?: undefined; // 30
+    set_publishing_right?: undefined;
+    content_cancellation?: undefined;
+    asset_fund_pools_operation?: undefined;
+    asset_reserve_operation?: undefined;
+    asset_claim_fees_operation?: undefined; // 35
+    update_user_issued_asset?: undefined;
+    update_monitored_asset_operation?: undefined;
+    ready_to_publish2?: undefined;
+    transfer2?: undefined;
+    disallow_automatic_renewal_of_subscription?: undefined; // 40
+    return_escrow_submission?: undefined;
+    return_escrow_buying?: undefined;
+    pay_seeder?: undefined;
+    finish_buying?: undefined;
+    renewal_of_subscription?: undefined;
 }
 
-export interface DeltaParameters {
+export interface Proposal {
+    new_parameters: IProposalParameters;
+}
+
+export interface IDeltaParameters {
+    active_approvals_to_add: Array<string>;
+    active_approvals_to_remove: Array<string>;
+    owner_approvals_to_add: Array<string>;
+    owner_approvals_to_remove: Array<string>;
+    key_approvals_to_add: Array<string>;
+    key_approvals_to_remove: Array<string>;
+}
+
+export class DeltaParameters implements IDeltaParameters {
     active_approvals_to_add: Array<string>;
     active_approvals_to_remove: Array<string>;
     owner_approvals_to_add: Array<string>;
