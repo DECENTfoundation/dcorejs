@@ -39,6 +39,9 @@ export class ApiModule {
     protected validateObject<T>(object: T | any, typeContructor: {new (): T}): boolean {
         const t = new typeContructor();
         let isValid = true;
+        if (typeof object !== 'object') {
+            return false;
+        }
         Object.keys(t).forEach(key => {
             if (t[key] !== null && typeof t[key] !== typeof object[key]) {
                 if (isValid) {
