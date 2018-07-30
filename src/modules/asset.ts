@@ -387,10 +387,9 @@ export class AssetModule extends ApiModule {
      * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#ac812b96ccef7f81ca97ebda433d98e63
      *
      * @param {string} issuer       Issuer's account id in format '1.2.X'. Example '1.2.345'.
-     * @param {string} uiaAmount    Custom asset amount.
+     * @param {number} uiaAmount    Custom asset amount.
      * @param {string} uiaSymbol    Custom asset symbol.
-     * @param {string} dctAmount    Amount of core DCT asset.
-     * @param {string} dctSymbol    DCT asset symbol. Always set to 'DCT'.
+     * @param {number} dctAmount    Amount of core DCT asset.
      * @param {string} privateKey   Issuer's private key to sign the transaction.
      * @returns {Promise<boolean>}  Value confirming successful transaction broadcasting.
      */
@@ -399,6 +398,13 @@ export class AssetModule extends ApiModule {
         uiaSymbol: string,
         dctAmount: number,
         privateKey: string): Promise<boolean> {
+        if (issuer === undefined || typeof issuer !== 'string'
+            || uiaAmount === undefined || typeof uiaAmount !== 'number'
+            || uiaSymbol === undefined || typeof uiaSymbol !== 'string'
+            || dctAmount === undefined || typeof dctAmount !== 'number'
+            || privateKey === undefined || typeof privateKey !== 'string') {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
         return new Promise<boolean>((resolve, reject) => {
             const dctSymbol = ChainApi.asset_id;
             Promise.all([
