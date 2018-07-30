@@ -1,5 +1,7 @@
+import { ArrayValidationTuple, Type } from '../model/types';
+
 export class BaseObject {
-    protected validateArguments(args: IArguments, types: ({ new(): any } | string)[]): boolean {
+    protected validateArguments(args: IArguments | Array<any>, types: ({ new(): any } | string | ArrayValidationTuple)[]): boolean {
         let isValid = true;
         if (args.length !== types.length) {
             return false;
@@ -9,16 +11,15 @@ export class BaseObject {
             const arg = args[i];
             if (typeof types[i] === 'function') {
                 const contructor = types[i] as { new(): any };
-                if (this.getContructorName(contructor) === 'Array') {
-                    if (!this.validateArray(arg, contructor)) {
-                        isValid = false;
-                        return false;
-                    }
-                } else {
-                    if (!this.validateObject(arg, contructor)) {
-                        isValid = false;
-                        return false;
-                    }
+                if (!this.validateObject(arg, contructor)) {
+                    isValid = false;
+                    return false;
+                }
+            } else if (typeof types[i] === 'object') {
+                const validationTuple = types[i] as ArrayValidationTuple;
+                if (!this.validateArray(arg, validationTuple[1])) {
+                    isValid = false;
+                    return false;
                 }
             } else {
                 if (typeof arg !== types[i]) {
@@ -52,17 +53,30 @@ export class BaseObject {
         return isValid;
     }
 
-    protected validateArray<T>(array: Array<T> | any, typeContructor: { new(): T }): boolean {
+    protected validateArray<T>(array: Array<T> | any, ofType: string | { new(): any }): boolean {
         if (!Array.isArray(array)) {
             return false;
         }
         if (array.length > 0) {
-            for (const obj in array) {
-                if (this.validateObject<T>(obj, typeContructor)) {
-                    return false;
+            for (let i = 0; i < array.length; i += 1) {
+                const el = array[i];
+                if (typeof ofType === Type.string) {
+                    console.log(el);
+                    if (!this.validateStringType(el, ofType as string)) {
+                        return false;
+                    }
+                } else if (typeof ofType === 'function') {
+                    console.log(el);
+                    if (!this.validateObject(el, ofType)) {
+                        return false;
+                    }
                 }
             }
         }
         return true;
+    }
+
+    protected validateStringType(val: any, type: string): boolean {
+        return typeof val === type;
     }
 }
