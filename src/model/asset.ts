@@ -70,4 +70,5 @@ export enum AssetError {
     asset_not_found = 'asset_not_found',
     database_operation_failed = 'database_operation_failed',
     syntactic_error = 'syntactic_error',
+    invalid_parameters = 'invalid_parameters',
 }
