@@ -17,6 +17,7 @@ import {CryptoUtils} from '../crypt';
 import {ApiConnector} from '../api/apiConnector';
 import {ChainMethods} from '../api/model/chain';
 import {AssetError} from '../model/asset';
+import {Type} from '../model/types';
 
 export class ProposalModule extends ApiModule {
     constructor(dbApi: DatabaseApi, chainApi: ChainApi, apiConnector: ApiConnector) {
@@ -35,6 +36,9 @@ export class ProposalModule extends ApiModule {
      * @returns {Promise<ProposalObject[]>}
      */
     public getProposedTransactions(accountId: string): Promise<ProposalObject[]> {
+        if (!this.validateArguments(arguments, [Type.string])) {
+            throw new TypeError(ProposalError.invalid_parameters);
+        }
         return new Promise<ProposalObject[]>((resolve, reject) => {
             const operation = new DatabaseOperations.GetProposedTransactions(accountId);
             this.dbApi.execute(operation)
@@ -64,6 +68,10 @@ export class ProposalModule extends ApiModule {
     public proposeTransfer(
         proposerAccountId: string, fromAccountId: string, toAccountId: string, amount: number, assetId: string, memoKey: string,
         expiration: string, privateKey: string): Promise<boolean> {
+        if (!this.validateArguments(arguments, [Type.string, Type.string, Type.string, Type.number, Type.string, Type.string,
+            Type.string, Type.string])) {
+            throw new TypeError(ProposalError.invalid_parameters);
+        }
         return new Promise<boolean>(((resolve, reject) => {
             const operations = [].concat(
                 new ChainMethods.GetAccount(fromAccountId),
