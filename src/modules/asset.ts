@@ -499,6 +499,10 @@ export class AssetModule extends ApiModule {
      * @returns  {Promise<Asset>}   Formatted Asset object
      */
     public priceToDCT(symbol: string, amount: number): Promise<Asset> {
+        if (symbol === undefined || typeof symbol !== 'string'
+            || amount === undefined || typeof amount !== 'number') {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
         return new Promise<any>((resolve, reject) => {
             this.listAssets(symbol, 1)
                 .then((assets: DCoreAssetObject[]) => {
