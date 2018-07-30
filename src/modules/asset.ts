@@ -157,6 +157,13 @@ export class AssetModule extends ApiModule {
      * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
      */
     public issueAsset(assetSymbol: string, amount: number, issueToAccount: string, memo: string, issuerPKey: string): Promise<boolean> {
+        if (assetSymbol === undefined || typeof assetSymbol !== 'string'
+            || amount === undefined || typeof amount !== 'number'
+            || issueToAccount === undefined || typeof issueToAccount !== 'string'
+            || memo === undefined || typeof memo !== 'string'
+            || issuerPKey === undefined || typeof issuerPKey !== 'string') {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
         return new Promise<any>((resolve, reject) => {
             this.listAssets(assetSymbol, 1)
                 .then((assets: AssetObject[]) => {
