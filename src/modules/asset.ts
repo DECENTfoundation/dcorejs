@@ -537,11 +537,19 @@ export class AssetModule extends ApiModule {
      * @param {string} privateKey
      * @returns {Promise<boolean>}  Value confirming successful transaction broadcasting.
      */
-    public publishAssetFeed(publishingAccount: string,
+    public publishAssetFeed(
+        publishingAccount: string,
         symbol: string,
         exchangeBaseAmount: number,
         exchangeQuoteAmount: number,
         privateKey: string): Promise<boolean> {
+        if (publishingAccount === undefined || typeof publishingAccount !== 'string'
+            || symbol === undefined || typeof symbol !== 'string'
+            || exchangeBaseAmount === undefined || typeof exchangeBaseAmount !== 'number'
+            || exchangeQuoteAmount === undefined || typeof exchangeQuoteAmount !== 'number'
+            || privateKey === undefined || typeof privateKey !== 'string') {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
         return new Promise<boolean>((resolve, reject) => {
             this.listAssets(symbol, 1)
                 .then((assets: AssetObject[]) => {
