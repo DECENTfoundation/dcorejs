@@ -593,7 +593,7 @@ export class AssetModule extends ApiModule {
      */
     public getFeedsByMiner(minerAccountId: string, limit: number = 100): Promise<any> {
         if (minerAccountId === undefined || typeof minerAccountId !== 'string'
-            || typeof limit !== 'string') {
+            || typeof limit !== 'number') {
             throw new TypeError(AssetError.invalid_parameters);
         }
         return new Promise<any>((resolve, reject) => {
