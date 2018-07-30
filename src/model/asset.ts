@@ -4,7 +4,7 @@
 import AssetExchangeRate = Block.AssetExchangeRate;
 import {Block} from './explorer';
 
-export interface DCoreAssetObject extends AssetObject {
+export interface IDCoreAssetObject extends AssetObject {
     dynamic_asset_data_id: string;
 }
 
@@ -17,6 +17,17 @@ export interface AssetObject {
     monitored_asset_opts?: MonitoredAssetOptions;
     options: AssetOptions;
     dynamic_asset_data_id: string;
+}
+
+export class DCoreAssetObject implements IDCoreAssetObject {
+    id = '';
+    symbol = '';
+    precision = 0;
+    issuer = '';
+    description = '';
+    monitored_asset_opts?: MonitoredAssetOptions = null;
+    options: AssetOptions = {} as AssetOptions;
+    dynamic_asset_data_id = '';
 }
 
 export interface MonitoredAssetOptions {
@@ -38,12 +49,20 @@ export interface AssetCurrentFeed {
     core_exchange_rate: AssetExchangeRate;
 }
 
-export interface UserIssuedAssetInfo {
+export interface IUserIssuedAssetInfo {
     newIssuer?: string;
     description?: string;
     maxSupply?: number;
     coreExchange?: AssetExchangeRate;
     isExchangable?: boolean;
+}
+
+export class UserIssuedAssetInfo implements IUserIssuedAssetInfo {
+    newIssuer?: string = null;
+    description?: string = null;
+    maxSupply?: number = null;
+    coreExchange?: AssetExchangeRate = null;
+    isExchangable?: boolean = null;
 }
 
 export interface UpdateMonitoredAssetParameters {
@@ -70,4 +89,5 @@ export enum AssetError {
     asset_not_found = 'asset_not_found',
     database_operation_failed = 'database_operation_failed',
     syntactic_error = 'syntactic_error',
+    invalid_parameters = 'invalid_parameters',
 }

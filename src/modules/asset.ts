@@ -1,17 +1,17 @@
 /**
  * @module AssetModule
  */
-import {ApiConnector} from '../api/apiConnector';
-import {DatabaseApi} from '../api/database';
-import {DatabaseOperations} from '../api/model/database';
-import {CryptoUtils} from '../crypt';
-import {Asset, Memo, Operations, PriceFeed} from '../model/transaction';
-import {TransactionBuilder} from '../transactionBuilder';
-import {Utils} from '../utils';
+import { ApiConnector } from '../api/apiConnector';
+import { DatabaseApi } from '../api/database';
+import { DatabaseOperations } from '../api/model/database';
+import { CryptoUtils } from '../crypt';
+import { Asset, Memo, Operations, PriceFeed } from '../model/transaction';
+import { TransactionBuilder } from '../transactionBuilder';
+import { Utils } from '../utils';
 
-import {ChainApi} from '../api/chain';
-import {ApiModule} from './ApiModule';
-import {ChainMethods} from '../api/model/chain';
+import { ChainApi } from '../api/chain';
+import { ApiModule } from './ApiModule';
+import { ChainMethods } from '../api/model/chain';
 import {
     AssetError,
     AssetObject,
@@ -22,7 +22,8 @@ import {
     UpdateMonitoredAssetParameters,
     UserIssuedAssetInfo
 } from '../model/asset';
-import {ProposalCreateParameters} from '../model/proposal';
+import { ProposalCreateParameters } from '../model/proposal';
+import { Type } from '../model/types';
 
 
 export class AssetModule extends ApiModule {
@@ -48,6 +49,9 @@ export class AssetModule extends ApiModule {
      * @returns {AssetObject[]}             AssetObject list.
      */
     public listAssets(lowerBoundSymbol: string, limit: number = 100, formatAssets: boolean = false): Promise<AssetObject[]> {
+        if (!this.validateArguments([lowerBoundSymbol, limit, formatAssets], [Type.string, Type.number, Type.boolean])) {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
         return new Promise<any>((resolve, reject) => {
             const operation = new DatabaseOperations.ListAssets(lowerBoundSymbol, limit);
             this.dbApi.execute(operation)
@@ -78,16 +82,24 @@ export class AssetModule extends ApiModule {
      * @param {string} issuerPrivateKey         Private key to sign transaction in WIF(hex) (Wallet Import Format) format.
      * @returns {Promise<boolean>}              Value confirming successful transaction broadcasting.
      */
-    public createUserIssuedAsset(issuer: string,
-                                 symbol: string,
-                                 precision: number,
-                                 description: string,
-                                 maxSupply: number,
-                                 baseExchangeAmount: number,
-                                 quoteExchangeAmount: number,
-                                 isExchangeable: boolean,
-                                 isSupplyFixed: boolean,
-                                 issuerPrivateKey: string): Promise<boolean> {
+    public createUserIssuedAsset(
+        issuer: string,
+        symbol: string,
+        precision: number,
+        description: string,
+        maxSupply: number,
+        baseExchangeAmount: number,
+        quoteExchangeAmount: number,
+        isExchangeable: boolean,
+        isSupplyFixed: boolean,
+        issuerPrivateKey: string): Promise<boolean> {
+        if (!this.validateArguments(
+            arguments,
+            [Type.string, Type.string, Type.number, Type.string, Type.number, Type.number,
+            Type.number, Type.boolean, Type.boolean, Type.string])
+        ) {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
         const options: AssetOptions = {
             max_supply: maxSupply,
             core_exchange_rate: {
@@ -139,6 +151,9 @@ export class AssetModule extends ApiModule {
      * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
      */
     public issueAsset(assetSymbol: string, amount: number, issueToAccount: string, memo: string, issuerPKey: string): Promise<boolean> {
+        if (!this.validateArguments(arguments, [Type.string, Type.number, Type.string, Type.string, Type.string])) {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
         return new Promise<any>((resolve, reject) => {
             this.listAssets(assetSymbol, 1)
                 .then((assets: AssetObject[]) => {
@@ -209,6 +224,9 @@ export class AssetModule extends ApiModule {
      * @returns {Promise<any>}                  Value confirming successful transaction broadcasting.
      */
     public updateUserIssuedAsset(symbol: string, newInfo: UserIssuedAssetInfo, issuerPKey: string): Promise<boolean> {
+        if (!this.validateArguments(arguments, [Type.string, UserIssuedAssetInfo, Type.string])) {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
         return new Promise<boolean>((resolve, reject) => {
             this.listAssets(symbol, 1)
                 .then((assets: AssetObject[]) => {
@@ -256,11 +274,15 @@ export class AssetModule extends ApiModule {
      * @param {string} privateKey        Account private key used for signing transaction.
      * @returns {Promise<boolean>}       Value confirming successful transaction broadcasting.
      */
-    public fundAssetPools(fromAccountId: string,
-                          uiaAmount: number,
-                          uiaSymbol: string,
-                          dctAmount: number,
-                          privateKey: string): Promise<boolean> {
+    public fundAssetPools(
+        fromAccountId: string,
+        uiaAmount: number,
+        uiaSymbol: string,
+        dctAmount: number,
+        privateKey: string): Promise<boolean> {
+        if (!this.validateArguments(arguments, [Type.string, Type.number, Type.string, Type.number, Type.string])) {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
         return new Promise<boolean>((resolve, reject) => {
             const dctSymbol = ChainApi.asset_id;
             Promise.all([
@@ -305,6 +327,9 @@ export class AssetModule extends ApiModule {
      * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
      */
     public assetReserve(payer: string, symbol: string, amountToReserve: number, privateKey: string): Promise<boolean> {
+        if (!this.validateArguments(arguments, [Type.string, Type.string, Type.number, Type.string])) {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
         return new Promise<boolean>((resolve, reject) => {
             this.listAssets(symbol, 1)
                 .then(res => {
@@ -333,7 +358,7 @@ export class AssetModule extends ApiModule {
                                 .catch(err => reject(this.handleError(AssetError.transaction_broadcast_failed, err)));
                         })
                         .catch();
-                    })
+                })
                 .catch(err => reject(this.handleError(AssetError.unable_to_list_assets, err)));
         });
     }
@@ -343,18 +368,21 @@ export class AssetModule extends ApiModule {
      * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#ac812b96ccef7f81ca97ebda433d98e63
      *
      * @param {string} issuer       Issuer's account id in format '1.2.X'. Example '1.2.345'.
-     * @param {string} uiaAmount    Custom asset amount.
+     * @param {number} uiaAmount    Custom asset amount.
      * @param {string} uiaSymbol    Custom asset symbol.
-     * @param {string} dctAmount    Amount of core DCT asset.
-     * @param {string} dctSymbol    DCT asset symbol. Always set to 'DCT'.
+     * @param {number} dctAmount    Amount of core DCT asset.
      * @param {string} privateKey   Issuer's private key to sign the transaction.
      * @returns {Promise<boolean>}  Value confirming successful transaction broadcasting.
      */
-    public assetClaimFees(issuer: string,
-                          uiaAmount: number,
-                          uiaSymbol: string,
-                          dctAmount: number,
-                          privateKey: string): Promise<boolean> {
+    public assetClaimFees(
+        issuer: string,
+        uiaAmount: number,
+        uiaSymbol: string,
+        dctAmount: number,
+        privateKey: string): Promise<boolean> {
+        if (!this.validateArguments(arguments, [Type.string, Type.number, Type.string, Type.number, Type.string])) {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
         return new Promise<boolean>((resolve, reject) => {
             const dctSymbol = ChainApi.asset_id;
             Promise.all([
@@ -399,6 +427,10 @@ export class AssetModule extends ApiModule {
      * @returns {Promise<DCoreAssetObject>}     DCoreAssetObject of desired asset.
      */
     public getAsset(assetId: string, formatAsset: boolean = false): Promise<DCoreAssetObject> {
+        if (assetId === undefined || typeof assetId !== Type.string
+            || typeof formatAsset !== Type.boolean) {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
         const operation = new DatabaseOperations.GetAssets([assetId]);
         return new Promise<DCoreAssetObject>((resolve, reject) => {
             this.dbApi.execute(operation)
@@ -424,6 +456,9 @@ export class AssetModule extends ApiModule {
      * @returns {Promise<DCoreAssetObject>}     DCoreAssetObject of desired asset.
      */
     public getAssets(assetIds: string[], formatAssets: boolean = false): Promise<DCoreAssetObject[]> {
+        if (!this.validateArguments(arguments, [[Array, Type.string], Type.boolean])) {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
         const operation = new DatabaseOperations.GetAssets(assetIds);
         return new Promise<DCoreAssetObject[]>((resolve, reject) => {
             this.dbApi.execute(operation)
@@ -441,6 +476,9 @@ export class AssetModule extends ApiModule {
      * @returns  {Promise<Asset>}   Formatted Asset object
      */
     public priceToDCT(symbol: string, amount: number): Promise<Asset> {
+        if (this.validateArguments(arguments, [Type.string, Type.number])) {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
         return new Promise<any>((resolve, reject) => {
             this.listAssets(symbol, 1)
                 .then((assets: DCoreAssetObject[]) => {
@@ -475,11 +513,15 @@ export class AssetModule extends ApiModule {
      * @param {string} privateKey
      * @returns {Promise<boolean>}  Value confirming successful transaction broadcasting.
      */
-    public publishAssetFeed(publishingAccount: string,
-                            symbol: string,
-                            exchangeBaseAmount: number,
-                            exchangeQuoteAmount: number,
-                            privateKey: string): Promise<boolean> {
+    public publishAssetFeed(
+        publishingAccount: string,
+        symbol: string,
+        exchangeBaseAmount: number,
+        exchangeQuoteAmount: number,
+        privateKey: string): Promise<boolean> {
+        if (!this.validateArguments(arguments, [Type.string, Type.string, Type.number, Type.number, Type.string])) {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
         return new Promise<boolean>((resolve, reject) => {
             this.listAssets(symbol, 1)
                 .then((assets: AssetObject[]) => {
@@ -522,6 +564,9 @@ export class AssetModule extends ApiModule {
      * @returns {Promise<any>}
      */
     public getFeedsByMiner(minerAccountId: string, limit: number = 100): Promise<any> {
+        if (!this.validateArguments([minerAccountId, limit], [Type.string, Type.number])) {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
         return new Promise<any>((resolve, reject) => {
             const operation = new DatabaseOperations.GetFeedsByMiner(minerAccountId, limit);
             this.dbApi.execute(operation)
@@ -551,6 +596,9 @@ export class AssetModule extends ApiModule {
      * @returns {Promise<MonitoredAssetOptions|null>}   MonitoredAssetOptions object or null if asset is not monitored
      */
     public getMonitoredAssetData(assetId: string): Promise<MonitoredAssetOptions | null> {
+        if (!this.validateArguments(arguments, [Type.string])) {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
         const operation = new DatabaseOperations.GetAssets([assetId]);
         return new Promise<MonitoredAssetOptions>((resolve, reject) => {
             this.dbApi.execute(operation)
@@ -605,8 +653,20 @@ export class AssetModule extends ApiModule {
      * @param {string} issuerPrivateKey     Issuer's private key to sign the transaction.
      * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
      */
-    public createMonitoredAsset(issuer: string, symbol: string, precision: number, description: string, feedLifetimeSec: number,
-                                minimumFeeds: number, issuerPrivateKey: string): Promise<boolean> {
+    public createMonitoredAsset(
+        issuer: string,
+        symbol: string,
+        precision: number,
+        description: string,
+        feedLifetimeSec: number,
+        minimumFeeds: number,
+        issuerPrivateKey: string): Promise<boolean> {
+        if (!this.validateArguments(
+                arguments, [Type.string, Type.string, Type.number, Type.string, Type.number, Type.number, Type.string]
+            )
+        ) {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
         return new Promise<boolean>((resolve, reject) => {
             const coreExchangeRate = {
                 base: {
@@ -684,6 +744,9 @@ export class AssetModule extends ApiModule {
      */
     public updateMonitoredAsset(symbol: string, description: string, feedLifetimeSec: number, minimumFeeds: number, privateKey: string):
         Promise<boolean> {
+        if (!this.validateArguments(arguments, [Type.string, Type.string, Type.number, Type.number, Type.string])) {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
         return new Promise<boolean>((resolve, reject) => {
             this.listAssets(symbol, 1)
                 .then((assets: AssetObject[]) => {
