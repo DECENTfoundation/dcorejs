@@ -5,8 +5,8 @@ import {ApiModule} from './ApiModule';
 import {DatabaseApi} from '../api/database';
 import {DatabaseOperations} from '../api/model/database';
 import {
-    IFeesParameters, IDeltaParameters, Proposal, ProposalCreateParameters, ProposalError, ProposalObject,
-    IProposalParameters, ProposalParameters, FeesParameters, DeltaParameters
+    FeesParameters, DeltaParameters, Proposal, ProposalCreateParameters, ProposalError, ProposalObject,
+    ProposalParameters
 } from '../model/proposal';
 import {Memo, Operations} from '../model/transaction';
 import {TransactionBuilder} from '../transactionBuilder';
@@ -17,6 +17,7 @@ import {CryptoUtils} from '../crypt';
 import {ApiConnector} from '../api/apiConnector';
 import {ChainMethods} from '../api/model/chain';
 import {AssetError} from '../model/asset';
+import {Type} from '../model/types';
 
 export class ProposalModule extends ApiModule {
     constructor(dbApi: DatabaseApi, chainApi: ChainApi, apiConnector: ApiConnector) {
@@ -35,7 +36,7 @@ export class ProposalModule extends ApiModule {
      * @returns {Promise<ProposalObject[]>}
      */
     public getProposedTransactions(accountId: string): Promise<ProposalObject[]> {
-        if (typeof accountId !== 'string') {
+        if (!this.validateArguments(arguments, [Type.string])) {
             throw new TypeError(ProposalError.invalid_parameters);
         }
         return new Promise<ProposalObject[]>((resolve, reject) => {
@@ -67,14 +68,8 @@ export class ProposalModule extends ApiModule {
     public proposeTransfer(
         proposerAccountId: string, fromAccountId: string, toAccountId: string, amount: number, assetId: string, memoKey: string,
         expiration: string, privateKey: string): Promise<boolean> {
-        if (typeof proposerAccountId !== 'string'
-            || typeof fromAccountId !== 'string'
-            || typeof toAccountId !== 'string'
-            || typeof amount !== 'number'
-            || typeof  assetId !== 'string'
-            || typeof memoKey !== 'string'
-            || typeof expiration !== 'string'
-            || typeof privateKey !== 'string') {
+        if (!this.validateArguments(arguments, [Type.string, Type.string, Type.string, Type.number, Type.string, Type.string,
+            Type.string, Type.string])) {
             throw new TypeError(ProposalError.invalid_parameters);
         }
         return new Promise<boolean>(((resolve, reject) => {
@@ -156,7 +151,7 @@ export class ProposalModule extends ApiModule {
      * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#ab05cd1249b4e3da5ce4707d78160493e
      *
      * @param {string} proposerAccountId                    Account id in format '1.2.X'. Example: "1.2.345"
-     * @param {IProposalParameters} proposalParameters       Global parameters that are proposed to be changed. Fill only these parameters
+     * @param {ProposalParameters} proposalParameters       Global parameters that are proposed to be changed. Fill only these parameters
      *                                                      that you wish to be changed.
      * @param {string} expiration                           Date in ISO format. Example: "2018-07-17T16:00:00", min is 14 days since today,
      *                                                      max is 28 days since today.
@@ -165,12 +160,6 @@ export class ProposalModule extends ApiModule {
      */
     public proposeParameterChange(proposerAccountId: string, proposalParameters: ProposalParameters, expiration: string,
                                   privateKey: string): Promise<boolean> {
-        if (typeof proposerAccountId !== 'string'
-        || !this.validateObject<IProposalParameters>(proposalParameters, ProposalParameters)
-        || typeof expiration !== 'string'
-        || typeof privateKey !== 'string') {
-            throw new TypeError(ProposalError.invalid_parameters);
-        }
         return new Promise<boolean>(((resolve, reject) => {
             const databaseOperation = new DatabaseOperations.GetGlobalProperties();
             this.dbApi.execute(databaseOperation)
@@ -263,7 +252,7 @@ export class ProposalModule extends ApiModule {
      * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#a463772cd2a9b5cbe7526d9ac5ace630b
      *
      * @param {string} proposerAccountId                    Account id in format '1.2.X'. Example: "1.2.345"
-     * @param {IFeesParameters} feesParameters               Fee parameters that are proposed to be changed. Fill only these parameters
+     * @param {FeesParameters} feesParameters               Fee parameters that are proposed to be changed. Fill only these parameters
      *                                                      that you wish to be changed.
      * @param {string} expiration                           Date in ISO format. Example: "2018-07-17T16:00:00", min is 14 days since today,
      *                                                      max is 28 days since today.
@@ -272,12 +261,6 @@ export class ProposalModule extends ApiModule {
      */
     public proposeFeeChange(proposerAccountId: string, feesParameters: FeesParameters, expiration: string, privateKey: string):
                             Promise<boolean> {
-        if (typeof proposerAccountId !== 'string'
-            || !this.validateObject<IFeesParameters>(feesParameters, FeesParameters)
-            || typeof expiration !== 'string'
-            || typeof privateKey !== 'string') {
-            throw new TypeError(ProposalError.invalid_parameters);
-        }
         return new Promise<boolean>(((resolve, reject) => {
             const databaseOperation = new DatabaseOperations.GetGlobalProperties();
             this.dbApi.execute(databaseOperation)
@@ -457,19 +440,13 @@ export class ProposalModule extends ApiModule {
      *
      * @param {string} payingAccountId                  Account id in format '1.2.X'. Example: "1.2.345"
      * @param {string} proposalId                       Proposal id in format '1.6.X'. Example "1.6.100"
-     * @param {IDeltaParameters} approvalsDelta          Active keys, owner keys and key approvals that you can add or remove.
+     * @param {DeltaParameters} approvalsDelta          Active keys, owner keys and key approvals that you can add or remove.
      * @param {string} privateKey                       Private key used to sign transaction.
      * @returns {Promise<boolean>}
      */
 
     public approveProposal(
         payingAccountId: string, proposalId: string, approvalsDelta: DeltaParameters, privateKey: string): Promise<boolean> {
-        if (typeof payingAccountId !== 'string'
-        || typeof proposalId !== 'string'
-        || !this.validateObject<IDeltaParameters>(approvalsDelta, DeltaParameters)
-        || typeof privateKey !== 'string') {
-            throw new TypeError(ProposalError.invalid_parameters);
-        }
         return new Promise<boolean>(((resolve, reject) => {
             this.apiConnector.connection()
                 .then(() => {
