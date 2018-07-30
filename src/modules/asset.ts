@@ -48,6 +48,11 @@ export class AssetModule extends ApiModule {
      * @returns {AssetObject[]}             AssetObject list.
      */
     public listAssets(lowerBoundSymbol: string, limit: number = 100, formatAssets: boolean = false): Promise<AssetObject[]> {
+        if (lowerBoundSymbol === undefined || typeof lowerBoundSymbol !== 'string'
+            || typeof limit !== 'number'
+            || typeof formatAssets !== 'boolean') {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
         return new Promise<any>((resolve, reject) => {
             const operation = new DatabaseOperations.ListAssets(lowerBoundSymbol, limit);
             this.dbApi.execute(operation)
