@@ -343,6 +343,12 @@ export class AssetModule extends ApiModule {
      * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
      */
     public assetReserve(payer: string, symbol: string, amountToReserve: number, privateKey: string): Promise<boolean> {
+        if (payer === undefined || typeof payer !== 'string'
+            || symbol === undefined || typeof symbol !== 'string'
+            || amountToReserve === undefined || typeof amountToReserve !== 'number'
+            || privateKey === undefined || typeof privateKey !== 'string') {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
         return new Promise<boolean>((resolve, reject) => {
             this.listAssets(symbol, 1)
                 .then(res => {
