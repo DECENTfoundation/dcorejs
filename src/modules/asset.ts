@@ -292,6 +292,13 @@ export class AssetModule extends ApiModule {
         uiaSymbol: string,
         dctAmount: number,
         privateKey: string): Promise<boolean> {
+        if (fromAccountId === undefined || typeof fromAccountId !== 'string'
+            || uiaAmount === undefined || typeof uiaAmount !== 'number'
+            || uiaSymbol === undefined || typeof uiaSymbol !== 'string'
+            || dctAmount === undefined || typeof dctAmount !== 'number'
+            || privateKey === undefined || typeof privateKey !== 'string') {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
         return new Promise<boolean>((resolve, reject) => {
             const dctSymbol = ChainApi.asset_id;
             Promise.all([
