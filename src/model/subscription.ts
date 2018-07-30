@@ -19,11 +19,21 @@ export enum SubscriptionError {
     blockchain_connection_failed = 'blockchain_connection_failed',
     missing_options_arguments = 'missing_options_arguments',
     syntactic_error = 'syntactic_error',
+    invalid_parameters = 'invalid_parameters',
 }
 
-export interface SubscriptionOptions {
+export interface ISubscriptionOptions {
     allowSubscription: boolean;
     subscriptionPeriod: number;
     amount: number;
     asset?: string;
 }
+
+export class SubscriptionOptions implements ISubscriptionOptions {
+    allowSubscription: boolean;
+    subscriptionPeriod: number;
+    amount: number;
+    asset?: string = undefined;
+}
+
+
