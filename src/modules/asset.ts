@@ -235,7 +235,7 @@ export class AssetModule extends ApiModule {
      */
     public updateUserIssuedAsset(symbol: string, newInfo: UserIssuedAssetInfo, issuerPKey: string): Promise<boolean> {
         if (symbol === undefined || typeof symbol !== 'string'
-            || !this.validateObject<UserIssuedAssetInfo>(newInfo, UserIssuedAssetInfo)
+            || newInfo === undefined || !this.validateObject<UserIssuedAssetInfo>(newInfo, UserIssuedAssetInfo)
             || issuerPKey === undefined || typeof issuerPKey !== 'string') {
             throw new TypeError(AssetError.invalid_parameters);
         }
@@ -286,7 +286,8 @@ export class AssetModule extends ApiModule {
      * @param {string} privateKey        Account private key used for signing transaction.
      * @returns {Promise<boolean>}       Value confirming successful transaction broadcasting.
      */
-    public fundAssetPools(fromAccountId: string,
+    public fundAssetPools(
+        fromAccountId: string,
         uiaAmount: number,
         uiaSymbol: string,
         dctAmount: number,
