@@ -23,6 +23,7 @@ import {
     UserIssuedAssetInfo
 } from '../model/asset';
 import { ProposalCreateParameters } from '../model/proposal';
+import { Type } from '../model/types';
 
 
 export class AssetModule extends ApiModule {
@@ -48,9 +49,7 @@ export class AssetModule extends ApiModule {
      * @returns {AssetObject[]}             AssetObject list.
      */
     public listAssets(lowerBoundSymbol: string, limit: number = 100, formatAssets: boolean = false): Promise<AssetObject[]> {
-        if (lowerBoundSymbol === undefined || typeof lowerBoundSymbol !== 'string'
-            || typeof limit !== 'number'
-            || typeof formatAssets !== 'boolean') {
+        if (!this.validateArguments([lowerBoundSymbol, limit, formatAssets], [Type.string, Type.number, Type.boolean])) {
             throw new TypeError(AssetError.invalid_parameters);
         }
         return new Promise<any>((resolve, reject) => {
@@ -94,16 +93,11 @@ export class AssetModule extends ApiModule {
         isExchangeable: boolean,
         isSupplyFixed: boolean,
         issuerPrivateKey: string): Promise<boolean> {
-        if (issuer === undefined || typeof issuer !== 'string'
-            || symbol === undefined || typeof symbol !== 'string'
-            || precision === undefined || typeof precision !== 'number'
-            || description === undefined || typeof description !== 'string'
-            || maxSupply === undefined || typeof maxSupply !== 'number'
-            || baseExchangeAmount === undefined || typeof baseExchangeAmount !== 'number'
-            || quoteExchangeAmount === undefined || typeof quoteExchangeAmount !== 'number'
-            || isExchangeable === undefined || typeof isExchangeable !== 'boolean'
-            || isSupplyFixed === undefined || typeof isSupplyFixed !== 'boolean'
-            || issuerPrivateKey === undefined || typeof issuerPrivateKey !== 'string') {
+        if (!this.validateArguments(
+            arguments,
+            [Type.string, Type.string, Type.number, Type.string, Type.number, Type.number,
+            Type.number, Type.boolean, Type.boolean, Type.string])
+        ) {
             throw new TypeError(AssetError.invalid_parameters);
         }
         const options: AssetOptions = {
@@ -157,11 +151,7 @@ export class AssetModule extends ApiModule {
      * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
      */
     public issueAsset(assetSymbol: string, amount: number, issueToAccount: string, memo: string, issuerPKey: string): Promise<boolean> {
-        if (assetSymbol === undefined || typeof assetSymbol !== 'string'
-            || amount === undefined || typeof amount !== 'number'
-            || issueToAccount === undefined || typeof issueToAccount !== 'string'
-            || memo === undefined || typeof memo !== 'string'
-            || issuerPKey === undefined || typeof issuerPKey !== 'string') {
+        if (!this.validateArguments(arguments, [Type.string, Type.number, Type.string, Type.string, Type.string])) {
             throw new TypeError(AssetError.invalid_parameters);
         }
         return new Promise<any>((resolve, reject) => {
@@ -234,9 +224,7 @@ export class AssetModule extends ApiModule {
      * @returns {Promise<any>}                  Value confirming successful transaction broadcasting.
      */
     public updateUserIssuedAsset(symbol: string, newInfo: UserIssuedAssetInfo, issuerPKey: string): Promise<boolean> {
-        if (symbol === undefined || typeof symbol !== 'string'
-            || newInfo === undefined || !this.validateObject<UserIssuedAssetInfo>(newInfo, UserIssuedAssetInfo)
-            || issuerPKey === undefined || typeof issuerPKey !== 'string') {
+        if (!this.validateArguments(arguments, [Type.string, UserIssuedAssetInfo, Type.string])) {
             throw new TypeError(AssetError.invalid_parameters);
         }
         return new Promise<boolean>((resolve, reject) => {
@@ -292,11 +280,7 @@ export class AssetModule extends ApiModule {
         uiaSymbol: string,
         dctAmount: number,
         privateKey: string): Promise<boolean> {
-        if (fromAccountId === undefined || typeof fromAccountId !== 'string'
-            || uiaAmount === undefined || typeof uiaAmount !== 'number'
-            || uiaSymbol === undefined || typeof uiaSymbol !== 'string'
-            || dctAmount === undefined || typeof dctAmount !== 'number'
-            || privateKey === undefined || typeof privateKey !== 'string') {
+        if (!this.validateArguments(arguments, [Type.string, Type.number, Type.string, Type.number, Type.string])) {
             throw new TypeError(AssetError.invalid_parameters);
         }
         return new Promise<boolean>((resolve, reject) => {
@@ -343,10 +327,7 @@ export class AssetModule extends ApiModule {
      * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
      */
     public assetReserve(payer: string, symbol: string, amountToReserve: number, privateKey: string): Promise<boolean> {
-        if (payer === undefined || typeof payer !== 'string'
-            || symbol === undefined || typeof symbol !== 'string'
-            || amountToReserve === undefined || typeof amountToReserve !== 'number'
-            || privateKey === undefined || typeof privateKey !== 'string') {
+        if (!this.validateArguments(arguments, [Type.string, Type.string, Type.number, Type.string])) {
             throw new TypeError(AssetError.invalid_parameters);
         }
         return new Promise<boolean>((resolve, reject) => {
@@ -393,16 +374,13 @@ export class AssetModule extends ApiModule {
      * @param {string} privateKey   Issuer's private key to sign the transaction.
      * @returns {Promise<boolean>}  Value confirming successful transaction broadcasting.
      */
-    public assetClaimFees(issuer: string,
+    public assetClaimFees(
+        issuer: string,
         uiaAmount: number,
         uiaSymbol: string,
         dctAmount: number,
         privateKey: string): Promise<boolean> {
-        if (issuer === undefined || typeof issuer !== 'string'
-            || uiaAmount === undefined || typeof uiaAmount !== 'number'
-            || uiaSymbol === undefined || typeof uiaSymbol !== 'string'
-            || dctAmount === undefined || typeof dctAmount !== 'number'
-            || privateKey === undefined || typeof privateKey !== 'string') {
+        if (!this.validateArguments(arguments, [Type.string, Type.number, Type.string, Type.number, Type.string])) {
             throw new TypeError(AssetError.invalid_parameters);
         }
         return new Promise<boolean>((resolve, reject) => {
@@ -449,8 +427,8 @@ export class AssetModule extends ApiModule {
      * @returns {Promise<DCoreAssetObject>}     DCoreAssetObject of desired asset.
      */
     public getAsset(assetId: string, formatAsset: boolean = false): Promise<DCoreAssetObject> {
-        if (assetId === undefined || typeof assetId !== 'string'
-            || typeof formatAsset !== 'boolean') {
+        if (assetId === undefined || typeof assetId !== Type.string
+            || typeof formatAsset !== Type.boolean) {
             throw new TypeError(AssetError.invalid_parameters);
         }
         const operation = new DatabaseOperations.GetAssets([assetId]);
@@ -478,8 +456,7 @@ export class AssetModule extends ApiModule {
      * @returns {Promise<DCoreAssetObject>}     DCoreAssetObject of desired asset.
      */
     public getAssets(assetIds: string[], formatAssets: boolean = false): Promise<DCoreAssetObject[]> {
-        if (assetIds === undefined || !this.validateObject<Array<string>>(assetIds, Array)
-            || typeof formatAssets !== 'boolean') {
+        if (!this.validateArguments(arguments, [[Array, Type.string], Type.boolean])) {
             throw new TypeError(AssetError.invalid_parameters);
         }
         const operation = new DatabaseOperations.GetAssets(assetIds);
@@ -499,8 +476,7 @@ export class AssetModule extends ApiModule {
      * @returns  {Promise<Asset>}   Formatted Asset object
      */
     public priceToDCT(symbol: string, amount: number): Promise<Asset> {
-        if (symbol === undefined || typeof symbol !== 'string'
-            || amount === undefined || typeof amount !== 'number') {
+        if (this.validateArguments(arguments, [Type.string, Type.number])) {
             throw new TypeError(AssetError.invalid_parameters);
         }
         return new Promise<any>((resolve, reject) => {
@@ -543,11 +519,7 @@ export class AssetModule extends ApiModule {
         exchangeBaseAmount: number,
         exchangeQuoteAmount: number,
         privateKey: string): Promise<boolean> {
-        if (publishingAccount === undefined || typeof publishingAccount !== 'string'
-            || symbol === undefined || typeof symbol !== 'string'
-            || exchangeBaseAmount === undefined || typeof exchangeBaseAmount !== 'number'
-            || exchangeQuoteAmount === undefined || typeof exchangeQuoteAmount !== 'number'
-            || privateKey === undefined || typeof privateKey !== 'string') {
+        if (!this.validateArguments(arguments, [Type.string, Type.string, Type.number, Type.number, Type.string])) {
             throw new TypeError(AssetError.invalid_parameters);
         }
         return new Promise<boolean>((resolve, reject) => {
@@ -592,8 +564,7 @@ export class AssetModule extends ApiModule {
      * @returns {Promise<any>}
      */
     public getFeedsByMiner(minerAccountId: string, limit: number = 100): Promise<any> {
-        if (minerAccountId === undefined || typeof minerAccountId !== 'string'
-            || typeof limit !== 'number') {
+        if (!this.validateArguments([minerAccountId, limit], [Type.string, Type.number])) {
             throw new TypeError(AssetError.invalid_parameters);
         }
         return new Promise<any>((resolve, reject) => {
@@ -625,7 +596,7 @@ export class AssetModule extends ApiModule {
      * @returns {Promise<MonitoredAssetOptions|null>}   MonitoredAssetOptions object or null if asset is not monitored
      */
     public getMonitoredAssetData(assetId: string): Promise<MonitoredAssetOptions | null> {
-        if (!this.validateArguments(arguments, ['string'])) {
+        if (!this.validateArguments(arguments, [Type.string])) {
             throw new TypeError(AssetError.invalid_parameters);
         }
         const operation = new DatabaseOperations.GetAssets([assetId]);
@@ -690,7 +661,10 @@ export class AssetModule extends ApiModule {
         feedLifetimeSec: number,
         minimumFeeds: number,
         issuerPrivateKey: string): Promise<boolean> {
-        if (!this.validateArguments(arguments, ['string', 'string', 'number', 'string', 'number', 'number', 'string'])) {
+        if (!this.validateArguments(
+                arguments, [Type.string, Type.string, Type.number, Type.string, Type.number, Type.number, Type.string]
+            )
+        ) {
             throw new TypeError(AssetError.invalid_parameters);
         }
         return new Promise<boolean>((resolve, reject) => {
@@ -770,9 +744,9 @@ export class AssetModule extends ApiModule {
      */
     public updateMonitoredAsset(symbol: string, description: string, feedLifetimeSec: number, minimumFeeds: number, privateKey: string):
         Promise<boolean> {
-            if (!this.validateArguments(arguments, ['string', 'string', 'number', 'number', 'string'])) {
-                throw new TypeError(AssetError.invalid_parameters);
-            }
+        if (!this.validateArguments(arguments, [Type.string, Type.string, Type.number, Type.number, Type.string])) {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
         return new Promise<boolean>((resolve, reject) => {
             this.listAssets(symbol, 1)
                 .then((assets: AssetObject[]) => {
