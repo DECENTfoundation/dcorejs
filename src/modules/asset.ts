@@ -478,7 +478,7 @@ export class AssetModule extends ApiModule {
      * @returns {Promise<DCoreAssetObject>}     DCoreAssetObject of desired asset.
      */
     public getAssets(assetIds: string[], formatAssets: boolean = false): Promise<DCoreAssetObject[]> {
-        if (!this.validateObject<Array<string>>(assetIds, Array)
+        if (assetIds === undefined || !this.validateObject<Array<string>>(assetIds, Array)
             || typeof formatAssets !== 'boolean') {
             throw new TypeError(AssetError.invalid_parameters);
         }
