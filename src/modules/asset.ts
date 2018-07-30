@@ -770,6 +770,9 @@ export class AssetModule extends ApiModule {
      */
     public updateMonitoredAsset(symbol: string, description: string, feedLifetimeSec: number, minimumFeeds: number, privateKey: string):
         Promise<boolean> {
+            if (!this.validateArguments(arguments, ['string', 'string', 'number', 'number', 'string'])) {
+                throw new TypeError(AssetError.invalid_parameters);
+            }
         return new Promise<boolean>((resolve, reject) => {
             this.listAssets(symbol, 1)
                 .then((assets: AssetObject[]) => {
