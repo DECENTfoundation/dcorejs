@@ -1,28 +1,32 @@
 /**
  * @module AccountModule
  */
+import { ApiConnector } from '../api/apiConnector';
+import { ChainApi } from '../api/chain';
+import { DatabaseApi } from '../api/database';
+import { HistoryApi, HistoryOperations } from '../api/history';
+import { ChainMethods } from '../api/model/chain';
+import { DatabaseError, DatabaseOperations, MinerOrder, SearchAccountHistoryOrder } from '../api/model/database';
+import { CryptoUtils } from '../crypt';
 import {
     Account,
     AccountError,
     AccountNameIdPair,
-    Asset, HistoryRecord,
+    Asset,
+    Authority,
+    HistoryOptions,
+    HistoryRecord,
     MinerInfo,
+    Options,
     TransactionRecord,
-    WalletExport,
-    HistoryOptions, UpdateAccountParameters, Authority, Options
+    UpdateAccountParameters,
+    WalletExport
 } from '../model/account';
-import { DatabaseApi } from '../api/database';
-import { ChainApi} from '../api/chain';
-import { CryptoUtils } from '../crypt';
+import { DCoreAssetObject } from '../model/asset';
+import { Memo, Operation, Operations } from '../model/transaction';
 import { TransactionBuilder } from '../transactionBuilder';
 import { KeyPrivate, KeyPublic, Utils } from '../utils';
-import { HistoryApi, HistoryOperations } from '../api/history';
-import { ApiConnector } from '../api/apiConnector';
-import { DatabaseError, DatabaseOperations, MinerOrder, SearchAccountHistoryOrder } from '../api/model/database';
-import { Memo, Operation, Operations } from '../model/transaction';
 import { ApiModule } from './ApiModule';
-import { DCoreAssetObject } from '../model/asset';
-import {ChainMethods} from '../api/model/chain';
 
 export enum AccountOrder {
     nameAsc = '+name',
@@ -53,6 +57,9 @@ export class AccountModule extends ApiModule {
      * @return {Promise<Account>}   Account object.
      */
     public getAccountByName(name: string): Promise<Account> {
+        if (!name === undefined || typeof name !== 'string') {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         const dbOperation = new DatabaseOperations.GetAccountByName(name);
         return new Promise((resolve, reject) => {
             this.dbApi.execute(dbOperation)
@@ -73,6 +80,9 @@ export class AccountModule extends ApiModule {
      * @return {Promise<Account>}   Account object.
      */
     public getAccountById(id: string): Promise<Account> {
+        if (id === undefined || typeof id !== 'string') {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         const dbOperation = new DatabaseOperations.GetAccounts([id]);
         return new Promise((resolve, reject) => {
             this.dbApi.execute(dbOperation)
@@ -105,11 +115,19 @@ export class AccountModule extends ApiModule {
      * @param {number} resultLimit              Number of transaction history records in result. Use for paging. Default 100(max)
      * @return {Promise<TransactionRecord[]>}   List of TransactionRecord.List of TransactionRecord.
      */
-    public getTransactionHistory(accountId: string,
-        privateKeys: string[],
+    public getTransactionHistory(
+        accountId: string,
+        privateKeys: string[] = [],
         order: SearchAccountHistoryOrder = SearchAccountHistoryOrder.timeDesc,
         startObjectId: string = '0.0.0',
         resultLimit: number = 100): Promise<TransactionRecord[]> {
+        if (!accountId === undefined || typeof accountId !== 'string'
+            || privateKeys.constructor !== Array
+            || typeof order !== 'string'
+            || typeof startObjectId !== 'string'
+            || typeof resultLimit !== 'number') {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         return new Promise((resolve, reject) => {
             this.searchAccountHistory(accountId, privateKeys, order, startObjectId, resultLimit)
                 .then((transactions: any[]) => {
@@ -138,12 +156,21 @@ export class AccountModule extends ApiModule {
      *                                          Default: false.
      * @returns {Promise<TransactionRecord[]>}  List of TransactionRecord.
      */
-    public searchAccountHistory(accountId: string,
-                                privateKeys: string[],
-                                order: SearchAccountHistoryOrder = SearchAccountHistoryOrder.timeDesc,
-                                startObjectId: string = '0.0.0',
-                                resultLimit: number = 100,
-                                convertAssets: boolean = false): Promise<TransactionRecord[]> {
+    public searchAccountHistory(
+        accountId: string,
+        privateKeys: string[] = [],
+        order: SearchAccountHistoryOrder = SearchAccountHistoryOrder.timeDesc,
+        startObjectId: string = '0.0.0',
+        resultLimit: number = 100,
+        convertAssets: boolean = false): Promise<TransactionRecord[]> {
+        if (accountId === undefined || typeof accountId !== 'string'
+            || privateKeys.constructor !== Array
+            || typeof order !== 'string'
+            || typeof startObjectId !== 'string'
+            || typeof resultLimit !== 'number'
+            || typeof convertAssets !== 'boolean') {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         return new Promise<TransactionRecord[]>((resolve, reject) => {
             const dbOperation = new DatabaseOperations.SearchAccountHistory(
                 accountId,
@@ -214,8 +241,23 @@ export class AccountModule extends ApiModule {
      * @param {boolean} broadcast       Transaction is broadcasted if set to true
      * @return {Promise<Operation>}     Value confirming successful transaction broadcasting.
      */
-    public transfer(amount: number, assetId: string, fromAccount: string, toAccount: string, memo: string, privateKey: string,
-                    broadcast: boolean = true): Promise<Operation> {
+    public transfer(
+        amount: number,
+        assetId: string,
+        fromAccount: string,
+        toAccount: string,
+        memo: string,
+        privateKey: string,
+        broadcast: boolean = true): Promise<Operation> {
+        if (amount === undefined || typeof amount !== 'number'
+            || assetId === undefined || typeof assetId !== 'string'
+            || fromAccount === undefined || typeof fromAccount !== 'string'
+            || toAccount === undefined || typeof toAccount !== 'string'
+            || memo === undefined || typeof memo !== 'string'
+            || privateKey === undefined || typeof privateKey !== 'string'
+            || broadcast === undefined || typeof broadcast !== 'boolean') {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         const pKey = Utils.privateKeyFromWif(privateKey);
 
         return new Promise((resolve, reject) => {
@@ -303,6 +345,11 @@ export class AccountModule extends ApiModule {
      * @return {Promise<number>}        Account's balance
      */
     public getBalance(accountId: string, assetId: string = '1.3.0', convertAsset: boolean = false): Promise<number> {
+        if (accountId === undefined || typeof accountId !== 'string'
+            || typeof assetId !== 'string'
+            || typeof convertAsset !== 'boolean') {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         return new Promise((resolve, reject) => {
             if (!accountId) {
                 reject('missing_parameter');
@@ -346,6 +393,10 @@ export class AccountModule extends ApiModule {
      * @return {Promise<boolean>}       Returns 'true' if transaction is in irreversible block, 'false' otherwise.
      */
     public isTransactionConfirmed(accountId: string, transactionId: string): Promise<boolean> {
+        if (accountId === undefined || typeof accountId !== 'string'
+            || transactionId === undefined || typeof transactionId !== 'string') {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         return new Promise((resolve, reject) => {
             let start = transactionId;
             if (transactionId !== '1.7.0') {
@@ -391,6 +442,10 @@ export class AccountModule extends ApiModule {
      * @return {Promise<HistoryRecord[]>}       List of HistoryRecord objects.
      */
     public getAccountHistory(accountId: string, historyOptions?: HistoryOptions): Promise<HistoryRecord[]> {
+        if (accountId === undefined || typeof accountId !== 'string'
+            || !this.validateObject<HistoryOptions>(historyOptions, HistoryOptions)) {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         return new Promise((resolve, reject) => {
             const operation = new HistoryOperations.GetAccountHistory(
                 accountId,
@@ -416,10 +471,17 @@ export class AccountModule extends ApiModule {
      * @param {number} limit        Limit result list size. Default: 100(Max)
      * @returns {Promise<Account>}  List of filtered accounts.
      */
-    public searchAccounts(searchTerm: string = '',
-                          order: AccountOrder = AccountOrder.none,
-                          id: string = '0.0.0',
-                          limit: number = 100): Promise<Account> {
+    public searchAccounts(
+        searchTerm: string = '',
+        order: AccountOrder = AccountOrder.none,
+        id: string = '0.0.0',
+        limit: number = 100): Promise<Account> {
+        if (typeof searchTerm !== 'string'
+            || typeof order !== 'string'
+            || typeof id !== 'string'
+            || typeof limit !== 'number') {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         return new Promise<Account>((resolve, reject) => {
             const operation = new DatabaseOperations.SearchAccounts(searchTerm, order, id, limit);
             this.dbApi.execute(operation)
@@ -457,13 +519,23 @@ export class AccountModule extends ApiModule {
      * @param {boolean} broadcast           Transaction is broadcasted if set to true
      * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
      */
-    public registerAccount(name: string,
+    public registerAccount(
+        name: string,
         ownerKey: string,
         activeKey: string,
         memoKey: string,
         registrar: string,
         registrarPrivateKey: string,
         broadcast: boolean = true): Promise<Operation> {
+        if (name === undefined || typeof name !== 'string'
+            || ownerKey === undefined || typeof ownerKey !== 'string'
+            || activeKey === undefined || typeof activeKey !== 'string'
+            || memoKey === undefined || typeof memoKey !== 'string'
+            || registrar === undefined || typeof registrar !== 'string'
+            || registrarPrivateKey === undefined || typeof registrarPrivateKey !== 'string'
+            || broadcast === undefined || typeof broadcast !== 'boolean') {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         const ownerKeyAuths: [[string, number]] = [] as [[string, number]];
         ownerKeyAuths.push([ownerKey, 1]);
         const activeKeyAuths: [[string, number]] = [] as [[string, number]];
@@ -531,6 +603,11 @@ export class AccountModule extends ApiModule {
         accountName: string,
         registrar: string,
         registrarPrivateKey: string): Promise<Operation> {
+        if (accountName === undefined || typeof accountName !== 'string'
+            || registrar === undefined || typeof registrar !== 'string'
+            || registrarPrivateKey === undefined || typeof registrarPrivateKey !== 'string') {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         const normalizedBrainkey = Utils.normalize(brainkey);
         const keyPair: [KeyPrivate, KeyPublic] = Utils.generateKeys(normalizedBrainkey);
         return this.registerAccount(
@@ -553,10 +630,17 @@ export class AccountModule extends ApiModule {
      *                                      calculated from privateKeys.
      * @returns {Promise<WalletExport>}     WalletExport object that can be serialized and used as import for cli_wallet.
      */
-    exportWallet(accountId: string,
+    exportWallet(
+        accountId: string,
         password: string,
         privateKeys: string[],
         additionalElGamalPrivateKeys: string[] = []): Promise<WalletExport> {
+        if (accountId === undefined || typeof accountId !== 'string'
+            || password === undefined || typeof password !== 'string'
+            || !this.validateObject<Array<string>>(privateKeys, Array)
+            || !this.validateObject<Array<string>>(additionalElGamalPrivateKeys, Array)) {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         return new Promise((resolve, reject) => {
             this.getAccountById(accountId)
                 .then((acc) => {
@@ -615,6 +699,10 @@ export class AccountModule extends ApiModule {
      * @returns {Promise<AccountNameIdPair>}    List of filtered AccountNameIdPairs.
      */
     public listAccounts(lowerBound: string = '', limit: number = 100): Promise<AccountNameIdPair[]> {
+        if (typeof lowerBound !== 'string'
+            || typeof limit !== 'number') {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         return new Promise<AccountNameIdPair[]>((resolve, reject) => {
             const operation = new DatabaseOperations.LookupAccounts(lowerBound, limit);
             this.dbApi.execute(operation)
@@ -633,6 +721,10 @@ export class AccountModule extends ApiModule {
      * @returns {Promise<Asset[]>}      List of balances
      */
     public listAccountBalances(id: string, convertAssets: boolean = false): Promise<Asset[]> {
+        if (id === undefined || typeof id !== 'string'
+            || typeof convertAssets !== 'boolean') {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         return new Promise<Asset[]>((resolve, reject) => {
             const operation = new DatabaseOperations.GetAccountBalances(id, []);
             this.dbApi.execute(operation)
@@ -683,6 +775,13 @@ export class AccountModule extends ApiModule {
         sort: MinerOrder = MinerOrder.none,
         fromMinerId: string = '',
         limit: number = 1000): Promise<MinerInfo[]> {
+        if (keyword === undefined || typeof keyword !== 'string'
+            || typeof myVotes !== 'boolean'
+            || typeof sort !== 'string'
+            || typeof fromMinerId !== 'string'
+            || typeof limit !== 'number') {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         return new Promise<MinerInfo[]>((resolve, reject) => {
             const operation = new DatabaseOperations.SearchMinerVoting(
                 accountName,
@@ -713,6 +812,12 @@ export class AccountModule extends ApiModule {
      */
     public updateAccount(accountId: string, params: UpdateAccountParameters, privateKey: string, broadcast: boolean = true)
         : Promise<Operation> {
+        if (accountId === undefined || typeof accountId !== 'string'
+            || this.validateObject<UpdateAccountParameters>(params, UpdateAccountParameters)
+            || typeof privateKey !== 'string'
+            || typeof broadcast !== 'boolean') {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         return new Promise<Operation>(((resolve, reject) => {
 
             this.getAccountById(accountId)
@@ -766,7 +871,7 @@ export class AccountModule extends ApiModule {
                     } else {
                         resolve(transaction.operations[0]);
                     }
-                    })
+                })
                 .catch((error) => {
                     reject(this.handleError(AccountError.account_update_failed, error));
                 });

@@ -8,9 +8,14 @@ import { DCoreAssetObject } from './asset';
 
 export type AccountNameIdPair = [string, string];
 
-export interface HistoryOptions {
+export interface IHistoryOptions {
     fromId?: string
     resultLimit?: number
+}
+
+export class HistoryOptions implements IHistoryOptions {
+    fromId? = null;
+    resultLimit? = null;
 }
 
 export interface TransactionRaw {
@@ -239,13 +244,22 @@ export interface SubscriptionParameters {
     subscriptionPeriod: number;
 }
 
-export interface UpdateAccountParameters {
+export interface IUpdateAccountParameters {
     newOwnerKey?: string;
     newActiveKey?: string;
     newMemoKey?: string;
     newNumMiner?: number;
     newVotes?: Array<string>;
     newSubscription?: SubscriptionParameters;
+}
+
+export class UpdateAccountParameters implements IUpdateAccountParameters {
+    newOwnerKey?: string = null;
+    newActiveKey?: string = null;
+    newMemoKey?: string = null;
+    newNumMiner?: number = null;
+    newVotes?: Array<string> = null;
+    newSubscription?: SubscriptionParameters = null;
 }
 
 export enum AccountError {
@@ -266,4 +280,5 @@ export enum AccountError {
     asset_does_not_exist = 'asset_does_not_exist',
     account_update_failed = 'account_update_failed',
     syntactic_error = 'syntactic_error',
+    invalid_parameters = 'invalid_parameters',
 }

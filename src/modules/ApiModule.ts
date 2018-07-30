@@ -35,4 +35,17 @@ export class ApiModule {
         error.stack = err;
         return error;
     }
+
+    protected validateObject<T>(object: T | any, typeContructor: {new (): T}): boolean {
+        const t = new typeContructor();
+        let isValid = true;
+        Object.keys(t).forEach(key => {
+            if (t[key] !== null && typeof t[key] !== typeof object[key]) {
+                if (isValid) {
+                    isValid = false;
+                }
+            }
+        });
+        return isValid;
+    }
 }
