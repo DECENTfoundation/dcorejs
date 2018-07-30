@@ -1,17 +1,17 @@
 /**
  * @module AssetModule
  */
-import {ApiConnector} from '../api/apiConnector';
-import {DatabaseApi} from '../api/database';
-import {DatabaseOperations} from '../api/model/database';
-import {CryptoUtils} from '../crypt';
-import {Asset, Memo, Operations, PriceFeed} from '../model/transaction';
-import {TransactionBuilder} from '../transactionBuilder';
-import {Utils} from '../utils';
+import { ApiConnector } from '../api/apiConnector';
+import { DatabaseApi } from '../api/database';
+import { DatabaseOperations } from '../api/model/database';
+import { CryptoUtils } from '../crypt';
+import { Asset, Memo, Operations, PriceFeed } from '../model/transaction';
+import { TransactionBuilder } from '../transactionBuilder';
+import { Utils } from '../utils';
 
-import {ChainApi} from '../api/chain';
-import {ApiModule} from './ApiModule';
-import {ChainMethods} from '../api/model/chain';
+import { ChainApi } from '../api/chain';
+import { ApiModule } from './ApiModule';
+import { ChainMethods } from '../api/model/chain';
 import {
     AssetError,
     AssetObject,
@@ -22,7 +22,7 @@ import {
     UpdateMonitoredAssetParameters,
     UserIssuedAssetInfo
 } from '../model/asset';
-import {ProposalCreateParameters} from '../model/proposal';
+import { ProposalCreateParameters } from '../model/proposal';
 
 
 export class AssetModule extends ApiModule {
@@ -83,16 +83,29 @@ export class AssetModule extends ApiModule {
      * @param {string} issuerPrivateKey         Private key to sign transaction in WIF(hex) (Wallet Import Format) format.
      * @returns {Promise<boolean>}              Value confirming successful transaction broadcasting.
      */
-    public createUserIssuedAsset(issuer: string,
-                                 symbol: string,
-                                 precision: number,
-                                 description: string,
-                                 maxSupply: number,
-                                 baseExchangeAmount: number,
-                                 quoteExchangeAmount: number,
-                                 isExchangeable: boolean,
-                                 isSupplyFixed: boolean,
-                                 issuerPrivateKey: string): Promise<boolean> {
+    public createUserIssuedAsset(
+        issuer: string,
+        symbol: string,
+        precision: number,
+        description: string,
+        maxSupply: number,
+        baseExchangeAmount: number,
+        quoteExchangeAmount: number,
+        isExchangeable: boolean,
+        isSupplyFixed: boolean,
+        issuerPrivateKey: string): Promise<boolean> {
+        if (issuer === undefined || typeof issuer !== 'string'
+            || symbol === undefined || typeof symbol !== 'string'
+            || precision === undefined || typeof precision !== 'number'
+            || description === undefined || typeof description !== 'string'
+            || maxSupply === undefined || typeof maxSupply !== 'number'
+            || baseExchangeAmount === undefined || typeof baseExchangeAmount !== 'number'
+            || quoteExchangeAmount === undefined || typeof quoteExchangeAmount !== 'number'
+            || isExchangeable === undefined || typeof isExchangeable !== 'boolean'
+            || isSupplyFixed === undefined || typeof isSupplyFixed !== 'boolean'
+            || issuerPrivateKey === undefined || typeof issuerPrivateKey !== 'string') {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
         const options: AssetOptions = {
             max_supply: maxSupply,
             core_exchange_rate: {
@@ -262,10 +275,10 @@ export class AssetModule extends ApiModule {
      * @returns {Promise<boolean>}       Value confirming successful transaction broadcasting.
      */
     public fundAssetPools(fromAccountId: string,
-                          uiaAmount: number,
-                          uiaSymbol: string,
-                          dctAmount: number,
-                          privateKey: string): Promise<boolean> {
+        uiaAmount: number,
+        uiaSymbol: string,
+        dctAmount: number,
+        privateKey: string): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
             const dctSymbol = ChainApi.asset_id;
             Promise.all([
@@ -338,7 +351,7 @@ export class AssetModule extends ApiModule {
                                 .catch(err => reject(this.handleError(AssetError.transaction_broadcast_failed, err)));
                         })
                         .catch();
-                    })
+                })
                 .catch(err => reject(this.handleError(AssetError.unable_to_list_assets, err)));
         });
     }
@@ -356,10 +369,10 @@ export class AssetModule extends ApiModule {
      * @returns {Promise<boolean>}  Value confirming successful transaction broadcasting.
      */
     public assetClaimFees(issuer: string,
-                          uiaAmount: number,
-                          uiaSymbol: string,
-                          dctAmount: number,
-                          privateKey: string): Promise<boolean> {
+        uiaAmount: number,
+        uiaSymbol: string,
+        dctAmount: number,
+        privateKey: string): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
             const dctSymbol = ChainApi.asset_id;
             Promise.all([
@@ -481,10 +494,10 @@ export class AssetModule extends ApiModule {
      * @returns {Promise<boolean>}  Value confirming successful transaction broadcasting.
      */
     public publishAssetFeed(publishingAccount: string,
-                            symbol: string,
-                            exchangeBaseAmount: number,
-                            exchangeQuoteAmount: number,
-                            privateKey: string): Promise<boolean> {
+        symbol: string,
+        exchangeBaseAmount: number,
+        exchangeQuoteAmount: number,
+        privateKey: string): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
             this.listAssets(symbol, 1)
                 .then((assets: AssetObject[]) => {
@@ -611,7 +624,7 @@ export class AssetModule extends ApiModule {
      * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
      */
     public createMonitoredAsset(issuer: string, symbol: string, precision: number, description: string, feedLifetimeSec: number,
-                                minimumFeeds: number, issuerPrivateKey: string): Promise<boolean> {
+        minimumFeeds: number, issuerPrivateKey: string): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
             const coreExchangeRate = {
                 base: {
