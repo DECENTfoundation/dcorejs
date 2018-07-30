@@ -625,6 +625,9 @@ export class AssetModule extends ApiModule {
      * @returns {Promise<MonitoredAssetOptions|null>}   MonitoredAssetOptions object or null if asset is not monitored
      */
     public getMonitoredAssetData(assetId: string): Promise<MonitoredAssetOptions | null> {
+        if (assetId === undefined || typeof assetId !== 'string') {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
         const operation = new DatabaseOperations.GetAssets([assetId]);
         return new Promise<MonitoredAssetOptions>((resolve, reject) => {
             this.dbApi.execute(operation)
