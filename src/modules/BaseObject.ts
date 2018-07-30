@@ -2,7 +2,6 @@ import { ArrayValidationTuple, Type } from '../model/types';
 
 export class BaseObject {
     protected validateArguments(args: IArguments | Array<any>, types: ({ new(): any } | string | ArrayValidationTuple)[]): boolean {
-        let isValid = true;
         if (args.length !== types.length) {
             return false;
         }
@@ -10,44 +9,39 @@ export class BaseObject {
         for (let i = 0; i < args.length; i += 1) {
             const arg = args[i];
             if (typeof types[i] === 'function') {
-                const contructor = types[i] as { new(): any };
-                if (!this.validateObject(arg, contructor)) {
-                    isValid = false;
+                const constructor = types[i] as { new(): any };
+                if (!this.validateObject(arg, constructor)) {
                     return false;
                 }
             } else if (typeof types[i] === 'object') {
                 const validationTuple = types[i] as ArrayValidationTuple;
                 if (!this.validateArray(arg, validationTuple[1])) {
-                    isValid = false;
                     return false;
                 }
             } else {
                 if (typeof arg !== types[i]) {
-                    isValid = false;
                     return false;
                 }
             }
         }
-        return isValid;
+        return true;
     }
 
-    protected getContructorName(construct: { new(): any }): string {
+    protected getConstructorName(construct: { new(): any }): string {
         const funcNameRegex = /function (.{1,})\(/;
         const results = (funcNameRegex).exec(construct.toString());
         return (results && results.length > 1) ? results[1] : '';
     }
 
-    protected validateObject<T>(object: T | any, typeContructor: { new(): T }): boolean {
-        const t = new typeContructor();
+    protected validateObject<T>(object: T | any, typeConstructor: { new(): T }): boolean {
+        const t = new typeConstructor();
         let isValid = true;
         if (typeof object !== 'object') {
             return false;
         }
         Object.keys(t).forEach(key => {
             if (t[key] !== null && typeof t[key] !== typeof object[key]) {
-                if (isValid) {
-                    isValid = false;
-                }
+                isValid = false;
             }
         });
         return isValid;

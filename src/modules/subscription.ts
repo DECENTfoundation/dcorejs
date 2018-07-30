@@ -10,6 +10,7 @@ import {DCoreAssetObject} from '../model/asset';
 import {TransactionBuilder} from '../transactionBuilder';
 import {Asset, Account} from '../model/account';
 import {ApiConnector} from '../api/apiConnector';
+import {Type} from '../model/types';
 
 export class SubscriptionModule extends ApiModule {
     constructor(dbApi: DatabaseApi, connector: ApiConnector) {
@@ -28,8 +29,7 @@ export class SubscriptionModule extends ApiModule {
      * @returns {Promise<SubscriptionObject[]>}
      */
     public listActiveSubscriptionsByConsumer(consumerId: string, count: number = 100): Promise<SubscriptionObject[]> {
-        if (typeof consumerId !== 'string'
-            || typeof count !== 'number') {
+        if (!this.validateArguments(arguments, [Type.string, Type.number])) {
             throw new TypeError(SubscriptionError.invalid_parameters);
         }
         return new Promise<SubscriptionObject[]>((resolve, reject) => {
@@ -51,7 +51,7 @@ export class SubscriptionModule extends ApiModule {
      * @returns {Promise<SubscriptionObject[]>}
      */
     public listSubscriptionsByConsumer(consumerId: string, count: number = 100): Promise<SubscriptionObject[]> {
-        if (typeof consumerId !== 'string' || typeof count !== 'number') {
+        if (!this.validateArguments(arguments, [Type.string, Type.number])) {
             throw new TypeError(SubscriptionError.invalid_parameters);
         }
         return new Promise<SubscriptionObject[]>((resolve, reject) => {
@@ -73,7 +73,7 @@ export class SubscriptionModule extends ApiModule {
      * @returns {Promise<SubscriptionObject[]>}
      */
     public listActiveSubscriptionsByAuthor(authorId: string, count: number = 100): Promise<SubscriptionObject[]> {
-        if (typeof authorId !== 'string' || typeof count !== 'number') {
+        if (!this.validateArguments(arguments, [Type.string, Type.number])) {
             throw new TypeError(SubscriptionError.invalid_parameters);
         }
         return new Promise<SubscriptionObject[]>((resolve, reject) => {
@@ -95,7 +95,7 @@ export class SubscriptionModule extends ApiModule {
      * @returns {Promise<SubscriptionObject[]>}
      */
     public listSubscriptionsByAuthor(authorId: string, count: number = 100): Promise<SubscriptionObject[]> {
-        if (typeof authorId !== 'string' || typeof count !== 'number') {
+        if (!this.validateArguments(arguments, [Type.string, Type.number])) {
             throw new TypeError(SubscriptionError.invalid_parameters);
         }
         return new Promise<SubscriptionObject[]>((resolve, reject) => {
@@ -120,11 +120,7 @@ export class SubscriptionModule extends ApiModule {
      * @returns {Promise<boolean>}
      */
     public subscribeToAuthor(from: string, to: string, amount: number, assetId: string, privateKey: string): Promise<boolean> {
-        if (typeof from !== 'string'
-            || typeof to !== 'string'
-        || typeof amount !== 'number'
-        || typeof assetId !== 'string'
-        || typeof privateKey !== 'string') {
+        if (!this.validateArguments(arguments, [Type.string, Type.string, Type.number, Type.string, Type.string])) {
             throw new TypeError(SubscriptionError.invalid_parameters);
         }
         return new Promise<boolean>((resolve, reject) => {
@@ -163,9 +159,7 @@ export class SubscriptionModule extends ApiModule {
      * @returns {Promise<boolean>}
      */
     public subscribeByAuthor(from: string, to: string, privateKey: string): Promise<boolean> {
-        if (typeof from !== 'string'
-            || typeof to !== 'string'
-            || typeof privateKey !== 'string') {
+        if (!this.validateArguments(arguments, [Type.string, Type.string, Type.string])) {
             throw new TypeError(SubscriptionError.invalid_parameters);
         }
         return new Promise<boolean>((resolve, reject) => {
@@ -198,10 +192,7 @@ export class SubscriptionModule extends ApiModule {
      */
     public setAutomaticRenewalOfSubscription(
         accountId: string, subscriptionId: string, automaticRenewal: boolean, privateKey: string): Promise<boolean> {
-        if (typeof accountId !== 'string'
-            || typeof subscriptionId !== 'string'
-            || typeof automaticRenewal !== 'boolean'
-            || typeof privateKey !== 'string') {
+        if (!this.validateArguments(arguments, [Type.string, Type.string, Type.boolean, Type.string])) {
             throw new TypeError(SubscriptionError.invalid_parameters);
         }
         return new Promise<boolean>((resolve, reject) => {
