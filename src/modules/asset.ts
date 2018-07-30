@@ -592,6 +592,10 @@ export class AssetModule extends ApiModule {
      * @returns {Promise<any>}
      */
     public getFeedsByMiner(minerAccountId: string, limit: number = 100): Promise<any> {
+        if (minerAccountId === undefined || typeof minerAccountId !== 'string'
+            || typeof limit !== 'string') {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
         return new Promise<any>((resolve, reject) => {
             const operation = new DatabaseOperations.GetFeedsByMiner(minerAccountId, limit);
             this.dbApi.execute(operation)
