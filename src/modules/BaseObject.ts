@@ -8,12 +8,12 @@ export class BaseObject {
 
         for (let i = 0; i < args.length; i += 1) {
             const arg = args[i];
-            if (typeof types[i] === 'function') {
+            if (typeof types[i] === Type.function) {
                 const constructor = types[i] as { new(): any };
                 if (!this.validateObject(arg, constructor)) {
                     return false;
                 }
-            } else if (typeof types[i] === 'object') {
+            } else if (typeof types[i] === Type.object) {
                 const validationTuple = types[i] as ArrayValidationTuple;
                 if (!this.validateArray(arg, validationTuple[1])) {
                     return false;
@@ -36,7 +36,7 @@ export class BaseObject {
     protected validateObject<T>(object: T | any, typeConstructor: { new(): T }): boolean {
         const t = new typeConstructor();
         let isValid = true;
-        if (typeof object !== 'object') {
+        if (typeof object !== Type.object) {
             return false;
         }
         Object.keys(t).forEach(key => {
@@ -59,9 +59,9 @@ export class BaseObject {
                     if (!this.validateStringType(el, ofType as string)) {
                         return false;
                     }
-                } else if (typeof ofType === 'function') {
+                } else if (typeof ofType === Type.function) {
                     console.log(el);
-                    if (!this.validateObject(el, ofType)) {
+                    if (!this.validateObject(el, ofType as {new (): any})) {
                         return false;
                     }
                 }
