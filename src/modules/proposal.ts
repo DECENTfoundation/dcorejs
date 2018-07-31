@@ -5,8 +5,8 @@ import {ApiModule} from './ApiModule';
 import {DatabaseApi} from '../api/database';
 import {DatabaseOperations} from '../api/model/database';
 import {
-    FeesParameters, DeltaParameters, Proposal, ProposalCreateParameters, ProposalError, ProposalObject,
-    ProposalParameters
+    FeesParameters, DeltaParameters, Proposal, ProposalError, ProposalObject,
+    ProposalParameters, ProposalCreateParameters
 } from '../model/proposal';
 import {Memo, Operations} from '../model/transaction';
 import {TransactionBuilder} from '../transactionBuilder';

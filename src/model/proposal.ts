@@ -59,29 +59,36 @@ export class ProposalParameters implements IProposalParameters {
         parameters: Array<[number, object]>;
         scale: number;
     } = null;
-    block_interval?: number = null;
-    maintenance_interval?: number = null;
-    maintenance_skip_slots?: number = null;
-    miner_proposal_review_period?: number = null;
-    maximum_transaction_size?: number = null;
-    maximum_block_size?: number = null;
-    maximum_time_until_expiration?: number = null;
-    maximum_proposal_lifetime?: number = null;
-    maximum_asset_feed_publishers?: number = null;
-    maximum_miner_count?: number = null;
-    maximum_authority_membership?: number = null;
-    cashback_vesting_period_seconds?: number = null;
-    cashback_vesting_threshold?: number = null;
-    max_predicate_opcode?: number = null;
-    max_authority_depth?: number = null;
-    extensions?: Array<any> = null;
+    block_interval: number = null;
+    maintenance_interval: number = null;
+    maintenance_skip_slots: number = null;
+    miner_proposal_review_period: number = null;
+    maximum_transaction_size: number = null;
+    maximum_block_size: number = null;
+    maximum_time_until_expiration: number = null;
+    maximum_proposal_lifetime: number = null;
+    maximum_asset_feed_publishers: number = null;
+    maximum_miner_count: number = null;
+    maximum_authority_membership: number = null;
+    cashback_vesting_period_seconds: number = null;
+    cashback_vesting_threshold: number = null;
+    max_predicate_opcode: number = null;
+    max_authority_depth: number = null;
+    extensions: Array<any> = null;
 }
 
-export interface ProposalCreateParameters {
+export interface IProposalCreateParameters {
     fee_paying_account: string,
     expiration_time: string,
     review_period_seconds?: number,
     extensions: Array<any>,
+}
+
+export class ProposalCreateParameters implements IProposalCreateParameters {
+    fee_paying_account = '';
+    expiration_time = '';
+    review_period_seconds?: number = null;
+    extensions: Array<any>;
 }
 
 export interface Fee {

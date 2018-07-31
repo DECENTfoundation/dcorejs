@@ -4,12 +4,18 @@
 import {dcorejs_lib} from './helpers';
 import {KeyPrivate, Utils} from './utils';
 import {Operation} from './model/transaction';
-import {ProposalCreateParameters} from './model/proposal';
+import {IProposalCreateParameters, ProposalCreateParameters} from './model/proposal';
+import {BaseObject} from './modules/BaseObject';
+import {Type} from './model/types';
+
+export enum TransactionBuilderError {
+    invalid_parameters = 'invalid_parameters',
+}
 
 /**
  * Class contains available transaction operation names constants
  */
-export class TransactionBuilder {
+export class TransactionBuilder extends BaseObject {
     /**
      * dcore_js.lib/lib - TransactionBuilder
      */
@@ -17,6 +23,7 @@ export class TransactionBuilder {
     private _operations: Operation[] = [];
 
     constructor() {
+        super();
         this._transaction = new dcorejs_lib.TransactionBuilder();
     }
 
@@ -44,6 +51,10 @@ export class TransactionBuilder {
      * @return {boolean}                Successful operation add value.
      */
     public addOperation(operation: Operation): void {
+        if (operation === undefined || operation.name === undefined || operation.operation === undefined
+        || typeof operation.name !== 'string') {
+            throw new TypeError(TransactionBuilderError.invalid_parameters);
+        }
         try {
             this._transaction.add_type_operation(operation.name, operation.operation);
             this._operations.push(operation);
@@ -55,9 +66,12 @@ export class TransactionBuilder {
     /**
      * Transform transaction into proposal type transaction.
      *
-     * @param {ProposalCreateParameters} proposalParameters     Proposal transaction parameters.
+     * @param {IProposalCreateParameters} proposalParameters     Proposal transaction parameters.
      */
     public propose(proposalParameters: ProposalCreateParameters): void {
+        if (!this.validateObject<IProposalCreateParameters>(proposalParameters, ProposalCreateParameters)) {
+            throw new TypeError(TransactionBuilderError.invalid_parameters);
+        }
         this._transaction.propose(proposalParameters);
     }
 
@@ -70,6 +84,9 @@ export class TransactionBuilder {
      * @return {Promise<void>}          Void.
      */
     public broadcast(privateKey: string, sign: boolean = true): Promise<void> {
+        if (!this.validateArguments([privateKey, sign], [Type.string, Type.boolean])) {
+            throw new TypeError(TransactionBuilderError.invalid_parameters);
+        }
         const secret = Utils.privateKeyFromWif(privateKey);
         return new Promise((resolve, reject) => {
             this.setTransactionFees()
@@ -114,6 +131,11 @@ export class TransactionBuilder {
      * @param {KeyPrivate} privateKey   Private key to sign transaction.
      */
     public signTransaction(privateKey: KeyPrivate): void {
+        if (privateKey === undefined || privateKey.stringKey === undefined || typeof privateKey.stringKey !== 'string'
+        || privateKey.key === undefined) {
+            console.log('signTransaction');
+            throw new TypeError(TransactionBuilderError.invalid_parameters);
+        }
         const publicKey = KeyPrivate.fromWif(privateKey.stringKey).getPublicKey().key;
         this._transaction.add_signer(privateKey.key, publicKey);
     }
@@ -127,6 +149,11 @@ export class TransactionBuilder {
      * @returns {boolean}                           Returns true if replaced, false otherwise.
      */
     public replaceOperation(operationIndex: number, newOperation: Operation): boolean {
+        if (operationIndex === undefined || typeof operationIndex !== 'number'
+        || newOperation === undefined || newOperation.operation === undefined || newOperation.name === undefined
+        || typeof newOperation.name !== 'string') {
+            throw new TypeError(TransactionBuilderError.invalid_parameters);
+        }
         if (operationIndex >= 0 && operationIndex < this._operations.length) {
             try {
                 this._transaction.add_type_operation(newOperation.name, newOperation.operation);

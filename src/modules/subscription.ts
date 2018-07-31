@@ -30,7 +30,7 @@ export class SubscriptionModule extends ApiModule {
      * @returns {Promise<SubscriptionObject[]>}
      */
     public listActiveSubscriptionsByConsumer(consumerId: string, count: number = 100): Promise<SubscriptionObject[]> {
-        if (!Validator.validateArguments(arguments, [Type.string, Type.number])) {
+        if (!Validator.validateArguments([consumerId, count], [Type.string, Type.number])) {
             throw new TypeError(SubscriptionError.invalid_parameters);
         }
         return new Promise<SubscriptionObject[]>((resolve, reject) => {
@@ -52,7 +52,7 @@ export class SubscriptionModule extends ApiModule {
      * @returns {Promise<SubscriptionObject[]>}
      */
     public listSubscriptionsByConsumer(consumerId: string, count: number = 100): Promise<SubscriptionObject[]> {
-        if (!Validator.validateArguments(arguments, [Type.string, Type.number])) {
+        if (!Validator.validateArguments([consumerId, count], [Type.string, Type.number])) {
             throw new TypeError(SubscriptionError.invalid_parameters);
         }
         return new Promise<SubscriptionObject[]>((resolve, reject) => {
@@ -74,7 +74,7 @@ export class SubscriptionModule extends ApiModule {
      * @returns {Promise<SubscriptionObject[]>}
      */
     public listActiveSubscriptionsByAuthor(authorId: string, count: number = 100): Promise<SubscriptionObject[]> {
-        if (!Validator.validateArguments(arguments, [Type.string, Type.number])) {
+        if (!Validator.validateArguments([authorId, count], [Type.string, Type.number])) {
             throw new TypeError(SubscriptionError.invalid_parameters);
         }
         return new Promise<SubscriptionObject[]>((resolve, reject) => {
@@ -96,7 +96,7 @@ export class SubscriptionModule extends ApiModule {
      * @returns {Promise<SubscriptionObject[]>}
      */
     public listSubscriptionsByAuthor(authorId: string, count: number = 100): Promise<SubscriptionObject[]> {
-        if (!Validator.validateArguments(arguments, [Type.string, Type.number])) {
+        if (!Validator.validateArguments([authorId, count], [Type.string, Type.number])) {
             throw new TypeError(SubscriptionError.invalid_parameters);
         }
         return new Promise<SubscriptionObject[]>((resolve, reject) => {
