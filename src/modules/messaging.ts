@@ -13,6 +13,7 @@ import {CryptoUtils} from '../crypt';
 import {CustomOperationSubtype, DCoreMessagePayload, IDCoreMessagePayload, MessagePayload, MessagingError} from '../model/messaging';
 import {MessagingOperations} from '../api/model/messaging';
 import {Type} from '../model/types';
+import { Validator } from './validator';
 
 export class MessagingModule extends ApiModule {
     constructor(dbApi: DatabaseApi, messageApi: MessagingApi) {
@@ -32,7 +33,7 @@ export class MessagingModule extends ApiModule {
      * @returns {Promise<IDCoreMessagePayload[]>}    List of DCoreMessagePayload objects.
      */
     public getSentMessages(sender: string, decryptPrivateKey: string = '', count: number = 100): Promise<IDCoreMessagePayload[]> {
-        if (!this.validateArguments([sender, decryptPrivateKey, count], [Type.string, Type.string, Type.number])) {
+        if (!Validator.validateArguments([sender, decryptPrivateKey, count], [Type.string, Type.string, Type.number])) {
             throw new TypeError(MessagingError.invalid_parameters);
         }
         return new Promise<IDCoreMessagePayload[]>(((resolve, reject) => {
@@ -54,7 +55,7 @@ export class MessagingModule extends ApiModule {
      * @returns {Promise<IDCoreMessagePayload[]>}    List of DCoreMessagePayload objects.
      */
     public getMessages(receiver: string, decryptPrivateKey: string = '', count: number = 100): Promise<IDCoreMessagePayload[]> {
-        if (!this.validateArguments([receiver, decryptPrivateKey, count], [Type.string, Type.string, Type.number])) {
+        if (!Validator.validateArguments([receiver, decryptPrivateKey, count], [Type.string, Type.string, Type.number])) {
             throw new TypeError(MessagingError.invalid_parameters);
         }
         return new Promise<IDCoreMessagePayload[]>(((resolve, reject) => {
@@ -80,7 +81,7 @@ export class MessagingModule extends ApiModule {
                              receiver?: string,
                              decryptPrivateKey: string = '',
                              count: number = 100): Promise<IDCoreMessagePayload[]> {
-        if (!this.validateArguments([sender, receiver, decryptPrivateKey, count], [Type.string, Type.string, Type.string, Type.number])) {
+        if (!Validator.validateArguments([sender, receiver, decryptPrivateKey, count], [Type.string, Type.string, Type.string, Type.number])) {
             throw new TypeError(MessagingError.invalid_parameters);
         }
         return new Promise<IDCoreMessagePayload[]>(((resolve, reject) => {
@@ -94,7 +95,7 @@ export class MessagingModule extends ApiModule {
     }
 
     private decryptMessages(messages: IDCoreMessagePayload[], decryptPrivateKey: string): IDCoreMessagePayload[] {
-        if (!this.validateArray<DCoreMessagePayload>(messages, DCoreMessagePayload)
+        if (!Validator.validateArray<DCoreMessagePayload>(messages, DCoreMessagePayload)
             || decryptPrivateKey === undefined || typeof decryptPrivateKey !== 'string') {
             throw new TypeError(MessagingError.invalid_parameters);
         }
@@ -129,7 +130,7 @@ export class MessagingModule extends ApiModule {
      * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
      */
     public sendMessage(sender: string, receiverId: string, message: string, privateKey: string): Promise<boolean> {
-        if (!this.validateArguments(arguments, [Type.string, Type.string, Type.string, Type.string])) {
+        if (!Validator.validateArguments(arguments, [Type.string, Type.string, Type.string, Type.string])) {
             throw new TypeError(MessagingError.invalid_parameters);
         }
         return new Promise<boolean>(((resolve, reject) => {

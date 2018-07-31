@@ -27,6 +27,7 @@ import { Memo, Operation, Operations } from '../model/transaction';
 import { TransactionBuilder } from '../transactionBuilder';
 import { KeyPrivate, KeyPublic, Utils } from '../utils';
 import { ApiModule } from './ApiModule';
+import { Validator } from './validator';
 
 export enum AccountOrder {
     nameAsc = '+name',
@@ -443,7 +444,7 @@ export class AccountModule extends ApiModule {
      */
     public getAccountHistory(accountId: string, historyOptions?: HistoryOptions): Promise<HistoryRecord[]> {
         if (accountId === undefined || typeof accountId !== 'string'
-            || !this.validateObject<HistoryOptions>(historyOptions, HistoryOptions)) {
+            || !Validator.validateObject<HistoryOptions>(historyOptions, HistoryOptions)) {
             throw new TypeError(AccountError.invalid_parameters);
         }
         return new Promise((resolve, reject) => {
@@ -637,8 +638,8 @@ export class AccountModule extends ApiModule {
         additionalElGamalPrivateKeys: string[] = []): Promise<WalletExport> {
         if (accountId === undefined || typeof accountId !== 'string'
             || password === undefined || typeof password !== 'string'
-            || !this.validateObject<Array<string>>(privateKeys, Array)
-            || !this.validateObject<Array<string>>(additionalElGamalPrivateKeys, Array)) {
+            || !Validator.validateObject<Array<string>>(privateKeys, Array)
+            || !Validator.validateObject<Array<string>>(additionalElGamalPrivateKeys, Array)) {
             throw new TypeError(AccountError.invalid_parameters);
         }
         return new Promise((resolve, reject) => {
@@ -813,7 +814,7 @@ export class AccountModule extends ApiModule {
     public updateAccount(accountId: string, params: UpdateAccountParameters, privateKey: string, broadcast: boolean = true)
         : Promise<Operation> {
         if (accountId === undefined || typeof accountId !== 'string'
-            || this.validateObject<UpdateAccountParameters>(params, UpdateAccountParameters)
+            || Validator.validateObject<UpdateAccountParameters>(params, UpdateAccountParameters)
             || typeof privateKey !== 'string'
             || typeof broadcast !== 'boolean') {
             throw new TypeError(AccountError.invalid_parameters);

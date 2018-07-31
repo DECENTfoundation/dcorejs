@@ -15,6 +15,7 @@ import { Utils } from '../utils';
 import { ChainMethods } from '../api/model/chain';
 import { ApiConnector } from '../api/apiConnector';
 import { Type } from '../model/types';
+import { Validator } from './validator';
 
 const moment = require('moment');
 
@@ -58,7 +59,7 @@ export class ContentModule extends ApiModule {
      * @return {Promise<Content[]>}             List of Content object that conform search parameters.
      */
     public searchContent(searchParams?: SearchParams, convertAsset: boolean = false): Promise<Content[]> {
-        if (!this.validateArguments([searchParams, convertAsset], [SearchParams, Type.boolean])) {
+        if (!Validator.validateArguments([searchParams, convertAsset], [SearchParams, Type.boolean])) {
             throw new TypeError(ContentError.invalid_arguments);
         }
         const dbOperation = new DatabaseOperations.SearchContent(searchParams);
@@ -97,7 +98,7 @@ export class ContentModule extends ApiModule {
      * @return {Promise<Content | null>}    Content object.
      */
     public getContent(id: string, convertAsset: boolean = false): Promise<ContentObject> {
-        if (!this.validateArguments([id, convertAsset], [Type.string, Type.boolean])) {
+        if (!Validator.validateArguments([id, convertAsset], [Type.string, Type.boolean])) {
             throw new TypeError(ContentError.invalid_arguments);
         }
         return new Promise((resolve, reject) => {
@@ -139,7 +140,7 @@ export class ContentModule extends ApiModule {
      * @returns {Promise<Content | null>}   Content object.
      */
     public getContentURI(URI: string, convertAsset: boolean = false): Promise<ContentObject | null> {
-        if (!this.validateArguments([URI, convertAsset], [Type.string, Type.boolean])) {
+        if (!Validator.validateArguments([URI, convertAsset], [Type.string, Type.boolean])) {
             throw new TypeError(ContentError.invalid_arguments);
         }
         return new Promise((resolve, reject) => {
@@ -182,7 +183,7 @@ export class ContentModule extends ApiModule {
         contentId: string,
         authorId: string,
         privateKey: string): Promise<void> {
-        if (!this.validateArguments(arguments, [Type.string, Type.string, Type.string])) {
+        if (!Validator.validateArguments(arguments, [Type.string, Type.string, Type.string])) {
             throw new TypeError(ContentError.invalid_arguments);
         }
         return new Promise((resolve, reject) => {
@@ -225,7 +226,7 @@ export class ContentModule extends ApiModule {
      * @returns {Promise<string>}               Content key to decrypt content.
      */
     public restoreContentKeys(contentId: string, accountId: string, ...elGamalKeys: KeyPair[]): Promise<string> {
-        if (!this.validateArguments(arguments, [Type.string, Type.string, [Array, Type.string]])) {
+        if (!Validator.validateArguments(arguments, [Type.string, Type.string, [Array, Type.string]])) {
             throw new TypeError(ContentError.invalid_arguments);
         }
         return new Promise((resolve, reject) => {
@@ -263,7 +264,7 @@ export class ContentModule extends ApiModule {
      * @return {Promise<ContentKeys>}   Generated ContentKeys for content encryption.
      */
     public generateContentKeys(seeders: string[]): Promise<ContentKeys> {
-        if (!this.validateArguments(arguments, [[Array, Type.string]])) {
+        if (!Validator.validateArguments(arguments, [[Array, Type.string]])) {
             throw new TypeError(ContentError.invalid_arguments);
         }
         const dbOperation = new DatabaseOperations.GenerateContentKeys(seeders);
@@ -290,7 +291,7 @@ export class ContentModule extends ApiModule {
      * @return {Promise<boolean>}       Value confirming successful transaction broadcasting.
      */
     public addContent(content: SubmitObject, privateKey: string, broadcast: boolean = true): Promise<Operation> {
-        if (!this.validateArguments([content, privateKey, broadcast], [SubmitObject, Type.string, Type.boolean])) {
+        if (!Validator.validateArguments([content, privateKey, broadcast], [SubmitObject, Type.string, Type.boolean])) {
             throw new TypeError('Invalid parameters');
         }
         return new Promise<Operation>((resolve, reject) => {
@@ -377,7 +378,7 @@ export class ContentModule extends ApiModule {
      * @returns {Promise<BuyingContent[]>}      BuyingContent list of opened buy requests.
      */
     public getOpenBuying(convertAsset: boolean = false): Promise<BuyingContent[]> {
-        if (!this.validateArguments([convertAsset], [Type.boolean])) {
+        if (!Validator.validateArguments([convertAsset], [Type.boolean])) {
             throw new TypeError('Invalid parameters');
         }
         return new Promise<BuyingContent[]>(((resolve, reject) => {
@@ -411,7 +412,7 @@ export class ContentModule extends ApiModule {
      * @returns {Promise<BuyingContent[]>}  BuyingContent list of opened buy requests.
      */
     public getOpenBuyingByURI(URI: string, convertAsset: boolean = false): Promise<BuyingContent[]> {
-        if (!this.validateArguments([URI, convertAsset], [Type.string, Type.boolean])) {
+        if (!Validator.validateArguments([URI, convertAsset], [Type.string, Type.boolean])) {
             throw new TypeError('Invalid parameters');
         }
         return new Promise<BuyingContent[]>(((resolve, reject) => {
@@ -445,7 +446,7 @@ export class ContentModule extends ApiModule {
      * @returns {Promise<BuyingContent[]>}  BuyingContent list of opened buy requests.
      */
     public getOpenBuyingByConsumer(accountId: string, convertAsset: boolean = false): Promise<BuyingContent[]> {
-        if (!this.validateArguments([accountId, convertAsset], [Type.string, Type.boolean])) {
+        if (!Validator.validateArguments([accountId, convertAsset], [Type.string, Type.boolean])) {
             throw new TypeError('Invalid parameters');
         }
         return new Promise<BuyingContent[]>(((resolve, reject) => {
@@ -480,7 +481,7 @@ export class ContentModule extends ApiModule {
      * @returns {Promise<BuyingContent[] | null>}   List of bought content with URI.
      */
     public getBuyingByConsumerURI(accountId: string, URI: string, convertAsset: boolean = false): Promise<BuyingContent[] | null> {
-        if (!this.validateArguments([accountId, URI, convertAsset], [Type.string, Type.string, Type.boolean])) {
+        if (!Validator.validateArguments([accountId, URI, convertAsset], [Type.string, Type.string, Type.boolean])) {
             throw new TypeError('Invalid parameters');
         }
         return new Promise<BuyingContent[]>(((resolve, reject) => {
@@ -514,7 +515,7 @@ export class ContentModule extends ApiModule {
      * @returns {Promise<BuyingContent[]>}  List of BuyingContent.
      */
     public getBuyingHistoryObjectsByConsumer(accountId: string, convertAsset: boolean = false): Promise<BuyingContent[]> {
-        if (!this.validateArguments([accountId, convertAsset], [Type.string, Type.boolean])) {
+        if (!Validator.validateArguments([accountId, convertAsset], [Type.string, Type.boolean])) {
             throw new TypeError('Invalid parameters');
         }
         return new Promise<BuyingContent[]>((resolve, reject) => {
@@ -608,7 +609,7 @@ export class ContentModule extends ApiModule {
         elGammalPub: string,
         privateKey: string,
         broadcast: boolean = true): Promise<Operation> {
-        if (!this.validateArguments([contentId, buyerId, elGammalPub, privateKey, broadcast],
+        if (!Validator.validateArguments([contentId, buyerId, elGammalPub, privateKey, broadcast],
             [Type.string, Type.string, Type.string, Type.string, Type.boolean])
         ) {
             throw new TypeError('Invalid parameters');
@@ -651,7 +652,7 @@ export class ContentModule extends ApiModule {
      * @return {Promise<Seeder[]>}      List of available Seeder objects.
      */
     public getSeeders(resultSize: number = 100): Promise<Seeder[]> {
-        if (!this.validateArguments([resultSize], [Type.number])) {
+        if (!Validator.validateArguments([resultSize], [Type.number])) {
             throw new TypeError('Invalid parameters');
         }
         const dbOperation = new DatabaseOperations.ListSeeders(resultSize);
@@ -684,7 +685,7 @@ export class ContentModule extends ApiModule {
         startObjectId: string = '0.0.0',
         term: string = '',
         resultSize: number = 100): Promise<Content[]> {
-        if (!this.validateArguments(
+        if (!Validator.validateArguments(
             [accountId, order, startObjectId, term, resultSize],
             [Type.string, Type.string, Type.string, Type.string, Type.number])
         ) {
@@ -741,7 +742,7 @@ export class ContentModule extends ApiModule {
      * @return {Promise<Array<Rating>>}
      */
     getRating(contentId: string, forUser: string, ratingStartId: string = '', count: number = 100): Promise<Array<BuyingContent>> {
-        if (!this.validateArguments([contentId, forUser, ratingStartId, count], [Type.string, Type.string, Type.string, Type.number])) {
+        if (!Validator.validateArguments([contentId, forUser, ratingStartId, count], [Type.string, Type.string, Type.string, Type.number])) {
             throw new TypeError('Invalid parameters');
         }
         return new Promise<Array<BuyingContent>>((resolve, reject) => {
@@ -762,7 +763,9 @@ export class ContentModule extends ApiModule {
      * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#a624e679ac58b3edfc7b817e4a46e3746
      */
     searchFeedback(accountId: string, contentURI: string, ratingStartId: string, count: number = 100): Promise<Array<BuyingContent>> {
-        if (!this.validateArguments([accountId, contentURI, ratingStartId, count], [Type.string, Type.string, Type.string, Type.number])) {
+        if (!Validator.validateArguments(
+            [accountId, contentURI, ratingStartId, count], [Type.string, Type.string, Type.string, Type.number])
+        ) {
             throw new TypeError('Invalid parameters');
         }
         return new Promise<Array<BuyingContent>>(async (resolve, reject) => {
@@ -797,7 +800,7 @@ export class ContentModule extends ApiModule {
      * @param {string} URI   Content URI. Example 'ipfs:QmQ9MBkzt6QcDtBhg7qenDcXtm1s6VVSogtSHa2zbXKsFb'
      */
     getAuthorCoAuthors(URI: string): Promise<[string, string[]] | null> {
-        if (!this.validateArguments(arguments, [Type.string])) {
+        if (!Validator.validateArguments(arguments, [Type.string])) {
             throw new TypeError('Invalid parameters');
         }
         return new Promise<[string, string[]]>((resolve, reject) => {
@@ -826,7 +829,7 @@ export class ContentModule extends ApiModule {
      * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
      */
     leaveCommentAndRating(contentURI: string, consumer: string, comment: string, rating: number, consumerPKey: string): Promise<Operation> {
-        if (!this.validateArguments(arguments, [Type.string, Type.string, Type.string, Type.string, Type.string])) {
+        if (!Validator.validateArguments(arguments, [Type.string, Type.string, Type.string, Type.string, Type.string])) {
             throw new TypeError('Invalid parameters');
         }
         return new Promise<Operation>((resolve, reject) => {

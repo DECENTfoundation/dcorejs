@@ -1,7 +1,9 @@
 import { ArrayValidationTuple, Type } from '../model/types';
 
-export class BaseObject {
-    protected validateArguments(args: IArguments | Array<any>, types: ({ new(): any } | string | ArrayValidationTuple)[]): boolean {
+export type ValidatorArgumentType = ({ new(): any } | string | ArrayValidationTuple);
+
+export class Validator {
+    static validateArguments(args: IArguments | Array<any>, types: ValidatorArgumentType[]): boolean {
         if (args.length !== types.length) {
             return false;
         }
@@ -10,12 +12,12 @@ export class BaseObject {
             const arg = args[i];
             if (typeof types[i] === Type.function) {
                 const constructor = types[i] as { new(): any };
-                if (!this.validateObject(arg, constructor)) {
+                if (!Validator.validateObject(arg, constructor)) {
                     return false;
                 }
             } else if (typeof types[i] === Type.object) {
                 const validationTuple = types[i] as ArrayValidationTuple;
-                if (!this.validateArray(arg, validationTuple[1])) {
+                if (!Validator.validateArray(arg, validationTuple[1])) {
                     return false;
                 }
             } else {
@@ -27,13 +29,13 @@ export class BaseObject {
         return true;
     }
 
-    protected getConstructorName(construct: { new(): any }): string {
+    static getConstructorName(construct: { new(): any }): string {
         const funcNameRegex = /function (.{1,})\(/;
         const results = (funcNameRegex).exec(construct.toString());
         return (results && results.length > 1) ? results[1] : '';
     }
 
-    protected validateObject<T>(object: T | any, typeConstructor: { new(): T }): boolean {
+    static validateObject<T>(object: T | any, typeConstructor: { new(): T }): boolean {
         const t = new typeConstructor();
         let isValid = true;
         if (typeof object !== Type.object) {
@@ -47,7 +49,7 @@ export class BaseObject {
         return isValid;
     }
 
-    protected validateArray<T>(array: Array<T> | any, ofType: string | { new(): any }): boolean {
+    static validateArray<T>(array: Array<T> | any, ofType: string | { new(): any }): boolean {
         if (!Array.isArray(array)) {
             return false;
         }
@@ -56,12 +58,12 @@ export class BaseObject {
                 const el = array[i];
                 if (typeof ofType === Type.string) {
                     console.log(el);
-                    if (!this.validateStringType(el, ofType as string)) {
+                    if (!Validator.validateStringType(el, ofType as string)) {
                         return false;
                     }
                 } else if (typeof ofType === Type.function) {
                     console.log(el);
-                    if (!this.validateObject(el, ofType as {new (): any})) {
+                    if (!Validator.validateObject(el, ofType as {new (): any})) {
                         return false;
                     }
                 }
@@ -70,7 +72,7 @@ export class BaseObject {
         return true;
     }
 
-    protected validateStringType(val: any, type: string): boolean {
+    static validateStringType(val: any, type: string): boolean {
         return typeof val === type;
     }
 }

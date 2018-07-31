@@ -14,6 +14,7 @@ import { MinerNameIdPair, MinerUpdateData, MiningError } from '../model/mining';
 import VestingBalance = Block.VestingBalance;
 import { ChainMethods } from '../api/model/chain';
 import { Type } from '../model/types';
+import { Validator } from './validator';
 
 export class MiningModule extends ApiModule {
     static CHAIN_PROXY_TO_SELF = '';
@@ -64,7 +65,7 @@ export class MiningModule extends ApiModule {
      * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
      */
     public setDesiredMinerCount(accountId: string, desiredNumOfMiners: number, privateKey: string): Promise<boolean> {
-        if (!this.validateArguments(arguments, [Type.string, Type.number, Type.string])) {
+        if (!Validator.validateArguments(arguments, [Type.string, Type.number, Type.string])) {
             throw new TypeError(MiningError.invalid_arguments);
         }
         return new Promise<boolean>((resolve, reject) => {
@@ -113,7 +114,7 @@ export class MiningModule extends ApiModule {
      * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
      */
     public createMiner(minerAccountId: string, URL: string, signingPublicKey: string, privateKey: string): Promise<boolean> {
-        if (!this.validateArguments(arguments, [Type.string, Type.string, Type.string, Type.string])) {
+        if (!Validator.validateArguments(arguments, [Type.string, Type.string, Type.string, Type.string])) {
             throw new TypeError(MiningError.invalid_arguments);
         }
         return new Promise<boolean>(((resolve, reject) => {
@@ -139,7 +140,7 @@ export class MiningModule extends ApiModule {
      * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
      */
     public unvoteMiner(miner: string, account: string, privateKeyWif: string): Promise<boolean> {
-        if (!this.validateArguments(arguments, [Type.string, Type.string, Type.string])) {
+        if (!Validator.validateArguments(arguments, [Type.string, Type.string, Type.string])) {
             throw new TypeError(MiningError.invalid_arguments);
         }
         return this.unvoteMiners([miner], account, privateKeyWif);
@@ -154,7 +155,7 @@ export class MiningModule extends ApiModule {
      * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
      */
     public unvoteMiners(miners: string[], account: string, privateKeyWif: string): Promise<boolean> {
-        if (!this.validateArguments(arguments, [[Array, Type.string], Type.string, Type.string])) {
+        if (!Validator.validateArguments(arguments, [[Array, Type.string], Type.string, Type.string])) {
             throw new TypeError(MiningError.invalid_arguments);
         }
         return new Promise<boolean>((resolve, reject) => {
@@ -207,7 +208,7 @@ export class MiningModule extends ApiModule {
      * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
      */
     public voteForMiner(miner: string, account: string, privateKeyWif: string): Promise<boolean> {
-        if (!this.validateArguments(arguments, [Type.string, Type.string, Type.string])) {
+        if (!Validator.validateArguments(arguments, [Type.string, Type.string, Type.string])) {
             throw new TypeError(MiningError.invalid_arguments);
         }
         return this.voteForMiners([miner], account, privateKeyWif);
@@ -223,7 +224,7 @@ export class MiningModule extends ApiModule {
      * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
      */
     public voteForMiners(miners: string[], account: string, privateKeyWif: string): Promise<boolean> {
-        if (!this.validateArguments(arguments, [[Array, Type.string], Type.string, Type.string])) {
+        if (!Validator.validateArguments(arguments, [[Array, Type.string], Type.string, Type.string])) {
             throw new TypeError(MiningError.invalid_arguments);
         }
         return new Promise<boolean>((resolve, reject) => {
@@ -276,7 +277,7 @@ export class MiningModule extends ApiModule {
      * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
      */
     public voteUnvoteMiners(voteMiners: string[], unvoteMiners: string[], accountId: string, privateKey: string): Promise<boolean> {
-        if (!this.validateArguments(arguments, [[Array, Type.string], [Array, Type.string], Type.string, Type.string])) {
+        if (!Validator.validateArguments(arguments, [[Array, Type.string], [Array, Type.string], Type.string, Type.string])) {
             throw new TypeError(MiningError.invalid_arguments);
         }
         return new Promise<boolean>((resolve, reject) => {
@@ -336,7 +337,7 @@ export class MiningModule extends ApiModule {
      * @returns {Promise<Block.VestingBalance[]>}   VestingBalance object.
      */
     public getVestingBalances(accountId: string): Promise<VestingBalance[]> {
-        if (!this.validateArguments(arguments, [Type.string])) {
+        if (!Validator.validateArguments(arguments, [Type.string])) {
             throw new TypeError(MiningError.invalid_arguments);
         }
         return new Promise<VestingBalance[]>((resolve, reject) => {
@@ -358,7 +359,7 @@ export class MiningModule extends ApiModule {
      * @returns {Promise<boolean>}              Value confirming successful transaction broadcasting.
      */
     public updateMiner(minerId: string, minerAccountId: string, updateData: MinerUpdateData, privateKey: string): Promise<boolean> {
-        if (!this.validateArguments(arguments, [Type.string, Type.string, MinerUpdateData, Type.string])) {
+        if (!Validator.validateArguments(arguments, [Type.string, Type.string, MinerUpdateData, Type.string])) {
             throw new TypeError(MiningError.invalid_arguments);
         }
         return new Promise<boolean>((resolve, reject) => {
@@ -405,7 +406,7 @@ export class MiningModule extends ApiModule {
         amount: number,
         assetId: string,
         privateKey: string): Promise<boolean> {
-        if (!this.validateArguments(arguments, [Type.string, Type.string, Type.number, Type.string, Type.string])) {
+        if (!Validator.validateArguments(arguments, [Type.string, Type.string, Type.number, Type.string, Type.string])) {
             throw new TypeError(MiningError.invalid_arguments);
         }
         return new Promise<boolean>((resolve, reject) => {
@@ -437,7 +438,7 @@ export class MiningModule extends ApiModule {
      * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
      */
     public setVotingProxy(accountId: string, votingAccountId: string, privateKey: string): Promise<boolean> {
-        if (!this.validateArguments(arguments, [Type.string, Type.string, Type.string])) {
+        if (!Validator.validateArguments(arguments, [Type.string, Type.string, Type.string])) {
             throw new TypeError(MiningError.invalid_arguments);
         }
         return new Promise<boolean>((resolve, reject) => {
@@ -488,7 +489,7 @@ export class MiningModule extends ApiModule {
      * @returns {Promise<MinerNameIdPair[]>}    List of MinerNameIdPair.
      */
     public listMiners(fromId: string, limit: number = 100): Promise<MinerNameIdPair[]> {
-        if (!this.validateArguments([fromId, limit], [Type.string, Type.number])) {
+        if (!Validator.validateArguments([fromId, limit], [Type.string, Type.number])) {
             throw new TypeError(MiningError.invalid_arguments);
         }
         return new Promise<MinerNameIdPair[]>(((resolve, reject) => {
@@ -509,7 +510,7 @@ export class MiningModule extends ApiModule {
      * @returns {Promise<Miner>}    Miner object.
      */
     public getMiner(minerId: string): Promise<Miner> {
-        if (!this.validateArguments(arguments, [Type.string])) {
+        if (!Validator.validateArguments(arguments, [Type.string])) {
             throw new TypeError(MiningError.invalid_arguments);
         }
         return new Promise<Miner>((resolve, reject) => {
