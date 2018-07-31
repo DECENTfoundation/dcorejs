@@ -87,7 +87,7 @@ export interface IProposalCreateParameters {
 export class ProposalCreateParameters implements IProposalCreateParameters {
     fee_paying_account = '';
     expiration_time = '';
-    review_period_seconds: number = null;
+    review_period_seconds?: number = null;
     extensions: Array<any>;
 }
 
@@ -150,52 +150,52 @@ export interface IFeesParameters {
 }
 
 export class FeesParameters implements IFeesParameters {
-    transfer: Fee = null; // 0
-    account_create: BasicFee = null;
-    account_update: Fee = null;
-    asset_create: BasicFee = null;
-    asset_update: Fee = null;
-    asset_publish_feed: Fee = null; // 5
-    miner_create: Fee = null;
-    miner_update: Fee = null;
-    miner_update_global_parameters: Fee = null;
-    proposal_create: Fee = null;
-    proposal_update: Fee = null; // 10
-    proposal_delete: Fee = null;
-    withdraw_permission_create: Fee = null;
-    withdraw_permission_update: Fee = null;
-    withdraw_permission_claim: Fee = null;
-    withdraw_permission_delete: Fee = null; // 15
-    vesting_balance_create: Fee = null;
-    vesting_balance_withdraw: Fee = null;
-    custom: Fee = null;
-    assert: Fee = null;
-    content_submit: Fee = null; // 20
-    request_to_buy: Fee = null;
-    leave_rating_and_comment: Fee = null;
-    ready_to_publish: Fee = null;
-    proof_of_custody: Fee = null;
-    deliver_keys: Fee = null; // 25
-    subscribe: Fee = null;
-    subscribe_by_author: Fee = null;
-    automatic_renewal_of_subscription: Fee = null;
-    report_stats: Fee = null;
-    set_publishing_manager: Fee = null; // 30
-    set_publishing_right: Fee = null;
-    content_cancellation: Fee = null;
-    asset_fund_pools_operation: Fee = null;
-    asset_reserve_operation: Fee = null;
-    asset_claim_fees_operation: Fee = null; // 35
-    update_user_issued_asset: Fee = null;
-    update_monitored_asset_operation: Fee = null;
-    ready_to_publish2: Fee = null;
-    transfer2: Fee = null;
-    disallow_automatic_renewal_of_subscription: Fee = null; // 40
-    return_escrow_submission: Fee = null;
-    return_escrow_buying: Fee = null;
-    pay_seeder: Fee = null;
-    finish_buying: Fee = null;
-    renewal_of_subscription: Fee = null; // 45
+    transfer?: Fee = null; // 0
+    account_create?: BasicFee = null;
+    account_update?: Fee = null;
+    asset_create?: BasicFee = null;
+    asset_update?: Fee = null;
+    asset_publish_feed?: Fee = null; // 5
+    miner_create?: Fee = null;
+    miner_update?: Fee = null;
+    miner_update_global_parameters?: Fee = null;
+    proposal_create?: Fee = null;
+    proposal_update?: Fee = null; // 10
+    proposal_delete?: Fee = null;
+    withdraw_permission_create?: Fee = null;
+    withdraw_permission_update?: Fee = null;
+    withdraw_permission_claim?: Fee = null;
+    withdraw_permission_delete?: Fee = null; // 15
+    vesting_balance_create?: Fee = null;
+    vesting_balance_withdraw?: Fee = null;
+    custom?: Fee = null;
+    assert?: Fee = null;
+    content_submit?: Fee = null; // 20
+    request_to_buy?: Fee = null;
+    leave_rating_and_comment?: Fee = null;
+    ready_to_publish?: Fee = null;
+    proof_of_custody?: Fee = null;
+    deliver_keys?: Fee = null; // 25
+    subscribe?: Fee = null;
+    subscribe_by_author?: Fee = null;
+    automatic_renewal_of_subscription?: Fee = null;
+    report_stats?: Fee = null;
+    set_publishing_manager?: Fee = null; // 30
+    set_publishing_right?: Fee = null;
+    content_cancellation?: Fee = null;
+    asset_fund_pools_operation?: Fee = null;
+    asset_reserve_operation?: Fee = null;
+    asset_claim_fees_operation?: Fee = null; // 35
+    update_user_issued_asset?: Fee = null;
+    update_monitored_asset_operation?: Fee = null;
+    ready_to_publish2?: Fee = null;
+    transfer2?: Fee = null;
+    disallow_automatic_renewal_of_subscription?: Fee = null; // 40
+    return_escrow_submission?: Fee = null;
+    return_escrow_buying?: Fee = null;
+    pay_seeder?: Fee = null;
+    finish_buying?: Fee = null;
+    renewal_of_subscription?: Fee = null; // 45
 }
 
 export interface Proposal {
