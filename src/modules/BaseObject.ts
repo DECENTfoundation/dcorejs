@@ -52,7 +52,7 @@ export class BaseObject {
             return false;
         }
         if (array.length > 0) {
-            for (let i = 0; i < array.length; i += 1) {
+            for (let i = 0; i < array.length; i++) {
                 const el = array[i];
                 if (typeof ofType === Type.string) {
                     console.log(el);

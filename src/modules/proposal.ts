@@ -160,6 +160,12 @@ export class ProposalModule extends ApiModule {
      */
     public proposeParameterChange(proposerAccountId: string, proposalParameters: ProposalParameters, expiration: string,
                                   privateKey: string): Promise<boolean> {
+        if (proposerAccountId === undefined || typeof proposerAccountId !== 'string'
+            || !this.validateObject<ProposalParameters>(proposalParameters, ProposalParameters)
+            || expiration === undefined || typeof expiration !== 'string'
+            || privateKey === undefined || typeof privateKey !== 'string') {
+            throw new TypeError(ProposalError.invalid_parameters);
+        }
         return new Promise<boolean>(((resolve, reject) => {
             const databaseOperation = new DatabaseOperations.GetGlobalProperties();
             this.dbApi.execute(databaseOperation)
@@ -261,6 +267,12 @@ export class ProposalModule extends ApiModule {
      */
     public proposeFeeChange(proposerAccountId: string, feesParameters: FeesParameters, expiration: string, privateKey: string):
                             Promise<boolean> {
+        if (proposerAccountId === undefined || typeof proposerAccountId !== 'string'
+            || !this.validateObject<FeesParameters>(feesParameters, FeesParameters)
+            || expiration === undefined || typeof expiration !== 'string'
+            || privateKey === undefined || typeof privateKey !== 'string') {
+            throw new TypeError(ProposalError.invalid_parameters);
+        }
         return new Promise<boolean>(((resolve, reject) => {
             const databaseOperation = new DatabaseOperations.GetGlobalProperties();
             this.dbApi.execute(databaseOperation)
@@ -447,6 +459,12 @@ export class ProposalModule extends ApiModule {
 
     public approveProposal(
         payingAccountId: string, proposalId: string, approvalsDelta: DeltaParameters, privateKey: string): Promise<boolean> {
+        if (payingAccountId === undefined || typeof payingAccountId !== 'string'
+            || !this.validateObject<DeltaParameters>(approvalsDelta, DeltaParameters)
+            || proposalId === undefined || typeof proposalId !== 'string'
+            || privateKey === undefined || typeof privateKey !== 'string') {
+            throw new TypeError(ProposalError.invalid_parameters);
+        }
         return new Promise<boolean>(((resolve, reject) => {
             this.apiConnector.connection()
                 .then(() => {
