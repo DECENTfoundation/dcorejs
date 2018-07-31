@@ -139,6 +139,9 @@ export class MiningModule extends ApiModule {
      * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
      */
     public unvoteMiner(miner: string, account: string, privateKeyWif: string): Promise<boolean> {
+        if (!this.validateArguments(arguments, [Type.string, Type.string, Type.string])) {
+            throw new TypeError(MiningError.invalid_arguments);
+        }
         return this.unvoteMiners([miner], account, privateKeyWif);
     }
 
