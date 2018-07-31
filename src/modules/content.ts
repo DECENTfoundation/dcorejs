@@ -182,9 +182,9 @@ export class ContentModule extends ApiModule {
         contentId: string,
         authorId: string,
         privateKey: string): Promise<void> {
-            if (!this.validateArguments(arguments, [Type.string, Type.string, Type.string])) {
-                throw new TypeError(ContentError.invalid_arguments);
-            }
+        if (!this.validateArguments(arguments, [Type.string, Type.string, Type.string])) {
+            throw new TypeError(ContentError.invalid_arguments);
+        }
         return new Promise((resolve, reject) => {
             this.getContent(contentId)
                 .then((content: ContentObject) => {
@@ -602,11 +602,17 @@ export class ContentModule extends ApiModule {
      * @param {boolean} broadcast
      * @return {Promise<boolean>}       Value confirming successful transaction broadcasting.
      */
-    public buyContent(contentId: string,
+    public buyContent(
+        contentId: string,
         buyerId: string,
         elGammalPub: string,
         privateKey: string,
         broadcast: boolean = true): Promise<Operation> {
+        if (!this.validateArguments([contentId, buyerId, elGammalPub, privateKey, broadcast],
+            [Type.string, Type.string, Type.string, Type.string, Type.boolean])
+        ) {
+            throw new TypeError('Invalid parameters');
+        }
         return new Promise<Operation>((resolve, reject) => {
             this.getContent(contentId)
                 .then((content: ContentObject) => {
