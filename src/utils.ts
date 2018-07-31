@@ -8,6 +8,8 @@ import {dictionary} from './resources/dictionary';
 import * as BigInteger from 'big-integer';
 import {sha512} from 'js-sha512';
 import {DCoreAssetObject} from './model/asset';
+import { Validate } from './modules/validator';
+import { Type } from './model/types';
 
 export interface BrainKeyInfo {
     brain_priv_key: string;
@@ -16,6 +18,7 @@ export interface BrainKeyInfo {
 }
 
 /**
+ * TODO: move to model
  * PKI private key
  */
 export class KeyPrivate {
@@ -75,6 +78,7 @@ export class KeyPrivate {
 }
 
 /**
+ * TODO: move to model
  * PKI public key
  */
 export class KeyPublic {
@@ -121,7 +125,7 @@ export class KeyPublic {
         return this._publicKey.toString();
     }
 }
-
+// TODO: move to model
 export class ElGamalKeys {
     private _publicKey: string;
     private _privateKey: string;
@@ -162,6 +166,7 @@ export class Utils {
      * @param {number} dctAmount    Amount of DCT asset.
      * @return {string}             Formatted amount in string format.
      */
+    @Validate(Type.number)
     public static formatToReadiblePrice(dctAmount: number): string {
         return (dctAmount / ChainApi.DCTPower).toFixed(8);
     }
@@ -174,6 +179,7 @@ export class Utils {
      * @param {number} amount   Amount to be formatted.
      * @returns {number}        DCore formatted amount.
      */
+    @Validate(Type.number)
     public static formatAmountForDCTAsset(amount: number): number {
         return amount / ChainApi.DCTPower;
     }
@@ -186,6 +192,7 @@ export class Utils {
      * @param {DCoreAssetObject} asset      Asset object to format amount to.
      * @returns {number}                    Formatted number in format with decimal numbers.
      */
+    @Validate(Type.number, DCoreAssetObject)
     public static formatAmountForAsset(amount: number, asset: DCoreAssetObject): number {
         return amount / Math.pow(10, asset.precision);
     }
@@ -197,6 +204,7 @@ export class Utils {
      * @param {DCoreAssetObject} asset  Asset object for formatting.
      * @returns {number}                Formatted number.
      */
+    @Validate(Type.number, DCoreAssetObject)
     public static formatAmountToAsset(amount: number, asset: DCoreAssetObject): number {
         const transformedAmount = amount * Math.pow(10, asset.precision);
         return Number(transformedAmount.toFixed(0));
@@ -208,7 +216,8 @@ export class Utils {
      * @param {Buffer} fromBuffer       Buffer to calculate hash from.
      * @returns {string}                RIPEMD160 hash.
      */
-    public static ripemdHash(fromBuffer: Buffer): string {
+    @Validate(Type.string)
+    public static ripemdHash(fromBuffer: string): string {
         return CryptoUtils.ripemdHash(fromBuffer);
     }
 
@@ -218,6 +227,7 @@ export class Utils {
      * @param {string} fromBrainKey                                     Brain key to generate keys from.
      * @return {any[]} [privateKey: KeyPrivate, publicKey: KeyPublic]   Keys.
      */
+    @Validate(Type.string)
     public static generateKeys(fromBrainKey: string): [KeyPrivate, KeyPublic] {
         const normalizedBk = Utils.normalize(fromBrainKey);
         const pkey: KeyPrivate = KeyPrivate.fromBrainKey(normalizedBk);
@@ -231,6 +241,7 @@ export class Utils {
      * @param {KeyPrivate} privkey      Private key to get public key for.
      * @return {KeyPublic}              KeyPublic object.
      */
+    // TODO: type check
     public static getPublicKey(privateKey: KeyPrivate): KeyPublic {
         return KeyPublic.fromPrivateKey(privateKey);
     }
@@ -241,6 +252,7 @@ export class Utils {
      * @param {string} pkWif    Private key in WIF(hex) (Wallet Import Format) format.
      * @return {KeyPrivate}     KeyPrivate object.
      */
+    @Validate(Type.string)
     public static privateKeyFromWif(pkWif: string): KeyPrivate {
         return KeyPrivate.fromWif(pkWif);
     }
@@ -251,6 +263,7 @@ export class Utils {
      * @param {string} pubKeyString     Public key string.
      * @return {KeyPublic}              KeyPublic object.
      */
+    @Validate(Type.string)
     public static publicKeyFromString(pubKeyString: string): KeyPublic {
         return KeyPublic.fromString(pubKeyString);
     }
@@ -272,6 +285,7 @@ export class Utils {
      * @param {string} brainKey     Brain keys string.
      * @returns {BrainKeyInfo}      BrainKeyInfo object.
      */
+    @Validate(Type.string)
     public static getBrainKeyInfo(brainKey: string): BrainKeyInfo {
         const normalizedBK = Utils.normalize(brainKey);
         const keys = Utils.generateKeys(normalizedBK);
@@ -289,6 +303,7 @@ export class Utils {
      * @param {string} brainKey         Brain key generated from Utils.suggestBrainKey or from wallet CLI
      * @returns {string}                Normalized brain key
      */
+    @Validate(Type.string)
     public static normalize(brainKey: string): string {
         if (typeof brainKey !== 'string') {
             throw new Error('string required for brainKey');
@@ -312,6 +327,7 @@ export class Utils {
      * @param {string} elGamalPrivate   El Gamal private key string.
      * @returns {string}                ElGamal public key string.
      */
+    @Validate(Type.string)
     public static elGamalPublic(elGamalPrivate: string): string {
         const elgPriv = BigInteger(elGamalPrivate);
         const modulus = BigInteger('11760620558671662461946567396662025495126946227619472274' +
@@ -326,6 +342,7 @@ export class Utils {
      * @param {string} privateKeyWif        WIF formatted private key of account for which generating El Gamal key
      * @returns {string}                    El Gamal private key string.
      */
+    @Validate(Type.string)
     public static elGamalPrivate(privateKeyWif: string): string {
         const pKey = Utils.privateKeyFromWif(privateKeyWif);
         const hash = sha512(pKey.key.d.toBuffer());
@@ -337,6 +354,7 @@ export class Utils {
      * @param {string} privateKeyWif    WIF formatted private key of account for which generating El Gamal keys
      * @returns {ElGamalKeys}           ElGamalKeys object.
      */
+    @Validate(Type.string)
     public static generateElGamalKeys(privateKeyWif: string): ElGamalKeys {
         return ElGamalKeys.generate(privateKeyWif);
     }
@@ -361,6 +379,7 @@ export class Utils {
      * @param {number} sequence     Sequence number to derive private key from it. If selected 0, primary private key is generated.
      * @returns {KeyPrivate}        KeyPrivate object.
      */
+    @Validate(Type.string, Type.number)
     public static derivePrivateKey(brainKey: string, sequence: number): KeyPrivate {
         return KeyPrivate.fromBrainKey(brainKey, sequence);
     }
