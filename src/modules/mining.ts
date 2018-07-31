@@ -336,6 +336,9 @@ export class MiningModule extends ApiModule {
      * @returns {Promise<Block.VestingBalance[]>}   VestingBalance object.
      */
     public getVestingBalances(accountId: string): Promise<VestingBalance[]> {
+        if (!this.validateArguments(arguments, [Type.string])) {
+            throw new TypeError(MiningError.invalid_arguments);
+        }
         return new Promise<VestingBalance[]>((resolve, reject) => {
             const operation = new DatabaseOperations.GetVestingBalances(accountId);
             this.dbApi.execute(operation)
