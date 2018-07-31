@@ -848,8 +848,4 @@ export class ContentModule extends ApiModule {
                 .catch(err => reject(this.handleError(ContentError.connection_failed, err)));
         });
     }
-
-    private validateGeneralParams(privateKey: string | any, broadcast: boolean | any): boolean {
-        return privateKey && typeof privateKey === 'string' && broadcast && typeof broadcast === 'boolean';
-    }
 }
