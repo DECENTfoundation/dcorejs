@@ -22,7 +22,7 @@ import {
     UpdateMonitoredAssetParameters,
     UserIssuedAssetInfo
 } from '../model/asset';
-import { ProposalCreateParameters } from '../model/proposal';
+import { IProposalCreateParameters } from '../model/proposal';
 import { Type } from '../model/types';
 
 
@@ -699,13 +699,13 @@ export class AssetModule extends ApiModule {
             const getGlobalPropertiesOperation = new DatabaseOperations.GetGlobalProperties();
             this.dbApi.execute(getGlobalPropertiesOperation)
                 .then(result => {
-                    const proposalCreateParameters1: ProposalCreateParameters = {
+                    const proposalCreateParameters1: IProposalCreateParameters = {
                         fee_paying_account: issuer,
                         expiration_time: this.getDate(this.convertSecondsToDays(result.parameters.miner_proposal_review_period) + 2),
                         review_period_seconds: result.parameters.miner_proposal_review_period,
                         extensions: []
                     };
-                    const proposalCreateParameters2: ProposalCreateParameters = {
+                    const proposalCreateParameters2: IProposalCreateParameters = {
                         fee_paying_account: issuer,
                         expiration_time: this.getDate(this.convertSecondsToDays(result.parameters.miner_proposal_review_period) + 1),
                         review_period_seconds: result.parameters.miner_proposal_review_period,
