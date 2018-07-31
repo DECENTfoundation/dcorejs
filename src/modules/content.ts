@@ -139,6 +139,9 @@ export class ContentModule extends ApiModule {
      * @returns {Promise<Content | null>}   Content object.
      */
     public getContentURI(URI: string, convertAsset: boolean = false): Promise<ContentObject | null> {
+        if (!this.validateArguments([URI, convertAsset], [Type.string, Type.boolean])) {
+            throw new TypeError(ContentError.invalid_arguments);
+        }
         return new Promise((resolve, reject) => {
             const listAssetsOp = new DatabaseOperations.ListAssets('', 100);
             this.dbApi.execute(listAssetsOp)
