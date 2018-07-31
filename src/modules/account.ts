@@ -28,6 +28,7 @@ import { TransactionBuilder } from '../transactionBuilder';
 import { KeyPrivate, KeyPublic, Utils } from '../utils';
 import { ApiModule } from './ApiModule';
 import { Validator } from './validator';
+import {Type} from '../model/types';
 
 export enum AccountOrder {
     nameAsc = '+name',
@@ -58,7 +59,7 @@ export class AccountModule extends ApiModule {
      * @return {Promise<Account>}   Account object.
      */
     public getAccountByName(name: string): Promise<Account> {
-        if (name === undefined || typeof name !== 'string') {
+        if (!Validator.validateArguments(arguments, [Type.string])) {
             throw new TypeError(AccountError.invalid_parameters);
         }
         const dbOperation = new DatabaseOperations.GetAccountByName(name);
@@ -81,7 +82,7 @@ export class AccountModule extends ApiModule {
      * @return {Promise<Account>}   Account object.
      */
     public getAccountById(id: string): Promise<Account> {
-        if (id === undefined || typeof id !== 'string') {
+        if (!Validator.validateArguments(arguments, [Type.string])) {
             throw new TypeError(AccountError.invalid_parameters);
         }
         const dbOperation = new DatabaseOperations.GetAccounts([id]);
@@ -250,13 +251,8 @@ export class AccountModule extends ApiModule {
         memo: string,
         privateKey: string,
         broadcast: boolean = true): Promise<Operation> {
-        if (amount === undefined || typeof amount !== 'number'
-            || assetId === undefined || typeof assetId !== 'string'
-            || fromAccount === undefined || typeof fromAccount !== 'string'
-            || toAccount === undefined || typeof toAccount !== 'string'
-            || memo === undefined || typeof memo !== 'string'
-            || privateKey === undefined || typeof privateKey !== 'string'
-            || broadcast === undefined || typeof broadcast !== 'boolean') {
+        if (!Validator.validateArguments([amount, assetId, fromAccount, toAccount, memo, privateKey, broadcast],
+            [Type.number, Type.string, Type.string, Type.string, Type.string, Type.string, Type.boolean])) {
             throw new TypeError(AccountError.invalid_parameters);
         }
         const pKey = Utils.privateKeyFromWif(privateKey);
@@ -346,9 +342,7 @@ export class AccountModule extends ApiModule {
      * @return {Promise<number>}        Account's balance
      */
     public getBalance(accountId: string, assetId: string = '1.3.0', convertAsset: boolean = false): Promise<number> {
-        if (accountId === undefined || typeof accountId !== 'string'
-            || typeof assetId !== 'string'
-            || typeof convertAsset !== 'boolean') {
+        if (!Validator.validateArguments([accountId, assetId, convertAsset], [Type.string, Type.string, Type.boolean])) {
             throw new TypeError(AccountError.invalid_parameters);
         }
         return new Promise((resolve, reject) => {
@@ -394,8 +388,7 @@ export class AccountModule extends ApiModule {
      * @return {Promise<boolean>}       Returns 'true' if transaction is in irreversible block, 'false' otherwise.
      */
     public isTransactionConfirmed(accountId: string, transactionId: string): Promise<boolean> {
-        if (accountId === undefined || typeof accountId !== 'string'
-            || transactionId === undefined || typeof transactionId !== 'string') {
+        if (!Validator.validateArguments(arguments, [Type.string, Type.string])) {
             throw new TypeError(AccountError.invalid_parameters);
         }
         return new Promise((resolve, reject) => {
@@ -776,11 +769,8 @@ export class AccountModule extends ApiModule {
         sort: MinerOrder = MinerOrder.none,
         fromMinerId: string = '',
         limit: number = 1000): Promise<MinerInfo[]> {
-        if (keyword === undefined || typeof keyword !== 'string'
-            || typeof myVotes !== 'boolean'
-            || typeof sort !== 'string'
-            || typeof fromMinerId !== 'string'
-            || typeof limit !== 'number') {
+        if (!Validator.validateArguments([keyword, myVotes, sort, fromMinerId, limit],
+            [Type.string, Type.boolean, Type.string, Type.string, Type.number])) {
             throw new TypeError(AccountError.invalid_parameters);
         }
         return new Promise<MinerInfo[]>((resolve, reject) => {
