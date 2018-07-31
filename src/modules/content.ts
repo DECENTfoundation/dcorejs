@@ -797,6 +797,9 @@ export class ContentModule extends ApiModule {
      * @param {string} URI   Content URI. Example 'ipfs:QmQ9MBkzt6QcDtBhg7qenDcXtm1s6VVSogtSHa2zbXKsFb'
      */
     getAuthorCoAuthors(URI: string): Promise<[string, string[]] | null> {
+        if (!this.validateArguments(arguments, [Type.string])) {
+            throw new TypeError('Invalid parameters');
+        }
         return new Promise<[string, string[]]>((resolve, reject) => {
             const operation = new DatabaseOperations.GetContent(URI);
             this.dbApi.execute<ContentObject>(operation)
