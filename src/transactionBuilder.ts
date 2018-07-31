@@ -4,7 +4,8 @@
 import {dcorejs_lib} from './helpers';
 import {KeyPrivate, Utils} from './utils';
 import {Operation} from './model/transaction';
-import {IProposalCreateParameters, ProposalCreateParameters} from './model/proposal';
+import {ProposalCreateParameters} from './model/proposal';
+import {Validator} from './modules/validator';
 import {Type} from './model/types';
 import {Validator} from './modules/validator';
 
@@ -68,7 +69,7 @@ export class TransactionBuilder {
      * @param {IProposalCreateParameters} proposalParameters     Proposal transaction parameters.
      */
     public propose(proposalParameters: ProposalCreateParameters): void {
-        if (!Validator.validateObject<IProposalCreateParameters>(proposalParameters, ProposalCreateParameters)) {
+        if (!Validator.validateObject<ProposalCreateParameters>(proposalParameters, ProposalCreateParameters)) {
             throw new TypeError(TransactionBuilderError.invalid_parameters);
         }
         this._transaction.propose(proposalParameters);

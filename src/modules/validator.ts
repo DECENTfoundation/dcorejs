@@ -1,6 +1,28 @@
 import { ArrayValidationTuple, Type } from '../model/types';
 
+enum ErrorValidator {
+    invalid_arguments = 'invalid_arguments'
+}
+
 export type ValidatorArgumentType = ({ new(): any } | string | ArrayValidationTuple);
+
+/**
+ * Validation decorator.
+ *
+ * @param {ValidatorArgumentType[]} types         Array of types of decorated function arguments.
+ */
+export function Validate(...types: ValidatorArgumentType[]) {
+    return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+        const originalMethod: Function = descriptor.value;
+        descriptor.value = function (...args) {
+            if (!Validator.validateArguments(arguments, types)) {
+                throw new TypeError(ErrorValidator.invalid_arguments);
+            }
+            return originalMethod.apply(this, args);
+        };
+        // return newDesc;
+    };
+}
 
 export class Validator {
     static validateArguments(args: IArguments | Array<any>, types: ValidatorArgumentType[]): boolean {
