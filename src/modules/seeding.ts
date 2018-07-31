@@ -6,6 +6,7 @@ import {DatabaseApi} from '../api/database';
 import {Seeder} from '../model/content';
 import {DatabaseOperations} from '../api/model/database';
 import {SeedingError} from '../model/seeding';
+import {Type} from '../model/types';
 
 export class SeedingModule extends ApiModule {
     constructor(dbApi: DatabaseApi) {
@@ -20,6 +21,9 @@ export class SeedingModule extends ApiModule {
      * @returns {Promise<Seeder[]>}     List of Seeder objects.
      */
     public listSeedersByPrice(limit: number = 100): Promise<Seeder[]> {
+        if (!this.validateArguments(arguments, [Type.number])) {
+            throw new TypeError(SeedingError.invalid_parameters);
+        }
         return new Promise<Seeder[]>((resolve, reject) => {
             const operation = new DatabaseOperations.ListSeeders(limit);
             this.dbApi.execute(operation)
@@ -36,6 +40,9 @@ export class SeedingModule extends ApiModule {
      * @returns {Promise<Seeder[]>}     List of Seeder objects.
      */
     public listSeedersByUpload(limit: number = 100): Promise<Seeder[]> {
+        if (!this.validateArguments(arguments, [Type.number])) {
+            throw new TypeError(SeedingError.invalid_parameters);
+        }
         return new Promise<Seeder[]>((resolve, reject) => {
             const operation = new DatabaseOperations.ListSeedersByUpload(limit);
             this.dbApi.execute(operation)
@@ -48,10 +55,13 @@ export class SeedingModule extends ApiModule {
      * List active seeders, ordered by region code.
      * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#a69c457b76e2cee7fd12d2ca9dcd2eeec
      *
-     * @param {number} limit            Limit result size. Default 100(Max)
+     * @param {string} region           Region of seeders.
      * @returns {Promise<Seeder[]>}     List of Seeder objects.
      */
     public listSeedersByRegion(region: string): Promise<Seeder[]> {
+        if (!this.validateArguments(arguments, [Type.string])) {
+            throw new TypeError(SeedingError.invalid_parameters);
+        }
         return new Promise<Seeder[]>((resolve, reject) => {
             const operation = new DatabaseOperations.ListSeedersByRegion(region);
             this.dbApi.execute(operation)
@@ -68,6 +78,9 @@ export class SeedingModule extends ApiModule {
      * @returns {Promise<Seeder[]>}     List of Seeder objects.
      */
     public listSeedersByRating(limit: number = 100): Promise<Seeder[]> {
+        if (!this.validateArguments(arguments, [Type.number])) {
+            throw new TypeError(SeedingError.invalid_parameters);
+        }
         return new Promise<Seeder[]>((resolve, reject) => {
             const operation = new DatabaseOperations.ListSeedersByRating(limit);
             this.dbApi.execute(operation)
