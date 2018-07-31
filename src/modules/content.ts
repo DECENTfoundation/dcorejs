@@ -514,6 +514,9 @@ export class ContentModule extends ApiModule {
      * @returns {Promise<BuyingContent[]>}  List of BuyingContent.
      */
     public getBuyingHistoryObjectsByConsumer(accountId: string, convertAsset: boolean = false): Promise<BuyingContent[]> {
+        if (!this.validateArguments([accountId, convertAsset], [Type.string, Type.boolean])) {
+            throw new TypeError('Invalid parameters');
+        }
         return new Promise<BuyingContent[]>((resolve, reject) => {
             const getBuyingsHistoryObjectsByConsumerOp = new DatabaseOperations.GetBuyingsHistoryObjectsByConsumer(accountId);
             this.dbApi.execute(getBuyingsHistoryObjectsByConsumerOp)
