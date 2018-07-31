@@ -30,10 +30,10 @@ export interface ISubscriptionOptions {
 }
 
 export class SubscriptionOptions implements ISubscriptionOptions {
-    allowSubscription: boolean;
-    subscriptionPeriod: number;
-    amount: number;
-    asset?: string = undefined;
+    allowSubscription = false;
+    subscriptionPeriod = 0;
+    amount = 0;
+    asset?: string = null;
 }
 
 

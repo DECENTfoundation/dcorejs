@@ -76,7 +76,7 @@ export class AssetModule extends ApiModule {
      * @param {number} maxSupply                The maximum supply of this asset which may exist at any given time
      * @param {number} baseExchangeAmount       Amount of custom tokens for exchange rate to quoteExchangeAmount DCT tokens.
      * @param {number} quoteExchangeAmount      Number of DCT tokens for rxchange rate.
-     * @param {boolean} isExchangable           Set 'true' to allow implicit conversion of asst to core asset.
+     * @param {boolean} isExchangeable           Set 'true' to allow implicit conversion of asst to core asset.
      * @param {boolean} isSupplyFixed           Set value 'true' to fixate token maxSupply, 'false' for changeable maxSupply value.
      *                                          NOTE: only can be changed from 'false' to 'true'
      * @param {string} issuerPrivateKey         Private key to sign transaction in WIF(hex) (Wallet Import Format) format.
