@@ -13,6 +13,7 @@ import {Block, Miner} from '../model/explorer';
 import {MinerNameIdPair, MinerUpdateData, MiningError} from '../model/mining';
 import VestingBalance = Block.VestingBalance;
 import {ChainMethods} from '../api/model/chain';
+import { Type } from '../model/types';
 
 export class MiningModule extends ApiModule {
     static CHAIN_PROXY_TO_SELF = '';
@@ -63,6 +64,9 @@ export class MiningModule extends ApiModule {
      * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
      */
     public setDesiredMinerCount(accountId: string, desiredNumOfMiners: number, privateKey: string): Promise<boolean> {
+        if (!this.validateArguments(arguments, [Type.string, Type.number, Type.string])) {
+            throw new TypeError(MiningError.invalid_arguments);
+        }
         return new Promise<boolean>((resolve, reject) => {
             if (!accountId || desiredNumOfMiners === undefined || !privateKey) {
                 reject('missing_parameter');

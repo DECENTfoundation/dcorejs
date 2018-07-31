@@ -14,6 +14,7 @@ export enum MiningError {
     account_fetch_failed = 'account_fetch_failed',
     duplicate_settings = 'duplicate_settings',
     syntactic_error = 'syntactic_error',
+    invalid_arguments = 'invalid_arguments',
 }
 
 export type MinerNameIdPair = [string, string];
