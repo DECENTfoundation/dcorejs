@@ -7,6 +7,7 @@ import {Operation} from './model/transaction';
 import {ProposalCreateParameters} from './model/proposal';
 import {Validator} from './modules/validator';
 import {Type} from './model/types';
+import {Validator} from './modules/validator';
 
 export enum TransactionBuilderError {
     invalid_parameters = 'invalid_parameters',
