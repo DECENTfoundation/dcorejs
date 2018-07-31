@@ -225,6 +225,9 @@ export class ContentModule extends ApiModule {
      * @returns {Promise<string>}               Content key to decrypt content.
      */
     public restoreContentKeys(contentId: string, accountId: string, ...elGamalKeys: KeyPair[]): Promise<string> {
+        if (!this.validateArguments(arguments, [Type.string, Type.string, [Array, Type.string]])) {
+            throw new TypeError(ContentError.invalid_arguments);
+        }
         return new Promise((resolve, reject) => {
             this.getContent(contentId)
                 .then(content => {
