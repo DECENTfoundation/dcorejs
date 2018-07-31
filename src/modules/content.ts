@@ -14,6 +14,7 @@ import { ApiModule } from './ApiModule';
 import { Utils } from '../utils';
 import { ChainMethods } from '../api/model/chain';
 import { ApiConnector } from '../api/apiConnector';
+import { Type } from '../model/types';
 
 const moment = require('moment');
 
@@ -30,6 +31,7 @@ export enum ContentError {
     connection_failed = 'connection_failed',
     syntactic_error = 'syntactic_error',
     content_not_bought = 'content_not_bought',
+    invalid_arguments = 'invalid_arguments',
 }
 
 /**
@@ -56,6 +58,9 @@ export class ContentModule extends ApiModule {
      * @return {Promise<Content[]>}             List of Content object that conform search parameters.
      */
     public searchContent(searchParams?: SearchParams, convertAsset: boolean = false): Promise<Content[]> {
+        if (!this.validateArguments([searchParams, convertAsset], [SearchParams, Type.boolean])) {
+            throw new TypeError(ContentError.invalid_arguments);
+        }
         const dbOperation = new DatabaseOperations.SearchContent(searchParams);
         return new Promise((resolve, reject) => {
             this.dbApi
