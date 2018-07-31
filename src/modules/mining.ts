@@ -154,6 +154,9 @@ export class MiningModule extends ApiModule {
      * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
      */
     public unvoteMiners(miners: string[], account: string, privateKeyWif: string): Promise<boolean> {
+        if (!this.validateArguments(arguments, [[Array, Type.string], Type.string, Type.string])) {
+            throw new TypeError(MiningError.invalid_arguments);
+        }
         return new Promise<boolean>((resolve, reject) => {
             this.chainApi.fetch(new ChainMethods.GetAccount(account))
                 .then(res => {
