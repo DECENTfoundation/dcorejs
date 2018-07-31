@@ -651,6 +651,9 @@ export class ContentModule extends ApiModule {
      * @return {Promise<Seeder[]>}      List of available Seeder objects.
      */
     public getSeeders(resultSize: number = 100): Promise<Seeder[]> {
+        if (!this.validateArguments([resultSize], [Type.number])) {
+            throw new TypeError('Invalid parameters');
+        }
         const dbOperation = new DatabaseOperations.ListSeeders(resultSize);
         return new Promise((resolve, reject) => {
             this.dbApi
