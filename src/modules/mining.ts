@@ -509,6 +509,9 @@ export class MiningModule extends ApiModule {
      * @returns {Promise<Miner>}    Miner object.
      */
     public getMiner(minerId: string): Promise<Miner> {
+        if (!this.validateArguments(arguments, [Type.string])) {
+            throw new TypeError(MiningError.invalid_arguments);
+        }
         return new Promise<Miner>((resolve, reject) => {
             const operation = new DatabaseOperations.GetMiners([minerId]);
             this.dbApi.execute(operation)
