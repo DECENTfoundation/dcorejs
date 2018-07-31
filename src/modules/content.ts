@@ -762,6 +762,9 @@ export class ContentModule extends ApiModule {
      * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#a624e679ac58b3edfc7b817e4a46e3746
      */
     searchFeedback(accountId: string, contentURI: string, ratingStartId: string, count: number = 100): Promise<Array<BuyingContent>> {
+        if (!this.validateArguments([accountId, contentURI, ratingStartId, count], [Type.string, Type.string, Type.string, Type.number])) {
+            throw new TypeError('Invalid parameters');
+        }
         return new Promise<Array<BuyingContent>>(async (resolve, reject) => {
             const getAccountOp = new DatabaseOperations.GetAccounts([accountId]);
             let accounts = [];
