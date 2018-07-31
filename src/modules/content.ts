@@ -678,11 +678,18 @@ export class ContentModule extends ApiModule {
      * @param {number} resultSize       Number of results. Default 100(Max)
      * @return {Promise<Content[]>}     List of purchased content.
      */
-    public getPurchasedContent(accountId: string,
+    public getPurchasedContent(
+        accountId: string,
         order: SearchParamsOrder = SearchParamsOrder.createdDesc,
         startObjectId: string = '0.0.0',
         term: string = '',
         resultSize: number = 100): Promise<Content[]> {
+        if (!this.validateArguments(
+            [accountId, order, startObjectId, term, resultSize],
+            [Type.string, Type.string, Type.string, Type.string, Type.number])
+        ) {
+            throw new TypeError('Invalid parameters');
+        }
         return new Promise((resolve, reject) => {
             if (!accountId) {
                 reject('missing_parameter');
