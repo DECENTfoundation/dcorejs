@@ -178,9 +178,13 @@ export class ContentModule extends ApiModule {
      * @param {string} privateKey       Author's private key to submit transaction in WIF(hex) (Wallet Import Format) format.
      * @return {Promise<void>}          Value confirming successful transaction broadcasting.
      */
-    public removeContent(contentId: string,
+    public removeContent(
+        contentId: string,
         authorId: string,
         privateKey: string): Promise<void> {
+            if (!this.validateArguments(arguments, [Type.string, Type.string, Type.string])) {
+                throw new TypeError(ContentError.invalid_arguments);
+            }
         return new Promise((resolve, reject) => {
             this.getContent(contentId)
                 .then((content: ContentObject) => {
