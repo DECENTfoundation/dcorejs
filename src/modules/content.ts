@@ -480,6 +480,9 @@ export class ContentModule extends ApiModule {
      * @returns {Promise<BuyingContent[] | null>}   List of bought content with URI.
      */
     public getBuyingByConsumerURI(accountId: string, URI: string, convertAsset: boolean = false): Promise<BuyingContent[] | null> {
+        if (!this.validateArguments([accountId, URI, convertAsset], [Type.string, Type.string, Type.boolean])) {
+            throw new TypeError('Invalid parameters');
+        }
         return new Promise<BuyingContent[]>(((resolve, reject) => {
             const operation = new DatabaseOperations.GetBuyingByConsumerURI(accountId, URI);
             this.dbApi.execute(operation)
