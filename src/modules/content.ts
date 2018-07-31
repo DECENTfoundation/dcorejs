@@ -290,7 +290,7 @@ export class ContentModule extends ApiModule {
      * @return {Promise<boolean>}       Value confirming successful transaction broadcasting.
      */
     public addContent(content: SubmitObject, privateKey: string, broadcast: boolean = true): Promise<Operation> {
-        if (!this.validateObject<SubmitObject>(content, SubmitObject) || !this.validateGeneralParams(privateKey, broadcast)) {
+        if (!this.validateArguments([content, privateKey, broadcast], [SubmitObject, Type.string, Type.boolean])) {
             throw new TypeError('Invalid parameters');
         }
         return new Promise<Operation>((resolve, reject) => {
