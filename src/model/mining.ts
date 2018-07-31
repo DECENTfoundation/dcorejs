@@ -1,9 +1,14 @@
 /**
  * @module Model/Mining
  */
-export interface MinerUpdateData {
+export interface IMinerUpdateData {
     newUrl?: string;
     newSigningKey?: string;
+}
+
+export class MinerUpdateData implements IMinerUpdateData {
+    newUrl?: string = null;
+    newSigningKey?: string = null;
 }
 
 export enum MiningError {

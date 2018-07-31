@@ -358,6 +358,9 @@ export class MiningModule extends ApiModule {
      * @returns {Promise<boolean>}              Value confirming successful transaction broadcasting.
      */
     public updateMiner(minerId: string, minerAccountId: string, updateData: MinerUpdateData, privateKey: string): Promise<boolean> {
+        if (!this.validateArguments(arguments, [Type.string, Type.string, MinerUpdateData, Type.strin])) {
+            throw new TypeError(MiningError.invalid_arguments);
+        }
         return new Promise<boolean>((resolve, reject) => {
             const getMinerOp = new DatabaseOperations.GetMiners([minerId]);
             this.dbApi.execute(getMinerOp)
