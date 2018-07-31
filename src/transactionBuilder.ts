@@ -5,8 +5,8 @@ import {dcorejs_lib} from './helpers';
 import {KeyPrivate, Utils} from './utils';
 import {Operation} from './model/transaction';
 import {IProposalCreateParameters, ProposalCreateParameters} from './model/proposal';
-import {BaseObject} from './modules/BaseObject';
 import {Type} from './model/types';
+import {Validator} from './modules/validator';
 
 export enum TransactionBuilderError {
     invalid_parameters = 'invalid_parameters',
@@ -15,7 +15,7 @@ export enum TransactionBuilderError {
 /**
  * Class contains available transaction operation names constants
  */
-export class TransactionBuilder extends BaseObject {
+export class TransactionBuilder {
     /**
      * dcore_js.lib/lib - TransactionBuilder
      */
@@ -23,7 +23,6 @@ export class TransactionBuilder extends BaseObject {
     private _operations: Operation[] = [];
 
     constructor() {
-        super();
         this._transaction = new dcorejs_lib.TransactionBuilder();
     }
 
@@ -69,7 +68,7 @@ export class TransactionBuilder extends BaseObject {
      * @param {IProposalCreateParameters} proposalParameters     Proposal transaction parameters.
      */
     public propose(proposalParameters: ProposalCreateParameters): void {
-        if (!this.validateObject<IProposalCreateParameters>(proposalParameters, ProposalCreateParameters)) {
+        if (!Validator.validateObject<IProposalCreateParameters>(proposalParameters, ProposalCreateParameters)) {
             throw new TypeError(TransactionBuilderError.invalid_parameters);
         }
         this._transaction.propose(proposalParameters);
@@ -84,7 +83,7 @@ export class TransactionBuilder extends BaseObject {
      * @return {Promise<void>}          Void.
      */
     public broadcast(privateKey: string, sign: boolean = true): Promise<void> {
-        if (!this.validateArguments([privateKey, sign], [Type.string, Type.boolean])) {
+        if (!Validator.validateArguments([privateKey, sign], [Type.string, Type.boolean])) {
             throw new TypeError(TransactionBuilderError.invalid_parameters);
         }
         const secret = Utils.privateKeyFromWif(privateKey);
