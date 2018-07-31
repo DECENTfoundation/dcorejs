@@ -113,6 +113,9 @@ export class MiningModule extends ApiModule {
      * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
      */
     public createMiner(minerAccountId: string, URL: string, signingPublicKey: string, privateKey: string): Promise<boolean> {
+        if (!this.validateArguments(arguments, [Type.string, Type.string, Type.string, Type.string])) {
+            throw new TypeError(MiningError.invalid_arguments);
+        }
         return new Promise<boolean>(((resolve, reject) => {
             this.apiConnector.connection()
                 .then(res => {
