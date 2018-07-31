@@ -826,6 +826,9 @@ export class ContentModule extends ApiModule {
      * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
      */
     leaveCommentAndRating(contentURI: string, consumer: string, comment: string, rating: number, consumerPKey: string): Promise<Operation> {
+        if (!this.validateArguments(arguments, [Type.string, Type.string, Type.string, Type.string, Type.string])) {
+            throw new TypeError('Invalid parameters');
+        }
         return new Promise<Operation>((resolve, reject) => {
             const operation = new Operations.LeaveRatingAndComment(contentURI, consumer, comment, rating);
             const transaction = new TransactionBuilder();
