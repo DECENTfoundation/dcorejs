@@ -431,11 +431,15 @@ export class MiningModule extends ApiModule {
      * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#a9c571d810992f8a72142ace75e74eceb
      *
      * @param {string} accountId            Account if in format '1.2.X'. Example '1.2.345'.
-     * @param {string} votingAccountId      Id of account to be set as voting proxy, in format '1.2.X'. Example '1.2.345'.
+     * @param {string} votingAccountId      Id of account to be set as voting proxy, in format '1.2.X'.
+     *                                      Set to '' for default setting. Example '1.2.345'.
      * @param {string} privateKey           Private used to sign transaction.
      * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
      */
-    public setVotingProxy(accountId: string, votingAccountId: string = '', privateKey: string): Promise<boolean> {
+    public setVotingProxy(accountId: string, votingAccountId: string, privateKey: string): Promise<boolean> {
+        if (!this.validateArguments(arguments, [Type.string, Type.string, Type.string])) {
+            throw new TypeError(MiningError.invalid_arguments);
+        }
         return new Promise<boolean>((resolve, reject) => {
             this.chainApi.fetch(new ChainMethods.GetAccount(accountId))
                 .then((result: Account[]) => {
