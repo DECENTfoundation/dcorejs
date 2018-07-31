@@ -263,6 +263,9 @@ export class ContentModule extends ApiModule {
      * @return {Promise<ContentKeys>}   Generated ContentKeys for content encryption.
      */
     public generateContentKeys(seeders: string[]): Promise<ContentKeys> {
+        if (!this.validateArguments(arguments, [[Array, Type.string]])) {
+            throw new TypeError(ContentError.invalid_arguments);
+        }
         const dbOperation = new DatabaseOperations.GenerateContentKeys(seeders);
         return new Promise((resolve, reject) => {
             this.dbApi
