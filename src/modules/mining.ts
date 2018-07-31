@@ -488,6 +488,9 @@ export class MiningModule extends ApiModule {
      * @returns {Promise<MinerNameIdPair[]>}    List of MinerNameIdPair.
      */
     public listMiners(fromId: string, limit: number = 100): Promise<MinerNameIdPair[]> {
+        if (!this.validateArguments([fromId, limit], [Type.string, Type.number])) {
+            throw new TypeError(MiningError.invalid_arguments);
+        }
         return new Promise<MinerNameIdPair[]>(((resolve, reject) => {
             const operation = new DatabaseOperations.LookupMiners(fromId, limit);
             this.dbApi.execute(operation)
