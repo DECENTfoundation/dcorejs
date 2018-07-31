@@ -18,6 +18,7 @@ import {ApiConnector} from '../api/apiConnector';
 import {ChainMethods} from '../api/model/chain';
 import {AssetError} from '../model/asset';
 import {Type} from '../model/types';
+import { Validator } from './validator';
 
 export class ProposalModule extends ApiModule {
     constructor(dbApi: DatabaseApi, chainApi: ChainApi, apiConnector: ApiConnector) {
@@ -36,7 +37,7 @@ export class ProposalModule extends ApiModule {
      * @returns {Promise<ProposalObject[]>}
      */
     public getProposedTransactions(accountId: string): Promise<ProposalObject[]> {
-        if (!this.validateArguments(arguments, [Type.string])) {
+        if (!Validator.validateArguments(arguments, [Type.string])) {
             throw new TypeError(ProposalError.invalid_parameters);
         }
         return new Promise<ProposalObject[]>((resolve, reject) => {
@@ -68,7 +69,7 @@ export class ProposalModule extends ApiModule {
     public proposeTransfer(
         proposerAccountId: string, fromAccountId: string, toAccountId: string, amount: number, assetId: string, memoKey: string,
         expiration: string, privateKey: string): Promise<boolean> {
-        if (!this.validateArguments(arguments, [Type.string, Type.string, Type.string, Type.number, Type.string, Type.string,
+        if (!Validator.validateArguments(arguments, [Type.string, Type.string, Type.string, Type.number, Type.string, Type.string,
             Type.string, Type.string])) {
             throw new TypeError(ProposalError.invalid_parameters);
         }
@@ -161,7 +162,7 @@ export class ProposalModule extends ApiModule {
     public proposeParameterChange(proposerAccountId: string, proposalParameters: ProposalParameters, expiration: string,
                                   privateKey: string): Promise<boolean> {
         if (proposerAccountId === undefined || typeof proposerAccountId !== 'string'
-            || !this.validateObject<ProposalParameters>(proposalParameters, ProposalParameters)
+            || !Validator.validateObject<ProposalParameters>(proposalParameters, ProposalParameters)
             || expiration === undefined || typeof expiration !== 'string'
             || privateKey === undefined || typeof privateKey !== 'string') {
             throw new TypeError(ProposalError.invalid_parameters);
@@ -268,7 +269,7 @@ export class ProposalModule extends ApiModule {
     public proposeFeeChange(proposerAccountId: string, feesParameters: FeesParameters, expiration: string, privateKey: string):
                             Promise<boolean> {
         if (proposerAccountId === undefined || typeof proposerAccountId !== 'string'
-            || !this.validateObject<FeesParameters>(feesParameters, FeesParameters)
+            || !Validator.validateObject<FeesParameters>(feesParameters, FeesParameters)
             || expiration === undefined || typeof expiration !== 'string'
             || privateKey === undefined || typeof privateKey !== 'string') {
             throw new TypeError(ProposalError.invalid_parameters);
@@ -460,7 +461,7 @@ export class ProposalModule extends ApiModule {
     public approveProposal(
         payingAccountId: string, proposalId: string, approvalsDelta: DeltaParameters, privateKey: string): Promise<boolean> {
         if (payingAccountId === undefined || typeof payingAccountId !== 'string'
-            || !this.validateObject<DeltaParameters>(approvalsDelta, DeltaParameters)
+            || !Validator.validateObject<DeltaParameters>(approvalsDelta, DeltaParameters)
             || proposalId === undefined || typeof proposalId !== 'string'
             || privateKey === undefined || typeof privateKey !== 'string') {
             throw new TypeError(ProposalError.invalid_parameters);

@@ -7,6 +7,7 @@ import {Seeder} from '../model/content';
 import {DatabaseOperations} from '../api/model/database';
 import {SeedingError} from '../model/seeding';
 import {Type} from '../model/types';
+import { Validator } from './validator';
 
 export class SeedingModule extends ApiModule {
     constructor(dbApi: DatabaseApi) {
@@ -21,7 +22,7 @@ export class SeedingModule extends ApiModule {
      * @returns {Promise<Seeder[]>}     List of Seeder objects.
      */
     public listSeedersByPrice(limit: number = 100): Promise<Seeder[]> {
-        if (!this.validateArguments(arguments, [Type.number])) {
+        if (!Validator.validateArguments(arguments, [Type.number])) {
             throw new TypeError(SeedingError.invalid_parameters);
         }
         return new Promise<Seeder[]>((resolve, reject) => {
@@ -40,7 +41,7 @@ export class SeedingModule extends ApiModule {
      * @returns {Promise<Seeder[]>}     List of Seeder objects.
      */
     public listSeedersByUpload(limit: number = 100): Promise<Seeder[]> {
-        if (!this.validateArguments(arguments, [Type.number])) {
+        if (!Validator.validateArguments(arguments, [Type.number])) {
             throw new TypeError(SeedingError.invalid_parameters);
         }
         return new Promise<Seeder[]>((resolve, reject) => {
@@ -59,7 +60,7 @@ export class SeedingModule extends ApiModule {
      * @returns {Promise<Seeder[]>}     List of Seeder objects.
      */
     public listSeedersByRegion(region: string): Promise<Seeder[]> {
-        if (!this.validateArguments(arguments, [Type.string])) {
+        if (!Validator.validateArguments(arguments, [Type.string])) {
             throw new TypeError(SeedingError.invalid_parameters);
         }
         return new Promise<Seeder[]>((resolve, reject) => {
@@ -78,7 +79,7 @@ export class SeedingModule extends ApiModule {
      * @returns {Promise<Seeder[]>}     List of Seeder objects.
      */
     public listSeedersByRating(limit: number = 100): Promise<Seeder[]> {
-        if (!this.validateArguments(arguments, [Type.number])) {
+        if (!Validator.validateArguments(arguments, [Type.number])) {
             throw new TypeError(SeedingError.invalid_parameters);
         }
         return new Promise<Seeder[]>((resolve, reject) => {
