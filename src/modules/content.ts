@@ -411,6 +411,9 @@ export class ContentModule extends ApiModule {
      * @returns {Promise<BuyingContent[]>}  BuyingContent list of opened buy requests.
      */
     public getOpenBuyingByURI(URI: string, convertAsset: boolean = false): Promise<BuyingContent[]> {
+        if (!this.validateArguments([URI, convertAsset], [Type.string, Type.boolean])) {
+            throw new TypeError('Invalid parameters');
+        }
         return new Promise<BuyingContent[]>(((resolve, reject) => {
             const operation = new DatabaseOperations.GetOpenBuyingsByURI(URI);
             this.dbApi.execute(operation)
