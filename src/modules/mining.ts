@@ -1,18 +1,18 @@
 /**
  * @module MiningModule
  */
-import {DatabaseApi} from '../api/database';
-import {DatabaseOperations} from '../api/model/database';
-import {Operations} from '../model/transaction';
-import {Account, AccountError, Options} from '../model/account';
-import {TransactionBuilder} from '../transactionBuilder';
-import {ApiModule} from './ApiModule';
-import {ApiConnector} from '../api/apiConnector';
-import {ChainApi} from '../api/chain';
-import {Block, Miner} from '../model/explorer';
-import {MinerNameIdPair, MinerUpdateData, MiningError} from '../model/mining';
+import { DatabaseApi } from '../api/database';
+import { DatabaseOperations } from '../api/model/database';
+import { Operations } from '../model/transaction';
+import { Account, AccountError, Options } from '../model/account';
+import { TransactionBuilder } from '../transactionBuilder';
+import { ApiModule } from './ApiModule';
+import { ApiConnector } from '../api/apiConnector';
+import { ChainApi } from '../api/chain';
+import { Block, Miner } from '../model/explorer';
+import { MinerNameIdPair, MinerUpdateData, MiningError } from '../model/mining';
 import VestingBalance = Block.VestingBalance;
-import {ChainMethods} from '../api/model/chain';
+import { ChainMethods } from '../api/model/chain';
 import { Type } from '../model/types';
 
 export class MiningModule extends ApiModule {
@@ -405,6 +405,9 @@ export class MiningModule extends ApiModule {
         amount: number,
         assetId: string,
         privateKey: string): Promise<boolean> {
+        if (!this.validateArguments(arguments, [Type.string, Type.string, Type.number, Type.string, Type.string])) {
+            throw new TypeError(MiningError.invalid_arguments);
+        }
         return new Promise<boolean>((resolve, reject) => {
             const operation = new Operations.VestingBalanceWithdraw(
                 vestinBalanceId,
