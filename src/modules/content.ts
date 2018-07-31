@@ -741,6 +741,9 @@ export class ContentModule extends ApiModule {
      * @return {Promise<Array<Rating>>}
      */
     getRating(contentId: string, forUser: string, ratingStartId: string = '', count: number = 100): Promise<Array<BuyingContent>> {
+        if (!this.validateArguments([contentId, forUser, ratingStartId, count], [Type.string, Type.string, Type.string, Type.number])) {
+            throw new TypeError('Invalid parameters');
+        }
         return new Promise<Array<BuyingContent>>((resolve, reject) => {
             this.getContent(contentId)
                 .then(res => {
