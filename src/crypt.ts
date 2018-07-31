@@ -78,7 +78,7 @@ export class CryptoUtils {
      * @param {Buffer} fromBuffer   Input to calculate buffer from.
      * @returns {string}            RIPEMD160 hashed text.
      */
-    public static ripemdHash(fromBuffer: Buffer): string {
+    public static ripemdHash(fromBuffer: string): string {
         return new RIPEMD160().update(fromBuffer).digest('hex');
     }
 
