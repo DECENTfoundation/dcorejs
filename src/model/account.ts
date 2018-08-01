@@ -1,10 +1,11 @@
 /**
  * @module Model/Account
  */
-import { KeyPrivate, Utils } from '../utils';
+import { Utils } from '../utils';
 import { CryptoUtils } from '../crypt';
 import { ChainApi } from '../api/chain';
 import { DCoreAssetObject } from './asset';
+import {KeyPrivate} from './utils';
 
 export type AccountNameIdPair = [string, string];
 

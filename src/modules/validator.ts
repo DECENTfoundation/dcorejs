@@ -4,7 +4,7 @@ enum ErrorValidator {
     invalid_arguments = 'invalid_arguments'
 }
 
-export type ValidatorArgumentType = ({ new(): any } | string | ArrayValidationTuple);
+export type ValidatorArgumentType = ({ new(...args: any[]): any } | string | ArrayValidationTuple);
 
 /**
  * Validation decorator.

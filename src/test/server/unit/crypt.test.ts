@@ -1,7 +1,8 @@
-import {KeyPrivate, KeyPublic} from '../../../utils';
+import {KeyPublic} from '../../../model/utils';
 import {CryptoUtils} from '../../../crypt';
 import {Utils} from '../../../utils';
 import {expect} from 'chai';
+import {KeyPrivate} from '../../../model/utils';
 
 const message = 'test message for encryption';
 const encryptedMessage = '1bcd2ffea59c19cbff34b21e4c3d78947dd0fc8821e211b543395fcb52a35e15';

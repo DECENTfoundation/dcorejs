@@ -1,9 +1,10 @@
 /**
  * @module CryptoUtils
  */
-import {KeyPrivate, KeyPublic} from './utils';
+import {KeyPublic} from './model/utils';
 import { dcorejs_lib } from './helpers';
 import * as cryptoJs from 'crypto-js';
+import {KeyPrivate} from './model/utils';
 
 const RIPEMD160 = require('ripemd160');
 
