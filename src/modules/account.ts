@@ -255,7 +255,6 @@ export class AccountModule extends ApiModule {
             [Type.number, Type.string, Type.string, Type.string, Type.string, Type.string, Type.boolean])) {
             throw new TypeError(AccountError.invalid_parameters);
         }
-        const pKey = Utils.privateKeyFromWif(privateKey);
 
         return new Promise((resolve, reject) => {
             if (memo && !privateKey) {
@@ -291,16 +290,14 @@ export class AccountModule extends ApiModule {
                     const fromPublicKey = senderAccount.get('options').get('memo_key');
                     const toPublicKey = receiverAccount.get('options').get('memo_key');
 
-                    const pubKey = Utils.publicKeyFromString(toPublicKey);
-
                     const memo_object: Memo = {
                         from: fromPublicKey,
                         to: toPublicKey,
                         nonce: nonce,
                         message: CryptoUtils.encryptWithChecksum(
                             memo,
-                            pKey,
-                            pubKey,
+                            privateKey,
+                            toPublicKey,
                             nonce
                         )
                     };

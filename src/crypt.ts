@@ -2,7 +2,7 @@
  * @module CryptoUtils
  */
 import {KeyPrivate, KeyPublic} from './utils';
-import { dcorejs_lib } from './helpers';
+import {dcorejs_lib} from './helpers';
 import * as cryptoJs from 'crypto-js';
 
 const RIPEMD160 = require('ripemd160');
@@ -43,16 +43,21 @@ export class CryptoUtils {
      * Encrypts message with given private-pubic key pair
      *
      * @param {string} message          Message to encrypt.
-     * @param {KeyPrivate} privateKey   Private of one side of communication, to encrypt message with.
-     * @param {KeyPublic} publicKey     Public key of other side of communication, used in encryption.
+     * @param {string} privateKey       Private of one side of communication, to encrypt message with.
+     * @param {string} publicKey        Public key of other side of communication, used in encryption.
      * @param {string} [nonce]          Random number user in encryption process. Default ''.
-     * @return {Buffer}                 Buffer with encrypted message.
+     * @return {string}                 String in HEX format with encrypted message.
      */
     public static encryptWithChecksum(message: string,
-                                      privateKey: KeyPrivate,
-                                      publicKey: KeyPublic,
-                                      nonce: string = ''): Buffer {
-        return dcorejs_lib.Aes.encrypt_with_checksum(privateKey.key, publicKey.key, nonce, message);
+                                      privateKey: string,
+                                      publicKey: string,
+                                      nonce: string = ''): string {
+        return dcorejs_lib.Aes.encrypt_with_checksum(
+            KeyPrivate.fromWif(privateKey).key,
+            KeyPublic.fromString(publicKey).key,
+            nonce,
+            message
+        ).toString('hex');
     }
 
     /**

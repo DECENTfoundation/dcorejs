@@ -156,11 +156,11 @@ export class MessagingModule extends ApiModule {
                     };
                     const encryptedMsg = CryptoUtils.encryptWithChecksum(
                         message,
-                        KeyPrivate.fromWif(privateKey),
-                        KeyPublic.fromString(toAccount.options.memo_key),
+                        privateKey,
+                        toAccount.options.memo_key,
                         messagePayload.receivers_data[0].nonce.toString()
                     );
-                    messagePayload.receivers_data[0].data = encryptedMsg.toString('hex');
+                    messagePayload.receivers_data[0].data = encryptedMsg;
                     const buffer = new Buffer(JSON.stringify(messagePayload)).toString('hex');
 
                     const customOp = new Operations.CustomOperation(sender, [sender], CustomOperationSubtype.messaging, buffer);
