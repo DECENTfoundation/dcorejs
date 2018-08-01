@@ -10,6 +10,7 @@ import {Type} from './model/types';
 
 export enum TransactionBuilderError {
     invalid_parameters = 'invalid_parameters',
+    failed_to_sign_transaction = 'failed_to_sign_transaction',
 }
 
 /**
@@ -132,11 +133,14 @@ export class TransactionBuilder {
     public signTransaction(privateKey: KeyPrivate): void {
         if (privateKey === undefined || privateKey.stringKey === undefined || typeof privateKey.stringKey !== 'string'
         || privateKey.key === undefined) {
-            console.log('signTransaction');
             throw new TypeError(TransactionBuilderError.invalid_parameters);
         }
-        const publicKey = KeyPrivate.fromWif(privateKey.stringKey).getPublicKey().key;
-        this._transaction.add_signer(privateKey.key, publicKey);
+        try {
+            const publicKey = KeyPrivate.fromWif(privateKey.stringKey).getPublicKey().key;
+            this._transaction.add_signer(privateKey.key, publicKey);
+        } catch (exception) {
+            throw new Error(TransactionBuilderError.failed_to_sign_transaction);
+        }
     }
 
     /**
@@ -148,9 +152,7 @@ export class TransactionBuilder {
      * @returns {boolean}                           Returns true if replaced, false otherwise.
      */
     public replaceOperation(operationIndex: number, newOperation: Operation): boolean {
-        if (operationIndex === undefined || typeof operationIndex !== 'number'
-        || newOperation === undefined || newOperation.operation === undefined || newOperation.name === undefined
-        || typeof newOperation.name !== 'string') {
+        if (!Validator.validateArguments([operationIndex], [Type.number]) || !Validator.validateObject(newOperation, Operation)) {
             throw new TypeError(TransactionBuilderError.invalid_parameters);
         }
         if (operationIndex >= 0 && operationIndex < this._operations.length) {
