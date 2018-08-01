@@ -70,10 +70,13 @@ export class CryptoUtils {
      * @returns {Buffer}                Buffer with decrypted text.
      */
     public static decryptWithChecksum(message: string,
-                                      privateKey: KeyPrivate,
-                                      publicKey: KeyPublic,
-                                      nonce: string = ''): Buffer {
-        return dcorejs_lib.Aes.decrypt_with_checksum(privateKey.key, publicKey.key, nonce, message);
+                                      privateKey: string,
+                                      publicKey: string,
+                                      nonce: string = ''): string {
+        return dcorejs_lib.Aes.decrypt_with_checksum(
+            KeyPrivate.fromWif(privateKey).key,
+            KeyPublic.fromString(publicKey).key, nonce, message
+        ).toString();
     }
 
     /**
@@ -150,7 +153,7 @@ export class CryptoUtils {
 
     /**
      * Encrypt message with AES256-CBC. Result is encrypted hex string.
-      * This encryption is compatible with wallet-cli wallet file export key encryption format.
+     * This encryption is compatible with wallet-cli wallet file export key encryption format.
      *
      * @param {string | Buffer} message     Message to be encrypted.
      * @param {string} password             Password for encryption.
@@ -165,7 +168,7 @@ export class CryptoUtils {
 
         const msg: Buffer = typeof message === 'string' ? new Buffer(message, 'binary') : message;
         const plainArr = cryptoJs.enc.Hex.parse(msg.toString('hex'));
-        const res = cryptoJs.AES.encrypt(plainArr, key, { iv: iv });
+        const res = cryptoJs.AES.encrypt(plainArr, key, {iv: iv});
         return cryptoJs.enc.Hex.stringify(res.ciphertext);
     }
 
@@ -185,7 +188,7 @@ export class CryptoUtils {
         const key = cryptoJs.enc.Hex.parse(keyHex);
 
         const cipher_array = cryptoJs.enc.Hex.parse(message);
-        const plainwords = cryptoJs.AES.decrypt({ ciphertext: cipher_array, salt: null,  iv: iv }, key, { iv: iv });
+        const plainwords = cryptoJs.AES.decrypt({ciphertext: cipher_array, salt: null, iv: iv}, key, {iv: iv});
         const plainHex = cryptoJs.enc.Hex.stringify(plainwords);
         const buff = new Buffer(plainHex, 'hex');
         return buff.toString();
