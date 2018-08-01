@@ -123,11 +123,9 @@ export class AccountModule extends ApiModule {
         order: SearchAccountHistoryOrder = SearchAccountHistoryOrder.timeDesc,
         startObjectId: string = '0.0.0',
         resultLimit: number = 100): Promise<TransactionRecord[]> {
-        if (!accountId === undefined || typeof accountId !== 'string'
-            || privateKeys.constructor !== Array
-            || typeof order !== 'string'
-            || typeof startObjectId !== 'string'
-            || typeof resultLimit !== 'number') {
+        if (!Validator.validateArguments([accountId, order, startObjectId, resultLimit],
+            [Type.string, Type.string, Type.string, Type.number])
+            || privateKeys === undefined) {
             throw new TypeError(AccountError.invalid_parameters);
         }
         return new Promise((resolve, reject) => {
@@ -165,12 +163,9 @@ export class AccountModule extends ApiModule {
         startObjectId: string = '0.0.0',
         resultLimit: number = 100,
         convertAssets: boolean = false): Promise<TransactionRecord[]> {
-        if (accountId === undefined || typeof accountId !== 'string'
-            || privateKeys.constructor !== Array
-            || typeof order !== 'string'
-            || typeof startObjectId !== 'string'
-            || typeof resultLimit !== 'number'
-            || typeof convertAssets !== 'boolean') {
+        if (!Validator.validateArguments([accountId, order, startObjectId, resultLimit, convertAssets],
+            [Type.string, Type.string, Type.string, Type.number, Type.boolean])
+            || privateKeys.constructor !== Array) {
             throw new TypeError(AccountError.invalid_parameters);
         }
         return new Promise<TransactionRecord[]>((resolve, reject) => {
@@ -468,10 +463,7 @@ export class AccountModule extends ApiModule {
         order: AccountOrder = AccountOrder.none,
         id: string = '0.0.0',
         limit: number = 100): Promise<Account> {
-        if (typeof searchTerm !== 'string'
-            || typeof order !== 'string'
-            || typeof id !== 'string'
-            || typeof limit !== 'number') {
+        if (!Validator.validateArguments([searchTerm, order, id, limit], [Type.string, Type.string, Type.string, Type.number])) {
             throw new TypeError(AccountError.invalid_parameters);
         }
         return new Promise<Account>((resolve, reject) => {
@@ -590,9 +582,7 @@ export class AccountModule extends ApiModule {
         accountName: string,
         registrar: string,
         registrarPrivateKey: string): Promise<Operation> {
-        if (accountName === undefined || typeof accountName !== 'string'
-            || registrar === undefined || typeof registrar !== 'string'
-            || registrarPrivateKey === undefined || typeof registrarPrivateKey !== 'string') {
+        if (!Validator.validateArguments(arguments, [Type.string, Type.string, Type.string, Type.string])) {
             throw new TypeError(AccountError.invalid_parameters);
         }
         const normalizedBrainkey = Utils.normalize(brainkey);
@@ -622,8 +612,7 @@ export class AccountModule extends ApiModule {
         password: string,
         privateKeys: string[],
         additionalElGamalPrivateKeys: string[] = []): Promise<WalletExport> {
-        if (accountId === undefined || typeof accountId !== 'string'
-            || password === undefined || typeof password !== 'string'
+        if (!Validator.validateArguments([accountId, password], [Type.string, Type.string])
             || !Validator.validateObject<Array<string>>(privateKeys, Array)
             || !Validator.validateObject<Array<string>>(additionalElGamalPrivateKeys, Array)) {
             throw new TypeError(AccountError.invalid_parameters);
@@ -686,8 +675,7 @@ export class AccountModule extends ApiModule {
      * @returns {Promise<AccountNameIdPair>}    List of filtered AccountNameIdPairs.
      */
     public listAccounts(lowerBound: string = '', limit: number = 100): Promise<AccountNameIdPair[]> {
-        if (typeof lowerBound !== 'string'
-            || typeof limit !== 'number') {
+        if (!Validator.validateArguments([lowerBound, limit], [Type.string, Type.number])) {
             throw new TypeError(AccountError.invalid_parameters);
         }
         return new Promise<AccountNameIdPair[]>((resolve, reject) => {
@@ -708,8 +696,7 @@ export class AccountModule extends ApiModule {
      * @returns {Promise<Asset[]>}      List of balances
      */
     public listAccountBalances(id: string, convertAssets: boolean = false): Promise<Asset[]> {
-        if (id === undefined || typeof id !== 'string'
-            || typeof convertAssets !== 'boolean') {
+        if (!Validator.validateArguments([id, convertAssets], [Type.string, Type.boolean])) {
             throw new TypeError(AccountError.invalid_parameters);
         }
         return new Promise<Asset[]>((resolve, reject) => {
@@ -796,10 +783,8 @@ export class AccountModule extends ApiModule {
      */
     public updateAccount(accountId: string, params: UpdateAccountParameters, privateKey: string, broadcast: boolean = true)
         : Promise<Operation> {
-        if (accountId === undefined || typeof accountId !== 'string'
-            || Validator.validateObject<UpdateAccountParameters>(params, UpdateAccountParameters)
-            || typeof privateKey !== 'string'
-            || typeof broadcast !== 'boolean') {
+        if (!Validator.validateArguments([accountId, privateKey, broadcast], [Type.string, Type.string, Type.boolean])
+            || Validator.validateObject<UpdateAccountParameters>(params, UpdateAccountParameters)) {
             throw new TypeError(AccountError.invalid_parameters);
         }
         return new Promise<Operation>(((resolve, reject) => {

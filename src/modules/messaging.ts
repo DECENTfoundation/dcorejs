@@ -81,7 +81,8 @@ export class MessagingModule extends ApiModule {
                              receiver?: string,
                              decryptPrivateKey: string = '',
                              count: number = 100): Promise<IDCoreMessagePayload[]> {
-        if (!Validator.validateArguments([sender, receiver, decryptPrivateKey, count], [Type.string, Type.string, Type.string, Type.number])) {
+        if (!Validator.validateArguments([sender, receiver, decryptPrivateKey, count],
+            [Type.string, Type.string, Type.string, Type.number])) {
             throw new TypeError(MessagingError.invalid_parameters);
         }
         return new Promise<IDCoreMessagePayload[]>(((resolve, reject) => {
@@ -96,7 +97,7 @@ export class MessagingModule extends ApiModule {
 
     private decryptMessages(messages: IDCoreMessagePayload[], decryptPrivateKey: string): IDCoreMessagePayload[] {
         if (!Validator.validateArray<DCoreMessagePayload>(messages, DCoreMessagePayload)
-            || decryptPrivateKey === undefined || typeof decryptPrivateKey !== 'string') {
+            || !Validator.validateArguments([decryptPrivateKey], [Type.string])) {
             throw new TypeError(MessagingError.invalid_parameters);
         }
         const result = [].concat(messages);
