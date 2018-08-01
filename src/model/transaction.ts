@@ -15,11 +15,11 @@ import {OperationType} from './operationPrototype';
  * OperationType to be broadcasted to blockchain
  * internal representation
  */
-export abstract class Operation {
+export class Operation {
     name: OperationName;
     operation: prototype.OperationType;
 
-    protected constructor(name: OperationName, type?: prototype.OperationType) {
+    constructor(name: OperationName, type?: prototype.OperationType) {
         this.name = name;
         this.operation = type;
     }

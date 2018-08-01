@@ -1,18 +1,20 @@
 /**
  * @module MiningModule
  */
-import {DatabaseApi} from '../api/database';
-import {DatabaseOperations} from '../api/model/database';
-import {Operations} from '../model/transaction';
-import {Account, AccountError, Options} from '../model/account';
-import {TransactionBuilder} from '../transactionBuilder';
-import {ApiModule} from './ApiModule';
-import {ApiConnector} from '../api/apiConnector';
-import {ChainApi} from '../api/chain';
-import {Block, Miner} from '../model/explorer';
-import {MinerNameIdPair, MinerUpdateData, MiningError} from '../model/mining';
+import { DatabaseApi } from '../api/database';
+import { DatabaseOperations } from '../api/model/database';
+import { Operations } from '../model/transaction';
+import { Account, AccountError, Options } from '../model/account';
+import { TransactionBuilder } from '../transactionBuilder';
+import { ApiModule } from './ApiModule';
+import { ApiConnector } from '../api/apiConnector';
+import { ChainApi } from '../api/chain';
+import { Block, Miner } from '../model/explorer';
+import { MinerNameIdPair, MinerUpdateData, MiningError } from '../model/mining';
 import VestingBalance = Block.VestingBalance;
-import {ChainMethods} from '../api/model/chain';
+import { ChainMethods } from '../api/model/chain';
+import { Type } from '../model/types';
+import { Validator } from './validator';
 
 export class MiningModule extends ApiModule {
     static CHAIN_PROXY_TO_SELF = '';
@@ -63,6 +65,9 @@ export class MiningModule extends ApiModule {
      * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
      */
     public setDesiredMinerCount(accountId: string, desiredNumOfMiners: number, privateKey: string): Promise<boolean> {
+        if (!Validator.validateArguments(arguments, [Type.string, Type.number, Type.string])) {
+            throw new TypeError(MiningError.invalid_arguments);
+        }
         return new Promise<boolean>((resolve, reject) => {
             if (!accountId || desiredNumOfMiners === undefined || !privateKey) {
                 reject('missing_parameter');
@@ -109,6 +114,9 @@ export class MiningModule extends ApiModule {
      * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
      */
     public createMiner(minerAccountId: string, URL: string, signingPublicKey: string, privateKey: string): Promise<boolean> {
+        if (!Validator.validateArguments(arguments, [Type.string, Type.string, Type.string, Type.string])) {
+            throw new TypeError(MiningError.invalid_arguments);
+        }
         return new Promise<boolean>(((resolve, reject) => {
             this.apiConnector.connection()
                 .then(res => {
@@ -132,6 +140,9 @@ export class MiningModule extends ApiModule {
      * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
      */
     public unvoteMiner(miner: string, account: string, privateKeyWif: string): Promise<boolean> {
+        if (!Validator.validateArguments(arguments, [Type.string, Type.string, Type.string])) {
+            throw new TypeError(MiningError.invalid_arguments);
+        }
         return this.unvoteMiners([miner], account, privateKeyWif);
     }
 
@@ -144,6 +155,9 @@ export class MiningModule extends ApiModule {
      * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
      */
     public unvoteMiners(miners: string[], account: string, privateKeyWif: string): Promise<boolean> {
+        if (!Validator.validateArguments(arguments, [[Array, Type.string], Type.string, Type.string])) {
+            throw new TypeError(MiningError.invalid_arguments);
+        }
         return new Promise<boolean>((resolve, reject) => {
             this.chainApi.fetch(new ChainMethods.GetAccount(account))
                 .then(res => {
@@ -194,6 +208,9 @@ export class MiningModule extends ApiModule {
      * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
      */
     public voteForMiner(miner: string, account: string, privateKeyWif: string): Promise<boolean> {
+        if (!Validator.validateArguments(arguments, [Type.string, Type.string, Type.string])) {
+            throw new TypeError(MiningError.invalid_arguments);
+        }
         return this.voteForMiners([miner], account, privateKeyWif);
     }
 
@@ -207,6 +224,9 @@ export class MiningModule extends ApiModule {
      * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
      */
     public voteForMiners(miners: string[], account: string, privateKeyWif: string): Promise<boolean> {
+        if (!Validator.validateArguments(arguments, [[Array, Type.string], Type.string, Type.string])) {
+            throw new TypeError(MiningError.invalid_arguments);
+        }
         return new Promise<boolean>((resolve, reject) => {
             this.chainApi.fetch(new ChainMethods.GetAccount(account))
                 .then(res => {
@@ -257,6 +277,9 @@ export class MiningModule extends ApiModule {
      * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
      */
     public voteUnvoteMiners(voteMiners: string[], unvoteMiners: string[], accountId: string, privateKey: string): Promise<boolean> {
+        if (!Validator.validateArguments(arguments, [[Array, Type.string], [Array, Type.string], Type.string, Type.string])) {
+            throw new TypeError(MiningError.invalid_arguments);
+        }
         return new Promise<boolean>((resolve, reject) => {
             this.chainApi.fetch(new ChainMethods.GetAccount(accountId))
                 .then(res => {
@@ -314,6 +337,9 @@ export class MiningModule extends ApiModule {
      * @returns {Promise<Block.VestingBalance[]>}   VestingBalance object.
      */
     public getVestingBalances(accountId: string): Promise<VestingBalance[]> {
+        if (!Validator.validateArguments(arguments, [Type.string])) {
+            throw new TypeError(MiningError.invalid_arguments);
+        }
         return new Promise<VestingBalance[]>((resolve, reject) => {
             const operation = new DatabaseOperations.GetVestingBalances(accountId);
             this.dbApi.execute(operation)
@@ -333,6 +359,9 @@ export class MiningModule extends ApiModule {
      * @returns {Promise<boolean>}              Value confirming successful transaction broadcasting.
      */
     public updateMiner(minerId: string, minerAccountId: string, updateData: MinerUpdateData, privateKey: string): Promise<boolean> {
+        if (!Validator.validateArguments(arguments, [Type.string, Type.string, MinerUpdateData, Type.string])) {
+            throw new TypeError(MiningError.invalid_arguments);
+        }
         return new Promise<boolean>((resolve, reject) => {
             const getMinerOp = new DatabaseOperations.GetMiners([minerId]);
             this.dbApi.execute(getMinerOp)
@@ -377,6 +406,9 @@ export class MiningModule extends ApiModule {
         amount: number,
         assetId: string,
         privateKey: string): Promise<boolean> {
+        if (!Validator.validateArguments(arguments, [Type.string, Type.string, Type.number, Type.string, Type.string])) {
+            throw new TypeError(MiningError.invalid_arguments);
+        }
         return new Promise<boolean>((resolve, reject) => {
             const operation = new Operations.VestingBalanceWithdraw(
                 vestinBalanceId,
@@ -400,11 +432,15 @@ export class MiningModule extends ApiModule {
      * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#a9c571d810992f8a72142ace75e74eceb
      *
      * @param {string} accountId            Account if in format '1.2.X'. Example '1.2.345'.
-     * @param {string} votingAccountId      Id of account to be set as voting proxy, in format '1.2.X'. Example '1.2.345'.
+     * @param {string} votingAccountId      Id of account to be set as voting proxy, in format '1.2.X'.
+     *                                      Set to '' for default setting. Example '1.2.345'.
      * @param {string} privateKey           Private used to sign transaction.
      * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
      */
-    public setVotingProxy(accountId: string, votingAccountId: string = '', privateKey: string): Promise<boolean> {
+    public setVotingProxy(accountId: string, votingAccountId: string, privateKey: string): Promise<boolean> {
+        if (!Validator.validateArguments(arguments, [Type.string, Type.string, Type.string])) {
+            throw new TypeError(MiningError.invalid_arguments);
+        }
         return new Promise<boolean>((resolve, reject) => {
             this.chainApi.fetch(new ChainMethods.GetAccount(accountId))
                 .then((result: Account[]) => {
@@ -453,6 +489,9 @@ export class MiningModule extends ApiModule {
      * @returns {Promise<MinerNameIdPair[]>}    List of MinerNameIdPair.
      */
     public listMiners(fromId: string, limit: number = 100): Promise<MinerNameIdPair[]> {
+        if (!Validator.validateArguments([fromId, limit], [Type.string, Type.number])) {
+            throw new TypeError(MiningError.invalid_arguments);
+        }
         return new Promise<MinerNameIdPair[]>(((resolve, reject) => {
             const operation = new DatabaseOperations.LookupMiners(fromId, limit);
             this.dbApi.execute(operation)
@@ -471,6 +510,9 @@ export class MiningModule extends ApiModule {
      * @returns {Promise<Miner>}    Miner object.
      */
     public getMiner(minerId: string): Promise<Miner> {
+        if (!Validator.validateArguments(arguments, [Type.string])) {
+            throw new TypeError(MiningError.invalid_arguments);
+        }
         return new Promise<Miner>((resolve, reject) => {
             const operation = new DatabaseOperations.GetMiners([minerId]);
             this.dbApi.execute(operation)

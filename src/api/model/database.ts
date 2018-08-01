@@ -122,7 +122,7 @@ export enum MinerOrder {
  * Order parameter options can be found in SearchParamsOrder class, Default: SearchParamsOrder.createdDesc
  * Region code is ISO 3166-1 alpha-2 two-letter region code.
  */
-export interface SearchParams {
+export interface ISearchParams {
     term?: string;
     order?: SearchParamsOrder;
     /**
@@ -134,6 +134,16 @@ export interface SearchParams {
     itemId?: string;
     category?: string;
     count?: number;
+}
+
+export class SearchParams implements ISearchParams {
+    term?: string = null;
+    order?: SearchParamsOrder = null;
+    user?: string = null;
+    region_code?: string = null;
+    itemId?: string = null;
+    category?: string = null;
+    count?: number = null;
 }
 
 export namespace DatabaseOperations {

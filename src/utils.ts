@@ -15,6 +15,10 @@ export interface BrainKeyInfo {
     pub_key: string;
 }
 
+export enum UtilsError {
+    wrong_private_key = 'wrong_private_key',
+}
+
 /**
  * PKI private key
  */
@@ -39,8 +43,12 @@ export class KeyPrivate {
      * @returns {KeyPrivate}            KeyPrivate instance.
      */
     static fromWif(privateKeyWif: string): KeyPrivate {
-        const pKey = dcorejs_lib.PrivateKey.fromWif(privateKeyWif);
-        return new KeyPrivate(pKey);
+        try {
+            const pKey = dcorejs_lib.PrivateKey.fromWif(privateKeyWif);
+            return new KeyPrivate(pKey);
+        } catch (exception) {
+            throw new Error(UtilsError.wrong_private_key);
+        }
     }
 
     constructor(privateKey: any) {
@@ -140,9 +148,13 @@ export class ElGamalKeys {
      * @returns {ElGamalKeys}           ElGamalKeys instance.
      */
     static generate(privateKey: string): ElGamalKeys {
-        const elGPrivate = Utils.elGamalPrivate(privateKey);
-        const elGPub = Utils.elGamalPublic(elGPrivate);
-        return new ElGamalKeys(elGPrivate, elGPub);
+        try {
+            const elGPrivate = Utils.elGamalPrivate(privateKey);
+            const elGPub = Utils.elGamalPublic(elGPrivate);
+            return new ElGamalKeys(elGPrivate, elGPub);
+        } catch (exception) {
+            throw new Error(UtilsError.wrong_private_key);
+        }
     }
 
     constructor(elGPrivateKey: string, elGPublicKey: string) {
@@ -228,7 +240,7 @@ export class Utils {
     /**
      * Calculate public key from given private key.
      *
-     * @param {KeyPrivate} privkey      Private key to get public key for.
+     * @param {KeyPrivate} privateKey      Private key to get public key for.
      * @return {KeyPublic}              KeyPublic object.
      */
     public static getPublicKey(privateKey: KeyPrivate): KeyPublic {
@@ -242,7 +254,11 @@ export class Utils {
      * @return {KeyPrivate}     KeyPrivate object.
      */
     public static privateKeyFromWif(pkWif: string): KeyPrivate {
-        return KeyPrivate.fromWif(pkWif);
+        try {
+            return KeyPrivate.fromWif(pkWif);
+        } catch (exception) {
+            throw new Error(UtilsError.wrong_private_key);
+        }
     }
 
     /**
@@ -327,9 +343,13 @@ export class Utils {
      * @returns {string}                    El Gamal private key string.
      */
     public static elGamalPrivate(privateKeyWif: string): string {
-        const pKey = Utils.privateKeyFromWif(privateKeyWif);
-        const hash = sha512(pKey.key.d.toBuffer());
-        return BigInteger(hash, 16).toString();
+        try {
+            const pKey = Utils.privateKeyFromWif(privateKeyWif);
+            const hash = sha512(pKey.key.d.toBuffer());
+            return BigInteger(hash, 16).toString();
+        } catch (exception) {
+            throw new Error(UtilsError.wrong_private_key);
+        }
     }
 
     /**
@@ -338,7 +358,11 @@ export class Utils {
      * @returns {ElGamalKeys}           ElGamalKeys object.
      */
     public static generateElGamalKeys(privateKeyWif: string): ElGamalKeys {
-        return ElGamalKeys.generate(privateKeyWif);
+        try {
+            return ElGamalKeys.generate(privateKeyWif);
+        } catch (exception) {
+            throw new Error(UtilsError.wrong_private_key);
+        }
     }
 
     /**

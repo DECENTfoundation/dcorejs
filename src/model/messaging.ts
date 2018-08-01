@@ -8,6 +8,7 @@ export enum MessagingError {
     account_does_not_exist = 'account_does_not_exist',
     message_decryption_failed = 'message_decryption_failed',
     syntactic_error = 'syntactic_error',
+    invalid_parameters = 'invalid_parameters',
 }
 
 export interface MessagePayload {
@@ -23,13 +24,22 @@ export interface ReceiversData {
     data: string;
 }
 
-export interface DCoreMessagePayload {
+export interface IDCoreMessagePayload {
     id: string;
     created: string;
     sender: string;
     sender_pubkey: string;
     receivers_data: DCoreReceiversData[];
     text: string;
+}
+
+export class DCoreMessagePayload implements IDCoreMessagePayload {
+    id = '';
+    created = '';
+    sender = '';
+    sender_pubkey = '';
+    receivers_data: DCoreReceiversData[];
+    text = '';
 }
 
 export interface DCoreReceiversData {
