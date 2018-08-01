@@ -161,10 +161,8 @@ export class ProposalModule extends ApiModule {
      */
     public proposeParameterChange(proposerAccountId: string, proposalParameters: ProposalParameters, expiration: string,
                                   privateKey: string): Promise<boolean> {
-        if (proposerAccountId === undefined || typeof proposerAccountId !== 'string'
-            || !Validator.validateObject<ProposalParameters>(proposalParameters, ProposalParameters)
-            || expiration === undefined || typeof expiration !== 'string'
-            || privateKey === undefined || typeof privateKey !== 'string') {
+        if (!Validator.validateArguments([proposerAccountId, expiration, privateKey], [Type.string, Type.string, Type.string])
+            || !Validator.validateObject<ProposalParameters>(proposalParameters, ProposalParameters)) {
             throw new TypeError(ProposalError.invalid_parameters);
         }
         return new Promise<boolean>(((resolve, reject) => {
@@ -268,10 +266,8 @@ export class ProposalModule extends ApiModule {
      */
     public proposeFeeChange(proposerAccountId: string, feesParameters: FeesParameters, expiration: string, privateKey: string):
                             Promise<boolean> {
-        if (proposerAccountId === undefined || typeof proposerAccountId !== 'string'
-            || !Validator.validateObject<FeesParameters>(feesParameters, FeesParameters)
-            || expiration === undefined || typeof expiration !== 'string'
-            || privateKey === undefined || typeof privateKey !== 'string') {
+        if (!Validator.validateArguments([proposerAccountId, expiration, privateKey], [Type.string, Type.string, Type.string])
+            || !Validator.validateObject<FeesParameters>(feesParameters, FeesParameters)) {
             throw new TypeError(ProposalError.invalid_parameters);
         }
         return new Promise<boolean>(((resolve, reject) => {
@@ -460,10 +456,8 @@ export class ProposalModule extends ApiModule {
 
     public approveProposal(
         payingAccountId: string, proposalId: string, approvalsDelta: DeltaParameters, privateKey: string): Promise<boolean> {
-        if (payingAccountId === undefined || typeof payingAccountId !== 'string'
-            || !Validator.validateObject<DeltaParameters>(approvalsDelta, DeltaParameters)
-            || proposalId === undefined || typeof proposalId !== 'string'
-            || privateKey === undefined || typeof privateKey !== 'string') {
+        if (!Validator.validateArguments([payingAccountId, proposalId, privateKey], [Type.string, Type.string, Type.string])
+            || !Validator.validateObject<DeltaParameters>(approvalsDelta, DeltaParameters)) {
             throw new TypeError(ProposalError.invalid_parameters);
         }
         return new Promise<boolean>(((resolve, reject) => {

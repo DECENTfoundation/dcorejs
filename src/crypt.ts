@@ -184,7 +184,7 @@ export class CryptoUtils {
      * @returns {string}                    Encrypted message.
      */
     public static encryptToHexString(message: string | Buffer, password: string): string {
-        if (message === undefined || password === undefined || typeof password !== 'string') {
+        if (message === undefined || password === undefined || !Validator.validateArguments([password], [Type.string])) {
             throw new TypeError(CryptoUtilsError.invalid_parameters);
         }
         const hash = CryptoUtils.sha512(password);
