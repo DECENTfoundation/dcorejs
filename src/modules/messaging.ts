@@ -10,8 +10,10 @@ import {KeyPrivate, KeyPublic, Utils} from '../utils';
 import {DatabaseOperations} from '../api/model/database';
 import {Account} from '../model/account';
 import {CryptoUtils} from '../crypt';
-import {CustomOperationSubtype, DCoreMessagePayload, MessagePayload, MessagingError} from '../model/messaging';
+import {CustomOperationSubtype, DCoreMessagePayload, IDCoreMessagePayload, MessagePayload, MessagingError} from '../model/messaging';
 import {MessagingOperations} from '../api/model/messaging';
+import {Type} from '../model/types';
+import { Validator } from './validator';
 
 export class MessagingModule extends ApiModule {
     constructor(dbApi: DatabaseApi, messageApi: MessagingApi) {
@@ -28,10 +30,13 @@ export class MessagingModule extends ApiModule {
      * @param {string} sender                       Account id of sender, in format '1.2.X'. Example '1.2.345'.
      * @param {string} decryptPrivateKey            Private key for memo decryption. Default is ''. Therefore none of messages is decrypted.
      * @param {number} count                        Limit result size. Default 100(Max).
-     * @returns {Promise<DCoreMessagePayload[]>}    List of DCoreMessagePayload objects.
+     * @returns {Promise<IDCoreMessagePayload[]>}    List of DCoreMessagePayload objects.
      */
-    public getSentMessages(sender: string, decryptPrivateKey: string = '', count: number = 100): Promise<DCoreMessagePayload[]> {
-        return new Promise<DCoreMessagePayload[]>(((resolve, reject) => {
+    public getSentMessages(sender: string, decryptPrivateKey: string = '', count: number = 100): Promise<IDCoreMessagePayload[]> {
+        if (!Validator.validateArguments([sender, decryptPrivateKey, count], [Type.string, Type.string, Type.number])) {
+            throw new TypeError(MessagingError.invalid_parameters);
+        }
+        return new Promise<IDCoreMessagePayload[]>(((resolve, reject) => {
             this.getMessageObjects(sender, null, decryptPrivateKey, count)
                 .then((messages: any[]) => {
                     resolve(messages);
@@ -47,10 +52,13 @@ export class MessagingModule extends ApiModule {
      * @param {string} receiver                     Account id of receiver, in format '1.2.X'. Example '1.2.345'.
      * @param {string} decryptPrivateKey            Private key to sign transaction.
      * @param {number} count                        Limit result size. Default 100(Max).
-     * @returns {Promise<DCoreMessagePayload[]>}    List of DCoreMessagePayload objects.
+     * @returns {Promise<IDCoreMessagePayload[]>}    List of DCoreMessagePayload objects.
      */
-    public getMessages(receiver: string, decryptPrivateKey: string = '', count: number = 100): Promise<DCoreMessagePayload[]> {
-        return new Promise<DCoreMessagePayload[]>(((resolve, reject) => {
+    public getMessages(receiver: string, decryptPrivateKey: string = '', count: number = 100): Promise<IDCoreMessagePayload[]> {
+        if (!Validator.validateArguments([receiver, decryptPrivateKey, count], [Type.string, Type.string, Type.number])) {
+            throw new TypeError(MessagingError.invalid_parameters);
+        }
+        return new Promise<IDCoreMessagePayload[]>(((resolve, reject) => {
             this.getMessageObjects(null, receiver, decryptPrivateKey, count)
                 .then((messages: any[]) => {
                     resolve(messages);
@@ -67,13 +75,16 @@ export class MessagingModule extends ApiModule {
      * @param {string} receiver                     Account id of receiver, in format '1.2.X'. Example '1.2.345'.
      * @param {string} decryptPrivateKey            Private key to decrypt messages content.
      * @param {number} count                        Limit result count. Default 100(Max)
-     * @returns {Promise<DCoreMessagePayload[]>}    List of DCoreMessagePayload message objects.
+     * @returns {Promise<IDCoreMessagePayload[]>}    List of DCoreMessagePayload message objects.
      */
     public getMessageObjects(sender?: string,
                              receiver?: string,
                              decryptPrivateKey: string = '',
-                             count: number = 100): Promise<DCoreMessagePayload[]> {
-        return new Promise<DCoreMessagePayload[]>(((resolve, reject) => {
+                             count: number = 100): Promise<IDCoreMessagePayload[]> {
+        if (!Validator.validateArguments([sender, receiver, decryptPrivateKey, count], [Type.string, Type.string, Type.string, Type.number])) {
+            throw new TypeError(MessagingError.invalid_parameters);
+        }
+        return new Promise<IDCoreMessagePayload[]>(((resolve, reject) => {
             const op = new MessagingOperations.GetMessageObjects(sender, receiver, count);
             this.messagingApi.execute(op)
                 .then((messages: any[]) => {
@@ -83,9 +94,13 @@ export class MessagingModule extends ApiModule {
         }));
     }
 
-    private decryptMessages(messages: DCoreMessagePayload[], decryptPrivateKey: string): DCoreMessagePayload[] {
+    private decryptMessages(messages: IDCoreMessagePayload[], decryptPrivateKey: string): IDCoreMessagePayload[] {
+        if (!Validator.validateArray<DCoreMessagePayload>(messages, DCoreMessagePayload)
+            || decryptPrivateKey === undefined || typeof decryptPrivateKey !== 'string') {
+            throw new TypeError(MessagingError.invalid_parameters);
+        }
         const result = [].concat(messages);
-        result.map((msg: DCoreMessagePayload) => {
+        result.map((msg: IDCoreMessagePayload) => {
             if (msg.receivers_data.length !== 0) {
                 try {
                     msg.text = CryptoUtils.decryptWithChecksum(
@@ -115,6 +130,9 @@ export class MessagingModule extends ApiModule {
      * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
      */
     public sendMessage(sender: string, receiverId: string, message: string, privateKey: string): Promise<boolean> {
+        if (!Validator.validateArguments(arguments, [Type.string, Type.string, Type.string, Type.string])) {
+            throw new TypeError(MessagingError.invalid_parameters);
+        }
         return new Promise<boolean>(((resolve, reject) => {
             const getAccOp = new DatabaseOperations.GetAccounts([receiverId]);
             this.dbApi.execute(getAccOp)

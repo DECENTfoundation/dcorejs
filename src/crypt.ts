@@ -4,8 +4,14 @@
 import {KeyPrivate, KeyPublic} from './utils';
 import { dcorejs_lib } from './helpers';
 import * as cryptoJs from 'crypto-js';
+import {Validator} from './modules/validator';
+import {Type} from './model/types';
 
 const RIPEMD160 = require('ripemd160');
+
+export enum CryptoUtilsError {
+    invalid_parameters = 'invalid_parameters',
+}
 
 /**
  * Custom class for CryptoJS encryption serialization.
@@ -52,6 +58,10 @@ export class CryptoUtils {
                                       privateKey: KeyPrivate,
                                       publicKey: KeyPublic,
                                       nonce: string = ''): Buffer {
+        if (!Validator.validateArguments([message, nonce], [Type.string, Type.string])
+            || privateKey === undefined || publicKey === undefined) {
+            throw new TypeError(CryptoUtilsError.invalid_parameters);
+        }
         return dcorejs_lib.Aes.encrypt_with_checksum(privateKey.key, publicKey.key, nonce, message);
     }
 
@@ -68,6 +78,10 @@ export class CryptoUtils {
                                       privateKey: KeyPrivate,
                                       publicKey: KeyPublic,
                                       nonce: string = ''): Buffer {
+        if (!Validator.validateArguments([message, nonce], [Type.string, Type.string])
+            || privateKey === undefined || publicKey === undefined) {
+            throw new TypeError(CryptoUtilsError.invalid_parameters);
+        }
         return dcorejs_lib.Aes.decrypt_with_checksum(privateKey.key, publicKey.key, nonce, message);
     }
 
@@ -79,6 +93,9 @@ export class CryptoUtils {
      * @returns {string}            RIPEMD160 hashed text.
      */
     public static ripemdHash(fromBuffer: Buffer): string {
+        if (fromBuffer === undefined) {
+            throw new TypeError(CryptoUtilsError.invalid_parameters);
+        }
         return new RIPEMD160().update(fromBuffer).digest('hex');
     }
 
@@ -89,6 +106,9 @@ export class CryptoUtils {
      * @returns {string}        Hashed input.
      */
     public static md5(message: string): string {
+        if (!Validator.validateArguments(arguments, [Type.string])) {
+            throw new TypeError(CryptoUtilsError.invalid_parameters);
+        }
         return cryptoJs.MD5(message).toString();
     }
 
@@ -99,6 +119,9 @@ export class CryptoUtils {
      * @returns {string}    Hashed input.
      */
     public static sha512(message: string): string {
+        if (!Validator.validateArguments(arguments, [Type.string])) {
+            throw new TypeError(CryptoUtilsError.invalid_parameters);
+        }
         return cryptoJs.SHA512(message).toString(cryptoJs.enc.Hex);
     }
 
@@ -109,6 +132,9 @@ export class CryptoUtils {
      * @returns {string}    Hashed input.
      */
     public static sha256(message: string): string {
+        if (!Validator.validateArguments(arguments, [Type.string])) {
+            throw new TypeError(CryptoUtilsError.invalid_parameters);
+        }
         return cryptoJs.SHA256(message).toString(cryptoJs.enc.Hex);
     }
 
@@ -125,6 +151,9 @@ export class CryptoUtils {
      * @returns {string}            Encrypted serialized message.
      */
     public static encrypt(message: string, password: string): string {
+        if (!Validator.validateArguments(arguments, [Type.string, Type.string])) {
+            throw new TypeError(CryptoUtilsError.invalid_parameters);
+        }
         return cryptoJs.AES.encrypt(message, password, {format: CryptoJSAesJson.prototype}).toString();
     }
 
@@ -140,6 +169,9 @@ export class CryptoUtils {
      * @returns {string | null}     Decrypted message.
      */
     public static decrypt(message: string, password: string): string | null {
+        if (!Validator.validateArguments(arguments, [Type.string, Type.string])) {
+            throw new TypeError(CryptoUtilsError.invalid_parameters);
+        }
         return cryptoJs.AES.decrypt(message, password, {format: CryptoJSAesJson.prototype}).toString(cryptoJs.enc.Utf8) || null;
     }
 
@@ -152,6 +184,9 @@ export class CryptoUtils {
      * @returns {string}                    Encrypted message.
      */
     public static encryptToHexString(message: string | Buffer, password: string): string {
+        if (message === undefined || password === undefined || typeof password !== 'string') {
+            throw new TypeError(CryptoUtilsError.invalid_parameters);
+        }
         const hash = CryptoUtils.sha512(password);
         const ivHex = hash.substr(64, 32);
         const keyHex = hash.substr(0, 64);
@@ -173,6 +208,9 @@ export class CryptoUtils {
      * @returns {string}                Decrypted message.
      */
     public static decryptHexString(message: string, password: string): string {
+        if (!Validator.validateArguments(arguments, [Type.string, Type.string])) {
+            throw new TypeError(CryptoUtilsError.invalid_parameters);
+        }
         const hash = CryptoUtils.sha512(password);
         const ivHex = hash.substr(64, 32);
         const keyHex = hash.substr(0, 64);
