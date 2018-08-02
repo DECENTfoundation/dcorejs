@@ -69,7 +69,8 @@ export class ContentModule extends ApiModule {
      * @return {Promise<Content[]>}             List of Content object that conform search parameters.
      */
     public searchContent(searchParams?: SearchParams, convertAsset: boolean = false): Promise<Content[]> {
-        if (!Validator.validateArguments([searchParams, convertAsset], [SearchParams, Type.boolean])) {
+        if (searchParams && !Validator.validateObject(searchParams, SearchParams)
+            || !Validator.validateArguments([convertAsset], [Type.boolean])) {
             throw new TypeError(ContentError.invalid_arguments);
         }
         const dbOperation = new DatabaseOperations.SearchContent(searchParams);
@@ -709,7 +710,7 @@ export class ContentModule extends ApiModule {
                 reject('missing_parameter');
                 return;
             }
-            this.searchContent({ count: resultSize })
+            this.searchContent({count: resultSize})
                 .then(allContent => {
                     const dbOperation = new DatabaseOperations.GetBoughtObjectsByCustomer(
                         accountId,
@@ -755,8 +756,11 @@ export class ContentModule extends ApiModule {
      * @return {Promise<Array<Rating>>}
      */
     getRating(contentId: string, forUser: string, ratingStartId: string = '', count: number = 100): Promise<Array<BuyingContent>> {
-        if (!Validator.validateArguments([contentId, forUser, ratingStartId, count], [Type.string, Type.string, Type.string, Type.number])) {
-            throw new TypeError(ContentError.invalid_arguments);
+        if (!Validator.validateArguments(
+            [contentId, forUser, ratingStartId, count],
+            [Type.string, Type.string, Type.string, Type.number])
+        ) {
+            throw new TypeError('Invalid parameters');
         }
         return new Promise<Array<BuyingContent>>((resolve, reject) => {
             this.getContent(contentId)
