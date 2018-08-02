@@ -237,7 +237,7 @@ export class Utils {
         return [pkey, pubKey];
     }
 
-    /**ArrayValidationTuple
+    /**
      * Calculate public key from given private key.
      *
      * @param {KeyPrivate} privateKey      Private key to get public key for.
