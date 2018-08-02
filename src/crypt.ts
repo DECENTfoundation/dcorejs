@@ -55,23 +55,20 @@ export class CryptoUtils {
      * @return {string}                 String in HEX format with encrypted message.
      */
     public static encryptWithChecksum(message: string,
-                                      privateKey: KeyPrivate,
-                                      publicKey: KeyPublic,
-                                      nonce: string = ''): Buffer {
-        if (!Validator.validateArguments([message, nonce], [Type.string, Type.string])
-            || privateKey === undefined || publicKey === undefined) {
-            throw new TypeError(CryptoUtilsError.invalid_parameters);
-        }
-        return dcorejs_lib.Aes.encrypt_with_checksum(privateKey.key, publicKey.key, nonce, message);
                                       privateKey: string,
                                       publicKey: string,
                                       nonce: string = ''): string {
+        if (!Validator.validateArguments(
+            [message, privateKey, publicKey, nonce],
+            [Type.string, Type.string, Type.string, Type.string])
+        ) {
+            throw new TypeError(CryptoUtilsError.invalid_parameters);
+        }
         return dcorejs_lib.Aes.encrypt_with_checksum(
             KeyPrivate.fromWif(privateKey).key,
             KeyPublic.fromString(publicKey).key,
             nonce,
-            message
-        ).toString('hex');
+            message).toString('hex');
     }
 
     /**
@@ -87,18 +84,18 @@ export class CryptoUtils {
                                       privateKey: string,
                                       publicKey: string,
                                       nonce: string = ''): string {
-        return dcorejs_lib.Aes.decrypt_with_checksum(
-            KeyPrivate.fromWif(privateKey).key,
-            KeyPublic.fromString(publicKey).key, nonce, message
-        ).toString();
-                                      privateKey: KeyPrivate,
-                                      publicKey: KeyPublic,
-                                      nonce: string = ''): Buffer {
-        if (!Validator.validateArguments([message, nonce], [Type.string, Type.string])
-            || privateKey === undefined || publicKey === undefined) {
+        if (!Validator.validateArguments(
+            [message, privateKey, publicKey, nonce],
+            [Type.string, Type.string, Type.string, Type.string])
+        ) {
             throw new TypeError(CryptoUtilsError.invalid_parameters);
         }
-        return dcorejs_lib.Aes.decrypt_with_checksum(privateKey.key, publicKey.key, nonce, message);
+        return dcorejs_lib.Aes.decrypt_with_checksum(
+            KeyPrivate.fromWif(privateKey).key,
+            KeyPublic.fromString(publicKey).key,
+            nonce,
+            message
+        ).toString();
     }
 
     /**
