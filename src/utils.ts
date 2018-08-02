@@ -10,7 +10,7 @@ import {sha512} from 'js-sha512';
 import {DCoreAssetObject} from './model/asset';
 import {Validate} from './modules/validator';
 import {Type} from './model/types';
-import {BrainKeyInfo, ElGamalKeys, KeyPrivate, KeyPublic} from './model/utils';
+import {BrainKeyInfo, ElGamalKeys, KeyPrivate, KeyPublic, UtilsError} from './model/utils';
 
 export class Utils {
 

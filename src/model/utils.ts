@@ -9,6 +9,10 @@ export interface BrainKeyInfo {
     pub_key: string;
 }
 
+export enum UtilsError {
+    wrong_private_key = 'wrong_private_key'
+}
+
 /**
  * PKI private key
  */

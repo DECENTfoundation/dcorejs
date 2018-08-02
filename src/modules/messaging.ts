@@ -6,7 +6,7 @@ import {MessagingApi} from '../api/messaging';
 import {DatabaseApi} from '../api/database';
 import {Operations} from '../model/transaction';
 import {TransactionBuilder} from '../transactionBuilder';
-import {KeyPrivate, Utils} from '../utils';
+import {Utils} from '../utils';
 import {DatabaseOperations} from '../api/model/database';
 import {Account} from '../model/account';
 import {CryptoUtils} from '../crypt';
@@ -14,7 +14,7 @@ import {CustomOperationSubtype, DCoreMessagePayload, IDCoreMessagePayload, Messa
 import {MessagingOperations} from '../api/model/messaging';
 import {Type} from '../model/types';
 import { Validator } from './validator';
-import {KeyPrivate, KeyPublic} from '../model/utils';
+import {KeyPrivate} from '../model/utils';
 
 export class MessagingModule extends ApiModule {
     constructor(dbApi: DatabaseApi, messageApi: MessagingApi) {
