@@ -1,7 +1,7 @@
 /**
  * @module Model/Account
  */
-import { KeyPrivate, Utils } from '../utils';
+import { Utils } from '../utils';
 import { CryptoUtils } from '../crypt';
 import { ChainApi } from '../api/chain';
 import { DCoreAssetObject } from './asset';
@@ -188,19 +188,13 @@ export class TransactionMemo {
         if (!this.valid) {
             return '';
         }
-        const pubKey = Utils.publicKeyFromString(this.to);
         let decrypted = '';
 
         privateKeys.forEach(pk => {
-            let pKey: KeyPrivate;
             try {
-                pKey = Utils.privateKeyFromWif(pk);
-                try {
-                    decrypted = CryptoUtils.decryptWithChecksum(this.message, pKey, pubKey, this.nonce).toString();
-                } catch (err) {
-                    throw new Error(AccountError.account_keys_incorrect);
-                }
+                decrypted = CryptoUtils.decryptWithChecksum(this.message, pk, this.to, this.nonce).toString();
             } catch (err) {
+                throw new Error(AccountError.account_keys_incorrect);
             }
         });
         return decrypted;

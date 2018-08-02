@@ -2,7 +2,7 @@
  * @module CryptoUtils
  */
 import {KeyPrivate, KeyPublic} from './utils';
-import { dcorejs_lib } from './helpers';
+import {dcorejs_lib} from './helpers';
 import * as cryptoJs from 'crypto-js';
 import {Validator} from './modules/validator';
 import {Type} from './model/types';
@@ -49,20 +49,26 @@ export class CryptoUtils {
      * Encrypts message with given private-pubic key pair
      *
      * @param {string} message          Message to encrypt.
-     * @param {KeyPrivate} privateKey   Private of one side of communication, to encrypt message with.
-     * @param {KeyPublic} publicKey     Public key of other side of communication, used in encryption.
+     * @param {string} privateKey       Private of one side of communication, to encrypt message with.
+     * @param {string} publicKey        Public key of other side of communication, used in encryption.
      * @param {string} [nonce]          Random number user in encryption process. Default ''.
-     * @return {Buffer}                 Buffer with encrypted message.
+     * @return {string}                 String in HEX format with encrypted message.
      */
     public static encryptWithChecksum(message: string,
-                                      privateKey: KeyPrivate,
-                                      publicKey: KeyPublic,
-                                      nonce: string = ''): Buffer {
-        if (!Validator.validateArguments([message, nonce], [Type.string, Type.string])
-            || privateKey === undefined || publicKey === undefined) {
+                                      privateKey: string,
+                                      publicKey: string,
+                                      nonce: string = ''): string {
+        if (!Validator.validateArguments(
+            [message, privateKey, publicKey, nonce],
+            [Type.string, Type.string, Type.string, Type.string])
+        ) {
             throw new TypeError(CryptoUtilsError.invalid_parameters);
         }
-        return dcorejs_lib.Aes.encrypt_with_checksum(privateKey.key, publicKey.key, nonce, message);
+        return dcorejs_lib.Aes.encrypt_with_checksum(
+            KeyPrivate.fromWif(privateKey).key,
+            KeyPublic.fromString(publicKey).key,
+            nonce,
+            message).toString('hex');
     }
 
     /**
@@ -75,24 +81,31 @@ export class CryptoUtils {
      * @returns {Buffer}                Buffer with decrypted text.
      */
     public static decryptWithChecksum(message: string,
-                                      privateKey: KeyPrivate,
-                                      publicKey: KeyPublic,
-                                      nonce: string = ''): Buffer {
-        if (!Validator.validateArguments([message, nonce], [Type.string, Type.string])
-            || privateKey === undefined || publicKey === undefined) {
+                                      privateKey: string,
+                                      publicKey: string,
+                                      nonce: string = ''): string {
+        if (!Validator.validateArguments(
+            [message, privateKey, publicKey, nonce],
+            [Type.string, Type.string, Type.string, Type.string])
+        ) {
             throw new TypeError(CryptoUtilsError.invalid_parameters);
         }
-        return dcorejs_lib.Aes.decrypt_with_checksum(privateKey.key, publicKey.key, nonce, message);
+        return dcorejs_lib.Aes.decrypt_with_checksum(
+            KeyPrivate.fromWif(privateKey).key,
+            KeyPublic.fromString(publicKey).key,
+            nonce,
+            message
+        ).toString();
     }
 
     /**
      * Calculate RIPEMD160 hash from input.
      * Used as 'hash' parameter when submitting content.
      *
-     * @param {Buffer} fromBuffer   Input to calculate buffer from.
+     * @param {string} fromBuffer   Input to calculate buffer from.
      * @returns {string}            RIPEMD160 hashed text.
      */
-    public static ripemdHash(fromBuffer: Buffer): string {
+    public static ripemdHash(fromBuffer: string): string {
         if (fromBuffer === undefined) {
             throw new TypeError(CryptoUtilsError.invalid_parameters);
         }
@@ -177,7 +190,7 @@ export class CryptoUtils {
 
     /**
      * Encrypt message with AES256-CBC. Result is encrypted hex string.
-      * This encryption is compatible with wallet-cli wallet file export key encryption format.
+     * This encryption is compatible with wallet-cli wallet file export key encryption format.
      *
      * @param {string | Buffer} message     Message to be encrypted.
      * @param {string} password             Password for encryption.
@@ -195,7 +208,7 @@ export class CryptoUtils {
 
         const msg: Buffer = typeof message === 'string' ? new Buffer(message, 'binary') : message;
         const plainArr = cryptoJs.enc.Hex.parse(msg.toString('hex'));
-        const res = cryptoJs.AES.encrypt(plainArr, key, { iv: iv });
+        const res = cryptoJs.AES.encrypt(plainArr, key, {iv: iv});
         return cryptoJs.enc.Hex.stringify(res.ciphertext);
     }
 
@@ -218,7 +231,7 @@ export class CryptoUtils {
         const key = cryptoJs.enc.Hex.parse(keyHex);
 
         const cipher_array = cryptoJs.enc.Hex.parse(message);
-        const plainwords = cryptoJs.AES.decrypt({ ciphertext: cipher_array, salt: null,  iv: iv }, key, { iv: iv });
+        const plainwords = cryptoJs.AES.decrypt({ciphertext: cipher_array, salt: null, iv: iv}, key, {iv: iv});
         const plainHex = cryptoJs.enc.Hex.stringify(plainwords);
         const buff = new Buffer(plainHex, 'hex');
         return buff.toString();

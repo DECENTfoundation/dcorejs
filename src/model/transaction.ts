@@ -32,7 +32,7 @@ export interface Memo {
     from: string;
     to: string;
     nonce: string;
-    message: Buffer;
+    message: string;
 }
 
 /**

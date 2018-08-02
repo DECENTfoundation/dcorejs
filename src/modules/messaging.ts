@@ -6,7 +6,7 @@ import {MessagingApi} from '../api/messaging';
 import {DatabaseApi} from '../api/database';
 import {Operations} from '../model/transaction';
 import {TransactionBuilder} from '../transactionBuilder';
-import {KeyPrivate, KeyPublic, Utils} from '../utils';
+import {KeyPrivate, Utils} from '../utils';
 import {DatabaseOperations} from '../api/model/database';
 import {Account} from '../model/account';
 import {CryptoUtils} from '../crypt';
@@ -106,10 +106,10 @@ export class MessagingModule extends ApiModule {
                 try {
                     msg.text = CryptoUtils.decryptWithChecksum(
                         msg.receivers_data[0].data,
-                        KeyPrivate.fromWif(decryptPrivateKey),
-                        KeyPublic.fromString(msg.receivers_data[0].receiver_pubkey),
+                        decryptPrivateKey,
+                        msg.receivers_data[0].receiver_pubkey,
                         msg.receivers_data[0].nonce
-                    ).toString('utf-8');
+                    );
                 } catch (e) {
                     msg.text = '';
                 }
@@ -157,11 +157,11 @@ export class MessagingModule extends ApiModule {
                     };
                     const encryptedMsg = CryptoUtils.encryptWithChecksum(
                         message,
-                        KeyPrivate.fromWif(privateKey),
-                        KeyPublic.fromString(toAccount.options.memo_key),
+                        privateKey,
+                        toAccount.options.memo_key,
                         messagePayload.receivers_data[0].nonce.toString()
                     );
-                    messagePayload.receivers_data[0].data = encryptedMsg.toString('hex');
+                    messagePayload.receivers_data[0].data = encryptedMsg;
                     const buffer = new Buffer(JSON.stringify(messagePayload)).toString('hex');
 
                     const customOp = new Operations.CustomOperation(sender, [sender], CustomOperationSubtype.messaging, buffer);

@@ -251,7 +251,6 @@ export class AccountModule extends ApiModule {
             throw new TypeError(AccountError.invalid_parameters);
         }
         return new Promise((resolve, reject) => {
-            const pKey = Utils.privateKeyFromWif(privateKey);
             if (memo && !privateKey) {
                 reject(AccountError.transfer_missing_pkey);
             }
@@ -260,6 +259,7 @@ export class AccountModule extends ApiModule {
                 new ChainMethods.GetAccount(toAccount),
                 new ChainMethods.GetAsset(assetId || '1.3.0')
             );
+
             this.chainApi.fetch(...methods)
                 .then(result => {
                     const [senderAccount, receiverAccount, asset] = result;
@@ -284,16 +284,14 @@ export class AccountModule extends ApiModule {
                     const fromPublicKey = senderAccount.get('options').get('memo_key');
                     const toPublicKey = receiverAccount.get('options').get('memo_key');
 
-                    const pubKey = Utils.publicKeyFromString(toPublicKey);
-
                     const memo_object: Memo = {
                         from: fromPublicKey,
                         to: toPublicKey,
                         nonce: nonce,
                         message: CryptoUtils.encryptWithChecksum(
                             memo,
-                            pKey,
-                            pubKey,
+                            privateKey,
+                            toPublicKey,
                             nonce
                         )
                     };

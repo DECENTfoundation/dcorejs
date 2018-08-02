@@ -12,7 +12,6 @@ import {Memo, Operations} from '../model/transaction';
 import {TransactionBuilder} from '../transactionBuilder';
 import {Asset} from '../model/account';
 import {ChainApi} from '../api/chain';
-import {Utils} from '../utils';
 import {CryptoUtils} from '../crypt';
 import {ApiConnector} from '../api/apiConnector';
 import {ChainMethods} from '../api/model/chain';
@@ -102,13 +101,11 @@ export class ProposalModule extends ApiModule {
                 const nonce: string = ChainApi.generateNonce();
                 const fromPublicKey = senderAccountObject.options.memo_key;
                 const toPublicKey = receiverAccountObject.options.memo_key;
-                const privateKeyObject = Utils.privateKeyFromWif(privateKey);
-                const publicKeyObject = Utils.publicKeyFromString(toPublicKey);
                 const memo: Memo = {
                     from: fromPublicKey,
                     to: toPublicKey,
                     nonce: nonce,
-                    message: CryptoUtils.encryptWithChecksum(memoKey, privateKeyObject, publicKeyObject, nonce)
+                    message: CryptoUtils.encryptWithChecksum(memoKey, privateKey, toPublicKey, nonce)
                 };
 
                 const getGlobalPropertiesOperation = new DatabaseOperations.GetGlobalProperties();

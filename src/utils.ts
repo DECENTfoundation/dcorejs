@@ -220,7 +220,7 @@ export class Utils {
      * @param {Buffer} fromBuffer       Buffer to calculate hash from.
      * @returns {string}                RIPEMD160 hash.
      */
-    public static ripemdHash(fromBuffer: Buffer): string {
+    public static ripemdHash(fromBuffer: string): string {
         return CryptoUtils.ripemdHash(fromBuffer);
     }
 
