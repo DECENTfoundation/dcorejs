@@ -3,7 +3,7 @@
  */
 import {Asset} from './account';
 
-export interface BuyingContent extends ContentExchangeObject {
+export interface BuyingContent extends IContentExchangeObject {
     consumer: string;
     URI: string;
     size: number;
@@ -25,7 +25,7 @@ export interface BuyingContent extends ContentExchangeObject {
     region_code_from: number;
 }
 
-export interface Content extends ContentExchangeObject {
+export interface Content extends IContentExchangeObject {
     /**
      * Id of the content.
      */
@@ -130,7 +130,7 @@ export enum Status {
     Expired = 'Expired'
 }
 
-export interface Seeder extends ContentExchangeObject {
+export interface Seeder extends IContentExchangeObject {
     id: string;
     seeder: string;
     free_space: number;
@@ -185,10 +185,16 @@ export interface Synopsis extends SynopsisBase {
     [key: string]: any;
 }
 
-export interface ContentExchangeObject {
+export interface IContentExchangeObject {
     price: Price | Asset;
     paid_price_before_exchange?: Asset;
     paid_price_after_exchange?: Asset;
+}
+
+export class ContentExchangeObject implements IContentExchangeObject {
+    price: Price | Asset;
+    paid_price_before_exchange?: Asset = null;
+    paid_price_after_exchange?: Asset = null;
 }
 
 export interface Price {

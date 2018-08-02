@@ -111,7 +111,11 @@ export class Utils {
      */
     @Validate(Type.string)
     public static privateKeyFromWif(pkWif: string): KeyPrivate {
-        return KeyPrivate.fromWif(pkWif);
+        try {
+            return KeyPrivate.fromWif(pkWif);
+        } catch (exception) {
+            throw new Error(UtilsError.wrong_private_key);
+        }
     }
 
     /**
@@ -201,9 +205,13 @@ export class Utils {
      */
     @Validate(Type.string)
     public static elGamalPrivate(privateKeyWif: string): string {
-        const pKey = Utils.privateKeyFromWif(privateKeyWif);
-        const hash = sha512(pKey.key.d.toBuffer());
-        return BigInteger(hash, 16).toString();
+        try {
+            const pKey = Utils.privateKeyFromWif(privateKeyWif);
+            const hash = sha512(pKey.key.d.toBuffer());
+            return BigInteger(hash, 16).toString();
+        } catch (exception) {
+            throw new Error(UtilsError.wrong_private_key);
+        }
     }
 
     /**
@@ -213,7 +221,11 @@ export class Utils {
      */
     @Validate(Type.string)
     public static generateElGamalKeys(privateKeyWif: string): ElGamalKeys {
-        return ElGamalKeys.generate(privateKeyWif);
+        try {
+            return ElGamalKeys.generate(privateKeyWif);
+        } catch (exception) {
+            throw new Error(UtilsError.wrong_private_key);
+        }
     }
 
     /**

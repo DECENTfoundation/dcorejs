@@ -2,7 +2,17 @@
  * @module ContentModule
  */
 import { Asset, DCoreAccount, Account } from '../model/account';
-import { Content, Seeder, BuyingContent, SubmitObject, ContentKeys, KeyPair, ContentExchangeObject, Price } from '../model/content';
+import {
+    Content,
+    Seeder,
+    BuyingContent,
+    SubmitObject,
+    ContentKeys,
+    KeyPair,
+    IContentExchangeObject,
+    Price,
+    ContentExchangeObject
+} from '../model/content';
 import { DatabaseApi } from '../api/database';
 import { ChainApi } from '../api/chain';
 import { TransactionBuilder } from '../transactionBuilder';
@@ -541,12 +551,15 @@ export class ContentModule extends ApiModule {
     /**
      * Format price Asset amounts to asset precision.
      *
-     * @param {ContentExchangeObject[]} content     List of content to format.
+     * @param {IContentExchangeObject[]} content     List of content to format.
      * @param {DCoreAssetObject[]} assets           Complete list of assets for formatting.
-     * @returns {ContentExchangeObject[]}           List of content with formatted prices.
+     * @returns {IContentExchangeObject[]}           List of content with formatted prices.
      */
-    private formatPrices(content: ContentExchangeObject[], assets: DCoreAssetObject[]): ContentExchangeObject[] {
-        const result: ContentExchangeObject[] = content.map(obj => {
+    private formatPrices(content: IContentExchangeObject[], assets: DCoreAssetObject[]): IContentExchangeObject[] {
+        if (!Validator.validateArray<IContentExchangeObject>(content, ContentExchangeObject)) {
+            throw new TypeError(ContentError.invalid_arguments);
+        }
+        const result: IContentExchangeObject[] = content.map(obj => {
             const objCopy = Object.assign({}, obj);
             const assetsToFormat = [objCopy.price.hasOwnProperty('map_price')
                 ? (objCopy.price as Price).map_price[0][1]
@@ -743,7 +756,7 @@ export class ContentModule extends ApiModule {
      */
     getRating(contentId: string, forUser: string, ratingStartId: string = '', count: number = 100): Promise<Array<BuyingContent>> {
         if (!Validator.validateArguments([contentId, forUser, ratingStartId, count], [Type.string, Type.string, Type.string, Type.number])) {
-            throw new TypeError('Invalid parameters');
+            throw new TypeError(ContentError.invalid_arguments);
         }
         return new Promise<Array<BuyingContent>>((resolve, reject) => {
             this.getContent(contentId)
@@ -763,10 +776,9 @@ export class ContentModule extends ApiModule {
      * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#a624e679ac58b3edfc7b817e4a46e3746
      */
     searchFeedback(accountId: string, contentURI: string, ratingStartId: string, count: number = 100): Promise<Array<BuyingContent>> {
-        if (!Validator.validateArguments(
-            [accountId, contentURI, ratingStartId, count], [Type.string, Type.string, Type.string, Type.number])
-        ) {
-            throw new TypeError('Invalid parameters');
+        if (!Validator.validateArguments([accountId, contentURI, ratingStartId, count],
+            [Type.string, Type.string, Type.string, Type.number])) {
+            throw new TypeError(ContentError.invalid_arguments);
         }
         return new Promise<Array<BuyingContent>>(async (resolve, reject) => {
             const getAccountOp = new DatabaseOperations.GetAccounts([accountId]);
@@ -830,7 +842,7 @@ export class ContentModule extends ApiModule {
      */
     leaveCommentAndRating(contentURI: string, consumer: string, comment: string, rating: number, consumerPKey: string): Promise<Operation> {
         if (!Validator.validateArguments(arguments, [Type.string, Type.string, Type.string, Type.string, Type.string])) {
-            throw new TypeError('Invalid parameters');
+            throw new TypeError(ContentError.invalid_arguments);
         }
         return new Promise<Operation>((resolve, reject) => {
             const operation = new Operations.LeaveRatingAndComment(contentURI, consumer, comment, rating);

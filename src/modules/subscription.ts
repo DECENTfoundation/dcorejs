@@ -240,9 +240,8 @@ export class SubscriptionModule extends ApiModule {
     public setSubscription(accountId: string,
                            options: ISubscriptionOptions,
                            privateKey: string): Promise<boolean> {
-        if (accountId === undefined || typeof accountId !== 'string'
-            || !Validator.validateObject<ISubscriptionOptions>(options, SubscriptionOptions)
-            || accountId === undefined || typeof privateKey !== 'string') {
+        if (!Validator.validateArguments([accountId, privateKey], [Type.string, Type.string])
+            || !Validator.validateObject<ISubscriptionOptions>(options, SubscriptionOptions)) {
             throw new TypeError(SubscriptionError.invalid_parameters);
         }
         return new Promise<boolean>((resolve, reject) => {

@@ -124,11 +124,9 @@ export class AccountModule extends ApiModule {
         order: SearchAccountHistoryOrder = SearchAccountHistoryOrder.timeDesc,
         startObjectId: string = '0.0.0',
         resultLimit: number = 100): Promise<TransactionRecord[]> {
-        if (!accountId === undefined || typeof accountId !== 'string'
-            || privateKeys.constructor !== Array
-            || typeof order !== 'string'
-            || typeof startObjectId !== 'string'
-            || typeof resultLimit !== 'number') {
+        if (!Validator.validateArguments([accountId, order, startObjectId, resultLimit],
+            [Type.string, Type.string, Type.string, Type.number])
+            || privateKeys === undefined) {
             throw new TypeError(AccountError.invalid_parameters);
         }
         return new Promise((resolve, reject) => {
@@ -166,12 +164,9 @@ export class AccountModule extends ApiModule {
         startObjectId: string = '0.0.0',
         resultLimit: number = 100,
         convertAssets: boolean = false): Promise<TransactionRecord[]> {
-        if (accountId === undefined || typeof accountId !== 'string'
-            || privateKeys.constructor !== Array
-            || typeof order !== 'string'
-            || typeof startObjectId !== 'string'
-            || typeof resultLimit !== 'number'
-            || typeof convertAssets !== 'boolean') {
+        if (!Validator.validateArguments([accountId, order, startObjectId, resultLimit, convertAssets],
+            [Type.string, Type.string, Type.string, Type.number, Type.boolean])
+            || privateKeys.constructor !== Array) {
             throw new TypeError(AccountError.invalid_parameters);
         }
         return new Promise<TransactionRecord[]>((resolve, reject) => {
@@ -256,8 +251,6 @@ export class AccountModule extends ApiModule {
             [Type.number, Type.string, Type.string, Type.string, Type.string, Type.string, Type.boolean])) {
             throw new TypeError(AccountError.invalid_parameters);
         }
-        const pKey = Utils.privateKeyFromWif(privateKey);
-
         return new Promise((resolve, reject) => {
             if (memo && !privateKey) {
                 reject(AccountError.transfer_missing_pkey);
@@ -292,16 +285,14 @@ export class AccountModule extends ApiModule {
                     const fromPublicKey = senderAccount.get('options').get('memo_key');
                     const toPublicKey = receiverAccount.get('options').get('memo_key');
 
-                    const pubKey = Utils.publicKeyFromString(toPublicKey);
-
                     const memo_object: Memo = {
                         from: fromPublicKey,
                         to: toPublicKey,
                         nonce: nonce,
                         message: CryptoUtils.encryptWithChecksum(
                             memo,
-                            pKey,
-                            pubKey,
+                            privateKey,
+                            toPublicKey,
                             nonce
                         )
                     };
@@ -471,10 +462,7 @@ export class AccountModule extends ApiModule {
         order: AccountOrder = AccountOrder.none,
         id: string = '0.0.0',
         limit: number = 100): Promise<Account> {
-        if (typeof searchTerm !== 'string'
-            || typeof order !== 'string'
-            || typeof id !== 'string'
-            || typeof limit !== 'number') {
+        if (!Validator.validateArguments([searchTerm, order, id, limit], [Type.string, Type.string, Type.string, Type.number])) {
             throw new TypeError(AccountError.invalid_parameters);
         }
         return new Promise<Account>((resolve, reject) => {
@@ -522,13 +510,8 @@ export class AccountModule extends ApiModule {
         registrar: string,
         registrarPrivateKey: string,
         broadcast: boolean = true): Promise<Operation> {
-        if (name === undefined || typeof name !== 'string'
-            || ownerKey === undefined || typeof ownerKey !== 'string'
-            || activeKey === undefined || typeof activeKey !== 'string'
-            || memoKey === undefined || typeof memoKey !== 'string'
-            || registrar === undefined || typeof registrar !== 'string'
-            || registrarPrivateKey === undefined || typeof registrarPrivateKey !== 'string'
-            || broadcast === undefined || typeof broadcast !== 'boolean') {
+        if (!Validator.validateArguments([name, ownerKey, activeKey, memoKey, registrar, registrarPrivateKey, broadcast],
+            [Type.string, Type.string, Type.string, Type.string, Type.string, Type.string, Type.boolean])) {
             throw new TypeError(AccountError.invalid_parameters);
         }
         const ownerKeyAuths: [[string, number]] = [] as [[string, number]];
@@ -598,9 +581,7 @@ export class AccountModule extends ApiModule {
         accountName: string,
         registrar: string,
         registrarPrivateKey: string): Promise<Operation> {
-        if (accountName === undefined || typeof accountName !== 'string'
-            || registrar === undefined || typeof registrar !== 'string'
-            || registrarPrivateKey === undefined || typeof registrarPrivateKey !== 'string') {
+        if (!Validator.validateArguments(arguments, [Type.string, Type.string, Type.string, Type.string])) {
             throw new TypeError(AccountError.invalid_parameters);
         }
         const normalizedBrainkey = Utils.normalize(brainkey);
@@ -630,8 +611,7 @@ export class AccountModule extends ApiModule {
         password: string,
         privateKeys: string[],
         additionalElGamalPrivateKeys: string[] = []): Promise<WalletExport> {
-        if (accountId === undefined || typeof accountId !== 'string'
-            || password === undefined || typeof password !== 'string'
+        if (!Validator.validateArguments([accountId, password], [Type.string, Type.string])
             || !Validator.validateObject<Array<string>>(privateKeys, Array)
             || !Validator.validateObject<Array<string>>(additionalElGamalPrivateKeys, Array)) {
             throw new TypeError(AccountError.invalid_parameters);
@@ -694,8 +674,7 @@ export class AccountModule extends ApiModule {
      * @returns {Promise<AccountNameIdPair>}    List of filtered AccountNameIdPairs.
      */
     public listAccounts(lowerBound: string = '', limit: number = 100): Promise<AccountNameIdPair[]> {
-        if (typeof lowerBound !== 'string'
-            || typeof limit !== 'number') {
+        if (!Validator.validateArguments([lowerBound, limit], [Type.string, Type.number])) {
             throw new TypeError(AccountError.invalid_parameters);
         }
         return new Promise<AccountNameIdPair[]>((resolve, reject) => {
@@ -716,8 +695,7 @@ export class AccountModule extends ApiModule {
      * @returns {Promise<Asset[]>}      List of balances
      */
     public listAccountBalances(id: string, convertAssets: boolean = false): Promise<Asset[]> {
-        if (id === undefined || typeof id !== 'string'
-            || typeof convertAssets !== 'boolean') {
+        if (!Validator.validateArguments([id, convertAssets], [Type.string, Type.boolean])) {
             throw new TypeError(AccountError.invalid_parameters);
         }
         return new Promise<Asset[]>((resolve, reject) => {
@@ -804,10 +782,8 @@ export class AccountModule extends ApiModule {
      */
     public updateAccount(accountId: string, params: UpdateAccountParameters, privateKey: string, broadcast: boolean = true)
         : Promise<Operation> {
-        if (accountId === undefined || typeof accountId !== 'string'
-            || Validator.validateObject<UpdateAccountParameters>(params, UpdateAccountParameters)
-            || typeof privateKey !== 'string'
-            || typeof broadcast !== 'boolean') {
+        if (!Validator.validateArguments([accountId, privateKey, broadcast], [Type.string, Type.string, Type.boolean])
+            || Validator.validateObject<UpdateAccountParameters>(params, UpdateAccountParameters)) {
             throw new TypeError(AccountError.invalid_parameters);
         }
         return new Promise<Operation>(((resolve, reject) => {

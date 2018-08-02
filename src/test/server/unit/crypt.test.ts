@@ -1,6 +1,5 @@
 import {KeyPublic} from '../../../model/utils';
 import {CryptoUtils} from '../../../crypt';
-import {Utils} from '../../../utils';
 import {expect} from 'chai';
 import {KeyPrivate} from '../../../model/utils';
 
@@ -15,12 +14,12 @@ const messageObject = {'keys': [';adfsjkndsffdjsfdsjdfsjkldfsajklfsjlka', 'oph82
 const plainMessageEnc = '48310cc50094bd09181c6e8b8147ac622268942f100021b41dd51f637b1c7546f7455f5ffe2e20f373b425f9380169b27d6dbe5a8a3' +
     'ec398eb0e336555077de346e02bce6f8e0b3e1ec659ebe80dd30833ebac2d89b5d1bbabf485a4e9b00d16';
 
-let secret: KeyPrivate = null;
-let pkey: KeyPublic = null;
+let secret = '';
+let pkey = '';
 
 function initLib() {
-    secret = Utils.privateKeyFromWif(secretWif);
-    pkey = Utils.publicKeyFromString(pkeyString);
+    secret = secretWif;
+    pkey = pkeyString;
 }
 
 describe('(server/unit) Crypt helper test', () => {
@@ -28,7 +27,7 @@ describe('(server/unit) Crypt helper test', () => {
 
     it('encrypt message', () => {
         const encryptedMsg = CryptoUtils.encryptWithChecksum(message, secret, pkey, '');
-        expect(encryptedMsg.toString('hex')).to.equal(encryptedMessage);
+        expect(encryptedMsg).to.equal(encryptedMessage);
     });
 
     it('create md5 hash', () => {
