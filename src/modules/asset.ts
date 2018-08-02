@@ -1,17 +1,17 @@
 /**
  * @module AssetModule
  */
-import { ApiConnector } from '../api/apiConnector';
-import { DatabaseApi } from '../api/database';
-import { DatabaseOperations } from '../api/model/database';
-import { CryptoUtils } from '../crypt';
-import { Asset, Memo, Operations, PriceFeed } from '../model/transaction';
-import { TransactionBuilder } from '../transactionBuilder';
-import { Utils } from '../utils';
+import {ApiConnector} from '../api/apiConnector';
+import {DatabaseApi} from '../api/database';
+import {DatabaseOperations} from '../api/model/database';
+import {CryptoUtils} from '../crypt';
+import {Asset, Memo, Operations, PriceFeed} from '../model/transaction';
+import {TransactionBuilder} from '../transactionBuilder';
+import {Utils} from '../utils';
 
-import { ChainApi } from '../api/chain';
-import { ApiModule } from './ApiModule';
-import { ChainMethods } from '../api/model/chain';
+import {ChainApi} from '../api/chain';
+import {ApiModule} from './ApiModule';
+import {ChainMethods} from '../api/model/chain';
 import {
     AssetError,
     AssetObject,
@@ -22,9 +22,9 @@ import {
     UpdateMonitoredAssetParameters,
     UserIssuedAssetInfo
 } from '../model/asset';
-import { IProposalCreateParameters } from '../model/proposal';
-import { Type } from '../model/types';
-import { Validator } from './validator';
+import {IProposalCreateParameters} from '../model/proposal';
+import {Type} from '../model/types';
+import {Validator} from './validator';
 
 
 export class AssetModule extends ApiModule {
@@ -172,19 +172,18 @@ export class AssetModule extends ApiModule {
                     this.chainApi.fetch(...operations)
                         .then(res => {
                             const [issueToAcc, issuerAcc] = res;
-                            const privateKeyIssuer = Utils.privateKeyFromWif(issuerPKey);
-                            const pubKeyIssuer = Utils.publicKeyFromString(issuerAcc.get('options').get('memo_key'));
-                            const pubKeyIssueTo = Utils.publicKeyFromString(issueToAcc.get('options').get('memo_key'));
+                            const pubKeyIssuer = issuerAcc.get('options').get('memo_key');
+                            const pubKeyIssueTo = issueToAcc.get('options').get('memo_key');
 
                             let memoObject: Memo = undefined;
                             if (memo) {
                                 memoObject = {
-                                    from: pubKeyIssuer.stringKey,
-                                    to: pubKeyIssueTo.stringKey,
+                                    from: pubKeyIssuer,
+                                    to: pubKeyIssueTo,
                                     nonce: Utils.generateNonce(),
                                     message: CryptoUtils.encryptWithChecksum(
                                         memo,
-                                        privateKeyIssuer,
+                                        issuerPKey,
                                         pubKeyIssueTo,
                                         Utils.generateNonce()
                                     )
@@ -428,8 +427,7 @@ export class AssetModule extends ApiModule {
      * @returns {Promise<DCoreAssetObject>}     DCoreAssetObject of desired asset.
      */
     public getAsset(assetId: string, formatAsset: boolean = false): Promise<DCoreAssetObject> {
-        if (assetId === undefined || typeof assetId !== Type.string
-            || typeof formatAsset !== Type.boolean) {
+        if (!Validator.validateArguments([assetId, formatAsset], [Type.string, Type.boolean])) {
             throw new TypeError(AssetError.invalid_parameters);
         }
         const operation = new DatabaseOperations.GetAssets([assetId]);

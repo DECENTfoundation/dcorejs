@@ -6,7 +6,7 @@ import {MessagingApi} from '../api/messaging';
 import {DatabaseApi} from '../api/database';
 import {Operations} from '../model/transaction';
 import {TransactionBuilder} from '../transactionBuilder';
-import {KeyPrivate, KeyPublic, Utils} from '../utils';
+import {Utils} from '../utils';
 import {DatabaseOperations} from '../api/model/database';
 import {Account} from '../model/account';
 import {CryptoUtils} from '../crypt';
@@ -14,6 +14,7 @@ import {CustomOperationSubtype, DCoreMessagePayload, IDCoreMessagePayload, Messa
 import {MessagingOperations} from '../api/model/messaging';
 import {Type} from '../model/types';
 import { Validator } from './validator';
+import {KeyPrivate} from '../model/utils';
 
 export class MessagingModule extends ApiModule {
     constructor(dbApi: DatabaseApi, messageApi: MessagingApi) {
@@ -81,7 +82,8 @@ export class MessagingModule extends ApiModule {
                              receiver?: string,
                              decryptPrivateKey: string = '',
                              count: number = 100): Promise<IDCoreMessagePayload[]> {
-        if (!Validator.validateArguments([sender, receiver, decryptPrivateKey, count], [Type.string, Type.string, Type.string, Type.number])) {
+        if (!Validator.validateArguments([sender, receiver, decryptPrivateKey, count],
+            [Type.string, Type.string, Type.string, Type.number])) {
             throw new TypeError(MessagingError.invalid_parameters);
         }
         return new Promise<IDCoreMessagePayload[]>(((resolve, reject) => {
@@ -96,7 +98,7 @@ export class MessagingModule extends ApiModule {
 
     private decryptMessages(messages: IDCoreMessagePayload[], decryptPrivateKey: string): IDCoreMessagePayload[] {
         if (!Validator.validateArray<DCoreMessagePayload>(messages, DCoreMessagePayload)
-            || decryptPrivateKey === undefined || typeof decryptPrivateKey !== 'string') {
+            || !Validator.validateArguments([decryptPrivateKey], [Type.string])) {
             throw new TypeError(MessagingError.invalid_parameters);
         }
         const result = [].concat(messages);
@@ -105,10 +107,10 @@ export class MessagingModule extends ApiModule {
                 try {
                     msg.text = CryptoUtils.decryptWithChecksum(
                         msg.receivers_data[0].data,
-                        KeyPrivate.fromWif(decryptPrivateKey),
-                        KeyPublic.fromString(msg.receivers_data[0].receiver_pubkey),
+                        decryptPrivateKey,
+                        msg.receivers_data[0].receiver_pubkey,
                         msg.receivers_data[0].nonce
-                    ).toString('utf-8');
+                    );
                 } catch (e) {
                     msg.text = '';
                 }
@@ -156,11 +158,11 @@ export class MessagingModule extends ApiModule {
                     };
                     const encryptedMsg = CryptoUtils.encryptWithChecksum(
                         message,
-                        KeyPrivate.fromWif(privateKey),
-                        KeyPublic.fromString(toAccount.options.memo_key),
+                        privateKey,
+                        toAccount.options.memo_key,
                         messagePayload.receivers_data[0].nonce.toString()
                     );
-                    messagePayload.receivers_data[0].data = encryptedMsg.toString('hex');
+                    messagePayload.receivers_data[0].data = encryptedMsg;
                     const buffer = new Buffer(JSON.stringify(messagePayload)).toString('hex');
 
                     const customOp = new Operations.CustomOperation(sender, [sender], CustomOperationSubtype.messaging, buffer);
