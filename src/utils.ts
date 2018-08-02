@@ -220,7 +220,7 @@ export class Utils {
      * @param {Buffer} fromBuffer       Buffer to calculate hash from.
      * @returns {string}                RIPEMD160 hash.
      */
-    public static ripemdHash(fromBuffer: Buffer): string {
+    public static ripemdHash(fromBuffer: string): string {
         return CryptoUtils.ripemdHash(fromBuffer);
     }
 
@@ -237,7 +237,7 @@ export class Utils {
         return [pkey, pubKey];
     }
 
-    /**
+    /**ArrayValidationTuple
      * Calculate public key from given private key.
      *
      * @param {KeyPrivate} privateKey      Private key to get public key for.
