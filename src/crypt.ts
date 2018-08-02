@@ -102,10 +102,10 @@ export class CryptoUtils {
      * Calculate RIPEMD160 hash from input.
      * Used as 'hash' parameter when submitting content.
      *
-     * @param {Buffer} fromBuffer   Input to calculate buffer from.
+     * @param {string} fromBuffer   Input to calculate buffer from.
      * @returns {string}            RIPEMD160 hashed text.
      */
-    public static ripemdHash(fromBuffer: Buffer): string {
+    public static ripemdHash(fromBuffer: string): string {
         if (fromBuffer === undefined) {
             throw new TypeError(CryptoUtilsError.invalid_parameters);
         }
