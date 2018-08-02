@@ -27,7 +27,7 @@ describe('(client/unit) Crypt helper test', () => {
         const hash = dcorejs.CryptoUtils.md5('dd.duskis+st14@gmail.com');
         expect(`u${hash}`).to.equal('u5d42a7b0b5713396aac58019eed01d53');
     });
-    ArrayValidationTuple
+
     it('create sha256 hash', () => {
         const hash = dcorejs.CryptoUtils.sha256('dd.duskis+st14@gmail.com');
         expect(hash).to.equal('462b25ab8691e689b8b7fc6d2193d3db868b65fcdd293d118aa39cb1414df449');
