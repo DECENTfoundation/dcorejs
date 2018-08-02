@@ -428,8 +428,8 @@ export class AccountModule extends ApiModule {
      * @return {Promise<HistoryRecord[]>}       List of HistoryRecord objects.
      */
     public getAccountHistory(accountId: string, historyOptions?: HistoryOptions): Promise<HistoryRecord[]> {
-        if (accountId === undefined || typeof accountId !== 'string'
-            || !Validator.validateObject<HistoryOptions>(historyOptions, HistoryOptions)) {
+        if (accountId === undefined || typeof accountId !== Type.string
+            || (historyOptions && !Validator.validateObject<HistoryOptions>(historyOptions, HistoryOptions))) {
             throw new TypeError(AccountError.invalid_parameters);
         }
         return new Promise((resolve, reject) => {
