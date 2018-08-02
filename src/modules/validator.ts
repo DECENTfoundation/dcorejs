@@ -57,14 +57,14 @@ export class Validator {
         return (results && results.length > 1) ? results[1] : '';
     }
 
-    static validateObject<T>(object: T | any, typeConstructor: { new(): T }): boolean {
-        const t = new typeConstructor();
+    static validateObject<T>(object: T | any, typeConstructor: { new(... args: any[]): T }): boolean {
+        const type = new typeConstructor();
         let isValid = true;
         if (typeof object !== Type.object) {
             return false;
         }
-        Object.keys(t).forEach(key => {
-            if (t[key] !== null && typeof t[key] !== typeof object[key]) {
+        Object.keys(type).forEach(key => {
+            if (type[key] !== null && typeof type[key] !== typeof object[key]) {
                 isValid = false;
             }
         });
