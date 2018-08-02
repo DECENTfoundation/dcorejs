@@ -25,10 +25,11 @@ import {
 import { DCoreAssetObject } from '../model/asset';
 import { Memo, Operation, Operations } from '../model/transaction';
 import { TransactionBuilder } from '../transactionBuilder';
-import { KeyPrivate, KeyPublic, Utils } from '../utils';
+import { Utils } from '../utils';
 import { ApiModule } from './ApiModule';
 import { Validator } from './validator';
 import {Type} from '../model/types';
+import {KeyPrivate, KeyPublic} from '../model/utils';
 
 export enum AccountOrder {
     nameAsc = '+name',
@@ -651,7 +652,7 @@ export class AccountModule extends ApiModule {
                     };
                     const keys = {
                         ec_keys: privateKeys.map(pk => {
-                            const pubKey = Utils.getPublicKey(Utils.privateKeyFromWif(pk));
+                            const pubKey = Utils.getPublicKey(pk);
                             return [pubKey.stringKey, pk];
                         }),
                         el_gamal_keys: elGamalKeys,

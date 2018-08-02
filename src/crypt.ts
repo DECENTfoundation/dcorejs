@@ -1,7 +1,7 @@
 /**
  * @module CryptoUtils
  */
-import {KeyPrivate, KeyPublic} from './utils';
+import {KeyPrivate, KeyPublic} from './model/utils';
 import {dcorejs_lib} from './helpers';
 import * as cryptoJs from 'crypto-js';
 import {Validator} from './modules/validator';

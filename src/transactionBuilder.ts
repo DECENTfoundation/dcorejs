@@ -2,11 +2,12 @@
  * @module TransactionBuilder
  */
 import {dcorejs_lib} from './helpers';
-import {KeyPrivate, Utils} from './utils';
+import {Utils} from './utils';
 import {Operation} from './model/transaction';
 import {ProposalCreateParameters} from './model/proposal';
 import {Validator} from './modules/validator';
 import {Type} from './model/types';
+import {KeyPrivate} from './model/utils';
 
 export enum TransactionBuilderError {
     invalid_parameters = 'invalid_parameters',
