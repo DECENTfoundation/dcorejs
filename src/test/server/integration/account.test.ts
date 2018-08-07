@@ -36,12 +36,13 @@ let databaseApi: DatabaseApi;
 let accountModule: AccountModule;
 
 before(() => {
-    sinon.stub(ApiConnector.prototype, 'connectApi').callsFake(() => new Promise(resolve => resolve()));
+    this.apiConnector = sinon.stub(ApiConnector.prototype, 'connectApi').callsFake(() => new Promise(resolve => resolve()));
     apiConnector = new ApiConnector(dcoreNetworkAddresses, dcorejs_lib.Apis);
     chainApi = new ChainApi(apiConnector, dcorejs_lib.ChainStore);
     historyApi = new HistoryApi(dcorejs_lib.Apis, apiConnector);
     databaseApi = new DatabaseApi(dcorejs_lib.Apis, apiConnector);
     accountModule = new AccountModule(databaseApi, chainApi, historyApi, apiConnector);
+    this.apiConnector.restore();
 });
 
 beforeEach(() => {
