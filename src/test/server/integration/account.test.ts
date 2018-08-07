@@ -1,12 +1,15 @@
 import * as dcore_js from '../../../../';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
-import {DatabaseApi} from '../../../api/database';
-import {getLibRef} from '../../../helpers';
-import {ApiConnector} from '../../../api/apiConnector';
-import {DatabaseOperations} from '../../../api/model/database';
-import {CreateAccountType, TransferType, UpdateAccountType} from '../../../model/operationPrototype';
-import {UpdateAccountParameters} from '../../../model/account';
+import { DatabaseApi } from '../../../api/database';
+import { getLibRef } from '../../../helpers';
+import { ApiConnector } from '../../../api/apiConnector';
+import { DatabaseOperations } from '../../../api/model/database';
+import { CreateAccountType, TransferType, UpdateAccountType } from '../../../model/operationPrototype';
+import { UpdateAccountParameters } from '../../../model/account';
+import { AccountModule } from '../../../modules/account';
+import { HistoryApi } from '../../../api/history';
+import { ChainApi } from '../../../api/chain';
 
 const expect = chai.expect;
 chai.should();
@@ -22,131 +25,141 @@ const memoKey = 'DCT8cYDtKZvcAyWfFRusy6ja1Hafe9Ys4UPJS92ajTmcrufHnGgjp';
 
 // turn off unverified certificate rejection
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
-const dcore = getLibRef();
-const connector = new ApiConnector(dcoreNetworkAddresses, dcore.Apis);
+const dcorejs_lib = getLibRef();
+const connector = new ApiConnector(dcoreNetworkAddresses, dcorejs_lib.Apis);
+const accounts = require('./fixtures/accounts.json');
+const assets = require('./fixtures/assets.json');
+
+let apiConnector: ApiConnector;
+let chainApi: ChainApi;
+let historyApi: HistoryApi;
+let databaseApi: DatabaseApi;
+let accountModule: AccountModule;
 
 before(() => {
-    dcore_js.initialize({
-        chainId: chainId,
-        dcoreNetworkWSPaths: dcoreNetworkAddresses
-    });
+    apiConnector = new ApiConnector(dcoreNetworkAddresses, dcorejs_lib.Apis);
+    chainApi = new ChainApi(apiConnector, dcorejs_lib.ChainStore);
+    historyApi = new HistoryApi(dcorejs_lib.Apis, apiConnector);
+    databaseApi = new DatabaseApi(dcorejs_lib.Apis, apiConnector);
+    accountModule = new AccountModule(databaseApi, chainApi, historyApi, apiConnector);
 });
+
+beforeEach(() => {
+    this.fetch = sinon.stub(chainApi, 'fetch');
+    this.connection = sinon.stub(apiConnector, 'connection');
+    this.getAccountById = sinon.stub(accountModule, 'getAccountById');
+});
+
+afterEach(() => {
+    this.connection.restore();
+    this.fetch.restore();
+    this.getAccountById.restore();
+});
+
 describe('(server/integration) Account fetch', () => {
 
     it('transfer', (done) => {
-        const mock = sinon.mock(new DatabaseApi(dcore.Apis, connector).execute(new DatabaseOperations.GetAccounts(['1.2.27', '1.2.24'])));
-        mock.object
-            .then(result => {
-                const operationMock = {
-                    from: '1.2.27',
-                    to: '1.2.24',
-                    amount: { asset_id: '1.3.0', amount: 10 },
-                    memo: {
-                        from: result[0].options.memo_key,
-                        to: result[1].options.memo_key,
-                    },
-                    fee: {amount: 0, asset_id: 0}
-                };
-                dcore_js.account().transfer(0.0000001, '1.3.0', '1.2.27', '1.2.24', '', privateKey, false)
-                    .then(result => {
-                        const operation = result.operation as TransferType;
-                        expect(operation.from).to.equals(operationMock.from);
-                        expect(operation.to).to.equals(operationMock.to);
-                        expect(operation.amount).to.eql(operationMock.amount);
-                        expect(operation.memo.from).to.equals(operationMock.memo.from);
-                        expect(operation.memo.to).to.equals(operationMock.memo.to);
-                        done();
-                    })
-                    .catch(err => {
-                        console.log('Error: ', err);
-                        chai.assert.isDefined(err);
-                    });
+        const accountFrom = accounts.all[0];
+        const accountTo = accounts.all[1];
+        const operationMock = {
+            from: accountFrom.id,
+            to: accountTo.id,
+            amount: { asset_id: '1.3.0', amount: 10 },
+            memo: {
+                from: accountFrom.options.memo_key,
+                to: accountTo.options.memo_key,
+            },
+            fee: { amount: 0, asset_id: 0 }
+        };
+        this.fetch.resolves([accountFrom, accountTo, assets.dct_asset]);
+        accountModule.transfer(0.0000001, '1.3.0', accountFrom.id, accountTo.id, '', privateKey, false)
+            .then(res => {
+                const operation = res.operation as TransferType;
+                expect(operation.from).to.equals(operationMock.from);
+                expect(operation.to).to.equals(operationMock.to);
+                expect(operation.amount).to.eql(operationMock.amount);
+                expect(operation.memo.from).to.equals(operationMock.memo.from);
+                expect(operation.memo.to).to.equals(operationMock.memo.to);
+                expect(JSON.stringify(operation.amount)).to.equals(JSON.stringify(operationMock.amount));
+                done();
             })
-            .catch(error => {
-                console.log('Mock error: ', error);
+            .catch(err => {
+                console.log('Error: ', err);
+                chai.assert.isDefined(err);
             });
-    }).timeout(15000);
+    });
 
 
     it('register account', (done) => {
+        const accountFrom = accounts.all[0];
+        this.connection.resolves({});
+
         const accountName = Date.now().toString();
-        const mock = sinon.mock(new DatabaseApi(dcore.Apis, connector).execute(new DatabaseOperations.GetAccounts([accountId])));
-        mock.object
+        const operationMock = {
+            name: accountName,
+            owner: Object.assign({}, accountFrom.owner),
+            active: Object.assign({}, accountFrom.active),
+            options: {
+                memo_key: memoKey,
+                voting_account: '1.2.3',
+                allow_subscription: false,
+                price_per_subscribe: { amount: 0, asset_id: '1.3.0' },
+                num_miner: 0,
+                votes: [],
+                extensions: [],
+                subscription_period: 0,
+            },
+            registrar: accountFrom.id,
+        };
+        accountModule.registerAccount(accountName, ownerKey, activeKey, memoKey, accountId, privateKey, false)
             .then(result => {
-                const operationMock = {
-                    name: accountName,
-                    owner: Object.assign({}, result[0].owner),
-                    active: Object.assign({}, result[0].active),
-                    options: {
-                        memo_key: memoKey,
-                        voting_account: '1.2.3',
-                        allow_subscription: false,
-                        price_per_subscribe: {amount: 0, asset_id: '1.3.0'},
-                        num_miner: 0,
-                        votes: [],
-                        extensions: [],
-                        subscription_period: 0,
-                    },
-                    registrar: accountId,
-                };
-                dcore_js.account().registerAccount(accountName, ownerKey, activeKey, memoKey, accountId, privateKey, false)
-                    .then(result => {
-                        const operation = result.operation as CreateAccountType;
-                        expect(operation.name).to.equals(operationMock.name);
-                        expect(operation.owner).to.eql(operationMock.owner);
-                        expect(operation.active).to.eql(operationMock.active);
-                        expect(operation.options).to.eql(operationMock.options);
-                        expect(operation.registrar).to.equals(operationMock.registrar);
-                        done();
-                    })
-                    .catch(err => {
-                        console.log('Error: ', err);
-                        chai.assert.isDefined(err);
-                    });
+                const operation = result.operation as CreateAccountType;
+                expect(operation.name).to.equals(operationMock.name);
+                expect(operation.owner).to.eql(operationMock.owner);
+                expect(operation.active).to.eql(operationMock.active);
+                expect(operation.options).to.eql(operationMock.options);
+                expect(operation.registrar).to.equals(operationMock.registrar);
+                done();
             })
-            .catch(error => {
-                console.log('Mock error: ', error);
+            .catch(err => {
+                console.log('Error: ', err);
+                chai.assert.isDefined(err);
             });
     });
 
     it('update account', (done) => {
-        const mock = sinon.mock(new DatabaseApi(dcore.Apis, connector).execute(new DatabaseOperations.GetAccounts([accountId])));
-        mock.object
+        this.getAccountById.resolves(accounts.all[0]);
+        const accountFrom = accounts.all[0];
+        const numMiner = 3;
+        const params: UpdateAccountParameters = {
+            newNumMiner: numMiner,
+        };
+        const operationMock = {
+            account: accountId,
+            owner: Object.assign({}, accountFrom.owner),
+            active: Object.assign({}, accountFrom.active),
+            new_options: {
+                memo_key: accountFrom.options.memo_key,
+                voting_account: accountFrom.options.voting_account,
+                num_miner: numMiner,
+                votes: accountFrom.options.votes,
+                extensions: accountFrom.options.extensions,
+                allow_subscription: accountFrom.options.allow_subscription,
+                price_per_subscribe: Object.assign({}, accountFrom.options.price_per_subscribe),
+                subscription_period: accountFrom.options.subscription_period,
+            },
+            extensions: {},
+            fee: { amount: 0, asset_id: 0 },
+        };
+        accountModule.updateAccount(accountFrom.id, params, privateKey, false)
             .then(result => {
-                const numMiner = 5;
-                const params: UpdateAccountParameters = {
-                    newNumMiner: numMiner,
-                };
-                const operationMock = {
-                    account: accountId,
-                    owner: Object.assign({}, result[0].owner),
-                    active: Object.assign({}, result[0].active),
-                    new_options: {
-                        memo_key: result[0].options.memo_key,
-                        voting_account: result[0].options.voting_account,
-                        num_miner: numMiner,
-                        votes: result[0].options.votes,
-                        extensions: result[0].options.extensions,
-                        allow_subscription: result[0].options.allow_subscription,
-                        price_per_subscribe: Object.assign({}, result[0].options.price_per_subscribe),
-                        subscription_period: result[0].options.subscription_period,
-                    },
-                    extensions: {},
-                    fee: {amount: 0, asset_id: 0},
-                };
-                dcore_js.account().updateAccount(accountId, params, privateKey, false)
-                    .then(result => {
-                        const operation = result.operation as UpdateAccountType;
-                        expect(operation).to.eql(operationMock);
-                        done();
-                    })
-                    .catch(err => {
-                        console.log('Error: ', err);
-                        chai.assert.isDefined(err);
-                    });
+                const operation = result.operation as UpdateAccountType;
+                expect(JSON.stringify(operation)).to.eql(JSON.stringify(operationMock));
+                done();
             })
-            .catch(error => {
-                console.log('Mock error: ', error);
+            .catch(err => {
+                console.log('Error: ', err);
+                chai.assert.isDefined(err);
             });
     });
 
