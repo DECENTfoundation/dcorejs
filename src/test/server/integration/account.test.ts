@@ -16,7 +16,7 @@ chai.should();
 chai.config.showDiff = true;
 
 const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
-const dcoreNetworkAddresses = ['wss://stagesocket.decentgo.com:8090'];
+const dcoreNetworkAddresses = [];
 const accountId = '1.2.27';
 const privateKey = '5KcA6ky4Hs9VoDUSdTF4o3a7QDgiiG5gkpLLysRWR8dy6EAgTnZ';
 const ownerKey = 'DCT8cYDtKZvcAyWfFRusy6ja1Hafe9Ys4UPJS92ajTmcrufHnGgjp';
@@ -26,7 +26,6 @@ const memoKey = 'DCT8cYDtKZvcAyWfFRusy6ja1Hafe9Ys4UPJS92ajTmcrufHnGgjp';
 // turn off unverified certificate rejection
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
 const dcorejs_lib = getLibRef();
-const connector = new ApiConnector(dcoreNetworkAddresses, dcorejs_lib.Apis);
 const accounts = require('./fixtures/accounts.json');
 const assets = require('./fixtures/assets.json');
 
@@ -37,6 +36,7 @@ let databaseApi: DatabaseApi;
 let accountModule: AccountModule;
 
 before(() => {
+    sinon.stub(ApiConnector.prototype, 'connectApi').callsFake(() => new Promise(resolve => resolve()));
     apiConnector = new ApiConnector(dcoreNetworkAddresses, dcorejs_lib.Apis);
     chainApi = new ChainApi(apiConnector, dcorejs_lib.ChainStore);
     historyApi = new HistoryApi(dcorejs_lib.Apis, apiConnector);
@@ -46,12 +46,10 @@ before(() => {
 
 beforeEach(() => {
     this.fetch = sinon.stub(chainApi, 'fetch');
-    this.connection = sinon.stub(apiConnector, 'connection');
     this.getAccountById = sinon.stub(accountModule, 'getAccountById');
 });
 
 afterEach(() => {
-    this.connection.restore();
     this.fetch.restore();
     this.getAccountById.restore();
 });
@@ -92,7 +90,6 @@ describe('(server/integration) Account fetch', () => {
 
     it('register account', (done) => {
         const accountFrom = accounts.all[0];
-        this.connection.resolves({});
 
         const accountName = Date.now().toString();
         const operationMock = {
