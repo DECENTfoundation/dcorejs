@@ -18,6 +18,7 @@ module.exports = function (config) {
             './dist/dcorejs.umd.js',
             './node_modules/mocha/mocha.js',
             'src/test/client/declarations.js',
+            'src/test/client/sinonDeclarations.js',
             'src/test/client/integration/fixtures/accounts.js',
             'src/test/client/integration/fixtures/assets.js',
             'src/test/client/integration/fixtures/content.js',
