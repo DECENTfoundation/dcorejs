@@ -1,4 +1,3 @@
-import * as dcore_js from '../../../../';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { SubmitObject, Synopsis } from '../../../model/content';
@@ -104,8 +103,8 @@ describe('(server/integration) Content fetch', () => {
 
     it('buy content', (done) => {
         this.getContent.resolves(contentData.content);
-        const elGammalPrivate = dcore_js.Utils.elGamalPrivate(privateKey);
-        const elGammalPublic = dcore_js.Utils.elGamalPublic(elGammalPrivate);
+        const elGammalPrivate = Utils.elGamalPrivate(privateKey);
+        const elGammalPublic = Utils.elGamalPublic(elGammalPrivate);
         const buyerId = '1.2.62';
         const buyerPrivateKey = '5Jz3i2MEZNFJAFfRvJwTDtLULzoxmQH6aP7VKbQnc8ZrJa1K4qZ';
         const content = contentData.content;
