@@ -79,12 +79,10 @@ export class Validator {
             for (let i = 0; i < array.length; i++) {
                 const el = array[i];
                 if (typeof ofType === Type.string) {
-                    console.log(el);
                     if (!Validator.validateStringType(el, ofType as string)) {
                         return false;
                     }
                 } else if (typeof ofType === Type.function) {
-                    console.log(el);
                     if (!Validator.validateObject(el, ofType as {new (): any})) {
                         return false;
                     }

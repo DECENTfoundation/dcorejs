@@ -1,10 +1,8 @@
-import * as dcore_js from '../../../../';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { DatabaseApi } from '../../../api/database';
 import { getLibRef } from '../../../helpers';
 import { ApiConnector } from '../../../api/apiConnector';
-import { DatabaseOperations } from '../../../api/model/database';
 import { CreateAccountType, TransferType, UpdateAccountType } from '../../../model/operationPrototype';
 import { UpdateAccountParameters } from '../../../model/account';
 import { AccountModule } from '../../../modules/account';

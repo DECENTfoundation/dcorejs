@@ -10,7 +10,6 @@ import { DatabaseApi } from '../../../api/database';
 import { ContentModule } from '../../../modules/content';
 import { getLibRef } from '../../../helpers';
 import { Utils } from '../../../utils';
-import { AssetsPlugin } from '../../../../node_modules/typedoc';
 
 const expect = chai.expect;
 chai.should();
