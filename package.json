@@ -84,6 +84,7 @@
         "jsdoc": "^3.5.5",
         "moment": "^2.22.2",
         "ripemd160": "2.0.1",
+        "sinon": "^6.1.4",
         "ssl-root-cas": "1.2.4",
         "typedoc-plugin-external-module-name": "^1.1.1"
     },
