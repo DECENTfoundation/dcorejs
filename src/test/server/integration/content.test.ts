@@ -122,7 +122,5 @@ describe('(server/integration) Content fetch', () => {
                 chai.assert.isDefined(error);
             });
     });
-
-
 });
 

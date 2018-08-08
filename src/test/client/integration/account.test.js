@@ -2,36 +2,6 @@ const accountName = 'u5d42a7b0b5713396aac58019eed01d53';
 const privateKey = '5JdZfU9Ni7wopN8JPLPM2SJBkKWB19XJSR4mK27Ww7kyZAidJ1M';
 const transactionId = '1.7.190';
 
-let apiConnector;
-let chainApi;
-let historyApi;
-let databaseApi;
-let accountModule;
-
-let apiConnectorStub;
-let fetchStub;
-let getAccountByIdStub;
-
-before(() => {
-    apiConnectorStub = sinon.stub(dcorejs.ApiConnector.prototype, 'connectApi').callsFake(() => new Promise(resolve => resolve()));
-    apiConnector = new dcorejs.ApiConnector(dcoreNetworkAddresses, dcorejs_lib.Apis);
-    chainApi = new dcorejs.ChainApi(apiConnector, dcorejs_lib.ChainStore);
-    historyApi = new dcorejs.HistoryApi(dcorejs_lib.Apis, apiConnector);
-    databaseApi = new dcorejs.DatabaseApi(dcorejs_lib.Apis, apiConnector);
-    accountModule = new dcorejs.AccountModule(databaseApi, chainApi, historyApi, apiConnector);
-    apiConnectorStub.restore();
-});
-
-beforeEach(() => {
-    fetchStub = sinon.stub(chainApi, 'fetch');
-    getAccountByIdStub = sinon.stub(accountModule, 'getAccountById');
-});
-
-afterEach(() => {
-    fetchStub.restore();
-    getAccountByIdStub.restore();
-});
-
 describe('(client/integration) Account module', () => {
     it('transfer asset', (done) => {
         const accountFrom = accounts.all[0];
