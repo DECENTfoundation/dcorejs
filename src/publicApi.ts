@@ -18,3 +18,4 @@ export * from './model/subscription';
 export { ChainOperationType } from './api/model/chain';
 export { dictionary } from './resources/dictionary';
 export { Operations as TransactionOperations } from './model/transaction';
+export * from './api';

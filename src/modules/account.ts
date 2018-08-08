@@ -28,8 +28,8 @@ import { TransactionBuilder } from '../transactionBuilder';
 import { Utils } from '../utils';
 import { ApiModule } from './ApiModule';
 import { Validator } from './validator';
-import {Type} from '../model/types';
-import {KeyPrivate, KeyPublic} from '../model/utils';
+import { Type } from '../model/types';
+import { KeyPrivate, KeyPublic } from '../model/utils';
 
 export enum AccountOrder {
     nameAsc = '+name',
@@ -263,7 +263,10 @@ export class AccountModule extends ApiModule {
 
             this.chainApi.fetch(...methods)
                 .then(result => {
-                    const [senderAccount, receiverAccount, asset] = result;
+                    const senderAccount: Account = JSON.parse(JSON.stringify(result[0]));
+                    const receiverAccount: Account = JSON.parse(JSON.stringify(result[1]));
+                    const asset: Asset = JSON.parse(JSON.stringify(result[2]));
+
                     if (!senderAccount) {
                         reject(
                             this.handleError(
@@ -282,8 +285,8 @@ export class AccountModule extends ApiModule {
                     }
 
                     const nonce: string = ChainApi.generateNonce();
-                    const fromPublicKey = senderAccount.get('options').get('memo_key');
-                    const toPublicKey = receiverAccount.get('options').get('memo_key');
+                    const fromPublicKey = senderAccount.options.memo_key;
+                    const toPublicKey = receiverAccount.options.memo_key;
 
                     const memo_object: Memo = {
                         from: fromPublicKey,
@@ -299,8 +302,8 @@ export class AccountModule extends ApiModule {
                     const assetObject = JSON.parse(JSON.stringify(asset));
                     const transaction = new TransactionBuilder();
                     const transferOperation = new Operations.TransferOperation(
-                        senderAccount.get('id'),
-                        receiverAccount.get('id'),
+                        senderAccount.id,
+                        receiverAccount.id,
                         Asset.create(amount, assetObject),
                         memo_object
                     );
@@ -782,8 +785,10 @@ export class AccountModule extends ApiModule {
      */
     public updateAccount(accountId: string, params: UpdateAccountParameters, privateKey: string, broadcast: boolean = true)
         : Promise<Operation> {
-        if (!Validator.validateArguments([accountId, privateKey, broadcast], [Type.string, Type.string, Type.boolean])
-            || Validator.validateObject<UpdateAccountParameters>(params, UpdateAccountParameters)) {
+        if (!Validator.validateArguments(
+            [accountId, params, privateKey, broadcast],
+            [Type.string, UpdateAccountParameters, Type.string, Type.boolean])
+        ) {
             throw new TypeError(AccountError.invalid_parameters);
         }
         return new Promise<Operation>(((resolve, reject) => {
