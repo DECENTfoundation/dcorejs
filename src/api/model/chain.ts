@@ -50,8 +50,9 @@ export enum ChainOperationType {
     renewal_of_subscription = 45,
 }
 
-export class ChainError {
-    static command_execution_failed = 'command_execution_failed';
+export enum ChainError {
+    command_execution_failed = 'command_execution_failed',
+    connection_failed = 'connection_failed'
 }
 
 export enum ChainMethodName {

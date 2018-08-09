@@ -1,11 +1,25 @@
 /**
  * @module ChainApi
  */
-import {dcorejs_lib} from '../helpers';
-import {ApiConnector} from './apiConnector';
-import {ChainError, ChainSubscriptionCallback, Method} from './model/chain';
+import { dcorejs_lib } from '../helpers';
+import { ApiConnector } from './apiConnector';
+import { ChainError, ChainSubscriptionCallback, Method } from './model/chain';
+import { ApiModule } from '../modules/ApiModule';
 
-export class ChainApi {
+export enum SubscriptionType {
+    subscribePendingTransactions = 'subscribePendingTransactions',
+    subscribeBlockApplied = 'subscribeBlockApplied',
+    general = 'general'
+}
+export class Subscription {
+    public readonly type: SubscriptionType;
+    public readonly callback: ChainSubscriptionCallback;
+    constructor(type: SubscriptionType, callback: ChainSubscriptionCallback) {
+        this.type = type;
+        this.callback = callback;
+    }
+}
+export class ChainApi extends ApiModule {
 
     static asset = 'DCT';
     static asset_id = '1.3.0';
@@ -31,6 +45,7 @@ export class ChainApi {
     }
 
     constructor(apiConnector: ApiConnector, chainStore: any) {
+        super({});
         this._apiConnector = apiConnector;
         this._chainStore = chainStore;
     }
@@ -63,40 +78,74 @@ export class ChainApi {
         });
     }
 
-    public subscribe(callback: ChainSubscriptionCallback) {
-        this.connect()
-            .then(res => {
-                this._chainStore.subscribe(callback);
-            })
-            .catch(err => {
-                if (process.env.ENVIRONMENT === 'DEV') {
-                    console.log(err);
-                }
-            });
+    public subscribe(callback: ChainSubscriptionCallback): Promise<Subscription> {
+        return new Promise<Subscription>((resolve, reject) => {
+            this.connect()
+                .then(res => {
+                    this._chainStore.subscribe(callback);
+                    resolve(new Subscription(SubscriptionType.general, callback));
+                })
+                .catch(err => {
+                    if (process.env.ENVIRONMENT === 'DEV') {
+                        console.log(err);
+                    }
+                    reject(this.handleError(ChainError.connection_failed, err));
+                });
+        });
     }
 
-    public subscribePendingTransactions(callback: ChainSubscriptionCallback) {
-        this.connect()
-            .then(res => {
-                this._chainStore.subscribePendingTransaction(callback);
-            })
-            .catch(err => {
-                if (process.env.ENVIRONMENT === 'DEV') {
-                    console.log(err);
-                }
-            });
+    /**
+     * @param callback  Callback method to handle subscription data.
+     */
+    public subscribePendingTransactions(callback: ChainSubscriptionCallback): Promise<Subscription> {
+        return new Promise<Subscription>((resolve, reject) => {
+            this.connect()
+                .then(res => {
+                    this._chainStore.subscribePendingTransaction(callback);
+                    resolve(new Subscription(SubscriptionType.subscribePendingTransactions, callback));
+                })
+                .catch(err => {
+                    if (process.env.ENVIRONMENT === 'DEV') {
+                        console.log(err);
+                    }
+                    reject(this.handleError(ChainError.connection_failed, err));
+                });
+        });
     }
 
-    public subscribeBlockApplied(callback: ChainSubscriptionCallback) {
-        this.connect()
+    /**
+     * @param callback  Callback method to handle subscription data.
+     */
+    public subscribeBlockApplied(callback: ChainSubscriptionCallback): Promise<Subscription> {
+        return new Promise<Subscription>((resolve, reject) => {
+            this.connect()
             .then(res => {
                 this._chainStore.subscribeBlockApplied(callback);
+                resolve(new Subscription(SubscriptionType.subscribeBlockApplied, callback));
             })
             .catch(err => {
                 if (process.env.ENVIRONMENT === 'DEV') {
                     console.log(err);
                 }
+                reject(this.handleError(ChainError.connection_failed, err));
             });
+        });
+    }
+
+    public unsubscribe(subscription: Subscription): boolean {
+        switch (subscription.type) {
+            case SubscriptionType.general: {
+                return this._chainStore.unsubscribe(subscription.callback);
+            }
+            case SubscriptionType.subscribeBlockApplied: {
+                return this._chainStore.unsubscribeBlockApplied(subscription.callback);
+            }
+            case SubscriptionType.subscribePendingTransactions: {
+                return this._chainStore.unsubscribePendingTransaction(subscription.callback);
+            }
+            default:
+                return false;
+        }
     }
 
     private connect(): Promise<void> {
