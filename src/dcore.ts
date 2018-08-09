@@ -1,23 +1,23 @@
 /**
  * @module DCore
  */
-import {getLibRef} from './helpers';
-import {ContentModule} from './modules/content';
-import {ChainApi} from './api/chain';
-import {DatabaseApi} from './api/database';
-import {AccountModule} from './modules/account';
-import {HistoryApi} from './api/history';
-import {ApiConnector, ConnectionState} from './api/apiConnector';
-import {AssetModule} from './modules/asset';
-import {ExplorerModule} from './modules/explorer';
-import {MiningModule} from './modules/mining';
-import {SubscriptionModule} from './modules/subscription';
-import {SeedingModule} from './modules/seeding';
-import {ProposalModule} from './modules/proposal';
-import {TransactionBuilder} from './transactionBuilder';
-import {ChainSubscriptionBlockAppliedCallback, ChainSubscriptionCallback} from './api/model/chain';
-import {MessagingApi} from './api/messaging';
-import {MessagingModule} from './modules/messaging';
+import { getLibRef } from './helpers';
+import { ContentModule } from './modules/content';
+import { ChainApi, SubscriptionType, Subscription } from './api/chain';
+import { DatabaseApi } from './api/database';
+import { AccountModule } from './modules/account';
+import { HistoryApi } from './api/history';
+import { ApiConnector, ConnectionState } from './api/apiConnector';
+import { AssetModule } from './modules/asset';
+import { ExplorerModule } from './modules/explorer';
+import { MiningModule } from './modules/mining';
+import { SubscriptionModule } from './modules/subscription';
+import { SeedingModule } from './modules/seeding';
+import { ProposalModule } from './modules/proposal';
+import { TransactionBuilder } from './transactionBuilder';
+import { ChainSubscriptionBlockAppliedCallback, ChainSubscriptionCallback } from './api/model/chain';
+import { MessagingApi } from './api/messaging';
+import { MessagingModule } from './modules/messaging';
 
 let _content: ContentModule;
 let _account: AccountModule;
@@ -50,9 +50,9 @@ export interface DcoreConfig {
  * @param {string} environment                                                   Determines environment, possibilities: DEV, PROD
  */
 export function initialize(config: DcoreConfig,
-                           testConnection: boolean = true,
-                           environment: string = 'PROD',
-                           connectionStatusCallback: (state: ConnectionState) => void = null): void {
+    testConnection: boolean = true,
+    environment: string = 'PROD',
+    connectionStatusCallback: (state: ConnectionState) => void = null): void {
     const dcore = getLibRef();
     ChainApi.setupChain(config.chainId, dcore.ChainConfig);
     process.env.ENVIRONMENT = environment;
@@ -75,24 +75,34 @@ export function initialize(config: DcoreConfig,
 
 /**
  * Subscribe for blockchain update notifications. Notifications is fired periodically.
+ * For development purposes.
  *
  * @param {(data: any[]) => void} callback
  */
-export function subscribe(callback: ChainSubscriptionCallback) {
-    _chain.subscribe(callback);
+export function subscribe(type: SubscriptionType, callback: ChainSubscriptionCallback) {
+    return _chain.subscribe(callback);
 }
 
+/**
+ * Subscribe for blockchain block processed notifications. Notifications is fired when block is processed.
+ *
+ * @param callback  Callback method to handle subscription data.
+*/
 export function subscribeBlockApplied(callback: ChainSubscriptionBlockAppliedCallback) {
-    _chain.subscribeBlockApplied(callback);
+    return _chain.subscribeBlockApplied(callback);
 }
 
 /**
  * Subscribe for events fired everytime new transaction is broadcasted to network
  *
- * @param callback
- */
+ * @param callback  Callback method to handle subscription data.
+*/
 export function subscribePendingTransaction(callback: ChainSubscriptionCallback) {
-    _chain.subscribePendingTransactions(callback);
+    return _chain.subscribePendingTransactions(callback);
+}
+
+export function unsubscribe(subscription: Subscription): boolean {
+    return _chain.unsubscribe(subscription);
 }
 
 export function content(): ContentModule {
