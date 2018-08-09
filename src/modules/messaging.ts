@@ -1,20 +1,20 @@
 /**
  * @module MessagingModule
  */
-import {ApiModule} from './ApiModule';
-import {MessagingApi} from '../api/messaging';
-import {DatabaseApi} from '../api/database';
-import {Operations} from '../model/transaction';
-import {TransactionBuilder} from '../transactionBuilder';
-import {Utils} from '../utils';
-import {DatabaseOperations} from '../api/model/database';
-import {Account} from '../model/account';
-import {CryptoUtils} from '../crypt';
-import {CustomOperationSubtype, DCoreMessagePayload, IDCoreMessagePayload, MessagePayload, MessagingError} from '../model/messaging';
-import {MessagingOperations} from '../api/model/messaging';
-import {Type} from '../model/types';
+import { ApiModule } from './ApiModule';
+import { MessagingApi } from '../api/messaging';
+import { DatabaseApi } from '../api/database';
+import { Operations, Operation } from '../model/transaction';
+import { TransactionBuilder } from '../transactionBuilder';
+import { Utils } from '../utils';
+import { DatabaseOperations } from '../api/model/database';
+import { Account } from '../model/account';
+import { CryptoUtils } from '../crypt';
+import { CustomOperationSubtype, DCoreMessagePayload, IDCoreMessagePayload, MessagePayload, MessagingError } from '../model/messaging';
+import { MessagingOperations } from '../api/model/messaging';
+import { Type } from '../model/types';
 import { Validator } from './validator';
-import {KeyPrivate} from '../model/utils';
+import { KeyPrivate } from '../model/utils';
 
 export class MessagingModule extends ApiModule {
     constructor(dbApi: DatabaseApi, messageApi: MessagingApi) {
@@ -79,9 +79,9 @@ export class MessagingModule extends ApiModule {
      * @returns {Promise<IDCoreMessagePayload[]>}    List of DCoreMessagePayload message objects.
      */
     public getMessageObjects(sender?: string,
-                             receiver?: string,
-                             decryptPrivateKey: string = '',
-                             count: number = 100): Promise<IDCoreMessagePayload[]> {
+        receiver?: string,
+        decryptPrivateKey: string = '',
+        count: number = 100): Promise<IDCoreMessagePayload[]> {
         if (!Validator.validateArguments([sender, receiver, decryptPrivateKey, count],
             [Type.string, Type.string, Type.string, Type.number])) {
             throw new TypeError(MessagingError.invalid_parameters);
@@ -131,11 +131,19 @@ export class MessagingModule extends ApiModule {
      * @param {string} privateKey       Private key to encrypt message and sign transaction.
      * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
      */
-    public sendMessage(sender: string, receiverId: string, message: string, privateKey: string): Promise<boolean> {
-        if (!Validator.validateArguments(arguments, [Type.string, Type.string, Type.string, Type.string])) {
+    public sendMessage(
+        sender: string,
+        receiverId: string,
+        message: string,
+        privateKey: string,
+        broadcast: boolean = true): Promise<Operation> {
+        if (!Validator.validateArguments(
+            [sender, receiverId, message, privateKey, broadcast],
+            [Type.string, Type.string, Type.string, Type.string, Type.boolean])
+        ) {
             throw new TypeError(MessagingError.invalid_parameters);
         }
-        return new Promise<boolean>(((resolve, reject) => {
+        return new Promise<Operation>((resolve, reject) => {
             const getAccOp = new DatabaseOperations.GetAccounts([receiverId]);
             this.dbApi.execute(getAccOp)
                 .then((accounts: Account[]) => {
@@ -168,13 +176,17 @@ export class MessagingModule extends ApiModule {
                     const customOp = new Operations.CustomOperation(sender, [sender], CustomOperationSubtype.messaging, buffer);
                     const transaction = new TransactionBuilder();
                     transaction.addOperation(customOp);
-                    transaction.broadcast(privateKey)
-                        .then(res => resolve(true))
-                        .catch(err => reject(this.handleError(MessagingError.query_execution_failed)));
+                    if (broadcast) {
+                        transaction.broadcast(privateKey)
+                            .then(res => resolve(transaction.operations[0]))
+                            .catch(err => reject(this.handleError(MessagingError.query_execution_failed, err)));
+                    } else {
+                        resolve(transaction.operations[0]);
+                    }
                 })
                 .catch(err => {
                     reject(this.handleError(MessagingError.api_connection_failed, err));
                 });
-        }));
+        });
     }
 }
