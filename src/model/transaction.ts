@@ -152,7 +152,7 @@ export namespace Operations {
             return prototype.UpdateAccountPrototype.getPrototype();
         }
 
-        constructor(account: string, owner: Authority, active: Authority, new_options: Options, extensions: {}) {
+        constructor(account: string, owner?: Authority, active?: Authority, new_options?: Options, extensions?: {}) {
             const type: prototype.UpdateAccountType = { account, owner, active, new_options, extensions };
             super(OperationName.account_update, type);
         }
