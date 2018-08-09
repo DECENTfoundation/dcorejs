@@ -123,14 +123,14 @@ export enum OperationType {
 }
 
 export interface Options {
-    memo_key?: string;
-    voting_account?: string;
-    num_miner?: number;
-    votes?: any[];
-    extensions?: any[];
-    allow_subscription?: boolean;
-    price_per_subscribe?: Asset;
-    subscription_period?: number;
+    memo_key: string;
+    voting_account: string;
+    num_miner: number;
+    votes: any[];
+    extensions: any[];
+    allow_subscription: boolean;
+    price_per_subscribe: Asset;
+    subscription_period: number;
 }
 
 export class TransactionRecord {

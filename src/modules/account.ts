@@ -792,38 +792,47 @@ export class AccountModule extends ApiModule {
             throw new TypeError(AccountError.invalid_parameters);
         }
         return new Promise<Operation>(((resolve, reject) => {
-
             this.getAccountById(accountId)
                 .then((account: Account) => {
                     if (account === null) {
                         reject(this.handleError(AccountError.account_does_not_exist));
                         return;
                     }
-                    const ownerAuthority: Authority = Object.assign({}, account.owner);
-                    ownerAuthority.key_auths[0][0] = params.newOwnerKey || account.owner.key_auths[0][0];
+                    let newOptions: Options = undefined;
+                    let ownerAuthority: Authority = undefined;
+                    let activeAuthority: Authority = undefined;
 
-                    const activeAuthority: Authority = Object.assign({}, account.active);
-                    activeAuthority.key_auths[0][0] = params.newActiveKey || account.active.key_auths[0][0];
-
-                    let priceSubscription = Object.assign({}, account.options.price_per_subscribe);
-                    if (params.newSubscription !== undefined) {
-                        priceSubscription = Asset.createDCTAsset(params.newSubscription.pricePerSubscribeAmount);
+                    if (params.newOwnerKey) {
+                        ownerAuthority = Object.assign({}, account.owner);
+                        ownerAuthority.key_auths[0][0] = params.newOwnerKey || account.owner.key_auths[0][0];
                     }
 
-                    const newOptions: Options = {
-                        memo_key: params.newMemoKey || account.options.memo_key,
-                        voting_account: account.options.voting_account,
-                        num_miner: params.newNumMiner || account.options.num_miner,
-                        votes: params.newVotes || account.options.votes,
-                        extensions: account.options.extensions,
-                        allow_subscription: params.newSubscription
-                            ? params.newSubscription.allowSubscription
-                            : account.options.allow_subscription,
-                        price_per_subscribe: priceSubscription,
-                        subscription_period: params.newSubscription
-                            ? params.newSubscription.subscriptionPeriod
-                            : account.options.subscription_period
-                    };
+                    if (params.newActiveKey) {
+                        activeAuthority = Object.assign({}, account.active);
+                        activeAuthority.key_auths[0][0] = params.newActiveKey || account.active.key_auths[0][0];
+                    }
+
+                    if (params.newMemoKey || params.newNumMiner || params.newVotes || params.newSubscription) {
+                        let priceSubscription = Object.assign({}, account.options.price_per_subscribe);
+                        if (params.newSubscription !== undefined) {
+                            priceSubscription = Asset.createDCTAsset(params.newSubscription.pricePerSubscribeAmount);
+                        }
+                        newOptions = {
+                            memo_key: params.newMemoKey || account.options.memo_key,
+                            voting_account: account.options.voting_account,
+                            num_miner: params.newNumMiner || account.options.num_miner,
+                            votes: params.newVotes || account.options.votes,
+                            extensions: account.options.extensions,
+                            allow_subscription: params.newSubscription
+                                ? params.newSubscription.allowSubscription
+                                : account.options.allow_subscription,
+                            price_per_subscribe: priceSubscription,
+                            subscription_period: params.newSubscription
+                                ? params.newSubscription.subscriptionPeriod
+                                : account.options.subscription_period
+                        };
+                    }
+
                     const accountUpdateOperation = new Operations.AccountUpdateOperation(
                         accountId,
                         ownerAuthority,
@@ -848,7 +857,6 @@ export class AccountModule extends ApiModule {
                 .catch((error) => {
                     reject(this.handleError(AccountError.account_update_failed, error));
                 });
-
         }));
     }
 }
