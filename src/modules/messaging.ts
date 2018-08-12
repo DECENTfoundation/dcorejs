@@ -129,6 +129,7 @@ export class MessagingModule extends ApiModule {
      * @param {string} receiverId       Account id of receiver, in format '1.2.X'. Example '1.2.345'.
      * @param {string} message          Content of message.
      * @param {string} privateKey       Private key to encrypt message and sign transaction.
+     * @param {boolean} broadcast       Transaction is broadcasted if set to 'true'. Default value is 'true'.
      * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
      */
     public sendMessage(
@@ -176,13 +177,9 @@ export class MessagingModule extends ApiModule {
                     const customOp = new Operations.CustomOperation(sender, [sender], CustomOperationSubtype.messaging, buffer);
                     const transaction = new TransactionBuilder();
                     transaction.addOperation(customOp);
-                    if (broadcast) {
-                        transaction.broadcast(privateKey)
-                            .then(res => resolve(transaction.operations[0]))
-                            .catch(err => reject(this.handleError(MessagingError.query_execution_failed, err)));
-                    } else {
-                        resolve(transaction.operations[0]);
-                    }
+                    this.finalizeAndBroadcast(transaction, privateKey, broadcast)
+                        .then(res => resolve(res))
+                        .catch(err => reject(err));
                 })
                 .catch(err => {
                     reject(this.handleError(MessagingError.api_connection_failed, err));
