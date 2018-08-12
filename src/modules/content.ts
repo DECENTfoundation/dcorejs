@@ -613,7 +613,8 @@ export class ContentModule extends ApiModule {
         elGammalPub: string,
         privateKey: string,
         broadcast: boolean = true): Promise<Operation> {
-        if (!Validator.validateArguments([contentId, buyerId, elGammalPub, privateKey, broadcast],
+        if (!Validator.validateArguments(
+            [contentId, buyerId, elGammalPub, privateKey, broadcast],
             [Type.string, Type.string, Type.string, Type.string, Type.boolean])
         ) {
             throw new TypeError('Invalid parameters');
