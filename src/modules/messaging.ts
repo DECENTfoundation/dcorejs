@@ -130,7 +130,7 @@ export class MessagingModule extends ApiModule {
      * @param {string} message          Content of message.
      * @param {string} privateKey       Private key to encrypt message and sign transaction.
      * @param {boolean} broadcast       Transaction is broadcasted if set to 'true'. Default value is 'true'.
-     * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
+     * @returns {Promise<Operation>}      Value confirming successful transaction broadcasting.
      */
     public sendMessage(
         sender: string,
