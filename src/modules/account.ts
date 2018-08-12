@@ -308,18 +308,9 @@ export class AccountModule extends ApiModule {
                         memo_object
                     );
                     transaction.addOperation(transferOperation);
-                    if (broadcast) {
-                        transaction.broadcast(privateKey)
-                            .then(() => {
-                                resolve(transaction.operations[0]);
-                            })
-                            .catch(err => {
-                                reject(this.handleError(AccountError.transaction_broadcast_failed, err));
-                                return;
-                            });
-                    } else {
-                        resolve(transaction.operations[0]);
-                    }
+                    this.finalizeAndBroadcast(transaction, privateKey, broadcast)
+                        .then(res => resolve(res))
+                        .catch(err => reject(err));
                 })
                 .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
         });
@@ -552,13 +543,10 @@ export class AccountModule extends ApiModule {
                     });
                     const transaction = new TransactionBuilder();
                     transaction.addOperation(operation);
-                    if (broadcast) {
-                        transaction.broadcast(registrarPrivateKey)
-                            .then(() => resolve(transaction.operations[0]))
-                            .catch(err => reject(err));
-                    } else {
-                        resolve(transaction.operations[0]);
-                    }
+                    this.finalizeAndBroadcast(transaction, registrarPrivateKey, broadcast)
+                        .then(res => resolve(res))
+                        .catch(err => reject(err));
+
                 })
                 .catch(err => {
                     reject(this.handleError(AccountError.api_connection_failed, err));
@@ -842,17 +830,9 @@ export class AccountModule extends ApiModule {
                     );
                     const transaction = new TransactionBuilder();
                     transaction.addOperation(accountUpdateOperation);
-                    if (broadcast) {
-                        transaction.broadcast(privateKey)
-                            .then(() => {
-                                resolve(transaction.operations[0]);
-                            })
-                            .catch((error: any) => {
-                                reject(this.handleError(AccountError.transaction_broadcast_failed, error));
-                            });
-                    } else {
-                        resolve(transaction.operations[0]);
-                    }
+                    this.finalizeAndBroadcast(transaction, privateKey, broadcast)
+                        .then(res => resolve(res))
+                        .catch(err => reject(err));
                 })
                 .catch((error) => {
                     reject(this.handleError(AccountError.account_update_failed, error));
