@@ -114,10 +114,11 @@ export class TransactionBuilder {
      *
      * @return {Promise<void>}  Void.
      */
-    private setTransactionFees(): Promise<void> {
+    public setTransactionFees(): Promise<void> {
         return new Promise((resolve, reject) => {
             this._transaction.set_required_fees()
                 .then(() => {
+                    this._operations[0].operation['fee'] = this._transaction.operations[0][1].fee;
                     resolve();
                 })
                 .catch(() => {

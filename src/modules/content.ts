@@ -132,7 +132,8 @@ export class ContentModule extends ApiModule {
                                 objectified = this.formatPrices([objectified], assets)[0];
                             }
                             resolve(objectified as ContentObject);
-                        });
+                        })
+                        .catch(err => reject(this.handleError(ContentError.fetch_content_failed, err)));
                 })
                 .catch(err => {
                     reject(this.handleError(ContentError.database_operation_failed, err));
@@ -188,13 +189,18 @@ export class ContentModule extends ApiModule {
      * @param {string} contentId        Content id in format '2.13.X'. Example: '2.13.1234'
      * @param {string} authorId         Author id in format'1.2.X'. Example: '1.2.345'
      * @param {string} privateKey       Author's private key to submit transaction in WIF(hex) (Wallet Import Format) format.
+     * @param {boolean} broadcast       Transaction is broadcasted if set to 'true'. Default value is 'true'.
      * @return {Promise<void>}          Value confirming successful transaction broadcasting.
      */
     public removeContent(
         contentId: string,
         authorId: string,
-        privateKey: string): Promise<void> {
-        if (!Validator.validateArguments(arguments, [Type.string, Type.string, Type.string])) {
+        privateKey: string,
+        broadcast: boolean = true): Promise<Operation> {
+        if (!Validator.validateArguments(
+            [contentId, authorId, privateKey, broadcast],
+            [Type.string, Type.string, Type.string, Type.boolean])
+        ) {
             throw new TypeError(ContentError.invalid_arguments);
         }
         return new Promise((resolve, reject) => {
@@ -204,15 +210,9 @@ export class ContentModule extends ApiModule {
                     const cancelOperation = new Operations.ContentCancelOperation(authorId, URI);
                     const transaction = new TransactionBuilder();
                     transaction.addOperation(cancelOperation);
-                    transaction.broadcast(privateKey)
-                        .then(() => {
-                            resolve();
-                        })
-                        .catch(err => {
-                            reject(
-                                this.handleError(ContentError.transaction_broadcast_failed, err)
-                            );
-                        });
+                    this.finalizeAndBroadcast(transaction, privateKey, broadcast)
+                        .then(res => resolve(res))
+                        .catch(err => reject(err));
                 })
                 .catch(err => {
                     reject(this.handleError(ContentError.fetch_content_failed, err));
@@ -298,7 +298,7 @@ export class ContentModule extends ApiModule {
      * @throws {TypeError}              Error is thrown in case of invalid input parameters.
      * @param {SubmitObject} content    SubmitObject with information about submitted object.
      * @param {string} privateKey       Private for sign transaction in WIF(hex) (Wallet Import Format) format.
-     * @param {boolean} broadcast
+     * @param {boolean} broadcast       Transaction is broadcasted if set to 'true'. Default value is 'true'.
      * @return {Promise<boolean>}       Value confirming successful transaction broadcasting.
      */
     public addContent(content: SubmitObject, privateKey: string, broadcast: boolean = true): Promise<Operation> {
@@ -355,19 +355,9 @@ export class ContentModule extends ApiModule {
                                 );
                                 const transaction = new TransactionBuilder();
                                 transaction.addOperation(submitOperation);
-                                if (broadcast) {
-                                    transaction.broadcast(privateKey)
-                                        .then(() => {
-                                            resolve(transaction.operations[0]);
-                                        })
-                                        .catch(err => {
-                                            reject(
-                                                this.handleError(ContentError.transaction_broadcast_failed, err)
-                                            );
-                                        });
-                                } else {
-                                    resolve(transaction.operations[0]);
-                                }
+                                this.finalizeAndBroadcast(transaction, privateKey, broadcast)
+                                    .then(res => resolve(res))
+                                    .catch(err => reject(err));
                             } catch (e) {
                                 reject(this.handleError(ContentError.account_fetch_failed, e));
                                 return;
@@ -614,7 +604,7 @@ export class ContentModule extends ApiModule {
      * @param {string} buyerId          Account id of user buying content in format '1.2.X'. Example: '1.2.345'
      * @param {string} elGammalPub      ElGammal public key which will be used to identify users bought content
      * @param {string} privateKey       Private key to sign broadcasted transaction in WIF(hex) (Wallet Import Format) format.
-     * @param {boolean} broadcast
+     * @param {boolean} broadcast       Transaction is broadcasted if set to 'true'. Default value is 'true'.
      * @return {Promise<boolean>}       Value confirming successful transaction broadcasting.
      */
     public buyContent(
@@ -640,17 +630,9 @@ export class ContentModule extends ApiModule {
                     );
                     const transaction = new TransactionBuilder();
                     transaction.addOperation(buyOperation);
-                    if (broadcast) {
-                        transaction.broadcast(privateKey)
-                            .then(() => {
-                                resolve(transaction.operations[0]);
-                            })
-                            .catch((err: any) => {
-                                reject(this.handleError(ContentError.transaction_broadcast_failed, err));
-                            });
-                    } else {
-                        resolve(transaction.operations[0]);
-                    }
+                    this.finalizeAndBroadcast(transaction, privateKey, broadcast)
+                        .then(res => resolve(res))
+                        .catch(err => reject(err));
                 })
                 .catch(err => {
                     reject(this.handleError(ContentError.fetch_content_failed, err));
@@ -710,7 +692,7 @@ export class ContentModule extends ApiModule {
                 reject('missing_parameter');
                 return;
             }
-            this.searchContent({count: resultSize})
+            this.searchContent({ count: resultSize })
                 .then(allContent => {
                     const dbOperation = new DatabaseOperations.GetBoughtObjectsByCustomer(
                         accountId,
@@ -842,10 +824,20 @@ export class ContentModule extends ApiModule {
      * @param {string} comment          Comment for feedback.
      * @param {number} rating           Rating number from interval 1(Bad)-5(Good).
      * @param {string} consumerPKey     Account's private key to sign transaction in WIF(hex) (Wallet Import Format) format.
+     * @param {boolean} broadcast       Transaction is broadcasted if set to 'true'. Default value is 'true'.
      * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
      */
-    leaveCommentAndRating(contentURI: string, consumer: string, comment: string, rating: number, consumerPKey: string): Promise<Operation> {
-        if (!Validator.validateArguments(arguments, [Type.string, Type.string, Type.string, Type.string, Type.string])) {
+    leaveCommentAndRating(
+        contentURI: string,
+        consumer: string,
+        comment: string,
+        rating: number,
+        consumerPKey: string,
+        broadcast: boolean = true): Promise<Operation> {
+        if (!Validator.validateArguments(
+            [contentURI, consumer, comment, rating, consumerPKey, broadcast],
+            [Type.string, Type.string, Type.string, Type.number, Type.string, Type.boolean])
+        ) {
             throw new TypeError(ContentError.invalid_arguments);
         }
         return new Promise<Operation>((resolve, reject) => {
@@ -854,8 +846,8 @@ export class ContentModule extends ApiModule {
             transaction.addOperation(operation);
             this.apiConnector.connection()
                 .then(res => {
-                    transaction.broadcast(consumerPKey)
-                        .then(() => resolve(transaction.operations[0]))
+                    this.finalizeAndBroadcast(transaction, consumerPKey, broadcast)
+                        .then(res => resolve(res))
                         .catch((err: Error) => {
                             if (err.stack.indexOf('content != idx.end') >= 0) {
                                 reject(this.handleError(ContentError.content_not_bought, err));
