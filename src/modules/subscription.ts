@@ -1,16 +1,16 @@
 /**
  * @module SeedingModule
  */
-import {ApiModule} from './ApiModule';
-import {DatabaseApi} from '../api/database';
-import {DatabaseOperations} from '../api/model/database';
-import {SubscriptionError, SubscriptionObject, ISubscriptionOptions, SubscriptionOptions} from '../model/subscription';
-import {Operations} from '../model/transaction';
-import {DCoreAssetObject} from '../model/asset';
-import {TransactionBuilder} from '../transactionBuilder';
-import {Asset, Account} from '../model/account';
-import {ApiConnector} from '../api/apiConnector';
-import {Type} from '../model/types';
+import { ApiModule } from './ApiModule';
+import { DatabaseApi } from '../api/database';
+import { DatabaseOperations } from '../api/model/database';
+import { SubscriptionError, SubscriptionObject, SubscriptionOptions } from '../model/subscription';
+import { Operations, Operation } from '../model/transaction';
+import { DCoreAssetObject } from '../model/asset';
+import { TransactionBuilder } from '../transactionBuilder';
+import { Asset, Account } from '../model/account';
+import { ApiConnector } from '../api/apiConnector';
+import { Type } from '../model/types';
 import { Validator } from './validator';
 
 export class SubscriptionModule extends ApiModule {
@@ -118,13 +118,17 @@ export class SubscriptionModule extends ApiModule {
      * @param {number} amount                           Amount that you want to subscribe with.
      * @param {string} assetId                          Id of asset that you want to subscribe with in format: '1.3.X'. Example: "1.3.0"
      * @param {string} privateKey                       Private key used to sign transaction.
-     * @returns {Promise<boolean>}
+     * @param {boolean} broadcast                       Transaction is broadcasted if set to 'true'. Default value is 'true'.
+     * @returns {Promise<Operation>}
      */
-    public subscribeToAuthor(from: string, to: string, amount: number, assetId: string, privateKey: string): Promise<boolean> {
-        if (!Validator.validateArguments(arguments, [Type.string, Type.string, Type.number, Type.string, Type.string])) {
+    public subscribeToAuthor(from: string, to: string, amount: number, assetId: string,
+        privateKey: string, broadcast: boolean = true): Promise<Operation> {
+        if (!Validator.validateArguments(
+            [from, to, amount, assetId, privateKey, broadcast],
+            [Type.string, Type.string, Type.number, Type.string, Type.string, Type.boolean])) {
             throw new TypeError(SubscriptionError.invalid_parameters);
         }
-        return new Promise<boolean>((resolve, reject) => {
+        return new Promise<Operation>((resolve, reject) => {
             const getAssetOperation = new DatabaseOperations.GetAssets([assetId]);
             this.dbApi.execute(getAssetOperation)
                 .then((assets: DCoreAssetObject) => {
@@ -136,13 +140,9 @@ export class SubscriptionModule extends ApiModule {
                     const subscribeToAuthorOperation = new Operations.Subscribe(from, to, price);
                     const transaction = new TransactionBuilder();
                     transaction.addOperation(subscribeToAuthorOperation);
-                    transaction.broadcast(privateKey)
-                        .then(result => {
-                            resolve(true);
-                        })
-                        .catch(error => {
-                            reject(this.handleError(SubscriptionError.transaction_broadcast_failed, error));
-                        });
+                    this.finalizeAndBroadcast(transaction, privateKey, broadcast)
+                        .then(res => resolve(res))
+                        .catch(err => reject(err));
                 })
                 .catch((error) => {
                     reject(this.handleError(SubscriptionError.subscription_to_author_failed, error));
@@ -157,25 +157,25 @@ export class SubscriptionModule extends ApiModule {
      * @param {string} from                             Account id in format '1.2.X'. Example: "1.2.345"
      * @param {string} to                               Account id in format '1.2.X'. Example: "1.2.345"
      * @param {string} privateKey                       Private key used to sign transaction.
-     * @returns {Promise<boolean>}
+     * @param {boolean} broadcast                       Transaction is broadcasted if set to 'true'. Default value is 'true'.
+     * @returns {Promise<Operation>}
      */
-    public subscribeByAuthor(from: string, to: string, privateKey: string): Promise<boolean> {
-        if (!Validator.validateArguments(arguments, [Type.string, Type.string, Type.string])) {
+    public subscribeByAuthor(from: string, to: string, privateKey: string, broadcast: boolean = true): Promise<Operation> {
+        if (!Validator.validateArguments(
+            [from, to, privateKey, broadcast],
+            [Type.string, Type.string, Type.string, Type.boolean])
+        ) {
             throw new TypeError(SubscriptionError.invalid_parameters);
         }
-        return new Promise<boolean>((resolve, reject) => {
+        return new Promise<Operation>((resolve, reject) => {
             this.apiConnector.connection()
                 .then(res => {
                     const subscribeByAuthorOperation = new Operations.SubscribeByAuthor(from, to);
                     const transaction = new TransactionBuilder();
                     transaction.addOperation(subscribeByAuthorOperation);
-                    transaction.broadcast(privateKey)
-                        .then(() => {
-                            resolve(true);
-                        })
-                        .catch((error) => {
-                            reject(this.handleError(SubscriptionError.transaction_broadcast_failed, error));
-                        });
+                    this.finalizeAndBroadcast(transaction, privateKey, broadcast)
+                        .then(res => resolve(res))
+                        .catch(err => reject(err));
                 })
                 .catch(err => reject(this.handleError(SubscriptionError.blockchain_connection_failed, err)));
         });
@@ -189,14 +189,18 @@ export class SubscriptionModule extends ApiModule {
      * @param {string} subscriptionId                       Subscription id in format '1.6.X'. Example: "1.6.100"
      * @param {boolean} automaticRenewal                    True if enabled, false if disabled automatic renewal of given subscription.
      * @param {string} privateKey                           Private key used to sign transaction.
-     * @returns {Promise<boolean>}
+     * @param {boolean} broadcast                           Transaction is broadcasted if set to 'true'. Default value is 'true'.
+     * @returns {Promise<Operation>}
      */
-    public setAutomaticRenewalOfSubscription(
-        accountId: string, subscriptionId: string, automaticRenewal: boolean, privateKey: string): Promise<boolean> {
-        if (!Validator.validateArguments(arguments, [Type.string, Type.string, Type.boolean, Type.string])) {
+    public setAutomaticRenewalOfSubscription(accountId: string, subscriptionId: string, automaticRenewal: boolean,
+        privateKey: string, broadcast: boolean = true): Promise<Operation> {
+        if (!Validator.validateArguments(
+            [accountId, subscriptionId, automaticRenewal, privateKey, broadcast],
+            [Type.string, Type.string, Type.boolean, Type.string, Type.boolean])
+        ) {
             throw new TypeError(SubscriptionError.invalid_parameters);
         }
-        return new Promise<boolean>((resolve, reject) => {
+        return new Promise<Operation>((resolve, reject) => {
             this.apiConnector.connection()
                 .then(res => {
                     const setAutomaticRenewalOperation = new Operations.SetAutomaticRenewalOfSubscription(
@@ -206,13 +210,9 @@ export class SubscriptionModule extends ApiModule {
                     );
                     const transaction = new TransactionBuilder();
                     transaction.addOperation(setAutomaticRenewalOperation);
-                    transaction.broadcast(privateKey)
-                        .then(() => {
-                            resolve(true);
-                        })
-                        .catch(error => {
-                            reject(this.handleError(SubscriptionError.transaction_broadcast_failed, error));
-                        });
+                    this.finalizeAndBroadcast(transaction, privateKey, broadcast)
+                        .then(res => resolve(res))
+                        .catch(err => reject(err));
                 })
                 .catch(err => reject(this.handleError(SubscriptionError.blockchain_connection_failed, err)));
         });
@@ -223,7 +223,7 @@ export class SubscriptionModule extends ApiModule {
      * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#aadb6a2c911db0e578036c8d5a7da19b8
      *
      * @param {string} accountId                            Account id in format '1.2.X'. Example: "1.2.345"
-     * @param {ISubscriptionOptions} options                 Subscription option in format: {
+     * @param {SubscriptionOptions} options                 Subscription option in format: {
      *                                                          allowSubscription: boolean;
      *                                                          subscriptionPeriod: number;
      *                                                          amount: number;
@@ -235,16 +235,20 @@ export class SubscriptionModule extends ApiModule {
      *                                                          amount: 0.00000001
      *                                                      }
      * @param {string} privateKey                           Private key used to sign transaction
-     * @returns {Promise<boolean>}
+     * @param {boolean} broadcast                           Transaction is broadcasted if set to 'true'. Default value is 'true'.
+     * @returns {Promise<Operation>}
      */
     public setSubscription(accountId: string,
-                           options: ISubscriptionOptions,
-                           privateKey: string): Promise<boolean> {
-        if (!Validator.validateArguments([accountId, privateKey], [Type.string, Type.string])
-            || !Validator.validateObject<ISubscriptionOptions>(options, SubscriptionOptions)) {
+        options: SubscriptionOptions,
+        privateKey: string,
+        broadcast: boolean = true): Promise<Operation> {
+        if (!Validator.validateArguments(
+            [accountId, options, privateKey, broadcast],
+            [Type.string, SubscriptionOptions, Type.string, Type.boolean])
+        ) {
             throw new TypeError(SubscriptionError.invalid_parameters);
         }
-        return new Promise<boolean>((resolve, reject) => {
+        return new Promise<Operation>((resolve, reject) => {
             const getAccountOp = new DatabaseOperations.GetAccounts([accountId]);
             if (options.allowSubscription
                 && !options.amount
@@ -283,9 +287,9 @@ export class SubscriptionModule extends ApiModule {
                             );
                             const transaction = new TransactionBuilder();
                             transaction.addOperation(accUpdateOp);
-                            transaction.broadcast(privateKey)
-                                .then(res => resolve(true))
-                                .catch(err => reject(this.handleError(SubscriptionError.transaction_broadcast_failed, err)));
+                            this.finalizeAndBroadcast(transaction, privateKey, broadcast)
+                                .then(res => resolve(res))
+                                .catch(err => reject(err));
                         })
                         .catch(err => reject(this.handleError(SubscriptionError.asset_does_not_exist, err)));
                 })
