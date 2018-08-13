@@ -3,7 +3,7 @@
  */
 import { DatabaseApi } from '../api/database';
 import { DatabaseOperations } from '../api/model/database';
-import { Operations } from '../model/transaction';
+import { Operations, Operation } from '../model/transaction';
 import { Account, AccountError, Options } from '../model/account';
 import { TransactionBuilder } from '../transactionBuilder';
 import { ApiModule } from './ApiModule';
@@ -62,13 +62,18 @@ export class MiningModule extends ApiModule {
      * @param {string} accountId            Id of account which placing vote, in format '1.2.X'. Example '1.2.345'.
      * @param {number} desiredNumOfMiners   Desired number of active miners in DCore network.
      * @param {string} privateKey           Private key to sign transaction.
+     * @param {boolean} broadcast           Transaction is broadcasted if set to 'true'. Default value is 'true'.
      * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
      */
-    public setDesiredMinerCount(accountId: string, desiredNumOfMiners: number, privateKey: string): Promise<boolean> {
-        if (!Validator.validateArguments(arguments, [Type.string, Type.number, Type.string])) {
+    public setDesiredMinerCount(accountId: string, desiredNumOfMiners: number,
+        privateKey: string, broadcast: boolean = true): Promise<Operation> {
+        if (!Validator.validateArguments(
+            [accountId, desiredNumOfMiners, privateKey, broadcast],
+            [Type.string, Type.number, Type.string, Type.boolean])
+        ) {
             throw new TypeError(MiningError.invalid_arguments);
         }
-        return new Promise<boolean>((resolve, reject) => {
+        return new Promise<Operation>((resolve, reject) => {
             if (!accountId || desiredNumOfMiners === undefined || !privateKey) {
                 reject('missing_parameter');
                 return;
@@ -95,9 +100,9 @@ export class MiningModule extends ApiModule {
                     );
                     const transaction = new TransactionBuilder();
                     transaction.addOperation(operation);
-                    transaction.broadcast(privateKey)
-                        .then(res => resolve(true))
-                        .catch(err => reject(this.handleError(MiningError.transaction_broadcast_failed, err)));
+                    this.finalizeAndBroadcast(transaction, privateKey, broadcast)
+                        .then(res => resolve(res))
+                        .catch(err => reject(err));
                 })
                 .catch(err => reject(this.handleError(MiningError.database_fetch_failed, err)));
         });
@@ -111,21 +116,26 @@ export class MiningModule extends ApiModule {
      * @param {string} URL                  URL to miner promotional web page.
      * @param {string} signingPublicKey     Public key used to signing mining operations.
      * @param {string} privateKey           Private key to sign transaction.
-     * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
+     * @param {boolean} broadcast           Transaction is broadcasted if set to 'true'. Default value is 'true'.
+     * @returns {Promise<Operation>}          Value confirming successful transaction broadcasting.
      */
-    public createMiner(minerAccountId: string, URL: string, signingPublicKey: string, privateKey: string): Promise<boolean> {
-        if (!Validator.validateArguments(arguments, [Type.string, Type.string, Type.string, Type.string])) {
+    public createMiner(minerAccountId: string, URL: string,
+        signingPublicKey: string, privateKey: string, broadcast: boolean = true): Promise<Operation> {
+        if (!Validator.validateArguments(
+            [minerAccountId, URL, signingPublicKey, privateKey, broadcast],
+            [Type.string, Type.string, Type.string, Type.string, Type.boolean])
+        ) {
             throw new TypeError(MiningError.invalid_arguments);
         }
-        return new Promise<boolean>(((resolve, reject) => {
+        return new Promise<Operation>(((resolve, reject) => {
             this.apiConnector.connection()
                 .then(res => {
                     const operation = new Operations.MinerCreate(minerAccountId, URL, signingPublicKey);
                     const transaction = new TransactionBuilder();
                     transaction.addOperation(operation);
-                    transaction.broadcast(privateKey)
-                        .then(res => resolve(true))
-                        .catch(err => reject(this.handleError(MiningError.transaction_broadcast_failed, err)));
+                    this.finalizeAndBroadcast(transaction, privateKey, broadcast)
+                        .then(res => resolve(res))
+                        .catch(err => reject(err));
                 })
                 .catch(err => reject(this.handleError(MiningError.connection_failed, err)));
         }));
@@ -137,13 +147,14 @@ export class MiningModule extends ApiModule {
      * @param {string} miner            Miner to un-vote, in format '1.4.X'. Example '1.4.5'.
      * @param {string} account          Account id to un-vote miner from, in format '1.2.X'. Example '1.2.345'.
      * @param {string} privateKeyWif    Private key to sign thr transaction.
+     * @param {boolean} broadcast       Transaction is broadcasted if set to 'true'. Default value is 'true'.
      * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
      */
-    public unvoteMiner(miner: string, account: string, privateKeyWif: string): Promise<boolean> {
+    public unvoteMiner(miner: string, account: string, privateKeyWif: string, broadcast: boolean = true): Promise<Operation> {
         if (!Validator.validateArguments(arguments, [Type.string, Type.string, Type.string])) {
             throw new TypeError(MiningError.invalid_arguments);
         }
-        return this.unvoteMiners([miner], account, privateKeyWif);
+        return this.unvoteMiners([miner], account, privateKeyWif, broadcast);
     }
 
     /**
@@ -152,13 +163,17 @@ export class MiningModule extends ApiModule {
      * @param {string} miners           List of miners to un-vote, in format '1.4.X'. Example ['1.4.5', '1.4.6'].
      * @param {string} account          Account id to un-vote miner from, in format '1.2.X'. Example '1.2.345'.
      * @param {string} privateKeyWif    Private key to sign thr transaction.
-     * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
+     * @param {boolean} broadcast           Transaction is broadcasted if set to 'true'. Default value is 'true'.
+     * @returns {Promise<Operation>}      Value confirming successful transaction broadcasting.
      */
-    public unvoteMiners(miners: string[], account: string, privateKeyWif: string): Promise<boolean> {
-        if (!Validator.validateArguments(arguments, [[Array, Type.string], Type.string, Type.string])) {
+    public unvoteMiners(miners: string[], account: string, privateKeyWif: string, broadcast: boolean = true): Promise<Operation> {
+        if (!Validator.validateArguments(
+            [miners, account, privateKeyWif, broadcast],
+            [[Array, Type.string], Type.string, Type.string, Type.boolean])
+        ) {
             throw new TypeError(MiningError.invalid_arguments);
         }
-        return new Promise<boolean>((resolve, reject) => {
+        return new Promise<Operation>((resolve, reject) => {
             this.chainApi.fetch(new ChainMethods.GetAccount(account))
                 .then(res => {
                     const [voterAccount] = res;
@@ -188,8 +203,8 @@ export class MiningModule extends ApiModule {
                             );
                             const transaction = new TransactionBuilder();
                             transaction.addOperation(op);
-                            transaction.broadcast(privateKeyWif)
-                                .then(res => resolve(true))
+                            this.finalizeAndBroadcast(transaction, privateKeyWif, broadcast)
+                                .then(res => resolve(res))
                                 .catch(err => reject(err));
                         })
                         .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
@@ -205,13 +220,17 @@ export class MiningModule extends ApiModule {
      * @param {string} miner            Miner to vote for, in format '1.4.X'. Example '1.4.5'.
      * @param {string} account          Account id to vote miner for, in format '1.2.X'. Example '1.2.345'.
      * @param {string} privateKeyWif    Private key to sign thr transaction.
-     * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
+     * @param {boolean} broadcast           Transaction is broadcasted if set to 'true'. Default value is 'true'.
+     * @returns {Promise<Operation>}      Value confirming successful transaction broadcasting.
      */
-    public voteForMiner(miner: string, account: string, privateKeyWif: string): Promise<boolean> {
-        if (!Validator.validateArguments(arguments, [Type.string, Type.string, Type.string])) {
+    public voteForMiner(miner: string, account: string, privateKeyWif: string, broadcast: boolean = true): Promise<Operation> {
+        if (!Validator.validateArguments(
+            [miner, account, privateKeyWif, broadcast],
+            [Type.string, Type.string, Type.string, Type.boolean])
+        ) {
             throw new TypeError(MiningError.invalid_arguments);
         }
-        return this.voteForMiners([miner], account, privateKeyWif);
+        return this.voteForMiners([miner], account, privateKeyWif, broadcast);
     }
 
     /**
@@ -221,13 +240,17 @@ export class MiningModule extends ApiModule {
      * @param {string} miners           List of miners to vote for, in format '1.4.X'. Example ['1.4.5', '1.4.6'].
      * @param {string} account          Account id to vote miner for, in format '1.2.X'. Example '1.2.345'.
      * @param {string} privateKeyWif    Private key to sign thr transaction.
-     * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
+     * @param {boolean} broadcast           Transaction is broadcasted if set to 'true'. Default value is 'true'.
+     * @returns {Promise<Operation>}      Value confirming successful transaction broadcasting.
      */
-    public voteForMiners(miners: string[], account: string, privateKeyWif: string): Promise<boolean> {
-        if (!Validator.validateArguments(arguments, [[Array, Type.string], Type.string, Type.string])) {
+    public voteForMiners(miners: string[], account: string, privateKeyWif: string, broadcast: boolean = true): Promise<Operation> {
+        if (!Validator.validateArguments(
+            [miners, account, privateKeyWif, broadcast],
+            [[Array, Type.string], Type.string, Type.string, Type.boolean])
+        ) {
             throw new TypeError(MiningError.invalid_arguments);
         }
-        return new Promise<boolean>((resolve, reject) => {
+        return new Promise<Operation>((resolve, reject) => {
             this.chainApi.fetch(new ChainMethods.GetAccount(account))
                 .then(res => {
                     const [voterAccount] = res;
@@ -248,9 +271,9 @@ export class MiningModule extends ApiModule {
                             );
                             const transaction = new TransactionBuilder();
                             transaction.addOperation(op);
-                            transaction.broadcast(privateKeyWif)
-                                .then(res => resolve(true))
-                                .catch((err: Error) => {
+                            this.finalizeAndBroadcast(transaction, privateKeyWif, broadcast)
+                                .then(res => resolve(res))
+                                .catch(err => {
                                     if (process.env.ENVIRONMENT === 'DEV') {
                                         console.log(err);
                                     }
@@ -274,13 +297,18 @@ export class MiningModule extends ApiModule {
      * @param {string[]} unvoteMiners   List of miners to un-vote, in format '1.4.X'. Example ['1.4.5', '1.4.6'].
      * @param {string} accountId        Id of account vote changes will be made to, in format '1.2.X'. Example '1.2.345'.
      * @param {string} privateKey       Private key to sign the transaction.
-     * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
+     * @param {boolean} broadcast           Transaction is broadcasted if set to 'true'. Default value is 'true'.
+     * @returns {Promise<Operation>}      Value confirming successful transaction broadcasting.
      */
-    public voteUnvoteMiners(voteMiners: string[], unvoteMiners: string[], accountId: string, privateKey: string): Promise<boolean> {
-        if (!Validator.validateArguments(arguments, [[Array, Type.string], [Array, Type.string], Type.string, Type.string])) {
+    public voteUnvoteMiners(voteMiners: string[], unvoteMiners: string[], accountId: string,
+        privateKey: string, broadcast: boolean = true): Promise<Operation> {
+        if (!Validator.validateArguments(
+            [voteMiners, unvoteMiners, accountId, privateKey, broadcast],
+            [[Array, Type.string], [Array, Type.string], Type.string, Type.string, Type.boolean])
+        ) {
             throw new TypeError(MiningError.invalid_arguments);
         }
-        return new Promise<boolean>((resolve, reject) => {
+        return new Promise<Operation>((resolve, reject) => {
             this.chainApi.fetch(new ChainMethods.GetAccount(accountId))
                 .then(res => {
                     if (!res[0]) {
@@ -319,9 +347,9 @@ export class MiningModule extends ApiModule {
                             );
                             const transaction = new TransactionBuilder();
                             transaction.addOperation(accountUpdateOp);
-                            transaction.broadcast(privateKey)
-                                .then(res => resolve(true))
-                                .catch(err => reject(this.handleError(AccountError.transaction_broadcast_failed, err)));
+                            this.finalizeAndBroadcast(transaction, privateKey, broadcast)
+                                .then(res => resolve(res))
+                                .catch(err => reject(err));
                         })
                         .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
                 })
@@ -356,13 +384,18 @@ export class MiningModule extends ApiModule {
      * @param {string} minerAccountId           Account id of miner in format '1.2.X'. Example '1.2.345'.
      * @param {MinerUpdateData} updateData      Information to be changed in miner account.
      * @param {string} privateKey               Miner's private key to sign the transaction.
-     * @returns {Promise<boolean>}              Value confirming successful transaction broadcasting.
+     * @param {boolean} broadcast           Transaction is broadcasted if set to 'true'. Default value is 'true'.
+     * @returns {Promise<Operation>}              Value confirming successful transaction broadcasting.
      */
-    public updateMiner(minerId: string, minerAccountId: string, updateData: MinerUpdateData, privateKey: string): Promise<boolean> {
-        if (!Validator.validateArguments(arguments, [Type.string, Type.string, MinerUpdateData, Type.string])) {
+    public updateMiner(minerId: string, minerAccountId: string, updateData: MinerUpdateData,
+        privateKey: string, broadcast: boolean = true): Promise<Operation> {
+        if (!Validator.validateArguments(
+            [minerId, minerAccountId, updateData, privateKey, broadcast],
+            [Type.string, Type.string, MinerUpdateData, Type.string, Type.boolean])
+        ) {
             throw new TypeError(MiningError.invalid_arguments);
         }
-        return new Promise<boolean>((resolve, reject) => {
+        return new Promise<Operation>((resolve, reject) => {
             const getMinerOp = new DatabaseOperations.GetMiners([minerId]);
             this.dbApi.execute(getMinerOp)
                 .then(miners => {
@@ -379,9 +412,9 @@ export class MiningModule extends ApiModule {
                     );
                     const transaction = new TransactionBuilder();
                     transaction.addOperation(operation);
-                    transaction.broadcast(privateKey)
-                        .then(res => resolve(true))
-                        .catch(err => reject(this.handleError(MiningError.database_fetch_failed, err)));
+                    this.finalizeAndBroadcast(transaction, privateKey, broadcast)
+                        .then(res => resolve(res))
+                        .catch(err => reject(err));
                 })
                 .catch(err => reject(this.handleError(MiningError.miner_does_not_exist, err)));
 
@@ -398,18 +431,23 @@ export class MiningModule extends ApiModule {
      * @param {number} amount               Amount of balance to be withdrawn.
      * @param {string} assetId              Asset id of amount to be withdrawn.
      * @param {string} privateKey           Owner's private key to sign the transaction.
-     * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
+     * @param {boolean} broadcast           Transaction is broadcasted if set to 'true'. Default value is 'true'.
+     * @returns {Promise<Operation>}          Value confirming successful transaction broadcasting.
      */
     public withdrawVesting(
         vestinBalanceId: string,
         ownerId: string,
         amount: number,
         assetId: string,
-        privateKey: string): Promise<boolean> {
-        if (!Validator.validateArguments(arguments, [Type.string, Type.string, Type.number, Type.string, Type.string])) {
+        privateKey: string,
+        broadcast: boolean = true): Promise<Operation> {
+        if (!Validator.validateArguments(
+            [vestinBalanceId, ownerId, amount, assetId, privateKey, broadcast],
+            [Type.string, Type.string, Type.number, Type.string, Type.string, Type.boolean])
+        ) {
             throw new TypeError(MiningError.invalid_arguments);
         }
-        return new Promise<boolean>((resolve, reject) => {
+        return new Promise<Operation>((resolve, reject) => {
             const operation = new Operations.VestingBalanceWithdraw(
                 vestinBalanceId,
                 ownerId,
@@ -420,9 +458,9 @@ export class MiningModule extends ApiModule {
             );
             const transaction = new TransactionBuilder();
             transaction.addOperation(operation);
-            transaction.broadcast(privateKey)
-                .then(res => resolve(true))
-                .catch(err => reject(this.handleError(MiningError.transaction_broadcast_failed, err)));
+            this.finalizeAndBroadcast(transaction, privateKey, broadcast)
+                .then(res => resolve(res))
+                .catch(err => reject(err));
         });
     }
 
@@ -435,13 +473,17 @@ export class MiningModule extends ApiModule {
      * @param {string} votingAccountId      Id of account to be set as voting proxy, in format '1.2.X'.
      *                                      Set to '' for default setting. Example '1.2.345'.
      * @param {string} privateKey           Private used to sign transaction.
-     * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
+     * @param {boolean} broadcast           Transaction is broadcasted if set to 'true'. Default value is 'true'.
+     * @returns {Promise<Operation>}          Value confirming successful transaction broadcasting.
      */
-    public setVotingProxy(accountId: string, votingAccountId: string, privateKey: string): Promise<boolean> {
-        if (!Validator.validateArguments(arguments, [Type.string, Type.string, Type.string])) {
+    public setVotingProxy(accountId: string, votingAccountId: string, privateKey: string, broadcast: boolean = true): Promise<Operation> {
+        if (!Validator.validateArguments(
+            [accountId, votingAccountId, privateKey, broadcast],
+            [Type.string, Type.string, Type.string, Type.boolean])
+        ) {
             throw new TypeError(MiningError.invalid_arguments);
         }
-        return new Promise<boolean>((resolve, reject) => {
+        return new Promise<Operation>((resolve, reject) => {
             this.chainApi.fetch(new ChainMethods.GetAccount(accountId))
                 .then((result: Account[]) => {
                     if (result.length === 0 || !result[0]) {
@@ -471,9 +513,9 @@ export class MiningModule extends ApiModule {
                     );
                     const transaction = new TransactionBuilder();
                     transaction.addOperation(accountUpdateOperation);
-                    transaction.broadcast(privateKey)
-                        .then(res => resolve(true))
-                        .catch(err => reject(this.handleError(MiningError.transaction_broadcast_failed, err)));
+                    this.finalizeAndBroadcast(transaction, privateKey, broadcast)
+                        .then(res => resolve(res))
+                        .catch(err => reject(err));
                 })
                 .catch(err => this.handleError(MiningError.account_fetch_failed, err));
         });
