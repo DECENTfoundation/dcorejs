@@ -95,7 +95,7 @@ export class CryptoUtils {
             KeyPublic.fromString(publicKey).key,
             nonce,
             message
-        ).toString();
+        ).toString('utf8');
     }
 
     /**
