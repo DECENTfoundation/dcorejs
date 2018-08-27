@@ -49,7 +49,11 @@ export class AssetModule extends ApiModule {
      *                                      Default: false.
      * @returns {AssetObject[]}             AssetObject list.
      */
-    public listAssets(lowerBoundSymbol: string, limit: number = 100, formatAssets: boolean = false): Promise<AssetObject[]> {
+    public listAssets(
+        lowerBoundSymbol: string,
+        limit: number = 100,
+        UIAOnly: boolean = false,
+        formatAssets: boolean = false): Promise<AssetObject[]> {
         if (!Validator.validateArguments([lowerBoundSymbol, limit, formatAssets], [Type.string, Type.number, Type.boolean])) {
             throw new TypeError(AssetError.invalid_parameters);
         }
@@ -57,7 +61,11 @@ export class AssetModule extends ApiModule {
             const operation = new DatabaseOperations.ListAssets(lowerBoundSymbol, limit);
             this.dbApi.execute(operation)
                 .then((assets: DCoreAssetObject[]) => {
-                    resolve(formatAssets ? this.formatAssets(assets) : assets);
+                    let assetsToProcess = assets;
+                    if (UIAOnly) {
+                        assetsToProcess = assets.filter(a => a.monitored_asset_opts === undefined);
+                    }
+                    resolve(formatAssets ? this.formatAssets(assetsToProcess) : assetsToProcess);
                 })
                 .catch(err => {
                     reject(this.handleError(AssetError.unable_to_list_assets, err));
