@@ -25,12 +25,31 @@ export class AssetModule extends ApiModule {
         });
     }
 
-    public listAssets(lowerBoundSymbol: string, limit: number = 100, formatAssets: boolean = false): Promise<AssetObject[]> {
+    /**
+     *  List assets available on DCore network.
+     *  https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#adaff907a467869849e77c3ac0b8beca8
+     *
+     * @param {string} lowerBoundSymbol     Asset symbol to start list with. Example 'DCT'
+     * @param {number} limit                Number of results. Default 100(Max)
+     * @param {boolean} formatAssets        Optional parameter to convert amounts and fees of AssetObject from blockchain asset
+     *                                      amount format to right precision format of asset. Example: 100000000 => 1 DCT.
+     *                                      Default: false.
+     * @returns {AssetObject[]}             AssetObject list.
+     */
+    public listAssets(
+        lowerBoundSymbol: string,
+        limit: number = 100,
+        UIAOnly: boolean = false,
+        formatAssets: boolean = false): Promise<AssetObject[]> {
         return new Promise<any>((resolve, reject) => {
             const operation = new DatabaseOperations.ListAssets(lowerBoundSymbol, limit);
             this.dbApi.execute(operation)
                 .then((assets: DCoreAssetObject[]) => {
-                    resolve(formatAssets ? this.formatAssets(assets) : assets);
+                    let assetsToProcess = assets;
+                    if (UIAOnly) {
+                        assetsToProcess = assets.filter(a => a.monitored_asset_opts === undefined);
+                    }
+                    resolve(formatAssets ? this.formatAssets(assetsToProcess) : assetsToProcess);
                 })
                 .catch(err => {
                     reject(this.handleError(AssetError.unable_to_list_assets, err));
