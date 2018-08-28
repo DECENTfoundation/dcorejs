@@ -1,27 +1,15 @@
-import * as dcore_js from '../../../../';
-import * as chai from 'chai';
-
-const expect = chai.expect;
-chai.should();
-chai.config.showDiff = false;
-
-const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
-const dcoreNetworkAddresses = ['wss://stagesocket.decentgo.com:8090'];
-const accountId = '1.2.18';
 // const contentId = '2.13.240';
 
-// turn off unverified certificate rejection
-process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
-
 before(() => {
-    dcore_js.initialize({
+    dcorejs.initialize({
         chainId: chainId,
         dcoreNetworkWSPaths: dcoreNetworkAddresses
     });
 });
-describe('(server/endToEnd) Content fetch', () => {
+
+describe('(client/integration) Content fetch', () => {
     it('search content', (done) => {
-        dcore_js.content().searchContent()
+        dcorejs.content().searchContent()
             .then(res => {
                 expect(res).to.be.a('array');
                 done();
@@ -30,11 +18,11 @@ describe('(server/endToEnd) Content fetch', () => {
                 console.log('Catch: ', err);
                 chai.assert.isDefined(err);
             });
-    });
+    }).timeout(5000);
 
     // TODO: disabled due to lack of content on testnet
     // it('get content', (done) => {
-    //     dcore_js.content().getContent(contentId)
+    //     dcorejs.content().getContent(contentId)
     //         .then(res => {
     //             expect(res.id).to.be.equal(contentId);
     //             done();
@@ -43,18 +31,18 @@ describe('(server/endToEnd) Content fetch', () => {
     //             chai.assert.isDefined(err);
     //             done();
     //         });
-    // });
+    // }).timeout(5000);
 
-    // TODO: Test is commented due to testnet reset, therefore, no seeders and no content is on testnet yet
+    // Test is commented due to testnet reset, therefore, no seeders and no content is on testnet yet
     // it('restore content keys', (done) => {
     //     const elGamalPublic = '7317752633383033582159088' +
     //         '0415095934922384683502050702002361917832276924025919' +
     //         '7334324222430627661202908079769675760465400935084759' +
     //         '1901976526778157668840202.';
     //     const privateKey = '5JdZfU9Ni7wopN8JPLPM2SJBkKWB19XJSR4mK27Ww7kyZAidJ1M';
-    //     const keyPair = new dcore_js.KeyPair(privateKey, elGamalPublic);
+    //     const keyPair = new dcorejs.KeyPair(privateKey, elGamalPublic);
     //     const buyContentId = '2.12.114';
-    //     dcore_js.content().restoreContentKeys(buyContentId, accountId, keyPair)
+    //     dcorejs.content().restoreContentKeys(buyContentId, accountId, keyPair)
     //         .then(res => {
     //             expect(res).a('string');
     //             done();
@@ -66,7 +54,7 @@ describe('(server/endToEnd) Content fetch', () => {
     // }).timeout(5000);
 
     it('get seeders', (done) => {
-        dcore_js.content().getSeeders(2)
+        dcorejs.content().getSeeders(2)
             .then(res => {
                 expect(res).to.be.a('array');
                 done();
@@ -75,12 +63,12 @@ describe('(server/endToEnd) Content fetch', () => {
                 expect(err).to.be.a('array');
                 done();
             });
-    });
+    }).timeout(5000);
 
     it('generate content keys', (done) => {
-        dcore_js.content().getSeeders(2)
+        dcorejs.content().getSeeders(2)
             .then(seeders => {
-                dcore_js.content().generateContentKeys(seeders.map(s => s.seeder))
+                dcorejs.content().generateContentKeys(seeders.map(s => s.seeder))
                     .then(res => {
                         expect(res.key).a('string');
                         done();
@@ -93,7 +81,7 @@ describe('(server/endToEnd) Content fetch', () => {
     }).timeout(5000);
 
     it('get purchased content', (done) => {
-        dcore_js.content().getPurchasedContent(accountId)
+        dcorejs.content().getPurchasedContent(accountId)
             .then(res => {
                 expect(res).to.be.a('array');
                 done();
