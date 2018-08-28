@@ -489,7 +489,7 @@ export class AccountModule extends ApiModule {
                         resolve(transaction.operations[0]);
                     }
                 })
-                .catch(err => console.log(err));
+                .catch(err => reject(this.handleError(AccountError.api_connection_failed, err)));
         });
     }
 
