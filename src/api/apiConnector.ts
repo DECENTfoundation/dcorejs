@@ -64,8 +64,6 @@ export class ApiConnector {
                 const address = ['wss', ...addresses[i].split(':').slice(1)].join(':');
                 try {
                     const res = await this.getConnectionPromise(address, api);
-                    this._isConnected = true;
-                    this.connectedAddress = address;
                     if (process.env.ENVIRONMENT === 'DEV') {
                         console.log('debug => Connected to', address);
                     }
