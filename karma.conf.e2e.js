@@ -4,13 +4,15 @@
 module.exports = function (config) {
     config.set({
 
+        args: ['dev'],
+
         // base path that will be used to resolve all patterns (eg. files, exclude)
         basePath: './',
 
 
         // frameworks to use
         // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-        frameworks: ['mocha', 'chai', 'sinon'],
+        frameworks: ['mocha', 'chai'],
 
 
         // list of files / patterns to load in the browser
@@ -18,7 +20,7 @@ module.exports = function (config) {
             './dist/dcorejs.umd.js',
             './node_modules/mocha/mocha.js',
             'src/test/client/declarations.js',
-            'src/test/client/endToEnd/*.js',
+            'src/test/client/e2e/*.js',
             './test-main.js'
         ],
 

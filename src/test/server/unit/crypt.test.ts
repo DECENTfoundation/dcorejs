@@ -1,7 +1,6 @@
-import {KeyPublic} from '../../../model/utils';
 import {CryptoUtils} from '../../../crypt';
 import {expect} from 'chai';
-import {KeyPrivate} from '../../../model/utils';
+import { Utils } from '../../../utils';
 
 const message = 'test message for encryption';
 const encryptedMessage = '1bcd2ffea59c19cbff34b21e4c3d78947dd0fc8821e211b543395fcb52a35e15';
@@ -26,7 +25,9 @@ describe('(server/unit) Crypt helper test', () => {
     before(() => initLib());
 
     it('encrypt message', () => {
-        const encryptedMsg = CryptoUtils.encryptWithChecksum(message, secret, pkey, '');
+        const privateKey = Utils.privateKeyFromWif(secret);
+        const publicKey = Utils.publicKeyFromString(pkey);
+        const encryptedMsg = CryptoUtils.encryptWithChecksum(message, privateKey, publicKey, '').toString('hex');
         expect(encryptedMsg).to.equal(encryptedMessage);
     });
 

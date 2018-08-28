@@ -19,7 +19,9 @@ describe('(client/unit) Crypt helper test', () => {
     before(() => initLib());
 
     it('encrypt message', () => {
-        const encryptedMsg = dcorejs.CryptoUtils.encryptWithChecksum(message, secret, pkey, '');
+        const privateKey = dcorejs.Utils.privateKeyFromWif(secret);
+        const publicKey = dcorejs.Utils.publicKeyFromString(pkey);
+        const encryptedMsg = dcorejs.CryptoUtils.encryptWithChecksum(message, privateKey, publicKey, '').toString('hex');
         expect(encryptedMsg).to.equal(encryptedMessage);
     }).timeout(5000);
 

@@ -221,7 +221,9 @@ export class AccountModule extends ApiModule {
 
             this.chainApi.fetch(...methods)
                 .then(result => {
-                    const [senderAccount, receiverAccount, asset] = result;
+                    const senderAccount: Account = JSON.parse(JSON.stringify(result[0]));
+                    const receiverAccount: Account = JSON.parse(JSON.stringify(result[1]));
+                    const asset: Asset = JSON.parse(JSON.stringify(result[2]));
                     if (!senderAccount) {
                         reject(
                             this.handleError(
@@ -240,8 +242,8 @@ export class AccountModule extends ApiModule {
                     }
 
                     const nonce: string = ChainApi.generateNonce();
-                    const fromPublicKey = senderAccount.get('options').get('memo_key');
-                    const toPublicKey = receiverAccount.get('options').get('memo_key');
+                    const fromPublicKey = senderAccount.options.memo_key;
+                    const toPublicKey = receiverAccount.options.memo_key;
 
                     const pubKey = Utils.publicKeyFromString(toPublicKey);
 
@@ -259,8 +261,8 @@ export class AccountModule extends ApiModule {
                     const assetObject = JSON.parse(JSON.stringify(asset));
                     const transaction = new TransactionBuilder();
                     const transferOperation = new Operations.TransferOperation(
-                        senderAccount.get('id'),
-                        receiverAccount.get('id'),
+                        senderAccount.id,
+                        receiverAccount.id,
                         Asset.create(amount, assetObject),
                         memo_object
                     );
@@ -313,7 +315,7 @@ export class AccountModule extends ApiModule {
                                 return;
                             }
                             const [balance] = balances;
-                            resolve(convertAsset ? Utils.formatAmountForAsset(balance.amount, asset) : balance.amount);
+                            resolve(convertAsset ? Utils.formatAmountForAsset(balance.amount, asset) : Number(balance.amount));
                         })
                         .catch(err => {
                             reject(this.handleError(AccountError.database_operation_failed, err));
