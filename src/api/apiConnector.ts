@@ -45,9 +45,9 @@ export class ApiConnector {
     }
 
     constructor(apiAddresses: string[],
-                api: any,
-                testConnectionQuality: boolean = true,
-                connectionStatusCallback: (status: ConnectionState) => void = null) {
+        api: any,
+        testConnectionQuality: boolean = true,
+        connectionStatusCallback: (status: ConnectionState) => void = null) {
         this._apiAddresses = apiAddresses;
         this._api = api;
         this.connectionStatusCallback = connectionStatusCallback;
@@ -64,9 +64,9 @@ export class ApiConnector {
      * @param {(status: ConnectionState) => void} connectionStatusCallback
      */
     private initConnetion(addresses: string[],
-                          api: any,
-                          testConnectionQuality: boolean = true,
-                          connectionStatusCallback: (status: ConnectionState) => void = null): void {
+        api: any,
+        testConnectionQuality: boolean = true,
+        connectionStatusCallback: (status: ConnectionState) => void = null): void {
         api.setRpcConnectionStatusCallback((status: string) => this.handleConnectionState(status, connectionStatusCallback));
         this._connectionPromise = this.connectApi(addresses, api, testConnectionQuality);
     }
@@ -84,7 +84,6 @@ export class ApiConnector {
             if (testConnectionQuality) {
                 const conTestResults = await this.testConnectionTime(addresses);
                 addresses = conTestResults
-                    .filter(r => r.success)
                     .sort((a, b) => a.elapsedTime - b.elapsedTime)
                     .map(r => r.address);
             }
@@ -96,13 +95,13 @@ export class ApiConnector {
                     this._isConnected = true;
                     this.connectedAddress = address;
                     if (process.env.ENVIRONMENT === 'DEV') {
-                        console.log('Connected to', address);
+                        console.log('debug => Connected to', address);
                     }
                     resolve(res);
                     return;
                 } catch (e) {
                     if (process.env.ENVIRONMENT === 'DEV') {
-                        console.log('Fail to connect to', address);
+                        console.log('debug => Fail to connect to', address);
                     }
                     api.close();
                 }
@@ -136,7 +135,7 @@ export class ApiConnector {
                 } catch (e) {
                     resolve({
                         address: httpAddress,
-                        elapsedTime: 0,
+                        elapsedTime: Infinity,
                         success: false
                     });
                 }
