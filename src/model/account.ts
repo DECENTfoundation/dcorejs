@@ -252,4 +252,5 @@ export enum AccountError {
     votes_does_not_changed = 'votes_does_not_changed',
     asset_does_not_exist = 'asset_does_not_exist',
     account_update_failed = 'account_update_failed',
+    api_connection_failed = 'api_connection_failed',
 }
