@@ -46,16 +46,19 @@ before(() => {
 beforeEach(() => {
     this.fetch = sinon.stub(chainApi, 'fetch');
     this.getAccountById = sinon.stub(accountModule, 'getAccountById');
+    this.finalizeAndBroadcast = sinon.stub(accountModule, 'finalizeAndBroadcast');
 });
 
 afterEach(() => {
     this.fetch.restore();
     this.getAccountById.restore();
+    this.finalizeAndBroadcast.restore();
 });
 
 describe('(server/integration) Account fetch', () => {
 
     it('transfer', (done) => {
+        this.finalizeAndBroadcast.resolves(true);
         const accountFrom = accounts.all[0];
         const accountTo = accounts.all[1];
         const operationMock = {
@@ -88,6 +91,7 @@ describe('(server/integration) Account fetch', () => {
 
 
     it('register account', (done) => {
+        this.finalizeAndBroadcast.resolves(true);
         const accountFrom = accounts.all[0];
 
         const accountName = Date.now().toString();
@@ -125,15 +129,14 @@ describe('(server/integration) Account fetch', () => {
 
     it('update account', (done) => {
         this.getAccountById.resolves(accounts.all[0]);
+        this.finalizeAndBroadcast.resolves(true);
         const accountFrom = accounts.all[0];
         const numMiner = 3;
         const params: UpdateAccountParameters = {
-            newNumMiner: numMiner,
+            newNumMiner: numMiner
         };
         const operationMock = {
             account: accountId,
-            owner: Object.assign({}, accountFrom.owner),
-            active: Object.assign({}, accountFrom.active),
             new_options: {
                 memo_key: accountFrom.options.memo_key,
                 voting_account: accountFrom.options.voting_account,
@@ -160,4 +163,3 @@ describe('(server/integration) Account fetch', () => {
     });
 
 });
-

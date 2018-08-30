@@ -211,7 +211,7 @@ export class ContentModule extends ApiModule {
                     const transaction = new TransactionBuilder();
                     transaction.addOperation(cancelOperation);
                     this.finalizeAndBroadcast(transaction, privateKey, broadcast)
-                        .then(res => resolve(res))
+                        .then(res => resolve(transaction.operations[0]))
                         .catch(err => reject(err));
                 })
                 .catch(err => {
@@ -356,7 +356,7 @@ export class ContentModule extends ApiModule {
                                 const transaction = new TransactionBuilder();
                                 transaction.addOperation(submitOperation);
                                 this.finalizeAndBroadcast(transaction, privateKey, broadcast)
-                                    .then(res => resolve(res))
+                                    .then(res => resolve(transaction.operations[0]))
                                     .catch(err => reject(err));
                             } catch (e) {
                                 reject(this.handleError(ContentError.account_fetch_failed, e));
@@ -632,7 +632,7 @@ export class ContentModule extends ApiModule {
                     const transaction = new TransactionBuilder();
                     transaction.addOperation(buyOperation);
                     this.finalizeAndBroadcast(transaction, privateKey, broadcast)
-                        .then(res => resolve(res))
+                        .then(res => resolve(transaction.operations[0]))
                         .catch(err => reject(err));
                 })
                 .catch(err => {
@@ -848,7 +848,7 @@ export class ContentModule extends ApiModule {
             this.apiConnector.connection()
                 .then(res => {
                     this.finalizeAndBroadcast(transaction, consumerPKey, broadcast)
-                        .then(res => resolve(res))
+                        .then(res => resolve(transaction.operations[0]))
                         .catch((err: Error) => {
                             if (err.stack.indexOf('content != idx.end') >= 0) {
                                 reject(this.handleError(ContentError.content_not_bought, err));

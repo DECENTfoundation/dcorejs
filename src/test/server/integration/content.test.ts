@@ -47,16 +47,19 @@ beforeEach(() => {
     this.fetch = sinon.stub(chainApi, 'fetch');
     this.execute = sinon.stub(databaseApi, 'execute');
     this.getContent = sinon.stub(contentModule, 'getContent');
+    this.finalizeAndBroadcast = sinon.stub(contentModule, 'finalizeAndBroadcast');
 });
 
 afterEach(() => {
     this.fetch.restore();
     this.execute.restore();
     this.getContent.restore();
+    this.finalizeAndBroadcast.restore();
 });
 
 describe('(server/integration) Content fetch', () => {
     it('add content', (done) => {
+        this.finalizeAndBroadcast.resolves(true);
         this.fetch.resolves([accounts.all[0], accounts.all[0], accounts.all[1]]);
         this.execute.resolves([assets.dct_asset, assets.dct_asset]);
 
@@ -102,6 +105,7 @@ describe('(server/integration) Content fetch', () => {
     });
 
     it('buy content', (done) => {
+        this.finalizeAndBroadcast.resolves(true);
         this.getContent.resolves(contentData.content);
         const elGammalPrivate = Utils.elGamalPrivate(privateKey);
         const elGammalPublic = Utils.elGamalPublic(elGammalPrivate);

@@ -309,7 +309,7 @@ export class AccountModule extends ApiModule {
                     );
                     transaction.addOperation(transferOperation);
                     this.finalizeAndBroadcast(transaction, privateKey, broadcast)
-                        .then(res => resolve(res))
+                        .then(res => resolve(transaction.operations[0]))
                         .catch(err => reject(err));
                 })
                 .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
@@ -508,9 +508,9 @@ export class AccountModule extends ApiModule {
             [Type.string, Type.string, Type.string, Type.string, Type.string, Type.string, Type.boolean])) {
             throw new TypeError(AccountError.invalid_parameters);
         }
-        const ownerKeyAuths: [[string, number]] = [] as [[string, number]];
+        const ownerKeyAuths: [string, number][] = [];
         ownerKeyAuths.push([ownerKey, 1]);
-        const activeKeyAuths: [[string, number]] = [] as [[string, number]];
+        const activeKeyAuths: [string, number][] = [];
         activeKeyAuths.push([activeKey, 1]);
         const owner = {
             weight_threshold: 1,
@@ -544,7 +544,7 @@ export class AccountModule extends ApiModule {
                     const transaction = new TransactionBuilder();
                     transaction.addOperation(operation);
                     this.finalizeAndBroadcast(transaction, registrarPrivateKey, broadcast)
-                        .then(res => resolve(res))
+                        .then(res => resolve(transaction.operations[0]))
                         .catch(err => reject(err));
 
                 })
@@ -831,7 +831,7 @@ export class AccountModule extends ApiModule {
                     const transaction = new TransactionBuilder();
                     transaction.addOperation(accountUpdateOperation);
                     this.finalizeAndBroadcast(transaction, privateKey, broadcast)
-                        .then(res => resolve(res))
+                        .then(res => resolve(transaction.operations[0]))
                         .catch(err => reject(err));
                 })
                 .catch((error) => {
