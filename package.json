@@ -28,6 +28,7 @@
         "prebuild": "rimraf dist && rimraf lib",
         "build": "tsc && webpack --config webpack.config.js && npm run generate-docs",
         "generate-docs": "rimraf dist/docs && typedoc --options typedoc.json",
+        "pretest": "npm run build",
         "test": "npm run test:unit && npm run test:integ",
         "test:unit": "npm-run-parallel test:unit:server test:unit:client",
         "test:integ": "npm-run-parallel test:integ:client test:integ:server",

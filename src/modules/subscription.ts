@@ -6,9 +6,10 @@ import { DatabaseApi } from '../api/database';
 import { DatabaseOperations } from '../api/model/database';
 import { SubscriptionError, SubscriptionObject, SubscriptionOptions } from '../model/subscription';
 import { Operations, Operation } from '../model/transaction';
-import { DCoreAssetObject } from '../model/asset';
+import { AssetObject } from '../model/asset';
 import { TransactionBuilder } from '../transactionBuilder';
-import { Asset, Account } from '../model/account';
+import { Account } from '../model/account';
+import { Asset } from '../model/Asset.1';
 import { ApiConnector } from '../api/apiConnector';
 import { Type } from '../model/types';
 import { Validator } from './validator';
@@ -131,7 +132,7 @@ export class SubscriptionModule extends ApiModule {
         return new Promise<Operation>((resolve, reject) => {
             const getAssetOperation = new DatabaseOperations.GetAssets([assetId]);
             this.dbApi.execute(getAssetOperation)
-                .then((assets: DCoreAssetObject) => {
+                .then((assets: AssetObject) => {
                     if (assets[0] === null) {
                         reject(this.handleError(SubscriptionError.asset_does_not_exist));
                         return;
@@ -263,7 +264,7 @@ export class SubscriptionModule extends ApiModule {
                 .then((accounts: Account[]) => {
                     const getAssetsOp = new DatabaseOperations.GetAssets([options.asset || '1.3.0']);
                     this.dbApi.execute(getAssetsOp)
-                        .then((assets: DCoreAssetObject[]) => {
+                        .then((assets: AssetObject[]) => {
                             if (!assets || !assets[0]) {
                                 reject(this.handleError(SubscriptionError.asset_does_not_exist));
                                 return;

@@ -1,10 +1,8 @@
 /**
  * @module Model/Account
  */
-import { Utils } from '../utils';
 import { CryptoUtils } from '../crypt';
-import { ChainApi } from '../api/chain';
-import { DCoreAssetObject } from './asset';
+import { Asset } from './Asset.1';
 
 export type AccountNameIdPair = [string, string];
 
@@ -67,30 +65,6 @@ export interface PublishRights {
     is_publishing_manager: boolean;
     publishing_rights_received: any[];
     publishing_rights_forwarded: any[];
-}
-
-export class Asset {
-    amount: number;
-    asset_id: string;
-
-    public static createDCTAsset(amount: number): Asset {
-        return {
-            amount: amount * ChainApi.DCTPower,
-            asset_id: ChainApi.asset_id
-        };
-    }
-
-    public static create(amount: number, assetObject: DCoreAssetObject): Asset {
-        return new Asset(
-            Utils.formatAmountToAsset(amount, assetObject),
-            assetObject.id
-        );
-    }
-
-    constructor(amount: number, assetId: string) {
-        this.asset_id = assetId;
-        this.amount = amount;
-    }
 }
 
 export interface Authority {

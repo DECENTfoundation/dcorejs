@@ -5,7 +5,7 @@ import { ApiConnector } from '../api/apiConnector';
 import { DatabaseApi } from '../api/database';
 import { DatabaseOperations } from '../api/model/database';
 import { CryptoUtils } from '../crypt';
-import { Asset, Memo, Operations, PriceFeed, Operation } from '../model/transaction';
+import { Memo, Operations, PriceFeed, Operation } from '../model/transaction';
 import { TransactionBuilder } from '../transactionBuilder';
 import { Utils } from '../utils';
 
@@ -16,7 +16,6 @@ import {
     AssetError,
     AssetObject,
     AssetOptions,
-    DCoreAssetObject,
     MonitoredAssetOptions,
     RealSupply,
     UpdateMonitoredAssetParameters,
@@ -25,6 +24,7 @@ import {
 import { IProposalCreateParameters } from '../model/proposal';
 import { Type } from '../model/types';
 import { Validator } from './validator';
+import { Asset } from '../model/Asset.1';
 
 
 export class AssetModule extends ApiModule {
@@ -60,7 +60,7 @@ export class AssetModule extends ApiModule {
         return new Promise<any>((resolve, reject) => {
             const operation = new DatabaseOperations.ListAssets(lowerBoundSymbol, limit);
             this.dbApi.execute(operation)
-                .then((assets: DCoreAssetObject[]) => {
+                .then((assets: AssetObject[]) => {
                     let assetsToProcess = assets;
                     if (UIAOnly) {
                         assetsToProcess = assets.filter(a => a.monitored_asset_opts === undefined);
@@ -470,14 +470,14 @@ export class AssetModule extends ApiModule {
      *                                          Default: false.
      * @returns {Promise<DCoreAssetObject>}     DCoreAssetObject of desired asset.
      */
-    public getAsset(assetId: string, formatAsset: boolean = false): Promise<DCoreAssetObject> {
+    public getAsset(assetId: string, formatAsset: boolean = false): Promise<AssetObject> {
         if (!Validator.validateArguments([assetId, formatAsset], [Type.string, Type.boolean])) {
             throw new TypeError(AssetError.invalid_parameters);
         }
         const operation = new DatabaseOperations.GetAssets([assetId]);
-        return new Promise<DCoreAssetObject>((resolve, reject) => {
+        return new Promise<AssetObject>((resolve, reject) => {
             this.dbApi.execute(operation)
-                .then((assets: DCoreAssetObject[]) => {
+                .then((assets: AssetObject[]) => {
                     if (!assets || !assets[0]) {
                         reject(this.handleError(AssetError.asset_not_found));
                         return;
@@ -498,12 +498,12 @@ export class AssetModule extends ApiModule {
      *                                          Default: false.
      * @returns {Promise<DCoreAssetObject>}     DCoreAssetObject of desired asset.
      */
-    public getAssets(assetIds: string[], formatAssets: boolean = false): Promise<DCoreAssetObject[]> {
+    public getAssets(assetIds: string[], formatAssets: boolean = false): Promise<AssetObject[]> {
         if (!Validator.validateArguments(arguments, [[Array, Type.string], Type.boolean])) {
             throw new TypeError(AssetError.invalid_parameters);
         }
         const operation = new DatabaseOperations.GetAssets(assetIds);
-        return new Promise<DCoreAssetObject[]>((resolve, reject) => {
+        return new Promise<AssetObject[]>((resolve, reject) => {
             this.dbApi.execute(operation)
                 .then(res => resolve(formatAssets ? this.formatAssets(res) : res))
                 .catch(err => reject(err));
@@ -524,7 +524,7 @@ export class AssetModule extends ApiModule {
         }
         return new Promise<any>((resolve, reject) => {
             this.listAssets(symbol, 1)
-                .then((assets: DCoreAssetObject[]) => {
+                .then((assets: AssetObject[]) => {
                     if (assets.length !== 1 || !assets[0]) {
                         reject(this.handleError(AssetError.asset_not_found));
                         return;
@@ -663,8 +663,8 @@ export class AssetModule extends ApiModule {
         });
     }
 
-    private formatAssets(assets: DCoreAssetObject[]): DCoreAssetObject[] {
-        const res: DCoreAssetObject[] = assets.map(asset => {
+    private formatAssets(assets: AssetObject[]): AssetObject[] {
+        const res: AssetObject[] = assets.map(asset => {
             const a = Object.assign({}, asset);
             a.options.core_exchange_rate.base.amount = asset.options.core_exchange_rate.base.amount / ChainApi.DCTPower;
             a.options.core_exchange_rate.quote.amount = Utils.formatAmountForAsset(

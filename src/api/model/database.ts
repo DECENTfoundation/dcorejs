@@ -1,7 +1,9 @@
 /**
  * @module Model/Database
  */
-import { Asset } from '../../model/transaction';
+
+import { Asset } from '../../model/Asset.1';
+
 
 export enum DatabaseError {
     chain_connection_failed = 'chain_connection_failed',

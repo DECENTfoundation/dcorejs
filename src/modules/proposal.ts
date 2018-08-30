@@ -10,7 +10,7 @@ import {
 } from '../model/proposal';
 import { Memo, Operations, Operation } from '../model/transaction';
 import { TransactionBuilder } from '../transactionBuilder';
-import { Asset } from '../model/account';
+import { Asset } from '../model/Asset.1';
 import { ChainApi } from '../api/chain';
 import { CryptoUtils } from '../crypt';
 import { ApiConnector } from '../api/apiConnector';

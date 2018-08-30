@@ -12,7 +12,6 @@ import {
     Account,
     AccountError,
     AccountNameIdPair,
-    Asset,
     Authority,
     HistoryOptions,
     HistoryRecord,
@@ -22,7 +21,7 @@ import {
     UpdateAccountParameters,
     WalletExport
 } from '../model/account';
-import { DCoreAssetObject } from '../model/asset';
+import { AssetObject } from '../model/asset';
 import { Memo, Operation, Operations } from '../model/transaction';
 import { TransactionBuilder } from '../transactionBuilder';
 import { Utils } from '../utils';
@@ -30,6 +29,7 @@ import { ApiModule } from './ApiModule';
 import { Validator } from './validator';
 import { Type } from '../model/types';
 import { KeyPrivate, KeyPublic } from '../model/utils';
+import { Asset } from '../model/Asset.1';
 
 export enum AccountOrder {
     nameAsc = '+name',
@@ -180,7 +180,7 @@ export class AccountModule extends ApiModule {
                 .then((transactions: any[]) => {
                     const listAssetsOp = new DatabaseOperations.ListAssets('', 100);
                     this.dbApi.execute(listAssetsOp)
-                        .then((assets: DCoreAssetObject[]) => {
+                        .then((assets: AssetObject[]) => {
                             const namePromises: Promise<string>[] = [];
                             const res = transactions.map((tr: any) => {
                                 const transaction = new TransactionRecord(tr, privateKeys);
@@ -338,7 +338,7 @@ export class AccountModule extends ApiModule {
             }
             const getAssetOp = new DatabaseOperations.GetAssets([assetId || '1.3.0']);
             this.dbApi.execute(getAssetOp)
-                .then((assets: DCoreAssetObject[]) => {
+                .then((assets: AssetObject[]) => {
                     if (!assets || assets.length === 0) {
                         reject(this.handleError(DatabaseError.asset_fetch_failed));
                         return;
@@ -699,7 +699,7 @@ export class AccountModule extends ApiModule {
                     }
                     const listAssetsOp = new DatabaseOperations.GetAssets(balances.map(asset => asset.asset_id));
                     this.dbApi.execute(listAssetsOp)
-                        .then((assets: DCoreAssetObject[]) => {
+                        .then((assets: AssetObject[]) => {
                             if (!assets || assets.length === 0) {
                                 reject(this.handleError(AccountError.database_operation_failed));
                                 return;

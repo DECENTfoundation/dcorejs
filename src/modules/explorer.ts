@@ -1,11 +1,11 @@
 /**
  * @module ExplorerModule
  */
-import {DatabaseApi} from '../api/database';
-import {Account} from '../model/account';
-import {DatabaseOperations} from '../api/model/database';
-import {Block, Miner, Space, Type, ErrorExplorer} from '../model/explorer';
-import {ApiModule} from './ApiModule';
+import { DatabaseApi } from '../api/database';
+import { Account } from '../model/account';
+import { DatabaseOperations } from '../api/model/database';
+import { Block, Miner, Space, Type, ErrorExplorer } from '../model/explorer';
+import { ApiModule } from './ApiModule';
 import { Validate } from './validator';
 import { Type as BasicType } from '../model/types';
 
@@ -92,11 +92,11 @@ export class ExplorerModule extends ApiModule {
      * @returns {Promise<Block.Asset>}  Asset object.
      */
     @Validate(BasicType.string)
-    getAsset(id: string): Promise<Block.Asset> {
+    getAsset(id: string): Promise<Block.AssetObject> {
         if (this.hasIdCorrectFormat(id, Space.protocol_ids, Type.Protocol.asset)) {
             return this.getDatabaseObject(Space.protocol_ids, Type.Protocol.asset, this.getLastPartOfId(id));
         }
-        return new Promise<Block.Asset>((resolve, reject) => {
+        return new Promise<Block.AssetObject>((resolve, reject) => {
             reject(this.handleError(
                 ErrorExplorer.wrong_id_error,
                 `Wrong id! Id should be in format: ${Space.protocol_ids}.${Type.Protocol.asset}.X`
@@ -503,7 +503,7 @@ export class ExplorerModule extends ApiModule {
      * @returns {Promise<Miner | null>}     Miner object
      */
     @Validate(BasicType.string)
-    getMiner(id: string): Promise<Miner|null> {
+    getMiner(id: string): Promise<Miner | null> {
         return new Promise<Miner>((resolve, reject) => {
             this.getMiners([id])
                 .then(res => {

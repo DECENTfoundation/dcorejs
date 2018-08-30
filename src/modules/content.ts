@@ -1,7 +1,8 @@
 /**
  * @module ContentModule
  */
-import { Asset, DCoreAccount, Account } from '../model/account';
+import { DCoreAccount, Account } from '../model/account';
+import { Asset } from '../model/Asset.1';
 import {
     Content,
     Seeder,
@@ -19,7 +20,7 @@ import { TransactionBuilder } from '../transactionBuilder';
 import { isUndefined } from 'util';
 import { DatabaseOperations, SearchParams, SearchParamsOrder } from '../api/model/database';
 import { ContentObject, Operation, Operations } from '../model/transaction';
-import { DCoreAssetObject } from '../model/asset';
+import { AssetObject } from '../model/asset';
 import { ApiModule } from './ApiModule';
 import { Utils } from '../utils';
 import { ChainMethods } from '../api/model/chain';
@@ -80,7 +81,7 @@ export class ContentModule extends ApiModule {
                 .then((content: any) => {
                     const listAssetsOp = new DatabaseOperations.ListAssets('', 100);
                     this.dbApi.execute(listAssetsOp)
-                        .then((assets: DCoreAssetObject[]) => {
+                        .then((assets: AssetObject[]) => {
                             resolve(content.map((c: any) => {
                                 c.synopsis = JSON.parse(c.synopsis);
                                 if (c.price && convertAsset) {
@@ -115,7 +116,7 @@ export class ContentModule extends ApiModule {
         return new Promise((resolve, reject) => {
             const listAssetsOp = new DatabaseOperations.ListAssets('', 100);
             this.dbApi.execute(listAssetsOp)
-                .then((assets: DCoreAssetObject[]) => {
+                .then((assets: AssetObject[]) => {
                     const dbOperation = new DatabaseOperations.GetObjects([id]);
                     this.dbApi
                         .execute(dbOperation)
@@ -158,7 +159,7 @@ export class ContentModule extends ApiModule {
         return new Promise((resolve, reject) => {
             const listAssetsOp = new DatabaseOperations.ListAssets('', 100);
             this.dbApi.execute(listAssetsOp)
-                .then((assets: DCoreAssetObject[]) => {
+                .then((assets: AssetObject[]) => {
                     const dbOperation = new DatabaseOperations.GetContent(URI);
                     this.dbApi
                         .execute(dbOperation)
@@ -322,7 +323,7 @@ export class ContentModule extends ApiModule {
                             return [coAuthor.id, content.coAuthors[index][1]];
                         });
                     this.dbApi.execute(listAssetOp)
-                        .then((assets: [DCoreAssetObject, DCoreAssetObject]) => {
+                        .then((assets: [AssetObject, AssetObject]) => {
                             if (!assets || !assets[0] || !assets[1]) {
                                 reject(this.handleError(ContentError.fetch_content_failed));
                                 return;
@@ -388,7 +389,7 @@ export class ContentModule extends ApiModule {
                 .then(buyingObjects => {
                     const listAssetsOp = new DatabaseOperations.ListAssets('', 100);
                     this.dbApi.execute(listAssetsOp)
-                        .then((assets: DCoreAssetObject[]) => {
+                        .then((assets: AssetObject[]) => {
                             if (!assets || assets.length === 0) {
                                 reject(this.handleError(ContentError.asset_fetch_failed));
                                 return;
@@ -422,7 +423,7 @@ export class ContentModule extends ApiModule {
                 .then(buyingObjects => {
                     const listAssetsOp = new DatabaseOperations.ListAssets('', 100);
                     this.dbApi.execute(listAssetsOp)
-                        .then((assets: DCoreAssetObject[]) => {
+                        .then((assets: AssetObject[]) => {
                             if (!assets || assets.length === 0) {
                                 reject(this.handleError(ContentError.asset_fetch_failed));
                                 return;
@@ -456,7 +457,7 @@ export class ContentModule extends ApiModule {
                 .then(buyingObjects => {
                     const listAssetsOp = new DatabaseOperations.ListAssets('', 100);
                     this.dbApi.execute(listAssetsOp)
-                        .then((assets: DCoreAssetObject[]) => {
+                        .then((assets: AssetObject[]) => {
                             if (!assets || assets.length === 0) {
                                 reject(this.handleError(ContentError.asset_fetch_failed));
                                 return;
@@ -491,7 +492,7 @@ export class ContentModule extends ApiModule {
                 .then(buyingObjects => {
                     const listAssetsOp = new DatabaseOperations.ListAssets('', 100);
                     this.dbApi.execute(listAssetsOp)
-                        .then((assets: DCoreAssetObject[]) => {
+                        .then((assets: AssetObject[]) => {
                             if (!assets || assets.length === 0) {
                                 reject(this.handleError(ContentError.asset_fetch_failed));
                                 return;
@@ -525,7 +526,7 @@ export class ContentModule extends ApiModule {
                 .then(buyingObjects => {
                     const listAssetsOp = new DatabaseOperations.ListAssets('', 100);
                     this.dbApi.execute(listAssetsOp)
-                        .then((assets: DCoreAssetObject[]) => {
+                        .then((assets: AssetObject[]) => {
                             if (!assets || assets.length === 0) {
                                 reject(this.handleError(ContentError.asset_fetch_failed));
                                 return;
@@ -543,10 +544,10 @@ export class ContentModule extends ApiModule {
      * Format price Asset amounts to asset precision.
      *
      * @param {IContentExchangeObject[]} content     List of content to format.
-     * @param {DCoreAssetObject[]} assets           Complete list of assets for formatting.
+     * @param {AssetObject[]} assets           Complete list of assets for formatting.
      * @returns {IContentExchangeObject[]}           List of content with formatted prices.
      */
-    private formatPrices(content: IContentExchangeObject[], assets: DCoreAssetObject[]): IContentExchangeObject[] {
+    private formatPrices(content: IContentExchangeObject[], assets: AssetObject[]): IContentExchangeObject[] {
         if (!Validator.validateArray<IContentExchangeObject>(content, ContentExchangeObject)) {
             throw new TypeError(ContentError.invalid_arguments);
         }

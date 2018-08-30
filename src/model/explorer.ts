@@ -2,9 +2,8 @@
  * @module Model/Explorer
  */
 import {Authority, Options} from './account';
-import {Asset as TransactionAsset} from './transaction';
-
 import {Key} from './content';
+import { Asset } from '../model/Asset.1';
 
 export enum ErrorExplorer {
     get_object_error = 'get_object_error',
@@ -12,7 +11,7 @@ export enum ErrorExplorer {
 }
 
 export namespace Block {
-    export interface Asset {
+    export interface AssetObject {
         id: string;
         symbol: string;
         precision: number;
@@ -39,8 +38,8 @@ export namespace Block {
     }
 
     export interface AssetExchangeRate {
-        base: TransactionAsset;
-        quote: TransactionAsset
+        base: Asset;
+        quote: Asset
     }
 
     export interface Miner {
@@ -67,7 +66,7 @@ export namespace Block {
     }
 
     export interface Operation {
-        fee: TransactionAsset;
+        fee: Asset;
         registrar: string;
         name: string;
         owner: Authority;
@@ -219,9 +218,9 @@ export namespace Block {
         consumer: string;
         URI: string;
         synopsis: string;
-        price: TransactionAsset;
-        paid_price_before_exchange: TransactionAsset;
-        paid_price_after_exchange: TransactionAsset;
+        price: Asset;
+        paid_price_before_exchange: Asset;
+        paid_price_after_exchange: Asset;
         seeders_answered: Array<string>;
         size: number;
         rating: string;
@@ -257,7 +256,7 @@ export namespace Block {
         AVG_rating: number;
         num_of_ratings: number;
         times_bought: number;
-        publishing_fee_escrow: TransactionAsset;
+        publishing_fee_escrow: Asset;
         cd: {
             n: number;
             u_seed: string;
@@ -273,7 +272,7 @@ export namespace Block {
                 id: string;
                 seeder: string;
                 free_space: number;
-                price: TransactionAsset;
+                price: Asset;
                 expiration: string;
                 pubKey: Key;
                 ipfs_ID: string;
@@ -319,8 +318,8 @@ export namespace Block {
         m_from_account: string;
         m_to_account: string;
         m_operation_type: number;
-        m_transaction_amount: TransactionAsset;
-        m_transaction_fee: TransactionAsset;
+        m_transaction_amount: Asset;
+        m_transaction_fee: Asset;
         m_str_description: string;
         m_timestamp: string;
     }
@@ -361,7 +360,7 @@ export namespace Block {
             [
                 number,
                 {
-                    fee: TransactionAsset,
+                    fee: Asset,
                     seeder: string,
                     URI: string
                 }

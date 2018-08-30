@@ -1,7 +1,7 @@
 /**
  * @module Model/Content
  */
-import {Asset} from './account';
+import { Asset } from './Asset.1';
 
 export interface BuyingContent extends IContentExchangeObject {
     consumer: string;
@@ -143,23 +143,7 @@ export interface Seeder extends IContentExchangeObject {
     region_code: string;
 }
 
-export interface ISubmitObject {
-    authorId: string;
-    coAuthors: [string, number][];
-    seeders: Seeder[];
-    fileName: string;
-    date: string;
-    price: number;
-    size: number;
-    URI: string;
-    hash: string;
-    keyParts: KeyParts[];
-    synopsis: Synopsis;
-    assetId?: string;
-    publishingFeeAsset?: string;
-}
-
-export class SubmitObject implements ISubmitObject {
+export class SubmitObject {
     authorId = '';
     coAuthors: [string, number][] = [];
     seeders: Seeder[] = [];

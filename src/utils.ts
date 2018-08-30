@@ -1,16 +1,16 @@
 /**
  * @module Utils
  */
-import {dcorejs_lib} from './helpers';
-import {CryptoUtils} from './crypt';
-import {ChainApi} from './api/chain';
-import {dictionary} from './resources/dictionary';
+import { dcorejs_lib } from './helpers';
+import { CryptoUtils } from './crypt';
+import { ChainApi } from './api/chain';
+import { dictionary } from './resources/dictionary';
 import * as BigInteger from 'big-integer';
-import {sha512} from 'js-sha512';
-import {DCoreAssetObject} from './model/asset';
-import {Validate} from './modules/validator';
-import {Type} from './model/types';
-import {BrainKeyInfo, ElGamalKeys, KeyPrivate, KeyPublic, UtilsError} from './model/utils';
+import { sha512 } from 'js-sha512';
+import { AssetObject } from './model/asset';
+import { Validate } from './modules/validator';
+import { Type } from './model/types';
+import { BrainKeyInfo, ElGamalKeys, KeyPrivate, KeyPublic, UtilsError } from './model/utils';
 
 export class Utils {
 
@@ -45,11 +45,11 @@ export class Utils {
      * Note: Most of amount values are already formatted for this precision format.
      *
      * @param {number} amount               Amount of asset in DCore network format.
-     * @param {DCoreAssetObject} asset      Asset object to format amount to.
+     * @param {AssetObject} asset      Asset object to format amount to.
      * @returns {number}                    Formatted number in format with decimal numbers.
      */
-    @Validate(Type.number, DCoreAssetObject)
-    public static formatAmountForAsset(amount: number, asset: DCoreAssetObject): number {
+    @Validate(Type.number, AssetObject)
+    public static formatAmountForAsset(amount: number, asset: AssetObject): number {
         return amount / Math.pow(10, asset.precision);
     }
 
@@ -57,11 +57,11 @@ export class Utils {
      * Format amount value for DCore, to format without decimal numbers.
      *
      * @param {number} amount           Amount with decimal numbers to format.
-     * @param {DCoreAssetObject} asset  Asset object for formatting.
+     * @param {AssetObject} asset  Asset object for formatting.
      * @returns {number}                Formatted number.
      */
-    @Validate(Type.number, DCoreAssetObject)
-    public static formatAmountToAsset(amount: number, asset: DCoreAssetObject): number {
+    @Validate(Type.number, AssetObject)
+    public static formatAmountToAsset(amount: number, asset: AssetObject): number {
         const transformedAmount = amount * Math.pow(10, asset.precision);
         return Number(transformedAmount.toFixed(0));
     }

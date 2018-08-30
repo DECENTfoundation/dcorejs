@@ -24,16 +24,7 @@ export interface ReceiversData {
     data: string;
 }
 
-export interface IDCoreMessagePayload {
-    id: string;
-    created: string;
-    sender: string;
-    sender_pubkey: string;
-    receivers_data: DCoreReceiversData[];
-    text: string;
-}
-
-export class DCoreMessagePayload implements IDCoreMessagePayload {
+export class DCoreMessagePayload {
     id = '';
     created = '';
     sender = '';

@@ -10,6 +10,7 @@ import {MonitoredAssetOptions} from './asset';
 import {Proposal} from './proposal';
 import * as prototype from './operationPrototype';
 import {OperationType} from './operationPrototype';
+import { Asset } from './Asset.1';
 
 /**
  * OperationType to be broadcasted to blockchain
@@ -65,16 +66,6 @@ export enum OperationName {
     automatic_renewal_of_subscription = 'automatic_renewal_of_subscription',
     custom_operation = 'custom',
     update_monitored_asset_operation = 'update_monitored_asset_operation',
-}
-
-
-/**
- * Asset represent amount of specific
- * asset.
- */
-export class Asset {
-    amount: number;
-    asset_id: string;
 }
 
 /**

@@ -1,12 +1,7 @@
 /**
  * @module Model/Mining
  */
-export interface IMinerUpdateData {
-    newUrl?: string;
-    newSigningKey?: string;
-}
-
-export class MinerUpdateData implements IMinerUpdateData {
+export class MinerUpdateData {
     newUrl?: string = null;
     newSigningKey?: string = null;
 }

@@ -4,11 +4,7 @@
 import AssetExchangeRate = Block.AssetExchangeRate;
 import {Block} from './explorer';
 
-export interface IDCoreAssetObject extends AssetObject {
-    dynamic_asset_data_id: string;
-}
-
-export interface AssetObject {
+export class AssetObject {
     id: string;
     symbol: string;
     precision: number;
@@ -17,17 +13,6 @@ export interface AssetObject {
     monitored_asset_opts?: MonitoredAssetOptions;
     options: AssetOptions;
     dynamic_asset_data_id: string;
-}
-
-export class DCoreAssetObject implements IDCoreAssetObject {
-    id = '';
-    symbol = '';
-    precision = 0;
-    issuer = '';
-    description = '';
-    monitored_asset_opts?: MonitoredAssetOptions = null;
-    options: AssetOptions = {} as AssetOptions;
-    dynamic_asset_data_id = '';
 }
 
 export interface MonitoredAssetOptions {
@@ -49,15 +34,7 @@ export interface AssetCurrentFeed {
     core_exchange_rate: AssetExchangeRate;
 }
 
-export interface IUserIssuedAssetInfo {
-    newIssuer?: string;
-    description?: string;
-    maxSupply?: number;
-    coreExchange?: AssetExchangeRate;
-    isExchangable?: boolean;
-}
-
-export class UserIssuedAssetInfo implements IUserIssuedAssetInfo {
+export class UserIssuedAssetInfo {
     newIssuer?: string = null;
     description?: string = null;
     maxSupply?: number = null;

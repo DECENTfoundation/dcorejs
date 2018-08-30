@@ -1,12 +1,13 @@
 /**
  * @module Model/OperationPrototype
  */
-import {Asset, Memo, PriceFeed, RegionalPrice} from './transaction';
+import {Memo, PriceFeed, RegionalPrice} from './transaction';
 import {Key, KeyParts} from './content';
 import {Authority, Options} from './account';
 import {AssetOptions, MonitoredAssetOptions} from './asset';
 import {Block} from './explorer';
 import AssetExchangeRate = Block.AssetExchangeRate;
+import { Asset } from './Asset.1';
 
 export abstract class OperationType {}
 
