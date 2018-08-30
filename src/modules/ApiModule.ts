@@ -40,19 +40,21 @@ export class ApiModule {
 
     protected finalizeAndBroadcast(transaction: TransactionBuilder, privateKey: string, broadcast: boolean): Promise<Operation> {
         return new Promise((resolve, reject) => {
-            transaction.setTransactionFees()
-                .then(res => {
-                    if (broadcast) {
+                transaction.setTransactionFees()
+                    .then(res => {
+                        if (broadcast) {
                         transaction.broadcast(privateKey)
                             .then(res => resolve(transaction.operations[0]))
                             .catch(err => {
                                 reject(this.handleError('transaction_broadcast_failed', err));
                             });
-                    } else {
-                        resolve(transaction.operations[0]);
-                    }
-                })
-                .catch(err => reject(this.handleError('connection_failed', err)));
+                        } else {
+                            resolve(transaction.operations[0]);
+                        }
+                    })
+                    .catch(err => {
+                        reject(this.handleError('connection_failed', err));
+                    });
         });
     }
 }
