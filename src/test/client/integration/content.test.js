@@ -2,6 +2,7 @@ const contentId = '2.13.240';
 
 describe('(client/integration) Content fetch', () => {
     it('add content', (done) => {
+        finalizeAndBroadcast_content.resolves(true);
         fetchStub.resolves([accounts.all[0], accounts.all[0], accounts.all[1]]);
         executeStub.resolves([assets.dct_asset, assets.dct_asset]);
 
@@ -47,6 +48,7 @@ describe('(client/integration) Content fetch', () => {
     });
 
     it('buy content', (done) => {
+        finalizeAndBroadcast_content.resolves(true);
         getContentStub.resolves(contentData.content);
         const elGammalPrivate = dcorejs.Utils.elGamalPrivate(privateKey);
         const elGammalPublic = dcorejs.Utils.elGamalPublic(elGammalPrivate);

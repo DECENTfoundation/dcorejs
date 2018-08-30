@@ -4,6 +4,7 @@ const transactionId = '1.7.190';
 
 describe('(client/integration) Account module', () => {
     it('transfer asset', (done) => {
+        finalizeAndBroadcast_account.resolves(true);
         const accountFrom = accounts.all[0];
         const accountTo = accounts.all[1];
         const operationMock = {
@@ -42,6 +43,7 @@ describe('(client/integration) Account module', () => {
     }).timeout(10000);
 
     it('register account', (done) => {
+        finalizeAndBroadcast_account.resolves(true);
         const accountFrom = accounts.all[0];
         const ownerKey = accountFrom.owner.key_auths[0][0];
         const activeKey = accountFrom.active.key_auths[0][0];
@@ -81,6 +83,7 @@ describe('(client/integration) Account module', () => {
     });
 
     it('update account', (done) => {
+        finalizeAndBroadcast_account.resolves(true);
         getAccountByIdStub.resolves(accounts.all[0]);
         const accountFrom = accounts.all[0];
         const numMiner = 3;
@@ -89,8 +92,6 @@ describe('(client/integration) Account module', () => {
         };
         const operationMock = {
             account: accountId,
-            owner: Object.assign({}, accountFrom.owner),
-            active: Object.assign({}, accountFrom.active),
             new_options: {
                 memo_key: accountFrom.options.memo_key,
                 voting_account: accountFrom.options.voting_account,
