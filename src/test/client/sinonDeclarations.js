@@ -11,3 +11,5 @@ let fetchStub = sinon.stub(chainApi, 'fetch');
 let getAccountByIdStub = sinon.stub(accountModule, 'getAccountById');
 let executeStub = sinon.stub(databaseApi, 'execute');
 let getContentStub = sinon.stub(contentModule, 'getContent');
+let finalizeAndBroadcast_account = sinon.stub(accountModule, 'finalizeAndBroadcast');
+let finalizeAndBroadcast_content = sinon.stub(contentModule, 'finalizeAndBroadcast');
