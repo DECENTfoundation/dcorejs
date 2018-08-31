@@ -1,19 +1,31 @@
 /**
  * @module ContentModule
  */
-import { Asset, DCoreAccount } from '../model/account';
-import { Rating, Content, Seeder, BuyingContent, SubmitObject, ContentKeys, KeyPair, ContentExchangeObject, Price } from '../model/content';
+import { Asset, DCoreAccount, Account } from '../model/account';
+import {
+    Content,
+    Seeder,
+    BuyingContent,
+    SubmitObject,
+    ContentKeys,
+    KeyPair,
+    IContentExchangeObject,
+    Price,
+    ContentExchangeObject
+} from '../model/content';
 import { DatabaseApi } from '../api/database';
 import { ChainApi } from '../api/chain';
 import { TransactionBuilder } from '../transactionBuilder';
 import { isUndefined } from 'util';
 import { DatabaseOperations, SearchParams, SearchParamsOrder } from '../api/model/database';
-import {ContentObject, Operation, Operations} from '../model/transaction';
+import { ContentObject, Operation, Operations } from '../model/transaction';
 import { DCoreAssetObject } from '../model/asset';
 import { ApiModule } from './ApiModule';
 import { Utils } from '../utils';
 import { ChainMethods } from '../api/model/chain';
-import {ApiConnector} from '../api/apiConnector';
+import { ApiConnector } from '../api/apiConnector';
+import { Type } from '../model/types';
+import { Validator } from './validator';
 
 const moment = require('moment');
 
@@ -29,6 +41,8 @@ export enum ContentError {
     parameters_error = 'parameters_error',
     connection_failed = 'connection_failed',
     syntactic_error = 'syntactic_error',
+    content_not_bought = 'content_not_bought',
+    invalid_arguments = 'invalid_arguments',
 }
 
 /**
@@ -55,6 +69,10 @@ export class ContentModule extends ApiModule {
      * @return {Promise<Content[]>}             List of Content object that conform search parameters.
      */
     public searchContent(searchParams?: SearchParams, convertAsset: boolean = false): Promise<Content[]> {
+        if (searchParams && !Validator.validateObject(searchParams, SearchParams)
+            || !Validator.validateArguments([convertAsset], [Type.boolean])) {
+            throw new TypeError(ContentError.invalid_arguments);
+        }
         const dbOperation = new DatabaseOperations.SearchContent(searchParams);
         return new Promise((resolve, reject) => {
             this.dbApi
@@ -71,7 +89,9 @@ export class ContentModule extends ApiModule {
                                 return c;
                             }));
                         })
-                        .catch(err => console.log(err));
+                        .catch(err => {
+                            reject(this.handleError(ContentError.database_operation_failed, err));
+                        });
                 })
                 .catch((err: any) => {
                     reject(this.handleError(ContentError.database_operation_failed, err));
@@ -89,6 +109,9 @@ export class ContentModule extends ApiModule {
      * @return {Promise<Content | null>}    Content object.
      */
     public getContent(id: string, convertAsset: boolean = false): Promise<ContentObject> {
+        if (!Validator.validateArguments([id, convertAsset], [Type.string, Type.boolean])) {
+            throw new TypeError(ContentError.invalid_arguments);
+        }
         return new Promise((resolve, reject) => {
             const listAssetsOp = new DatabaseOperations.ListAssets('', 100);
             this.dbApi.execute(listAssetsOp)
@@ -109,7 +132,8 @@ export class ContentModule extends ApiModule {
                                 objectified = this.formatPrices([objectified], assets)[0];
                             }
                             resolve(objectified as ContentObject);
-                        });
+                        })
+                        .catch(err => reject(this.handleError(ContentError.fetch_content_failed, err)));
                 })
                 .catch(err => {
                     reject(this.handleError(ContentError.database_operation_failed, err));
@@ -128,6 +152,9 @@ export class ContentModule extends ApiModule {
      * @returns {Promise<Content | null>}   Content object.
      */
     public getContentURI(URI: string, convertAsset: boolean = false): Promise<ContentObject | null> {
+        if (!Validator.validateArguments([URI, convertAsset], [Type.string, Type.boolean])) {
+            throw new TypeError(ContentError.invalid_arguments);
+        }
         return new Promise((resolve, reject) => {
             const listAssetsOp = new DatabaseOperations.ListAssets('', 100);
             this.dbApi.execute(listAssetsOp)
@@ -162,32 +189,30 @@ export class ContentModule extends ApiModule {
      * @param {string} contentId        Content id in format '2.13.X'. Example: '2.13.1234'
      * @param {string} authorId         Author id in format'1.2.X'. Example: '1.2.345'
      * @param {string} privateKey       Author's private key to submit transaction in WIF(hex) (Wallet Import Format) format.
+     * @param {boolean} broadcast       Transaction is broadcasted if set to 'true'. Default value is 'true'.
      * @return {Promise<void>}          Value confirming successful transaction broadcasting.
      */
-    public removeContent(contentId: string,
+    public removeContent(
+        contentId: string,
         authorId: string,
-        privateKey: string): Promise<void> {
+        privateKey: string,
+        broadcast: boolean = true): Promise<Operation> {
+        if (!Validator.validateArguments(
+            [contentId, authorId, privateKey, broadcast],
+            [Type.string, Type.string, Type.string, Type.boolean])
+        ) {
+            throw new TypeError(ContentError.invalid_arguments);
+        }
         return new Promise((resolve, reject) => {
             this.getContent(contentId)
                 .then((content: ContentObject) => {
                     const URI = content.URI;
                     const cancelOperation = new Operations.ContentCancelOperation(authorId, URI);
                     const transaction = new TransactionBuilder();
-                    const added = transaction.addOperation(cancelOperation);
-                    if (added === '') {
-                        transaction.broadcast(privateKey)
-                            .then(() => {
-                                resolve();
-                            })
-                            .catch(err => {
-                                reject(
-                                    this.handleError(ContentError.transaction_broadcast_failed, err)
-                                );
-                            });
-                    } else {
-                        reject(this.handleError(ContentError.syntactic_error, added));
-                        return;
-                    }
+                    transaction.addOperation(cancelOperation);
+                    this.finalizeAndBroadcast(transaction, privateKey, broadcast)
+                        .then(res => resolve(transaction.operations[0]))
+                        .catch(err => reject(err));
                 })
                 .catch(err => {
                     reject(this.handleError(ContentError.fetch_content_failed, err));
@@ -212,6 +237,9 @@ export class ContentModule extends ApiModule {
      * @returns {Promise<string>}               Content key to decrypt content.
      */
     public restoreContentKeys(contentId: string, accountId: string, ...elGamalKeys: KeyPair[]): Promise<string> {
+        if (!Validator.validateArguments(arguments, [Type.string, Type.string, [Array, Type.string]])) {
+            throw new TypeError(ContentError.invalid_arguments);
+        }
         return new Promise((resolve, reject) => {
             this.getContent(contentId)
                 .then(content => {
@@ -247,6 +275,9 @@ export class ContentModule extends ApiModule {
      * @return {Promise<ContentKeys>}   Generated ContentKeys for content encryption.
      */
     public generateContentKeys(seeders: string[]): Promise<ContentKeys> {
+        if (!Validator.validateArguments(arguments, [[Array, Type.string]])) {
+            throw new TypeError(ContentError.invalid_arguments);
+        }
         const dbOperation = new DatabaseOperations.GenerateContentKeys(seeders);
         return new Promise((resolve, reject) => {
             this.dbApi
@@ -264,12 +295,16 @@ export class ContentModule extends ApiModule {
      * Submit content to blockchain
      * https://docs.decent.ch/developer/group___wallet_a_p_i___content.html#gae0af8d611b5d915264a892ad83254370
      *
+     * @throws {TypeError}              Error is thrown in case of invalid input parameters.
      * @param {SubmitObject} content    SubmitObject with information about submitted object.
      * @param {string} privateKey       Private for sign transaction in WIF(hex) (Wallet Import Format) format.
-     * @param {boolean} broadcast
+     * @param {boolean} broadcast       Transaction is broadcasted if set to 'true'. Default value is 'true'.
      * @return {Promise<boolean>}       Value confirming successful transaction broadcasting.
      */
     public addContent(content: SubmitObject, privateKey: string, broadcast: boolean = true): Promise<Operation> {
+        if (!Validator.validateArguments([content, privateKey, broadcast], [SubmitObject, Type.string, Type.boolean])) {
+            throw new TypeError('Invalid parameters');
+        }
         return new Promise<Operation>((resolve, reject) => {
             content.size = this.getFileSize(content.size);
             const listAssetOp = new DatabaseOperations.GetAssets([
@@ -319,25 +354,10 @@ export class ContentModule extends ApiModule {
                                     JSON.stringify(content.synopsis)
                                 );
                                 const transaction = new TransactionBuilder();
-                                const added = transaction.addOperation(submitOperation);
-                                if (added === '') {
-                                    if (broadcast) {
-                                        transaction.broadcast(privateKey)
-                                            .then(() => {
-                                                resolve(transaction.operations[0]);
-                                            })
-                                            .catch(err => {
-                                                reject(
-                                                    this.handleError(ContentError.transaction_broadcast_failed, err)
-                                                );
-                                            });
-                                    } else {
-                                        resolve(transaction.operations[0]);
-                                    }
-                                } else {
-                                    reject(this.handleError(ContentError.syntactic_error, added));
-                                    return;
-                                }
+                                transaction.addOperation(submitOperation);
+                                this.finalizeAndBroadcast(transaction, privateKey, broadcast)
+                                    .then(res => resolve(transaction.operations[0]))
+                                    .catch(err => reject(err));
                             } catch (e) {
                                 reject(this.handleError(ContentError.account_fetch_failed, e));
                                 return;
@@ -359,6 +379,9 @@ export class ContentModule extends ApiModule {
      * @returns {Promise<BuyingContent[]>}      BuyingContent list of opened buy requests.
      */
     public getOpenBuying(convertAsset: boolean = false): Promise<BuyingContent[]> {
+        if (!Validator.validateArguments([convertAsset], [Type.boolean])) {
+            throw new TypeError('Invalid parameters');
+        }
         return new Promise<BuyingContent[]>(((resolve, reject) => {
             const operation = new DatabaseOperations.GetOpenBuyings();
             this.dbApi.execute(operation)
@@ -390,6 +413,9 @@ export class ContentModule extends ApiModule {
      * @returns {Promise<BuyingContent[]>}  BuyingContent list of opened buy requests.
      */
     public getOpenBuyingByURI(URI: string, convertAsset: boolean = false): Promise<BuyingContent[]> {
+        if (!Validator.validateArguments([URI, convertAsset], [Type.string, Type.boolean])) {
+            throw new TypeError('Invalid parameters');
+        }
         return new Promise<BuyingContent[]>(((resolve, reject) => {
             const operation = new DatabaseOperations.GetOpenBuyingsByURI(URI);
             this.dbApi.execute(operation)
@@ -421,6 +447,9 @@ export class ContentModule extends ApiModule {
      * @returns {Promise<BuyingContent[]>}  BuyingContent list of opened buy requests.
      */
     public getOpenBuyingByConsumer(accountId: string, convertAsset: boolean = false): Promise<BuyingContent[]> {
+        if (!Validator.validateArguments([accountId, convertAsset], [Type.string, Type.boolean])) {
+            throw new TypeError('Invalid parameters');
+        }
         return new Promise<BuyingContent[]>(((resolve, reject) => {
             const operation = new DatabaseOperations.GetOpenBuyingsByConsumer(accountId);
             this.dbApi.execute(operation)
@@ -453,6 +482,9 @@ export class ContentModule extends ApiModule {
      * @returns {Promise<BuyingContent[] | null>}   List of bought content with URI.
      */
     public getBuyingByConsumerURI(accountId: string, URI: string, convertAsset: boolean = false): Promise<BuyingContent[] | null> {
+        if (!Validator.validateArguments([accountId, URI, convertAsset], [Type.string, Type.string, Type.boolean])) {
+            throw new TypeError('Invalid parameters');
+        }
         return new Promise<BuyingContent[]>(((resolve, reject) => {
             const operation = new DatabaseOperations.GetBuyingByConsumerURI(accountId, URI);
             this.dbApi.execute(operation)
@@ -484,6 +516,9 @@ export class ContentModule extends ApiModule {
      * @returns {Promise<BuyingContent[]>}  List of BuyingContent.
      */
     public getBuyingHistoryObjectsByConsumer(accountId: string, convertAsset: boolean = false): Promise<BuyingContent[]> {
+        if (!Validator.validateArguments([accountId, convertAsset], [Type.string, Type.boolean])) {
+            throw new TypeError('Invalid parameters');
+        }
         return new Promise<BuyingContent[]>((resolve, reject) => {
             const getBuyingsHistoryObjectsByConsumerOp = new DatabaseOperations.GetBuyingsHistoryObjectsByConsumer(accountId);
             this.dbApi.execute(getBuyingsHistoryObjectsByConsumerOp)
@@ -507,12 +542,15 @@ export class ContentModule extends ApiModule {
     /**
      * Format price Asset amounts to asset precision.
      *
-     * @param {ContentExchangeObject[]} content     List of content to format.
+     * @param {IContentExchangeObject[]} content     List of content to format.
      * @param {DCoreAssetObject[]} assets           Complete list of assets for formatting.
-     * @returns {ContentExchangeObject[]}           List of content with formatted prices.
+     * @returns {IContentExchangeObject[]}           List of content with formatted prices.
      */
-    private formatPrices(content: ContentExchangeObject[], assets: DCoreAssetObject[]): ContentExchangeObject[] {
-        const result: ContentExchangeObject[] = content.map(obj => {
+    private formatPrices(content: IContentExchangeObject[], assets: DCoreAssetObject[]): IContentExchangeObject[] {
+        if (!Validator.validateArray<IContentExchangeObject>(content, ContentExchangeObject)) {
+            throw new TypeError(ContentError.invalid_arguments);
+        }
+        const result: IContentExchangeObject[] = content.map(obj => {
             const objCopy = Object.assign({}, obj);
             const assetsToFormat = [objCopy.price.hasOwnProperty('map_price')
                 ? (objCopy.price as Price).map_price[0][1]
@@ -566,14 +604,21 @@ export class ContentModule extends ApiModule {
      * @param {string} buyerId          Account id of user buying content in format '1.2.X'. Example: '1.2.345'
      * @param {string} elGammalPub      ElGammal public key which will be used to identify users bought content
      * @param {string} privateKey       Private key to sign broadcasted transaction in WIF(hex) (Wallet Import Format) format.
-     * @param {boolean} broadcast
+     * @param {boolean} broadcast       Transaction is broadcasted if set to 'true'. Default value is 'true'.
      * @return {Promise<boolean>}       Value confirming successful transaction broadcasting.
      */
-    public buyContent(contentId: string,
-                      buyerId: string,
-                      elGammalPub: string,
-                      privateKey: string,
-                      broadcast: boolean = true): Promise<Operation> {
+    public buyContent(
+        contentId: string,
+        buyerId: string,
+        elGammalPub: string,
+        privateKey: string,
+        broadcast: boolean = true): Promise<Operation> {
+        if (!Validator.validateArguments(
+            [contentId, buyerId, elGammalPub, privateKey, broadcast],
+            [Type.string, Type.string, Type.string, Type.string, Type.boolean])
+        ) {
+            throw new TypeError('Invalid parameters');
+        }
         return new Promise<Operation>((resolve, reject) => {
             this.getContent(contentId)
                 .then((content: ContentObject) => {
@@ -585,23 +630,10 @@ export class ContentModule extends ApiModule {
                         { s: elGammalPub }
                     );
                     const transaction = new TransactionBuilder();
-                    const added = transaction.addOperation(buyOperation);
-                    if (added === '') {
-                        if (broadcast) {
-                            transaction.broadcast(privateKey)
-                                .then(() => {
-                                    resolve(transaction.operations[0]);
-                                })
-                                .catch((err: any) => {
-                                    reject(this.handleError(ContentError.transaction_broadcast_failed, err));
-                                });
-                        } else {
-                            resolve(transaction.operations[0]);
-                        }
-                    } else {
-                        reject(this.handleError(ContentError.syntactic_error, added));
-                        return;
-                    }
+                    transaction.addOperation(buyOperation);
+                    this.finalizeAndBroadcast(transaction, privateKey, broadcast)
+                        .then(res => resolve(transaction.operations[0]))
+                        .catch(err => reject(err));
                 })
                 .catch(err => {
                     reject(this.handleError(ContentError.fetch_content_failed, err));
@@ -617,6 +649,9 @@ export class ContentModule extends ApiModule {
      * @return {Promise<Seeder[]>}      List of available Seeder objects.
      */
     public getSeeders(resultSize: number = 100): Promise<Seeder[]> {
+        if (!Validator.validateArguments([resultSize], [Type.number])) {
+            throw new TypeError('Invalid parameters');
+        }
         const dbOperation = new DatabaseOperations.ListSeeders(resultSize);
         return new Promise((resolve, reject) => {
             this.dbApi
@@ -641,11 +676,18 @@ export class ContentModule extends ApiModule {
      * @param {number} resultSize       Number of results. Default 100(Max)
      * @return {Promise<Content[]>}     List of purchased content.
      */
-    public getPurchasedContent(accountId: string,
+    public getPurchasedContent(
+        accountId: string,
         order: SearchParamsOrder = SearchParamsOrder.createdDesc,
         startObjectId: string = '0.0.0',
         term: string = '',
         resultSize: number = 100): Promise<Content[]> {
+        if (!Validator.validateArguments(
+            [accountId, order, startObjectId, term, resultSize],
+            [Type.string, Type.string, Type.string, Type.string, Type.number])
+        ) {
+            throw new TypeError('Invalid parameters');
+        }
         return new Promise((resolve, reject) => {
             if (!accountId) {
                 reject('missing_parameter');
@@ -696,8 +738,14 @@ export class ContentModule extends ApiModule {
      * @param {number} count
      * @return {Promise<Array<Rating>>}
      */
-    getRating(contentId: string, forUser: string, ratingStartId: string = '', count: number = 100): Promise<Array<Rating>> {
-        return new Promise<Array<Rating>>((resolve, reject) => {
+    getRating(contentId: string, forUser: string, ratingStartId: string = '', count: number = 100): Promise<Array<BuyingContent>> {
+        if (!Validator.validateArguments(
+            [contentId, forUser, ratingStartId, count],
+            [Type.string, Type.string, Type.string, Type.number])
+        ) {
+            throw new TypeError('Invalid parameters');
+        }
+        return new Promise<Array<BuyingContent>>((resolve, reject) => {
             this.getContent(contentId)
                 .then(res => {
                     this.searchFeedback(forUser, res.URI, ratingStartId, count)
@@ -714,11 +762,29 @@ export class ContentModule extends ApiModule {
     /**
      * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#a624e679ac58b3edfc7b817e4a46e3746
      */
-    searchFeedback(accountId: string, contentURI: string, ratingStartId: string, count: number = 100): Promise<Array<Rating>> {
-        return new Promise<Array<Rating>>((resolve, reject) => {
-            const operation = new DatabaseOperations.SearchFeedback(accountId, contentURI, ratingStartId, count);
-            this.dbApi.execute(operation)
-                .then(res => {
+    searchFeedback(accountId: string, contentURI: string, ratingStartId: string, count: number = 100): Promise<Array<BuyingContent>> {
+        if (!Validator.validateArguments([accountId, contentURI, ratingStartId, count],
+            [Type.string, Type.string, Type.string, Type.number])) {
+            throw new TypeError(ContentError.invalid_arguments);
+        }
+        return new Promise<Array<BuyingContent>>(async (resolve, reject) => {
+            const getAccountOp = new DatabaseOperations.GetAccounts([accountId]);
+            let accounts = [];
+            if (accountId) {
+                try {
+                    accounts = await this.dbApi.execute<Account[]>(getAccountOp);
+                } catch (err) {
+                    reject(this.handleError(ContentError.connection_failed, err));
+                }
+            }
+            if (accounts.length !== 0 && !accounts[0]) {
+                reject(this.handleError(ContentError.account_fetch_failed));
+                return;
+            }
+            const [account] = accounts;
+            const operation = new DatabaseOperations.SearchFeedback(account ? account.name : '', contentURI, ratingStartId, count);
+            this.dbApi.execute<BuyingContent[]>(operation)
+                .then((res: BuyingContent[]) => {
                     resolve(res);
                 })
                 .catch(err => {
@@ -733,6 +799,9 @@ export class ContentModule extends ApiModule {
      * @param {string} URI   Content URI. Example 'ipfs:QmQ9MBkzt6QcDtBhg7qenDcXtm1s6VVSogtSHa2zbXKsFb'
      */
     getAuthorCoAuthors(URI: string): Promise<[string, string[]] | null> {
+        if (!Validator.validateArguments(arguments, [Type.string])) {
+            throw new TypeError('Invalid parameters');
+        }
         return new Promise<[string, string[]]>((resolve, reject) => {
             const operation = new DatabaseOperations.GetContent(URI);
             this.dbApi.execute<ContentObject>(operation)
@@ -756,21 +825,39 @@ export class ContentModule extends ApiModule {
      * @param {string} comment          Comment for feedback.
      * @param {number} rating           Rating number from interval 1(Bad)-5(Good).
      * @param {string} consumerPKey     Account's private key to sign transaction in WIF(hex) (Wallet Import Format) format.
+     * @param {boolean} broadcast       Transaction is broadcasted if set to 'true'. Default value is 'true'.
      * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
      */
-    leaveCommentAndRating(contentURI: string, consumer: string, comment: string, rating: number, consumerPKey: string): Promise<boolean> {
-        return new Promise<boolean>((resolve, reject) => {
+    leaveCommentAndRating(
+        contentURI: string,
+        consumer: string,
+        comment: string,
+        rating: number,
+        consumerPKey: string,
+        broadcast: boolean = true): Promise<Operation> {
+        if (!Validator.validateArguments(
+            [contentURI, consumer, comment, rating, consumerPKey, broadcast],
+            [Type.string, Type.string, Type.string, Type.number, Type.string, Type.boolean])
+        ) {
+            throw new TypeError(ContentError.invalid_arguments);
+        }
+        return new Promise<Operation>((resolve, reject) => {
             const operation = new Operations.LeaveRatingAndComment(contentURI, consumer, comment, rating);
             const transaction = new TransactionBuilder();
-            const added = transaction.addOperation(operation);
-            if (added === '') {
-                transaction.broadcast(consumerPKey)
-                    .then(() => resolve(true))
-                    .catch(err => reject(this.handleError(ContentError.transaction_broadcast_failed, err)));
-            } else {
-                reject(this.handleError(ContentError.syntactic_error, added));
-                return;
-            }
+            transaction.addOperation(operation);
+            this.apiConnector.connection()
+                .then(res => {
+                    this.finalizeAndBroadcast(transaction, consumerPKey, broadcast)
+                        .then(res => resolve(transaction.operations[0]))
+                        .catch((err: Error) => {
+                            if (err.stack.indexOf('content != idx.end') >= 0) {
+                                reject(this.handleError(ContentError.content_not_bought, err));
+                            } else {
+                                reject(this.handleError(ContentError.transaction_broadcast_failed, err));
+                            }
+                        });
+                })
+                .catch(err => reject(this.handleError(ContentError.connection_failed, err)));
         });
     }
 }

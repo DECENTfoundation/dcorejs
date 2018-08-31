@@ -8,20 +8,46 @@
         input {
             width: 300px;
         }
+
+        label {
+            max-width: 110px;
+            width: 100%;
+            display: inline-block;
+        }
+
+        .form-wrapper > div {
+            margin: 0 0 4px 0;
+        }
+
+        .form-wrapper > div:last-child {
+            margin: 0
+        }
     </style>
 </head>
 
 <body>
     <h1>Submit content</h1>
     <form action="javascript:void(0)">
-        <div>
+        <div class="form-wrapper">
+            <div>
+                <label for="publisherId">Author</label>
+                <input id="publisherId" type="text" title="publisherId" placeholder="1.2.X" />
+            </div>
+            <div>
+                <label for="coAuthors">Co Authors</label>
+                <input id="coAuthors" type="text" title="coAuthors" placeholder="1.2.X-1000, 1.2.Y-2000" />
+            </div>
+            <div>
+                <label for="publisherKey">Private key</label>
+                <input id="publisherKey" type="text" title="publisherKey" value="" />
+            </div>
             <div>
                 <label for="file">File</label>
                 <input id="file" type="file" title="file" />
             </div>
             <div>
                 <label for="expirationDate">Expiration date</label>
-                <input id="expirationDate" type="date" title="expirationDate" placeholder="yyyy-mm-dd" value="2017-12-24" />
+                <input id="expirationDate" type="date" title="expirationDate" placeholder="yyyy-mm-dd" value="" />
             </div>
             <div>
                 <label for="title">Title</label>
@@ -41,17 +67,20 @@
             </div>
             <div>
                 <label for="uri">URI</label>
-                <input id="uri" type="text" title="uri" value="ipfs:QmQ9MBkzt6QcDtBhg7qenDcXtm1s6VVSogtSHa2zbXKsFb"/>
+                <input id="uri" type="text" title="uri" value="" />
             </div>
             <div>
                 <label for="hash">Hash</label>
-                <input id="hash" type="text" title="hash" value="10e7d47ecbb77cd319ce38f338d720a4d17a25b1" />
+                <input id="hash" type="text" title="hash" placeholder="Unique RIPEMD160 hash" />
             </div>
             <div>
                 <label for="meta">Meta data</label>
-                <input id="meta" type="text" title="meta" value='{"title": "", "description": "", "content_type_id": ""}'/>
-                <p style="font-size: 9pt"><b>INFO:</b> Meta object should contain al least
-                    <b>title</b>, <b>description</b> and <b>content_type_id</b>
+                <input id="meta" type="text" title="meta" value='{"title": "", "description": "", "content_type_id": ""}' />
+                <p style="font-size: 9pt">
+                    <b>INFO:</b> Meta object should contain al least
+                    <b>title</b>,
+                    <b>description</b> and
+                    <b>content_type_id</b>
                 </p>
             </div>
             <div id="seeders"></div>

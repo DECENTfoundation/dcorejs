@@ -45,9 +45,9 @@ export class ApiConnector {
     }
 
     constructor(apiAddresses: string[],
-                api: any,
-                testConnectionQuality: boolean = true,
-                connectionStatusCallback: (status: ConnectionState) => void = null) {
+        api: any,
+        testConnectionQuality: boolean = true,
+        connectionStatusCallback: (status: ConnectionState) => void = null) {
         this._apiAddresses = apiAddresses;
         this._api = api;
         this.connectionStatusCallback = connectionStatusCallback;
@@ -64,9 +64,9 @@ export class ApiConnector {
      * @param {(status: ConnectionState) => void} connectionStatusCallback
      */
     private initConnetion(addresses: string[],
-                          api: any,
-                          testConnectionQuality: boolean = true,
-                          connectionStatusCallback: (status: ConnectionState) => void = null): void {
+        api: any,
+        testConnectionQuality: boolean = true,
+        connectionStatusCallback: (status: ConnectionState) => void = null): void {
         api.setRpcConnectionStatusCallback((status: string) => this.handleConnectionState(status, connectionStatusCallback));
         this._connectionPromise = this.connectApi(addresses, api, testConnectionQuality);
     }
@@ -84,7 +84,6 @@ export class ApiConnector {
             if (testConnectionQuality) {
                 const conTestResults = await this.testConnectionTime(addresses);
                 addresses = conTestResults
-                    .filter(r => r.success)
                     .sort((a, b) => a.elapsedTime - b.elapsedTime)
                     .map(r => r.address);
             }
@@ -95,11 +94,15 @@ export class ApiConnector {
                     const res = await this.getConnectionPromise(address, api);
                     this._isConnected = true;
                     this.connectedAddress = address;
-                    console.log('Connected to', address);
+                    if (process.env.ENVIRONMENT === 'DEV') {
+                        console.log('debug => Connected to', address);
+                    }
                     resolve(res);
                     return;
                 } catch (e) {
-                    console.log('Fail to connect to', address);
+                    if (process.env.ENVIRONMENT === 'DEV') {
+                        console.log('debug => Fail to connect to', address);
+                    }
                     api.close();
                 }
             }
@@ -132,7 +135,7 @@ export class ApiConnector {
                 } catch (e) {
                     resolve({
                         address: httpAddress,
-                        elapsedTime: 0,
+                        elapsedTime: Infinity,
                         success: false
                     });
                 }
@@ -147,11 +150,11 @@ export class ApiConnector {
 
     /**
      * Return promise of connection. Once connection is established Promise is resolved and is able to run operations on apis.
-     * Closed connection can be opened using openConnection() method.
+     * Closed connection wil not be connected. To reopen closed connection use `openConnection()`.
      *
      * @returns {Promise<void>}     Connection promise.
      */
-    public connect(): Promise<void> {
+    public connection(): Promise<void> {
         if (!this._connectionPromise) {
             return new Promise<void>(((resolve, reject) => reject('connection_closed')));
         }
@@ -161,12 +164,13 @@ export class ApiConnector {
     /**
      * Opens WS connection based on initialize configuration.
      *
-     * @returns {Promise<void>}     Connection promise.
+     * @returns {Promise<any>}     Connection promise.
      */
-    public openConnection() {
+    public openConnection(): Promise<any> {
         if (this._connectionPromise === null) {
             this.initConnetion(this._apiAddresses, this._api, this.testConnectionQuality, this.connectionStatusCallback);
         }
+        return this._connectionPromise;
     }
 
     /**
@@ -176,7 +180,9 @@ export class ApiConnector {
         this._isConnected = false;
         this._api.close();
         this._connectionPromise = null;
-        console.log('Closed connection to', this.connectedAddress);
+        if (process.env.ENVIRONMENT === 'DEV') {
+            console.log('Closed connection to', this.connectedAddress);
+        }
         this.connectedAddress = null;
     }
 

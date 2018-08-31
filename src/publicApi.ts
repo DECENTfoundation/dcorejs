@@ -2,7 +2,7 @@
  * @module PublicApi
  */
 export * from './api/model/database';
-export { ContentModule} from './modules/content';
+export { ContentModule } from './modules/content';
 export * from './modules/account';
 export * from './modules/explorer';
 export { ConnectionState } from './api/apiConnector';
@@ -17,3 +17,5 @@ export * from './model/seeding';
 export * from './model/subscription';
 export { ChainOperationType } from './api/model/chain';
 export { dictionary } from './resources/dictionary';
+export { Operations as TransactionOperations } from './model/transaction';
+export * from './api';

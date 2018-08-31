@@ -11,8 +11,8 @@ let secret = null;
 let pkey = null;
 
 function initLib() {
-    secret = dcorejs.Utils.privateKeyFromWif(secretWif);
-    pkey = dcorejs.Utils.publicKeyFromString(pkeyString);
+    secret = secretWif;
+    pkey = pkeyString;
 }
 
 describe('(client/unit) Crypt helper test', () => {
@@ -20,7 +20,7 @@ describe('(client/unit) Crypt helper test', () => {
 
     it('encrypt message', () => {
         const encryptedMsg = dcorejs.CryptoUtils.encryptWithChecksum(message, secret, pkey, '');
-        expect(encryptedMsg.toString('hex')).to.equal(encryptedMessage);
+        expect(encryptedMsg).to.equal(encryptedMessage);
     }).timeout(5000);
 
     it('create md5 hash', () => {

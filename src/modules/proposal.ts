@@ -1,22 +1,23 @@
 /**
  * @module ProposalModule
  */
-import {ApiModule} from './ApiModule';
-import {DatabaseApi} from '../api/database';
-import {DatabaseOperations} from '../api/model/database';
+import { ApiModule } from './ApiModule';
+import { DatabaseApi } from '../api/database';
+import { DatabaseOperations } from '../api/model/database';
 import {
-    FeesParameters, DeltaParameters, Proposal, ProposalCreateParameters, ProposalError, ProposalObject,
-    ProposalParameters
+    FeesParameters, DeltaParameters, Proposal, ProposalError, ProposalObject,
+    ProposalParameters, ProposalCreateParameters
 } from '../model/proposal';
-import {Memo, Operations} from '../model/transaction';
-import {TransactionBuilder} from '../transactionBuilder';
-import {Asset} from '../model/account';
-import {ChainApi} from '../api/chain';
-import {Utils} from '../utils';
-import {CryptoUtils} from '../crypt';
-import {ApiConnector} from '../api/apiConnector';
-import {ChainMethods} from '../api/model/chain';
-import {AssetError} from '../model/asset';
+import { Memo, Operations, Operation } from '../model/transaction';
+import { TransactionBuilder } from '../transactionBuilder';
+import { Asset } from '../model/account';
+import { ChainApi } from '../api/chain';
+import { CryptoUtils } from '../crypt';
+import { ApiConnector } from '../api/apiConnector';
+import { ChainMethods } from '../api/model/chain';
+import { AssetError } from '../model/asset';
+import { Type } from '../model/types';
+import { Validator } from './validator';
 
 export class ProposalModule extends ApiModule {
     constructor(dbApi: DatabaseApi, chainApi: ChainApi, apiConnector: ApiConnector) {
@@ -35,6 +36,9 @@ export class ProposalModule extends ApiModule {
      * @returns {Promise<ProposalObject[]>}
      */
     public getProposedTransactions(accountId: string): Promise<ProposalObject[]> {
+        if (!Validator.validateArguments(arguments, [Type.string])) {
+            throw new TypeError(ProposalError.invalid_parameters);
+        }
         return new Promise<ProposalObject[]>((resolve, reject) => {
             const operation = new DatabaseOperations.GetProposedTransactions(accountId);
             this.dbApi.execute(operation)
@@ -59,57 +63,62 @@ export class ProposalModule extends ApiModule {
      * @param {string} memoKey                          Public key used to memo encryption in WIF(hex)(Wallet Import Format) format.
      * @param {string} expiration                       Date in ISO format. Example: "2018-07-17T16:00:00"
      * @param {string} privateKey                       Private key used to sign transaction.
-     * @returns {Promise<boolean>}
+     * @param {boolean} broadcast                       Transaction is broadcasted if set to 'true'. Default value is 'true'.
+     * @returns {Promise<Operation>}
      */
     public proposeTransfer(
         proposerAccountId: string, fromAccountId: string, toAccountId: string, amount: number, assetId: string, memoKey: string,
-        expiration: string, privateKey: string): Promise<boolean> {
-        return new Promise<boolean>(((resolve, reject) => {
+        expiration: string, privateKey: string, broadcast: boolean = true): Promise<Operation> {
+        if (!Validator.validateArguments(
+            [proposerAccountId, fromAccountId, toAccountId, amount, assetId, memoKey, expiration, privateKey, broadcast],
+            [Type.string, Type.string, Type.string, Type.number, Type.string, Type.string,
+            Type.string, Type.string, Type.boolean])
+        ) {
+            throw new TypeError(ProposalError.invalid_parameters);
+        }
+        return new Promise<Operation>(((resolve, reject) => {
             const operations = [].concat(
                 new ChainMethods.GetAccount(fromAccountId),
                 new ChainMethods.GetAccount(toAccountId),
                 new ChainMethods.GetAsset(assetId)
             );
             this.chainApi.fetch(...operations)
-            .then(result => {
-                const [senderAccount, receiverAccount, asset] = result;
-                const senderAccountObject = JSON.parse(JSON.stringify(senderAccount));
-                const receiverAccountObject = JSON.parse(JSON.stringify(receiverAccount));
-                const assetObject = JSON.parse(JSON.stringify(asset));
+                .then(result => {
+                    const [senderAccount, receiverAccount, asset] = result;
+                    const senderAccountObject = JSON.parse(JSON.stringify(senderAccount));
+                    const receiverAccountObject = JSON.parse(JSON.stringify(receiverAccount));
+                    const assetObject = JSON.parse(JSON.stringify(asset));
 
-                if (!senderAccountObject) {
-                    reject(this.handleError(ProposalError.transfer_sender_account_does_not_exist));
-                    return;
-                }
-                if (!receiverAccountObject) {
-                    reject(this.handleError(ProposalError.transfer_receiver_account_does_not_exist));
-                    return;
-                }
-                if (!assetObject) {
-                    reject(this.handleError(ProposalError.asset_not_found));
-                    return;
-                }
+                    if (!senderAccountObject) {
+                        reject(this.handleError(ProposalError.transfer_sender_account_does_not_exist));
+                        return;
+                    }
+                    if (!receiverAccountObject) {
+                        reject(this.handleError(ProposalError.transfer_receiver_account_does_not_exist));
+                        return;
+                    }
+                    if (!assetObject) {
+                        reject(this.handleError(ProposalError.asset_not_found));
+                        return;
+                    }
 
-                const nonce: string = ChainApi.generateNonce();
-                const fromPublicKey = senderAccountObject.options.memo_key;
-                const toPublicKey = receiverAccountObject.options.memo_key;
-                const privateKeyObject = Utils.privateKeyFromWif(privateKey);
-                const publicKeyObject = Utils.publicKeyFromString(toPublicKey);
-                const memo: Memo = {
-                    from: fromPublicKey,
-                    to: toPublicKey,
-                    nonce: nonce,
-                    message: CryptoUtils.encryptWithChecksum(memoKey, privateKeyObject, publicKeyObject, nonce)
-                };
+                    const nonce: string = ChainApi.generateNonce();
+                    const fromPublicKey = senderAccountObject.options.memo_key;
+                    const toPublicKey = receiverAccountObject.options.memo_key;
+                    const memo: Memo = {
+                        from: fromPublicKey,
+                        to: toPublicKey,
+                        nonce: nonce,
+                        message: CryptoUtils.encryptWithChecksum(memoKey, privateKey, toPublicKey, nonce)
+                    };
 
-                const getGlobalPropertiesOperation = new DatabaseOperations.GetGlobalProperties();
-                this.dbApi.execute(getGlobalPropertiesOperation)
-                    .then(globalProperties => {
-                        const price = Asset.create(amount, assetObject);
-                        const transferOperation = new Operations.TransferOperation(fromAccountId, toAccountId, price, memo);
-                        const transaction = new TransactionBuilder();
-                        const result = transaction.addOperation(transferOperation);
-                        if (result === '') {
+                    const getGlobalPropertiesOperation = new DatabaseOperations.GetGlobalProperties();
+                    this.dbApi.execute(getGlobalPropertiesOperation)
+                        .then(globalProperties => {
+                            const price = Asset.create(amount, assetObject);
+                            const transferOperation = new Operations.TransferOperation(fromAccountId, toAccountId, price, memo);
+                            const transaction = new TransactionBuilder();
+                            transaction.addOperation(transferOperation);
                             const proposalCreateParameters: ProposalCreateParameters = {
                                 fee_paying_account: proposerAccountId,
                                 expiration_time: expiration,
@@ -117,29 +126,20 @@ export class ProposalModule extends ApiModule {
                                 extensions: []
                             };
                             transaction.propose(proposalCreateParameters);
-                            transaction.broadcast(privateKey)
-                                .then(() => {
-                                    resolve(true);
-                                })
-                                .catch(error => {
-                                    reject(this.handleError(ProposalError.transaction_broadcast_failed, error));
-                                    return;
-                                });
-                        } else {
-                            reject(this.handleError(ProposalError.syntactic_error, result));
-                            return;
-                        }
+                            this.finalizeAndBroadcast(transaction, privateKey, broadcast)
+                                .then(res => resolve(res))
+                                .catch(err => reject(err));
                         })
-                    .catch(error => {
-                        reject(this.handleError(AssetError.database_operation_failed, error));
-                        return;
-                    });
+                        .catch(error => {
+                            reject(this.handleError(AssetError.database_operation_failed, error));
+                            return;
+                        });
 
                 })
-            .catch(error => {
-                reject(this.handleError(ProposalError.chain_operation_failed, error));
-                return;
-            });
+                .catch(error => {
+                    reject(this.handleError(ProposalError.chain_operation_failed, error));
+                    return;
+                });
         }));
     }
 
@@ -153,11 +153,18 @@ export class ProposalModule extends ApiModule {
      * @param {string} expiration                           Date in ISO format. Example: "2018-07-17T16:00:00", min is 14 days since today,
      *                                                      max is 28 days since today.
      * @param {string} privateKey                           Private key used to sign transaction.
-     * @returns {Promise<boolean>}
+     * @param {boolean} broadcast                           Transaction is broadcasted if set to 'true'. Default value is 'true'.
+     * @returns {Promise<Operation>}
      */
     public proposeParameterChange(proposerAccountId: string, proposalParameters: ProposalParameters, expiration: string,
-                                  privateKey: string): Promise<boolean> {
-        return new Promise<boolean>(((resolve, reject) => {
+        privateKey: string, broadcast: boolean = true): Promise<Operation> {
+        if (!Validator.validateArguments(
+            [proposerAccountId, proposalParameters, expiration, privateKey, broadcast],
+            [Type.string, ProposalParameters, Type.string, Type.string, Type.boolean])
+        ) {
+            throw new TypeError(ProposalError.invalid_parameters);
+        }
+        return new Promise<Operation>(((resolve, reject) => {
             const databaseOperation = new DatabaseOperations.GetGlobalProperties();
             this.dbApi.execute(databaseOperation)
                 .then(globalParam => {
@@ -220,29 +227,18 @@ export class ProposalModule extends ApiModule {
                     const operation = new Operations.MinerUpdateGlobalParameters(newParameters);
                     const transaction = new TransactionBuilder();
 
-                    const result = transaction.addOperation(operation);
-                    if (result === '') {
-                        transaction.addOperation(operation);
-                        const proposalCreateParameters: ProposalCreateParameters = {
-                            fee_paying_account: proposerAccountId,
-                            expiration_time: expiration,
-                            review_period_seconds: globalParam.parameters.miner_proposal_review_period,
-                            extensions: [],
-                        };
-                        transaction.propose(proposalCreateParameters);
-                        transaction.broadcast(privateKey)
-                            .then(() => {
-                                resolve(true);
-                            })
-                            .catch(error => {
-                                reject(this.handleError(ProposalError.transaction_broadcast_failed, error));
-                                return;
-                            });
-                    } else {
-                        reject(this.handleError(ProposalError.syntactic_error, result));
-                        return;
-                    }
-                    })
+                    transaction.addOperation(operation);
+                    const proposalCreateParameters: ProposalCreateParameters = {
+                        fee_paying_account: proposerAccountId,
+                        expiration_time: expiration,
+                        review_period_seconds: globalParam.parameters.miner_proposal_review_period,
+                        extensions: [],
+                    };
+                    transaction.propose(proposalCreateParameters);
+                    this.finalizeAndBroadcast(transaction, privateKey, broadcast)
+                        .then(res => resolve(res))
+                        .catch(err => reject(err));
+                })
                 .catch(error => {
                     reject(this.handleError(ProposalError.database_operation_failed, error));
                     return;
@@ -260,11 +256,18 @@ export class ProposalModule extends ApiModule {
      * @param {string} expiration                           Date in ISO format. Example: "2018-07-17T16:00:00", min is 14 days since today,
      *                                                      max is 28 days since today.
      * @param {string} privateKey                           Private key used to sign transaction.
-     * @returns {Promise<boolean>}
+     * @param {boolean} broadcast                           Transaction is broadcasted if set to 'true'. Default value is 'true'.
+     * @returns {Promise<Operation>}
      */
-    public proposeFeeChange(proposerAccountId: string, feesParameters: FeesParameters, expiration: string, privateKey: string):
-                            Promise<boolean> {
-        return new Promise<boolean>(((resolve, reject) => {
+    public proposeFeeChange(proposerAccountId: string, feesParameters: FeesParameters,
+        expiration: string, privateKey: string, broadcast: boolean = true): Promise<Operation> {
+        if (!Validator.validateArguments(
+            [proposerAccountId, feesParameters, expiration, privateKey, broadcast],
+            [Type.string, Type.string, FeesParameters, Type.string, Type.boolean])
+        ) {
+            throw new TypeError(ProposalError.invalid_parameters);
+        }
+        return new Promise<Operation>(((resolve, reject) => {
             const databaseOperation = new DatabaseOperations.GetGlobalProperties();
             this.dbApi.execute(databaseOperation)
                 .then(currentParameters => {
@@ -413,28 +416,18 @@ export class ProposalModule extends ApiModule {
                     }
                     const operation = new Operations.MinerUpdateGlobalParameters(newParameters);
                     const transaction = new TransactionBuilder();
-                    const result = transaction.addOperation(operation);
-                    if (result === '') {
-                        const proposalCreateParameters: ProposalCreateParameters = {
-                            fee_paying_account: proposerAccountId,
-                            expiration_time: expiration,
-                            review_period_seconds: currentParameters.parameters.miner_proposal_review_period,
-                            extensions: [],
-                        };
-                        transaction.propose(proposalCreateParameters);
-                        transaction.broadcast(privateKey)
-                            .then(() => {
-                                resolve(true);
-                            })
-                            .catch(error => {
-                                reject(this.handleError(ProposalError.transaction_broadcast_failed, error));
-                                return;
-                            });
-                    } else {
-                        reject(this.handleError(ProposalError.syntactic_error, result));
-                        return;
-                    }
-                    })
+                    transaction.addOperation(operation);
+                    const proposalCreateParameters: ProposalCreateParameters = {
+                        fee_paying_account: proposerAccountId,
+                        expiration_time: expiration,
+                        review_period_seconds: currentParameters.parameters.miner_proposal_review_period,
+                        extensions: [],
+                    };
+                    transaction.propose(proposalCreateParameters);
+                    this.finalizeAndBroadcast(transaction, privateKey, broadcast)
+                        .then(res => resolve(res))
+                        .catch(err => reject(err));
+                })
                 .catch(error => {
                     reject(this.handleError(ProposalError.database_operation_failed));
                     return;
@@ -450,13 +443,19 @@ export class ProposalModule extends ApiModule {
      * @param {string} proposalId                       Proposal id in format '1.6.X'. Example "1.6.100"
      * @param {DeltaParameters} approvalsDelta          Active keys, owner keys and key approvals that you can add or remove.
      * @param {string} privateKey                       Private key used to sign transaction.
-     * @returns {Promise<boolean>}
+     * @param {boolean} broadcast                       Transaction is broadcasted if set to 'true'. Default value is 'true'.
+     * @returns {Promise<Operation>}
      */
-
-    public approveProposal(
-        payingAccountId: string, proposalId: string, approvalsDelta: DeltaParameters, privateKey: string): Promise<boolean> {
-        return new Promise<boolean>(((resolve, reject) => {
-            this.apiConnector.connect()
+    public approveProposal(payingAccountId: string, proposalId: string, approvalsDelta: DeltaParameters,
+        privateKey: string, broadcast: boolean = true): Promise<Operation> {
+        if (!Validator.validateArguments(
+            [payingAccountId, proposalId, approvalsDelta,  privateKey, broadcast],
+            [Type.string, Type.string, DeltaParameters, Type.string, Type.boolean])
+        ) {
+            throw new TypeError(ProposalError.invalid_parameters);
+        }
+        return new Promise<Operation>(((resolve, reject) => {
+            this.apiConnector.connection()
                 .then(() => {
                     const operation = new Operations.ProposalUpdate(
                         payingAccountId,
@@ -469,20 +468,10 @@ export class ProposalModule extends ApiModule {
                         approvalsDelta.key_approvals_to_remove
                     );
                     const transaction = new TransactionBuilder();
-                    const result = transaction.addOperation(operation);
-                    if (result === '') {
-                        transaction.broadcast(privateKey)
-                            .then(() => {
-                                resolve(true);
-                            })
-                            .catch(error => {
-                                reject(this.handleError(ProposalError.transaction_broadcast_failed, error));
-                                return;
-                            });
-                    } else {
-                        reject(this.handleError(ProposalError.syntactic_error, result));
-                        return;
-                    }
+                    transaction.addOperation(operation);
+                    this.finalizeAndBroadcast(transaction, privateKey, broadcast)
+                        .then(res => resolve(res))
+                        .catch(err => reject(err));
                 })
                 .catch(error => {
                     reject(this.handleError(ProposalError.connection_failed, error));

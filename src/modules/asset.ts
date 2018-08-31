@@ -1,17 +1,17 @@
 /**
  * @module AssetModule
  */
-import {ApiConnector} from '../api/apiConnector';
-import {DatabaseApi} from '../api/database';
-import {DatabaseOperations} from '../api/model/database';
-import {CryptoUtils} from '../crypt';
-import {Asset, Memo, Operations, PriceFeed} from '../model/transaction';
-import {TransactionBuilder} from '../transactionBuilder';
-import {Utils} from '../utils';
+import { ApiConnector } from '../api/apiConnector';
+import { DatabaseApi } from '../api/database';
+import { DatabaseOperations } from '../api/model/database';
+import { CryptoUtils } from '../crypt';
+import { Asset, Memo, Operations, PriceFeed, Operation } from '../model/transaction';
+import { TransactionBuilder } from '../transactionBuilder';
+import { Utils } from '../utils';
 
-import {ChainApi} from '../api/chain';
-import {ApiModule} from './ApiModule';
-import {ChainMethods} from '../api/model/chain';
+import { ChainApi } from '../api/chain';
+import { ApiModule } from './ApiModule';
+import { ChainMethods } from '../api/model/chain';
 import {
     AssetError,
     AssetObject,
@@ -22,7 +22,9 @@ import {
     UpdateMonitoredAssetParameters,
     UserIssuedAssetInfo
 } from '../model/asset';
-import {ProposalCreateParameters} from '../model/proposal';
+import { IProposalCreateParameters } from '../model/proposal';
+import { Type } from '../model/types';
+import { Validator } from './validator';
 
 
 export class AssetModule extends ApiModule {
@@ -47,12 +49,23 @@ export class AssetModule extends ApiModule {
      *                                      Default: false.
      * @returns {AssetObject[]}             AssetObject list.
      */
-    public listAssets(lowerBoundSymbol: string, limit: number = 100, formatAssets: boolean = false): Promise<AssetObject[]> {
+    public listAssets(
+        lowerBoundSymbol: string,
+        limit: number = 100,
+        UIAOnly: boolean = false,
+        formatAssets: boolean = false): Promise<AssetObject[]> {
+        if (!Validator.validateArguments([lowerBoundSymbol, limit, formatAssets], [Type.string, Type.number, Type.boolean])) {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
         return new Promise<any>((resolve, reject) => {
             const operation = new DatabaseOperations.ListAssets(lowerBoundSymbol, limit);
             this.dbApi.execute(operation)
                 .then((assets: DCoreAssetObject[]) => {
-                    resolve(formatAssets ? this.formatAssets(assets) : assets);
+                    let assetsToProcess = assets;
+                    if (UIAOnly) {
+                        assetsToProcess = assets.filter(a => a.monitored_asset_opts === undefined);
+                    }
+                    resolve(formatAssets ? this.formatAssets(assetsToProcess) : assetsToProcess);
                 })
                 .catch(err => {
                     reject(this.handleError(AssetError.unable_to_list_assets, err));
@@ -72,22 +85,33 @@ export class AssetModule extends ApiModule {
      * @param {number} maxSupply                The maximum supply of this asset which may exist at any given time
      * @param {number} baseExchangeAmount       Amount of custom tokens for exchange rate to quoteExchangeAmount DCT tokens.
      * @param {number} quoteExchangeAmount      Number of DCT tokens for rxchange rate.
-     * @param {boolean} isExchangable           Set 'true' to allow implicit conversion of asst to core asset.
+     * @param {boolean} isExchangeable           Set 'true' to allow implicit conversion of asst to core asset.
      * @param {boolean} isSupplyFixed           Set value 'true' to fixate token maxSupply, 'false' for changeable maxSupply value.
      *                                          NOTE: only can be changed from 'false' to 'true'
      * @param {string} issuerPrivateKey         Private key to sign transaction in WIF(hex) (Wallet Import Format) format.
+     * @param {boolean} broadcast               Transaction is broadcasted if set to 'true'. Default value is 'true'.
      * @returns {Promise<boolean>}              Value confirming successful transaction broadcasting.
      */
-    public createUserIssuedAsset(issuer: string,
-                                 symbol: string,
-                                 precision: number,
-                                 description: string,
-                                 maxSupply: number,
-                                 baseExchangeAmount: number,
-                                 quoteExchangeAmount: number,
-                                 isExchangeable: boolean,
-                                 isSupplyFixed: boolean,
-                                 issuerPrivateKey: string): Promise<boolean> {
+    public createUserIssuedAsset(
+        issuer: string,
+        symbol: string,
+        precision: number,
+        description: string,
+        maxSupply: number,
+        baseExchangeAmount: number,
+        quoteExchangeAmount: number,
+        isExchangeable: boolean,
+        isSupplyFixed: boolean,
+        issuerPrivateKey: string,
+        broadcast: boolean = true): Promise<Operation> {
+        if (!Validator.validateArguments(
+            [issuer, symbol, precision, description, maxSupply, baseExchangeAmount,
+                quoteExchangeAmount, isExchangeable, isSupplyFixed, issuerPrivateKey, broadcast],
+            [Type.string, Type.string, Type.number, Type.string, Type.number, Type.number,
+            Type.number, Type.boolean, Type.boolean, Type.string, Type.boolean])
+        ) {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
         const options: AssetOptions = {
             max_supply: maxSupply,
             core_exchange_rate: {
@@ -110,19 +134,14 @@ export class AssetModule extends ApiModule {
         const operation = new Operations.AssetCreateOperation(
             issuer, symbol, precision, description, options
         );
-        return new Promise<boolean>((resolve, reject) => {
-            this.apiConnector.connect()
+        return new Promise<Operation>((resolve, reject) => {
+            this.apiConnector.connection()
                 .then(() => {
                     const transaction = new TransactionBuilder();
-                    const added = transaction.addOperation(operation);
-                    if (added === '') {
-                        transaction.broadcast(issuerPrivateKey)
-                            .then(() => resolve(true))
-                            .catch(err => reject(this.handleError(AssetError.transaction_broadcast_failed, err)));
-                    } else {
-                        reject(this.handleError(AssetError.syntactic_error, added));
-                        return;
-                    }
+                    transaction.addOperation(operation);
+                    this.finalizeAndBroadcast(transaction, issuerPrivateKey, broadcast)
+                        .then(res => resolve(res))
+                        .catch(err => reject(err));
                 })
                 .catch(err => {
                     reject(this.handleError(AssetError.connection_failed, err));
@@ -141,10 +160,23 @@ export class AssetModule extends ApiModule {
      * @param {string} issueToAccount       Account id to whom asset will be issued. In format '1.2.X'. Example '1.2.345.
      * @param {string} memo                 Message for asset receiver
      * @param {string} issuerPKey           Issuer private key for transaction sign
+     * @param {boolean} broadcast           Transaction is broadcasted if set to 'true'. Default value is 'true'.
      * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
      */
-    public issueAsset(assetSymbol: string, amount: number, issueToAccount: string, memo: string, issuerPKey: string): Promise<boolean> {
-        return new Promise<any>((resolve, reject) => {
+    public issueAsset(
+        assetSymbol: string,
+        amount: number,
+        issueToAccount: string,
+        memo: string,
+        issuerPKey: string,
+        broadcast: boolean = true): Promise<Operation> {
+        if (!Validator.validateArguments(
+            [assetSymbol, amount, issueToAccount, memo, issuerPKey, broadcast],
+            [Type.string, Type.number, Type.string, Type.string, Type.string, Type.boolean])
+        ) {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
+        return new Promise<Operation>((resolve, reject) => {
             this.listAssets(assetSymbol, 1)
                 .then((assets: AssetObject[]) => {
                     if (assets.length === 0 || !assets[0]) {
@@ -161,19 +193,18 @@ export class AssetModule extends ApiModule {
                     this.chainApi.fetch(...operations)
                         .then(res => {
                             const [issueToAcc, issuerAcc] = res;
-                            const privateKeyIssuer = Utils.privateKeyFromWif(issuerPKey);
-                            const pubKeyIssuer = Utils.publicKeyFromString(issuerAcc.get('options').get('memo_key'));
-                            const pubKeyIssueTo = Utils.publicKeyFromString(issueToAcc.get('options').get('memo_key'));
+                            const pubKeyIssuer = issuerAcc.get('options').get('memo_key');
+                            const pubKeyIssueTo = issueToAcc.get('options').get('memo_key');
 
                             let memoObject: Memo = undefined;
                             if (memo) {
                                 memoObject = {
-                                    from: pubKeyIssuer.stringKey,
-                                    to: pubKeyIssueTo.stringKey,
+                                    from: pubKeyIssuer,
+                                    to: pubKeyIssueTo,
                                     nonce: Utils.generateNonce(),
                                     message: CryptoUtils.encryptWithChecksum(
                                         memo,
-                                        privateKeyIssuer,
+                                        issuerPKey,
                                         pubKeyIssueTo,
                                         Utils.generateNonce()
                                     )
@@ -189,16 +220,11 @@ export class AssetModule extends ApiModule {
                                 memoObject
                             );
                             const transaction = new TransactionBuilder();
-                            const added = transaction.addOperation(operation);
-                            if (added === '') {
-                                transaction.broadcast(issuerPKey)
-                                    .then(res => resolve(true))
-                                    .catch(err => {
-                                        reject(this.handleError(AssetError.asset_issue_failure, err));
-                                    });
-                            } else {
-                                reject(this.handleError(AssetError.syntactic_error, added));
-                            }
+                            transaction.addOperation(operation);
+                            this.finalizeAndBroadcast(transaction, issuerPKey, broadcast)
+                                .then(res => resolve(res))
+                                .catch(err => reject(err));
+
                         })
                         .catch(err => {
                             reject(this.handleError(AssetError.failed_to_fetch_account, err));
@@ -215,10 +241,21 @@ export class AssetModule extends ApiModule {
      * @param {string} symbol                   Asset symbol of updated asset. Example 'DCT'.
      * @param {UserIssuedAssetInfo} newInfo     New information for update.
      * @param {string} issuerPKey               Account private key for transaction sign.
+     * @param {boolean} broadcast               Transaction is broadcasted if set to 'true'. Default value is 'true'.
      * @returns {Promise<any>}                  Value confirming successful transaction broadcasting.
      */
-    public updateUserIssuedAsset(symbol: string, newInfo: UserIssuedAssetInfo, issuerPKey: string): Promise<boolean> {
-        return new Promise<boolean>((resolve, reject) => {
+    public updateUserIssuedAsset(
+        symbol: string,
+        newInfo: UserIssuedAssetInfo,
+        issuerPKey: string,
+        broadcast: boolean = true): Promise<Operation> {
+        if (!Validator.validateArguments(
+            [symbol, newInfo, issuerPKey, broadcast],
+            [Type.string, UserIssuedAssetInfo, Type.string, Type.boolean])
+        ) {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
+        return new Promise<Operation>((resolve, reject) => {
             this.listAssets(symbol, 1)
                 .then((assets: AssetObject[]) => {
                     if (assets.length === 0 || !assets[0]) {
@@ -244,15 +281,10 @@ export class AssetModule extends ApiModule {
                         newInfo.newIssuer
                     );
                     const transaction = new TransactionBuilder();
-                    const added = transaction.addOperation(operation);
-                    if (added === '') {
-                        transaction.broadcast(issuerPKey)
-                            .then(res => resolve(true))
-                            .catch(err => reject(this.handleError(AssetError.transaction_broadcast_failed, err)));
-                    } else {
-                        reject(this.handleError(AssetError.syntactic_error, added));
-                        return;
-                    }
+                    transaction.addOperation(operation);
+                    this.finalizeAndBroadcast(transaction, issuerPKey, broadcast)
+                        .then(res => resolve(res))
+                        .catch(err => reject(err));
                 })
                 .catch(err => reject(this.handleError(AssetError.unable_to_list_assets, err)));
         });
@@ -268,14 +300,23 @@ export class AssetModule extends ApiModule {
      * @param {number} dctAmount         Amount of DCT token to be send to pool.
      * @param {string} dctSymbol         Asset symbol of DCT asset. Set always to 'DCT'.
      * @param {string} privateKey        Account private key used for signing transaction.
+     * @param {boolean} broadcast       Transaction is broadcasted if set to 'true'. Default value is 'true'.
      * @returns {Promise<boolean>}       Value confirming successful transaction broadcasting.
      */
-    public fundAssetPools(fromAccountId: string,
-                          uiaAmount: number,
-                          uiaSymbol: string,
-                          dctAmount: number,
-                          privateKey: string): Promise<boolean> {
-        return new Promise<boolean>((resolve, reject) => {
+    public fundAssetPools(
+        fromAccountId: string,
+        uiaAmount: number,
+        uiaSymbol: string,
+        dctAmount: number,
+        privateKey: string,
+        broadcast: boolean = true): Promise<Operation> {
+        if (!Validator.validateArguments(
+            [fromAccountId, uiaAmount, uiaSymbol, dctAmount, privateKey, broadcast],
+            [Type.string, Type.number, Type.string, Type.number, Type.string, Type.boolean])
+        ) {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
+        return new Promise<Operation>((resolve, reject) => {
             const dctSymbol = ChainApi.asset_id;
             Promise.all([
                 this.listAssets(uiaSymbol, 1),
@@ -299,15 +340,10 @@ export class AssetModule extends ApiModule {
                         }
                     );
                     const transaction = new TransactionBuilder();
-                    const added = transaction.addOperation(operation);
-                    if (added === '') {
-                        transaction.broadcast(privateKey)
-                            .then(() => resolve(true))
-                            .catch(err => reject(this.handleError(AssetError.transaction_broadcast_failed, err)));
-                    } else {
-                        reject(this.handleError(AssetError.syntactic_error, added));
-                        return;
-                    }
+                    transaction.addOperation(operation);
+                    this.finalizeAndBroadcast(transaction, privateKey, broadcast)
+                        .then(res => resolve(res))
+                        .catch(err => reject(err));
                 })
                 .catch(err => reject(this.handleError(AssetError.unable_to_list_assets, err)));
         });
@@ -321,10 +357,22 @@ export class AssetModule extends ApiModule {
      * @param {string} symbol           Asset symbol of asset to be removed.
      * @param {number} amountToReserve  Amount of asset to be removed.
      * @param {string} privateKey       Payer's private key to sign the transaction.
+     * @param {boolean} broadcast       Transaction is broadcasted if set to 'true'. Default value is 'true'.
      * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
      */
-    public assetReserve(payer: string, symbol: string, amountToReserve: number, privateKey: string): Promise<boolean> {
-        return new Promise<boolean>((resolve, reject) => {
+    public assetReserve(
+        payer: string,
+        symbol: string,
+        amountToReserve: number,
+        privateKey: string,
+        broadcast: boolean = true): Promise<Operation> {
+        if (!Validator.validateArguments(
+            [payer, symbol, amountToReserve, privateKey, broadcast],
+            [Type.string, Type.string, Type.number, Type.string, Type.boolean])
+        ) {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
+        return new Promise<Operation>((resolve, reject) => {
             this.listAssets(symbol, 1)
                 .then(res => {
                     if (res.length !== 1 || !res[0]) {
@@ -346,18 +394,13 @@ export class AssetModule extends ApiModule {
                                 }
                             );
                             const transaction = new TransactionBuilder();
-                            const added = transaction.addOperation(operation);
-                            if (added === '') {
-                                transaction.broadcast(privateKey)
-                                    .then(() => resolve(true))
-                                    .catch(err => reject(this.handleError(AssetError.transaction_broadcast_failed, err)));
-                            } else {
-                                reject(this.handleError(AssetError.syntactic_error, added));
-                                return;
-                            }
+                            transaction.addOperation(operation);
+                            this.finalizeAndBroadcast(transaction, privateKey, broadcast)
+                                .then(res => resolve(res))
+                                .catch(err => reject(err));
                         })
                         .catch();
-                    })
+                })
                 .catch(err => reject(this.handleError(AssetError.unable_to_list_assets, err)));
         });
     }
@@ -367,19 +410,24 @@ export class AssetModule extends ApiModule {
      * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#ac812b96ccef7f81ca97ebda433d98e63
      *
      * @param {string} issuer       Issuer's account id in format '1.2.X'. Example '1.2.345'.
-     * @param {string} uiaAmount    Custom asset amount.
+     * @param {number} uiaAmount    Custom asset amount.
      * @param {string} uiaSymbol    Custom asset symbol.
-     * @param {string} dctAmount    Amount of core DCT asset.
-     * @param {string} dctSymbol    DCT asset symbol. Always set to 'DCT'.
+     * @param {number} dctAmount    Amount of core DCT asset.
      * @param {string} privateKey   Issuer's private key to sign the transaction.
+     * @param {boolean} broadcast       Transaction is broadcasted if set to 'true'. Default value is 'true'.
      * @returns {Promise<boolean>}  Value confirming successful transaction broadcasting.
      */
-    public assetClaimFees(issuer: string,
-                          uiaAmount: number,
-                          uiaSymbol: string,
-                          dctAmount: number,
-                          privateKey: string): Promise<boolean> {
-        return new Promise<boolean>((resolve, reject) => {
+    public assetClaimFees(
+        issuer: string,
+        uiaAmount: number,
+        uiaSymbol: string,
+        dctAmount: number,
+        privateKey: string,
+        broadcast: boolean = true): Promise<Operation> {
+        if (!Validator.validateArguments(arguments, [Type.string, Type.number, Type.string, Type.number, Type.string])) {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
+        return new Promise<Operation>((resolve, reject) => {
             const dctSymbol = ChainApi.asset_id;
             Promise.all([
                 this.listAssets(uiaSymbol, 1),
@@ -401,14 +449,10 @@ export class AssetModule extends ApiModule {
                     };
                     const operation = new Operations.AssetClaimFeesOperation(issuer, uiaAsset, dctAsset);
                     const transaction = new TransactionBuilder();
-                    const added = transaction.addOperation(operation);
-                    if (added === '') {
-                        transaction.broadcast(privateKey)
-                            .then(() => resolve(true))
-                            .catch(err => reject('failed_to_broadcast_transaction'));
-                    } else {
-                        reject(this.handleError(AssetError.syntactic_error, added));
-                    }
+                    transaction.addOperation(operation);
+                    this.finalizeAndBroadcast(transaction, privateKey, broadcast)
+                        .then(res => resolve(res))
+                        .catch(err => reject(err));
                 })
                 .catch(err => {
                     reject('failed_load_assets');
@@ -427,6 +471,9 @@ export class AssetModule extends ApiModule {
      * @returns {Promise<DCoreAssetObject>}     DCoreAssetObject of desired asset.
      */
     public getAsset(assetId: string, formatAsset: boolean = false): Promise<DCoreAssetObject> {
+        if (!Validator.validateArguments([assetId, formatAsset], [Type.string, Type.boolean])) {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
         const operation = new DatabaseOperations.GetAssets([assetId]);
         return new Promise<DCoreAssetObject>((resolve, reject) => {
             this.dbApi.execute(operation)
@@ -452,6 +499,9 @@ export class AssetModule extends ApiModule {
      * @returns {Promise<DCoreAssetObject>}     DCoreAssetObject of desired asset.
      */
     public getAssets(assetIds: string[], formatAssets: boolean = false): Promise<DCoreAssetObject[]> {
+        if (!Validator.validateArguments(arguments, [[Array, Type.string], Type.boolean])) {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
         const operation = new DatabaseOperations.GetAssets(assetIds);
         return new Promise<DCoreAssetObject[]>((resolve, reject) => {
             this.dbApi.execute(operation)
@@ -469,6 +519,9 @@ export class AssetModule extends ApiModule {
      * @returns  {Promise<Asset>}   Formatted Asset object
      */
     public priceToDCT(symbol: string, amount: number): Promise<Asset> {
+        if (Validator.validateArguments(arguments, [Type.string, Type.number])) {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
         return new Promise<any>((resolve, reject) => {
             this.listAssets(symbol, 1)
                 .then((assets: DCoreAssetObject[]) => {
@@ -501,14 +554,20 @@ export class AssetModule extends ApiModule {
      * @param {number} exchangeBaseAmount
      * @param {string} exchangeQuoteAmount
      * @param {string} privateKey
-     * @returns {Promise<boolean>}  Value confirming successful transaction broadcasting.
+     * @param {boolean} broadcast               Transaction is broadcasted if set to 'true'. Default value is 'true'.
+     * @returns {Promise<boolean>}              Value confirming successful transaction broadcasting.
      */
-    public publishAssetFeed(publishingAccount: string,
-                            symbol: string,
-                            exchangeBaseAmount: number,
-                            exchangeQuoteAmount: number,
-                            privateKey: string): Promise<boolean> {
-        return new Promise<boolean>((resolve, reject) => {
+    public publishAssetFeed(
+        publishingAccount: string,
+        symbol: string,
+        exchangeBaseAmount: number,
+        exchangeQuoteAmount: number,
+        privateKey: string,
+        broadcast: boolean = true): Promise<Operation> {
+        if (!Validator.validateArguments(arguments, [Type.string, Type.string, Type.number, Type.number, Type.string])) {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
+        return new Promise<Operation>((resolve, reject) => {
             this.listAssets(symbol, 1)
                 .then((assets: AssetObject[]) => {
                     if (assets.length !== 1 || !assets[0]) {
@@ -530,15 +589,10 @@ export class AssetModule extends ApiModule {
                     };
                     const operation = new Operations.AssetPublishFeed(publishingAccount, asset.id, feed);
                     const transaction = new TransactionBuilder();
-                    const added = transaction.addOperation(operation);
-                    if (added === '') {
-                        transaction.broadcast(privateKey)
-                            .then(() => resolve(true))
-                            .catch(err => reject(this.handleError(AssetError.transaction_broadcast_failed, err)));
-                    } else {
-                        reject(this.handleError(AssetError.syntactic_error, added));
-                        return;
-                    }
+                    transaction.addOperation(operation);
+                    this.finalizeAndBroadcast(transaction, privateKey, broadcast)
+                        .then(res => resolve(res))
+                        .catch(err => reject(err));
                 })
                 .catch(err => {
                     reject(this.handleError(AssetError.unable_to_list_assets, err));
@@ -555,6 +609,9 @@ export class AssetModule extends ApiModule {
      * @returns {Promise<any>}
      */
     public getFeedsByMiner(minerAccountId: string, limit: number = 100): Promise<any> {
+        if (!Validator.validateArguments([minerAccountId, limit], [Type.string, Type.number])) {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
         return new Promise<any>((resolve, reject) => {
             const operation = new DatabaseOperations.GetFeedsByMiner(minerAccountId, limit);
             this.dbApi.execute(operation)
@@ -584,6 +641,9 @@ export class AssetModule extends ApiModule {
      * @returns {Promise<MonitoredAssetOptions|null>}   MonitoredAssetOptions object or null if asset is not monitored
      */
     public getMonitoredAssetData(assetId: string): Promise<MonitoredAssetOptions | null> {
+        if (!Validator.validateArguments(arguments, [Type.string])) {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
         const operation = new DatabaseOperations.GetAssets([assetId]);
         return new Promise<MonitoredAssetOptions>((resolve, reject) => {
             this.dbApi.execute(operation)
@@ -636,11 +696,26 @@ export class AssetModule extends ApiModule {
      * @param {number} feedLifetimeSec      Time during which is active miners feed proposals valid.
      * @param {number} minimumFeeds         Minimum number of feed proposals from miners.
      * @param {string} issuerPrivateKey     Issuer's private key to sign the transaction.
+     * @param {boolean} broadcast               Transaction is broadcasted if set to 'true'. Default value is 'true'.
      * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
      */
-    public createMonitoredAsset(issuer: string, symbol: string, precision: number, description: string, feedLifetimeSec: number,
-                                minimumFeeds: number, issuerPrivateKey: string): Promise<boolean> {
-        return new Promise<boolean>((resolve, reject) => {
+    public createMonitoredAsset(
+        issuer: string,
+        symbol: string,
+        precision: number,
+        description: string,
+        feedLifetimeSec: number,
+        minimumFeeds: number,
+        issuerPrivateKey: string,
+        broadcast: boolean = true): Promise<Operation> {
+        if (!Validator.validateArguments(
+            [issuer, symbol, precision, description, feedLifetimeSec, minimumFeeds, issuerPrivateKey, broadcast],
+            [Type.string, Type.string, Type.number, Type.string, Type.number, Type.number, Type.string, Type.boolean]
+        )
+        ) {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
+        return new Promise<Operation>((resolve, reject) => {
             const coreExchangeRate = {
                 base: {
                     amount: 0,
@@ -672,35 +747,25 @@ export class AssetModule extends ApiModule {
             const getGlobalPropertiesOperation = new DatabaseOperations.GetGlobalProperties();
             this.dbApi.execute(getGlobalPropertiesOperation)
                 .then(result => {
-                    const proposalCreateParameters1: ProposalCreateParameters = {
+                    const proposalCreateParameters1: IProposalCreateParameters = {
                         fee_paying_account: issuer,
                         expiration_time: this.getDate(this.convertSecondsToDays(result.parameters.miner_proposal_review_period) + 2),
                         review_period_seconds: result.parameters.miner_proposal_review_period,
                         extensions: []
                     };
-                    const proposalCreateParameters2: ProposalCreateParameters = {
+                    const proposalCreateParameters2: IProposalCreateParameters = {
                         fee_paying_account: issuer,
                         expiration_time: this.getDate(this.convertSecondsToDays(result.parameters.miner_proposal_review_period) + 1),
                         review_period_seconds: result.parameters.miner_proposal_review_period,
                         extensions: []
                     };
                     const transaction = new TransactionBuilder();
-                    const added = transaction.addOperation(operation);
-                    if (added === '') {
-                        transaction.propose(proposalCreateParameters2);
-                        transaction.propose(proposalCreateParameters1);
-                        transaction.broadcast(issuerPrivateKey)
-                            .then(result => {
-                                resolve(true);
-                            })
-                            .catch(error => {
-                                reject(this.handleError(AssetError.transaction_broadcast_failed, error));
-                                return;
-                            });
-                    } else {
-                        reject(this.handleError(AssetError.syntactic_error, added));
-                        return;
-                    }
+                    transaction.addOperation(operation);
+                    transaction.propose(proposalCreateParameters2);
+                    transaction.propose(proposalCreateParameters1);
+                    this.finalizeAndBroadcast(transaction, issuerPrivateKey, broadcast)
+                        .then(res => resolve(res))
+                        .catch(err => reject(err));
                 })
                 .catch(error => {
                     reject(this.handleError(AssetError.database_operation_failed, error));
@@ -718,11 +783,19 @@ export class AssetModule extends ApiModule {
      * @param {number} feedLifetimeSec      Time during which is active miners feed proposals valid.
      * @param {number} minimumFeeds         Minimum number of feed proposals from miners.
      * @param {string} privateKey           Issuer's private key to sign the transaction.
+     * @param {boolean} broadcast               Transaction is broadcasted if set to 'true'. Default value is 'true'.
      * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
      */
-    public updateMonitoredAsset(symbol: string, description: string, feedLifetimeSec: number, minimumFeeds: number, privateKey: string):
-        Promise<boolean> {
-        return new Promise<boolean>((resolve, reject) => {
+    public updateMonitoredAsset(symbol: string, description: string, feedLifetimeSec: number,
+        minimumFeeds: number, privateKey: string, broadcast: boolean = true):
+        Promise<Operation> {
+        if (!Validator.validateArguments(
+            [symbol, description, feedLifetimeSec, minimumFeeds, privateKey, broadcast],
+            [Type.string, Type.string, Type.number, Type.number, Type.string])
+        ) {
+            throw new TypeError(AssetError.invalid_parameters);
+        }
+        return new Promise<Operation>((resolve, reject) => {
             this.listAssets(symbol, 1)
                 .then((assets: AssetObject[]) => {
                     if (assets.length === 0 || !assets[0] || assets[0].symbol !== symbol) {
@@ -739,20 +812,10 @@ export class AssetModule extends ApiModule {
                     };
                     const operation = new Operations.UpdateMonitoredAssetOperation(parameters);
                     const transaction = new TransactionBuilder();
-                    const added = transaction.addOperation(operation);
-                    if (added === '') {
-                        transaction.broadcast(privateKey)
-                            .then(() => {
-                                resolve(true);
-                            })
-                            .catch(error => {
-                                reject(this.handleError(AssetError.transaction_broadcast_failed, error));
-                                return;
-                            });
-                    } else {
-                        reject(this.handleError(AssetError.syntactic_error, added));
-                        return;
-                    }
+                    transaction.addOperation(operation);
+                    this.finalizeAndBroadcast(transaction, privateKey, broadcast)
+                        .then(res => resolve(res))
+                        .catch(err => reject(err));
                 })
                 .catch(error => {
                     reject(this.handleError(AssetError.database_operation_failed, error));

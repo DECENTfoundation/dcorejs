@@ -1,9 +1,14 @@
 /**
  * @module Model/Mining
  */
-export interface MinerUpdateData {
+export interface IMinerUpdateData {
     newUrl?: string;
     newSigningKey?: string;
+}
+
+export class MinerUpdateData implements IMinerUpdateData {
+    newUrl?: string = null;
+    newSigningKey?: string = null;
 }
 
 export enum MiningError {
@@ -14,6 +19,7 @@ export enum MiningError {
     account_fetch_failed = 'account_fetch_failed',
     duplicate_settings = 'duplicate_settings',
     syntactic_error = 'syntactic_error',
+    invalid_arguments = 'invalid_arguments',
 }
 
 export type MinerNameIdPair = [string, string];

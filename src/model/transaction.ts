@@ -15,11 +15,11 @@ import {OperationType} from './operationPrototype';
  * OperationType to be broadcasted to blockchain
  * internal representation
  */
-export abstract class Operation {
+export class Operation {
     name: OperationName;
     operation: prototype.OperationType;
 
-    protected constructor(name: OperationName, type?: prototype.OperationType) {
+    constructor(name: OperationName, type?: prototype.OperationType) {
         this.name = name;
         this.operation = type;
     }
@@ -32,7 +32,7 @@ export interface Memo {
     from: string;
     to: string;
     nonce: string;
-    message: Buffer;
+    message: string;
 }
 
 /**
@@ -152,7 +152,7 @@ export namespace Operations {
             return prototype.UpdateAccountPrototype.getPrototype();
         }
 
-        constructor(account: string, owner: Authority, active: Authority, new_options: Options, extensions: {}) {
+        constructor(account: string, owner?: Authority, active?: Authority, new_options?: Options, extensions?: {}) {
             const type: prototype.UpdateAccountType = { account, owner, active, new_options, extensions };
             super(OperationName.account_update, type);
         }

@@ -1,28 +1,35 @@
 /**
  * @module AccountModule
  */
+import { ApiConnector } from '../api/apiConnector';
+import { ChainApi } from '../api/chain';
+import { DatabaseApi } from '../api/database';
+import { HistoryApi, HistoryOperations } from '../api/history';
+import { ChainMethods } from '../api/model/chain';
+import { DatabaseError, DatabaseOperations, MinerOrder, SearchAccountHistoryOrder } from '../api/model/database';
+import { CryptoUtils } from '../crypt';
 import {
     Account,
     AccountError,
     AccountNameIdPair,
-    Asset, HistoryRecord,
+    Asset,
+    Authority,
+    HistoryOptions,
+    HistoryRecord,
     MinerInfo,
+    Options,
     TransactionRecord,
-    WalletExport,
-    HistoryOptions, UpdateAccountParameters, Authority, Options
+    UpdateAccountParameters,
+    WalletExport
 } from '../model/account';
-import { DatabaseApi } from '../api/database';
-import { ChainApi} from '../api/chain';
-import { CryptoUtils } from '../crypt';
-import { TransactionBuilder } from '../transactionBuilder';
-import { KeyPrivate, KeyPublic, Utils } from '../utils';
-import { HistoryApi, HistoryOperations } from '../api/history';
-import { ApiConnector } from '../api/apiConnector';
-import { DatabaseError, DatabaseOperations, MinerOrder, SearchAccountHistoryOrder } from '../api/model/database';
-import { Memo, Operation, Operations } from '../model/transaction';
-import { ApiModule } from './ApiModule';
 import { DCoreAssetObject } from '../model/asset';
-import {ChainMethods} from '../api/model/chain';
+import { Memo, Operation, Operations } from '../model/transaction';
+import { TransactionBuilder } from '../transactionBuilder';
+import { Utils } from '../utils';
+import { ApiModule } from './ApiModule';
+import { Validator } from './validator';
+import { Type } from '../model/types';
+import { KeyPrivate, KeyPublic } from '../model/utils';
 
 export enum AccountOrder {
     nameAsc = '+name',
@@ -53,6 +60,9 @@ export class AccountModule extends ApiModule {
      * @return {Promise<Account>}   Account object.
      */
     public getAccountByName(name: string): Promise<Account> {
+        if (!Validator.validateArguments(arguments, [Type.string])) {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         const dbOperation = new DatabaseOperations.GetAccountByName(name);
         return new Promise((resolve, reject) => {
             this.dbApi.execute(dbOperation)
@@ -73,6 +83,9 @@ export class AccountModule extends ApiModule {
      * @return {Promise<Account>}   Account object.
      */
     public getAccountById(id: string): Promise<Account> {
+        if (!Validator.validateArguments(arguments, [Type.string])) {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         const dbOperation = new DatabaseOperations.GetAccounts([id]);
         return new Promise((resolve, reject) => {
             this.dbApi.execute(dbOperation)
@@ -105,11 +118,17 @@ export class AccountModule extends ApiModule {
      * @param {number} resultLimit              Number of transaction history records in result. Use for paging. Default 100(max)
      * @return {Promise<TransactionRecord[]>}   List of TransactionRecord.List of TransactionRecord.
      */
-    public getTransactionHistory(accountId: string,
-        privateKeys: string[],
+    public getTransactionHistory(
+        accountId: string,
+        privateKeys: string[] = [],
         order: SearchAccountHistoryOrder = SearchAccountHistoryOrder.timeDesc,
         startObjectId: string = '0.0.0',
         resultLimit: number = 100): Promise<TransactionRecord[]> {
+        if (!Validator.validateArguments([accountId, order, startObjectId, resultLimit],
+            [Type.string, Type.string, Type.string, Type.number])
+            || privateKeys === undefined) {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         return new Promise((resolve, reject) => {
             this.searchAccountHistory(accountId, privateKeys, order, startObjectId, resultLimit)
                 .then((transactions: any[]) => {
@@ -138,12 +157,18 @@ export class AccountModule extends ApiModule {
      *                                          Default: false.
      * @returns {Promise<TransactionRecord[]>}  List of TransactionRecord.
      */
-    public searchAccountHistory(accountId: string,
-                                privateKeys: string[],
-                                order: SearchAccountHistoryOrder = SearchAccountHistoryOrder.timeDesc,
-                                startObjectId: string = '0.0.0',
-                                resultLimit: number = 100,
-                                convertAssets: boolean = false): Promise<TransactionRecord[]> {
+    public searchAccountHistory(
+        accountId: string,
+        privateKeys: string[] = [],
+        order: SearchAccountHistoryOrder = SearchAccountHistoryOrder.timeDesc,
+        startObjectId: string = '0.0.0',
+        resultLimit: number = 100,
+        convertAssets: boolean = false): Promise<TransactionRecord[]> {
+        if (!Validator.validateArguments([accountId, order, startObjectId, resultLimit, convertAssets],
+            [Type.string, Type.string, Type.string, Type.number, Type.boolean])
+            || privateKeys.constructor !== Array) {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         return new Promise<TransactionRecord[]>((resolve, reject) => {
             const dbOperation = new DatabaseOperations.SearchAccountHistory(
                 accountId,
@@ -211,12 +236,21 @@ export class AccountModule extends ApiModule {
      * @param {string} toAccount        Name or id of receiver account
      * @param {string} memo             Message for recipient
      * @param {string} privateKey       Private key used to encrypt memo and sign transaction
+     * @param {boolean} broadcast       Transaction is broadcasted if set to true
      * @return {Promise<Operation>}     Value confirming successful transaction broadcasting.
      */
-    public transfer(amount: number, assetId: string, fromAccount: string, toAccount: string, memo: string, privateKey: string,
-                    broadcast: boolean = true): Promise<Operation> {
-        const pKey = Utils.privateKeyFromWif(privateKey);
-
+    public transfer(
+        amount: number,
+        assetId: string,
+        fromAccount: string,
+        toAccount: string,
+        memo: string,
+        privateKey: string,
+        broadcast: boolean = true): Promise<Operation> {
+        if (!Validator.validateArguments([amount, assetId, fromAccount, toAccount, memo, privateKey, broadcast],
+            [Type.number, Type.string, Type.string, Type.string, Type.string, Type.string, Type.boolean])) {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         return new Promise((resolve, reject) => {
             if (memo && !privateKey) {
                 reject(AccountError.transfer_missing_pkey);
@@ -229,7 +263,10 @@ export class AccountModule extends ApiModule {
 
             this.chainApi.fetch(...methods)
                 .then(result => {
-                    const [senderAccount, receiverAccount, asset] = result;
+                    const senderAccount: Account = JSON.parse(JSON.stringify(result[0]));
+                    const receiverAccount: Account = JSON.parse(JSON.stringify(result[1]));
+                    const asset: Asset = JSON.parse(JSON.stringify(result[2]));
+
                     if (!senderAccount) {
                         reject(
                             this.handleError(
@@ -248,10 +285,8 @@ export class AccountModule extends ApiModule {
                     }
 
                     const nonce: string = ChainApi.generateNonce();
-                    const fromPublicKey = senderAccount.get('options').get('memo_key');
-                    const toPublicKey = receiverAccount.get('options').get('memo_key');
-
-                    const pubKey = Utils.publicKeyFromString(toPublicKey);
+                    const fromPublicKey = senderAccount.options.memo_key;
+                    const toPublicKey = receiverAccount.options.memo_key;
 
                     const memo_object: Memo = {
                         from: fromPublicKey,
@@ -259,37 +294,23 @@ export class AccountModule extends ApiModule {
                         nonce: nonce,
                         message: CryptoUtils.encryptWithChecksum(
                             memo,
-                            pKey,
-                            pubKey,
+                            privateKey,
+                            toPublicKey,
                             nonce
                         )
                     };
                     const assetObject = JSON.parse(JSON.stringify(asset));
                     const transaction = new TransactionBuilder();
                     const transferOperation = new Operations.TransferOperation(
-                        senderAccount.get('id'),
-                        receiverAccount.get('id'),
+                        senderAccount.id,
+                        receiverAccount.id,
                         Asset.create(amount, assetObject),
                         memo_object
                     );
-                    const added = transaction.addOperation(transferOperation);
-                    if (added === '') {
-                        if (broadcast) {
-                            transaction.broadcast(privateKey)
-                                .then(() => {
-                                    resolve(transaction.operations[0]);
-                                })
-                                .catch(err => {
-                                    reject(this.handleError(AccountError.transaction_broadcast_failed, err));
-                                    return;
-                                });
-                        } else {
-                            resolve(transaction.operations[0]);
-                        }
-                    } else {
-                        reject(this.handleError(AccountError.syntactic_error, added));
-                        return;
-                    }
+                    transaction.addOperation(transferOperation);
+                    this.finalizeAndBroadcast(transaction, privateKey, broadcast)
+                        .then(res => resolve(transaction.operations[0]))
+                        .catch(err => reject(err));
                 })
                 .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
         });
@@ -307,6 +328,9 @@ export class AccountModule extends ApiModule {
      * @return {Promise<number>}        Account's balance
      */
     public getBalance(accountId: string, assetId: string = '1.3.0', convertAsset: boolean = false): Promise<number> {
+        if (!Validator.validateArguments([accountId, assetId, convertAsset], [Type.string, Type.string, Type.boolean])) {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         return new Promise((resolve, reject) => {
             if (!accountId) {
                 reject('missing_parameter');
@@ -350,6 +374,9 @@ export class AccountModule extends ApiModule {
      * @return {Promise<boolean>}       Returns 'true' if transaction is in irreversible block, 'false' otherwise.
      */
     public isTransactionConfirmed(accountId: string, transactionId: string): Promise<boolean> {
+        if (!Validator.validateArguments(arguments, [Type.string, Type.string])) {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         return new Promise((resolve, reject) => {
             let start = transactionId;
             if (transactionId !== '1.7.0') {
@@ -395,6 +422,10 @@ export class AccountModule extends ApiModule {
      * @return {Promise<HistoryRecord[]>}       List of HistoryRecord objects.
      */
     public getAccountHistory(accountId: string, historyOptions?: HistoryOptions): Promise<HistoryRecord[]> {
+        if (accountId === undefined || typeof accountId !== Type.string
+            || (historyOptions && !Validator.validateObject<HistoryOptions>(historyOptions, HistoryOptions))) {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         return new Promise((resolve, reject) => {
             const operation = new HistoryOperations.GetAccountHistory(
                 accountId,
@@ -420,10 +451,14 @@ export class AccountModule extends ApiModule {
      * @param {number} limit        Limit result list size. Default: 100(Max)
      * @returns {Promise<Account>}  List of filtered accounts.
      */
-    public searchAccounts(searchTerm: string = '',
-                          order: AccountOrder = AccountOrder.none,
-                          id: string = '0.0.0',
-                          limit: number = 100): Promise<Account> {
+    public searchAccounts(
+        searchTerm: string = '',
+        order: AccountOrder = AccountOrder.none,
+        id: string = '0.0.0',
+        limit: number = 100): Promise<Account> {
+        if (!Validator.validateArguments([searchTerm, order, id, limit], [Type.string, Type.string, Type.string, Type.number])) {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         return new Promise<Account>((resolve, reject) => {
             const operation = new DatabaseOperations.SearchAccounts(searchTerm, order, id, limit);
             this.dbApi.execute(operation)
@@ -456,20 +491,26 @@ export class AccountModule extends ApiModule {
      * @param {string} activeKey            Public key to be used as active key in WIF(hex)(Wallet Import Format) format.
      * @param {string} memoKey              Public key used to memo encryption in WIF(hex)(Wallet Import Format) format.
      * @param {string} registrar            Registrar account id who pay account creation transaction fee.
-     * @param {string} regisrarPrivateKey   Registrar private key, in WIF(hex)(Wallet Import Format) format, for account register
+     * @param {string} registrarPrivateKey   Registrar private key, in WIF(hex)(Wallet Import Format) format, for account register
      *                                      transaction to be signed with.
+     * @param {boolean} broadcast           Transaction is broadcasted if set to true
      * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
      */
-    public registerAccount(name: string,
+    public registerAccount(
+        name: string,
         ownerKey: string,
         activeKey: string,
         memoKey: string,
         registrar: string,
         registrarPrivateKey: string,
         broadcast: boolean = true): Promise<Operation> {
-        const ownerKeyAuths: [[string, number]] = [] as [[string, number]];
+        if (!Validator.validateArguments([name, ownerKey, activeKey, memoKey, registrar, registrarPrivateKey, broadcast],
+            [Type.string, Type.string, Type.string, Type.string, Type.string, Type.string, Type.boolean])) {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
+        const ownerKeyAuths: [string, number][] = [];
         ownerKeyAuths.push([ownerKey, 1]);
-        const activeKeyAuths: [[string, number]] = [] as [[string, number]];
+        const activeKeyAuths: [string, number][] = [];
         activeKeyAuths.push([activeKey, 1]);
         const owner = {
             weight_threshold: 1,
@@ -482,7 +523,7 @@ export class AccountModule extends ApiModule {
             key_auths: activeKeyAuths
         };
         return new Promise<Operation>((resolve, reject) => {
-            this.apiConnector.connect()
+            this.apiConnector.connection()
                 .then(() => {
                     const operation = new Operations.RegisterAccount({
                         name,
@@ -501,20 +542,15 @@ export class AccountModule extends ApiModule {
                         }
                     });
                     const transaction = new TransactionBuilder();
-                    const added = transaction.addOperation(operation);
-                    if (added === '') {
-                        if (broadcast) {
-                            transaction.broadcast(registrarPrivateKey)
-                                .then(() => resolve(transaction.operations[0]))
-                                .catch(err => reject(err));
-                        } else {
-                            resolve(transaction.operations[0]);
-                        }
-                    } else {
-                        reject(this.handleError(AccountError.syntactic_error, added));
-                    }
+                    transaction.addOperation(operation);
+                    this.finalizeAndBroadcast(transaction, registrarPrivateKey, broadcast)
+                        .then(res => resolve(transaction.operations[0]))
+                        .catch(err => reject(err));
+
                 })
-                .catch(err => console.log(err));
+                .catch(err => {
+                    reject(this.handleError(AccountError.api_connection_failed, err));
+                });
         });
     }
 
@@ -536,6 +572,9 @@ export class AccountModule extends ApiModule {
         accountName: string,
         registrar: string,
         registrarPrivateKey: string): Promise<Operation> {
+        if (!Validator.validateArguments(arguments, [Type.string, Type.string, Type.string, Type.string])) {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         const normalizedBrainkey = Utils.normalize(brainkey);
         const keyPair: [KeyPrivate, KeyPublic] = Utils.generateKeys(normalizedBrainkey);
         return this.registerAccount(
@@ -558,10 +597,16 @@ export class AccountModule extends ApiModule {
      *                                      calculated from privateKeys.
      * @returns {Promise<WalletExport>}     WalletExport object that can be serialized and used as import for cli_wallet.
      */
-    exportWallet(accountId: string,
+    exportWallet(
+        accountId: string,
         password: string,
         privateKeys: string[],
         additionalElGamalPrivateKeys: string[] = []): Promise<WalletExport> {
+        if (!Validator.validateArguments([accountId, password], [Type.string, Type.string])
+            || !Validator.validateObject<Array<string>>(privateKeys, Array)
+            || !Validator.validateObject<Array<string>>(additionalElGamalPrivateKeys, Array)) {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         return new Promise((resolve, reject) => {
             this.getAccountById(accountId)
                 .then((acc) => {
@@ -598,7 +643,7 @@ export class AccountModule extends ApiModule {
                     };
                     const keys = {
                         ec_keys: privateKeys.map(pk => {
-                            const pubKey = Utils.getPublicKey(Utils.privateKeyFromWif(pk));
+                            const pubKey = Utils.getPublicKey(pk);
                             return [pubKey.stringKey, pk];
                         }),
                         el_gamal_keys: elGamalKeys,
@@ -615,11 +660,14 @@ export class AccountModule extends ApiModule {
      * Fetch list of an accounts.
      * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#abf203f3002c7e2053c33eb6cb4e147c6
      *
-     * @param {string} loweBound                Account id from which accounts are listed, in format '1.2.X'. Default: ''
+     * @param {string} lowerBound                Account id from which accounts are listed, in format '1.2.X'. Default: ''
      * @param {number} limit                    Number of returned accounts. Default: 100(Max)
      * @returns {Promise<AccountNameIdPair>}    List of filtered AccountNameIdPairs.
      */
     public listAccounts(lowerBound: string = '', limit: number = 100): Promise<AccountNameIdPair[]> {
+        if (!Validator.validateArguments([lowerBound, limit], [Type.string, Type.number])) {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         return new Promise<AccountNameIdPair[]>((resolve, reject) => {
             const operation = new DatabaseOperations.LookupAccounts(lowerBound, limit);
             this.dbApi.execute(operation)
@@ -638,6 +686,9 @@ export class AccountModule extends ApiModule {
      * @returns {Promise<Asset[]>}      List of balances
      */
     public listAccountBalances(id: string, convertAssets: boolean = false): Promise<Asset[]> {
+        if (!Validator.validateArguments([id, convertAssets], [Type.string, Type.boolean])) {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         return new Promise<Asset[]>((resolve, reject) => {
             const operation = new DatabaseOperations.GetAccountBalances(id, []);
             this.dbApi.execute(operation)
@@ -688,6 +739,10 @@ export class AccountModule extends ApiModule {
         sort: MinerOrder = MinerOrder.none,
         fromMinerId: string = '',
         limit: number = 1000): Promise<MinerInfo[]> {
+        if (!Validator.validateArguments([keyword, myVotes, sort, fromMinerId, limit],
+            [Type.string, Type.boolean, Type.string, Type.string, Type.number])) {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         return new Promise<MinerInfo[]>((resolve, reject) => {
             const operation = new DatabaseOperations.SearchMinerVoting(
                 accountName,
@@ -713,43 +768,59 @@ export class AccountModule extends ApiModule {
      * @param {UpdateAccountParameters} params  UpdateAccountParameters object with parameters to be changed.
      * @param {string} privateKey               Private key of account that is about to be changed, to sign transaction.
      *                                          In WIF(hex)(Wallet Import Format) format.
+     * @param {boolean} broadcast               Transaction is broadcasted if set to true
      * @returns {Promise<Boolean>}              Value confirming successful transaction broadcasting.
      */
     public updateAccount(accountId: string, params: UpdateAccountParameters, privateKey: string, broadcast: boolean = true)
         : Promise<Operation> {
+        if (!Validator.validateArguments(
+            [accountId, params, privateKey, broadcast],
+            [Type.string, UpdateAccountParameters, Type.string, Type.boolean])
+        ) {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
         return new Promise<Operation>(((resolve, reject) => {
-
             this.getAccountById(accountId)
                 .then((account: Account) => {
                     if (account === null) {
                         reject(this.handleError(AccountError.account_does_not_exist));
                         return;
                     }
-                    const ownerAuthority: Authority = Object.assign({}, account.owner);
-                    ownerAuthority.key_auths[0][0] = params.newOwnerKey || account.owner.key_auths[0][0];
+                    let newOptions: Options = undefined;
+                    let ownerAuthority: Authority = undefined;
+                    let activeAuthority: Authority = undefined;
 
-                    const activeAuthority: Authority = Object.assign({}, account.active);
-                    activeAuthority.key_auths[0][0] = params.newActiveKey || account.active.key_auths[0][0];
-
-                    let priceSubscription = Object.assign({}, account.options.price_per_subscribe);
-                    if (params.newSubscription !== undefined) {
-                        priceSubscription = Asset.createDCTAsset(params.newSubscription.pricePerSubscribeAmount);
+                    if (params.newOwnerKey) {
+                        ownerAuthority = Object.assign({}, account.owner);
+                        ownerAuthority.key_auths[0][0] = params.newOwnerKey || account.owner.key_auths[0][0];
                     }
 
-                    const newOptions: Options = {
-                        memo_key: params.newMemoKey || account.options.memo_key,
-                        voting_account: account.options.voting_account,
-                        num_miner: params.newNumMiner || account.options.num_miner,
-                        votes: params.newVotes || account.options.votes,
-                        extensions: account.options.extensions,
-                        allow_subscription: params.newSubscription
-                            ? params.newSubscription.allowSubscription
-                            : account.options.allow_subscription,
-                        price_per_subscribe: priceSubscription,
-                        subscription_period: params.newSubscription
-                            ? params.newSubscription.subscriptionPeriod
-                            : account.options.subscription_period
-                    };
+                    if (params.newActiveKey) {
+                        activeAuthority = Object.assign({}, account.active);
+                        activeAuthority.key_auths[0][0] = params.newActiveKey || account.active.key_auths[0][0];
+                    }
+
+                    if (params.newMemoKey || params.newNumMiner || params.newVotes || params.newSubscription) {
+                        let priceSubscription = Object.assign({}, account.options.price_per_subscribe);
+                        if (params.newSubscription !== undefined) {
+                            priceSubscription = Asset.createDCTAsset(params.newSubscription.pricePerSubscribeAmount);
+                        }
+                        newOptions = {
+                            memo_key: params.newMemoKey || account.options.memo_key,
+                            voting_account: account.options.voting_account,
+                            num_miner: params.newNumMiner || account.options.num_miner,
+                            votes: params.newVotes || account.options.votes,
+                            extensions: account.options.extensions,
+                            allow_subscription: params.newSubscription
+                                ? params.newSubscription.allowSubscription
+                                : account.options.allow_subscription,
+                            price_per_subscribe: priceSubscription,
+                            subscription_period: params.newSubscription
+                                ? params.newSubscription.subscriptionPeriod
+                                : account.options.subscription_period
+                        };
+                    }
+
                     const accountUpdateOperation = new Operations.AccountUpdateOperation(
                         accountId,
                         ownerAuthority,
@@ -758,28 +829,14 @@ export class AccountModule extends ApiModule {
                         {}
                     );
                     const transaction = new TransactionBuilder();
-                    const added = transaction.addOperation(accountUpdateOperation);
-                    if (added === '') {
-                        if (broadcast) {
-                            transaction.broadcast(privateKey)
-                                .then(() => {
-                                    resolve(transaction.operations[0]);
-                                })
-                                .catch((error: any) => {
-                                    reject(this.handleError(AccountError.transaction_broadcast_failed, error));
-                                });
-                        } else {
-                            resolve(transaction.operations[0]);
-                        }
-                    } else {
-                        reject(this.handleError(AccountError.syntactic_error, added));
-                        return;
-                    }
-                    })
+                    transaction.addOperation(accountUpdateOperation);
+                    this.finalizeAndBroadcast(transaction, privateKey, broadcast)
+                        .then(res => resolve(transaction.operations[0]))
+                        .catch(err => reject(err));
+                })
                 .catch((error) => {
                     reject(this.handleError(AccountError.account_update_failed, error));
                 });
-
         }));
     }
 }

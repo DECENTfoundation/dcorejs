@@ -24,7 +24,7 @@ export class TransferPrototype {
             from: '1.2.X',
             to: '1.2.X',
             amount: {amount: 10, asset_id: '1.3.0'},
-            memo: {from: '', to: '', nonce: '', message: new Buffer('')},
+            memo: {from: '', to: '', nonce: '', message: ''},
         };
     }
 }
@@ -231,7 +231,7 @@ export class IssueAssetPrototype {
                 from: '',
                 to: '',
                 nonce: '',
-                message: new Buffer(''),
+                message: '',
             },
             extensions: {}
         };

@@ -89,6 +89,27 @@ you are about to work on.
 
 Once dcore lib is initialized, you can access methods using `dcorejs` with any of submodule - `account()`, `asset()`, `content()`, `explorer()`, `messaging()`, `mining()`, `proposal()`, `seeding()` or `subscription()`
 
+### Connection control
+
+Library dcorejs offer methods to control connection.
+
+```typescript
+import * as dcorejs from 'dcorejs';
+
+const connection = dcorejs.connection();
+
+// ...
+
+connection.closeConnection();
+
+// ...
+
+connection.openConnection()
+    .then(res => {
+        // connection opened, connection.isConnected === true
+    })
+```
+
 ### Create account
 
 There is two ways how to create account in DCore network: `Account.registerAccount` and `Account.createAccountWithBrainkey`.
@@ -108,13 +129,12 @@ const activeKey: KeyPrivate = Utils.derivePrivateKey(brainKey, sequenceNumber + 
 const memoKey: KeyPrivate = Utils.derivePrivateKey(brainKey, sequenceNumber + 2);
 
 dcorejs.account().registerAccount(
-    name: 'my-new-account-name',
-    ownerKey: ownerKey,
-    activeKey: activeKey,
-    memoKey: memoKey,
-    registrar: '1.2.345',
-    registrarPrivateKey: '5JawRMmxyeCqKoJvspGyaZvFy6ajh4c3ELfG5meQdii6HWVDBbY',
-    broadcast: boolean = true)
+    'myNewAccountName',
+    'ownerKey',
+    'activeKey',
+    'memoKey',
+    'accountId',
+    'privateKeyOfRegistrar')
     .then(res => {
         // account_create transaction was successfully broadcasted
     })
@@ -124,6 +144,62 @@ dcorejs.account().registerAccount(
 ```
 NOTE: Make sure, that `sequenceNumber` you generating keys with, was not used for generating keys for your accounts in past.
 
+### Submit content
+
+```typescript 
+import * as dcorejs from 'dcorejs';
+
+const privateKey = '5KcA6ky4Hs9VoDUSdTF4o3a2QDgiiG5gkpLLysRWR8dy6EAgTni';
+
+dcorejs.content().getSeeders(2)
+    .then((seeders: dcorejs.Seeder[]) => {
+        const seederIds = seeders.map(s => s.seeder);
+        dcorejs.content().generateContentKeys(seederIds)
+            .then((contentKeys: dcorejs.ContentKeys) => {
+                const submitObject: SubmitObject = {
+                    authorId: "1.2.345",
+                    coAuthors: [["1.2.456", 1000]],
+                    seeders: [],
+                    fileName: "wallet-export.json",
+                    date: "2018-09-30T22:00:00.000Z",
+                    price: 134,
+                    size: 2386,
+                    URI: "http://test.uri.com",
+                    hash: "014abb5fcbb2db96baf317f2f039e736c95a5269",
+                    keyParts: [],
+                    synopsis: {
+                        title: "Foo book",
+                        description: "This book is about Fooing",
+                        content_type_id: "1.3.6.0"
+                    },
+                    assetId: "1.3.0",
+                    publishingFeeAsset: "1.3.0"
+                };
+                dcorejs.content().addContent(submitObject, privateKey)
+                    .then(res => {
+                        // content successfully submitted
+                    })
+                    .catch(err => {
+                        // error occured during content submition
+                    })
+            })
+    })
+```
+Example shown above is for case when content is already uploaded to seeders using DCore `IPFS` node.
+It is also possible to submit content uploaded to different storage (e.g. CDN). Then 
+omit parameters `seeders` and `keyParts`, and use empty arrays instead.
+
+Note following:
+
+- Each newly submitted content **must** have unique `URI`.
+
+- If submitting content with same `URI`, then parameters `hash`, `author`, `date`, `seeders` and `keyParts` must stay same. All other data are updated.
+
+- Hash needs to be RIPEMD-160, and can be generated using `dcorejs.Utils.ripemdHash()` method
+
+- Synopsis need to contain at least parameters `title`, `description` and `content_type_id`. 
+`content_type_id` is composed of `'<app_id>.<category>.<sub_category>.<is_adult_content>'`, for example `1.1.2.0`.
+ 
 ### Search content
 
 ```typescript
@@ -229,7 +305,9 @@ dcorejs.subscribePendingTransaction((data: any) => {
 In case you want to create custom transaction, see following example. Replace 'X' values and private key for your own.
 
 ```typescript
-const operation = new Operations.AssetFundPools(
+import * as dcorejs from 'dcorejs';
+
+const operation = new dcorejs.TransactionOperations.AssetFundPools(
     '1.2.X',
     {
         amount: 10,
@@ -266,7 +344,19 @@ within `dist/dcorejs.umd.js`. Node version in `lib/dcorejs.js`.
 ### dcorejs
 ```typescript
 subscribe(callback: ChainSubscriptionCallback)
-subscribePendingTransaction(callback: ChainSubscriptionCallback)
+subscribeBlockApplied(callback: ChainSubscriptionBlockAppliedCallback) 
+subscribePendingTransaction(callback: ChainSubscriptionCallback) 
+content(): ContentModule 
+account(): AccountModule 
+explorer(): ExplorerModule 
+asset(): AssetModule 
+mining(): MiningModule 
+subscription(): SubscriptionModule 
+seeding(): SeedingModule 
+proposal(): ProposalModule 
+messaging(): MessagingModule 
+transactionBuilder(): TransactionBuilder 
+connection(): ApiConnector
 ```
 
 ### Content

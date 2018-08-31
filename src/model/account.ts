@@ -1,16 +1,21 @@
 /**
  * @module Model/Account
  */
-import { KeyPrivate, Utils } from '../utils';
+import { Utils } from '../utils';
 import { CryptoUtils } from '../crypt';
 import { ChainApi } from '../api/chain';
 import { DCoreAssetObject } from './asset';
 
 export type AccountNameIdPair = [string, string];
 
-export interface HistoryOptions {
+export interface IHistoryOptions {
     fromId?: string
     resultLimit?: number
+}
+
+export class HistoryOptions implements IHistoryOptions {
+    fromId? = null;
+    resultLimit? = null;
 }
 
 export interface TransactionRaw {
@@ -118,14 +123,14 @@ export enum OperationType {
 }
 
 export interface Options {
-    memo_key?: string;
-    voting_account?: string;
-    num_miner?: number;
-    votes?: any[];
-    extensions?: any[];
-    allow_subscription?: boolean;
-    price_per_subscribe?: Asset;
-    subscription_period?: number;
+    memo_key: string;
+    voting_account: string;
+    num_miner: number;
+    votes: any[];
+    extensions: any[];
+    allow_subscription: boolean;
+    price_per_subscribe: Asset;
+    subscription_period: number;
 }
 
 export class TransactionRecord {
@@ -183,19 +188,13 @@ export class TransactionMemo {
         if (!this.valid) {
             return '';
         }
-        const pubKey = Utils.publicKeyFromString(this.to);
         let decrypted = '';
 
         privateKeys.forEach(pk => {
-            let pKey: KeyPrivate;
             try {
-                pKey = Utils.privateKeyFromWif(pk);
-                try {
-                    decrypted = CryptoUtils.decryptWithChecksum(this.message, pKey, pubKey, this.nonce).toString();
-                } catch (err) {
-                    throw new Error(AccountError.account_keys_incorrect);
-                }
+                decrypted = CryptoUtils.decryptWithChecksum(this.message, pk, this.to, this.nonce).toString();
             } catch (err) {
+                throw new Error(AccountError.account_keys_incorrect);
             }
         });
         return decrypted;
@@ -239,7 +238,7 @@ export interface SubscriptionParameters {
     subscriptionPeriod: number;
 }
 
-export interface UpdateAccountParameters {
+export interface IUpdateAccountParameters {
     newOwnerKey?: string;
     newActiveKey?: string;
     newMemoKey?: string;
@@ -248,9 +247,19 @@ export interface UpdateAccountParameters {
     newSubscription?: SubscriptionParameters;
 }
 
+export class UpdateAccountParameters implements IUpdateAccountParameters {
+    newOwnerKey?: string = null;
+    newActiveKey?: string = null;
+    newMemoKey?: string = null;
+    newNumMiner?: number = null;
+    newVotes?: Array<string> = null;
+    newSubscription?: SubscriptionParameters = null;
+}
+
 export enum AccountError {
     account_does_not_exist = 'account_does_not_exist',
     account_fetch_failed = 'account_fetch_failed',
+    api_connection_failed = 'api_connection_failed',
     transaction_history_fetch_failed = 'transaction_history_fetch_failed',
     transfer_missing_pkey = 'transfer_missing_pkey',
     transfer_sender_account_not_found = 'transfer_sender_account_not_found',
@@ -265,4 +274,5 @@ export enum AccountError {
     asset_does_not_exist = 'asset_does_not_exist',
     account_update_failed = 'account_update_failed',
     syntactic_error = 'syntactic_error',
+    invalid_parameters = 'invalid_parameters',
 }

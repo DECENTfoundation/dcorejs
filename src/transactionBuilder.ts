@@ -2,9 +2,17 @@
  * @module TransactionBuilder
  */
 import {dcorejs_lib} from './helpers';
-import {KeyPrivate, Utils} from './utils';
+import {Utils} from './utils';
 import {Operation} from './model/transaction';
 import {ProposalCreateParameters} from './model/proposal';
+import {Validator} from './modules/validator';
+import {Type} from './model/types';
+import {KeyPrivate} from './model/utils';
+
+export enum TransactionBuilderError {
+    invalid_parameters = 'invalid_parameters',
+    failed_to_sign_transaction = 'failed_to_sign_transaction',
+}
 
 /**
  * Class contains available transaction operation names constants
@@ -43,22 +51,28 @@ export class TransactionBuilder {
      * @param {Operation} operation     Operation to append to transaction.
      * @return {boolean}                Successful operation add value.
      */
-    public addOperation(operation: Operation): string {
+    public addOperation(operation: Operation): void {
+        if (operation === undefined || operation.name === undefined || operation.operation === undefined
+        || typeof operation.name !== 'string') {
+            throw new TypeError(TransactionBuilderError.invalid_parameters);
+        }
         try {
             this._transaction.add_type_operation(operation.name, operation.operation);
             this._operations.push(operation);
-            return '';
         } catch (exception) {
-            return exception;
+            throw new Error(exception);
         }
     }
 
     /**
      * Transform transaction into proposal type transaction.
      *
-     * @param {ProposalCreateParameters} proposalParameters     Proposal transaction parameters.
+     * @param {IProposalCreateParameters} proposalParameters     Proposal transaction parameters.
      */
     public propose(proposalParameters: ProposalCreateParameters): void {
+        if (!Validator.validateObject<ProposalCreateParameters>(proposalParameters, ProposalCreateParameters)) {
+            throw new TypeError(TransactionBuilderError.invalid_parameters);
+        }
         this._transaction.propose(proposalParameters);
     }
 
@@ -71,6 +85,9 @@ export class TransactionBuilder {
      * @return {Promise<void>}          Void.
      */
     public broadcast(privateKey: string, sign: boolean = true): Promise<void> {
+        if (!Validator.validateArguments([privateKey, sign], [Type.string, Type.boolean])) {
+            throw new TypeError(TransactionBuilderError.invalid_parameters);
+        }
         const secret = Utils.privateKeyFromWif(privateKey);
         return new Promise((resolve, reject) => {
             this.setTransactionFees()
@@ -97,10 +114,11 @@ export class TransactionBuilder {
      *
      * @return {Promise<void>}  Void.
      */
-    private setTransactionFees(): Promise<void> {
+    public setTransactionFees(): Promise<void> {
         return new Promise((resolve, reject) => {
             this._transaction.set_required_fees()
                 .then(() => {
+                    this._operations[0].operation['fee'] = this._transaction.operations[0][1].fee;
                     resolve();
                 })
                 .catch(() => {
@@ -113,11 +131,18 @@ export class TransactionBuilder {
      * Sign transaction with given private/public key pair.
      *
      * @param {KeyPrivate} privateKey   Private key to sign transaction.
-     * @param {KeyPublic} publicKey     Public key related to private key.
      */
     public signTransaction(privateKey: KeyPrivate): void {
-        const publicKey = KeyPrivate.fromWif(privateKey.stringKey).getPublicKey().key;
-        this._transaction.add_signer(privateKey.key, publicKey);
+        if (privateKey === undefined || privateKey.stringKey === undefined || typeof privateKey.stringKey !== 'string'
+        || privateKey.key === undefined) {
+            throw new TypeError(TransactionBuilderError.invalid_parameters);
+        }
+        try {
+            const publicKey = KeyPrivate.fromWif(privateKey.stringKey).getPublicKey().key;
+            this._transaction.add_signer(privateKey.key, publicKey);
+        } catch (exception) {
+            throw new Error(TransactionBuilderError.failed_to_sign_transaction);
+        }
     }
 
     /**
@@ -129,13 +154,18 @@ export class TransactionBuilder {
      * @returns {boolean}                           Returns true if replaced, false otherwise.
      */
     public replaceOperation(operationIndex: number, newOperation: Operation): boolean {
+        if (!Validator.validateArguments([operationIndex], [Type.number]) || !Validator.validateObject(newOperation, Operation)) {
+            throw new TypeError(TransactionBuilderError.invalid_parameters);
+        }
         if (operationIndex >= 0 && operationIndex < this._operations.length) {
             try {
                 this._transaction.add_type_operation(newOperation.name, newOperation.operation);
                 this._operations[operationIndex] = newOperation;
                 return true;
             } catch (exception) {
-                console.log(exception);
+                if (process.env.ENVIRONMENT === 'DEV') {
+                    console.log(exception);
+                }
                 return false;
             }
         }
