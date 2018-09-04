@@ -27,6 +27,7 @@ let _proposal: ProposalModule;
 let _chain: ChainApi;
 let _transaction: TransactionBuilder;
 let _messaging: MessagingModule;
+let _apiConnector: ApiConnector;
 
 export class DcoreError {
     static app_not_initialized = 'app_not_initialized';
@@ -48,28 +49,24 @@ export interface DcoreConfig {
  */
 export function initialize(config: DcoreConfig,
                            testConnection: boolean = true,
-                           dcorejs_lib: any = null,
                            connectionStatusCallback: (state: ConnectionState) => void = null): void {
-    if (dcorejs_lib) {
-        console.warn('Parameter dcorejs_lib of DCorejs.initialize is deprecated since 2.3.1');
-    }
     const dcore = getLibRef();
     ChainApi.setupChain(config.chainId, dcore.ChainConfig);
 
-    const connector = new ApiConnector(config.dcoreNetworkWSPaths, dcore.Apis, testConnection, connectionStatusCallback);
-    const database = new DatabaseApi(dcore.Apis, connector);
-    const historyApi = new HistoryApi(dcore.Apis, connector);
-    const messagingApi = new MessagingApi(dcore.Apis, connector);
+    _apiConnector  = new ApiConnector(config.dcoreNetworkWSPaths, dcore.Apis, testConnection, connectionStatusCallback);
+    const database = new DatabaseApi(dcore.Apis, _apiConnector);
+    const historyApi = new HistoryApi(dcore.Apis, _apiConnector);
+    const messagingApi = new MessagingApi(dcore.Apis, _apiConnector);
 
-    _chain = new ChainApi(connector, dcore.ChainStore);
+    _chain = new ChainApi(_apiConnector, dcore.ChainStore);
     _content = new ContentModule(database, _chain);
-    _account = new AccountModule(database, _chain, historyApi, connector);
+    _account = new AccountModule(database, _chain, historyApi, _apiConnector);
     _explorer = new ExplorerModule(database);
-    _assetModule = new AssetModule(database, connector, _chain);
-    _subscription = new SubscriptionModule(database, connector);
+    _assetModule = new AssetModule(database, _apiConnector, _chain);
+    _subscription = new SubscriptionModule(database, _apiConnector);
     _seeding = new SeedingModule(database);
-    _mining = new MiningModule(database, connector, _chain);
-    _proposal = new ProposalModule(database, _chain, connector);
+    _mining = new MiningModule(database, _apiConnector, _chain);
+    _proposal = new ProposalModule(database, _chain, _apiConnector);
     _transaction = new TransactionBuilder();
     _messaging = new MessagingModule(database, messagingApi);
 }
@@ -90,6 +87,10 @@ export function subscribe(callback: ChainSubscriptionCallback) {
  */
 export function subscribePendingTransaction(callback: ChainSubscriptionCallback) {
     _chain.subscribePendingTransactions(callback);
+}
+
+export function connector(): ApiConnector {
+    return _apiConnector;
 }
 
 export function content(): ContentModule {

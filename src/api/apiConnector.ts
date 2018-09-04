@@ -29,6 +29,9 @@ export enum ConnectionState {
 export class ApiConnector {
     private _connectionPromise: Promise<any>;
     private _apiAddresses: string[];
+    private _connectionStatusCallback: (status: ConnectionState) => void;
+    private _testConnection: boolean;
+    private _api: any;
 
     public get apiAddresses(): string[] {
         return this._apiAddresses;
@@ -39,18 +42,20 @@ export class ApiConnector {
         testConnectionQuality: boolean = true,
         connectionStatusCallback: (status: ConnectionState) => void = null) {
         this._apiAddresses = apiAddresses;
-        this.initConnetion(apiAddresses, api, testConnectionQuality, connectionStatusCallback);
+        this._api = api;
+        this._connectionStatusCallback = connectionStatusCallback;
+        this._testConnection = testConnectionQuality;
+        this.initConnetion(testConnectionQuality, connectionStatusCallback);
     }
 
-    private initConnetion(addresses: string[],
-        api: any,
+    private initConnetion(
         testConnectionQuality: boolean = true,
         connectionStatusCallback: (status: ConnectionState) => void = null): void {
-        api.setRpcConnectionStatusCallback((status: string) => this.handleConnectionState(status, connectionStatusCallback));
-        this._connectionPromise = this.connectApi(api, testConnectionQuality);
+        this._api.setRpcConnectionStatusCallback((status: string) => this.handleConnectionState(status, connectionStatusCallback));
+        this._connectionPromise = this.connectApi(testConnectionQuality).catch(e => console.log(e));
     }
 
-    private async connectApi(api: any, testConnectionQuality: boolean): Promise<any> {
+    private async connectApi(testConnectionQuality: boolean): Promise<any> {
         return new Promise<any>(async (resolve, reject) => {
             let addresses: string[] = this._apiAddresses;
             if (testConnectionQuality) {
@@ -63,7 +68,7 @@ export class ApiConnector {
             for (let i = 0; i < addresses.length; i += 1) {
                 const address = ['wss', ...addresses[i].split(':').slice(1)].join(':');
                 try {
-                    const res = await this.getConnectionPromise(address, api);
+                    const res = await this.getConnectionPromise(address);
                     if (process.env.ENVIRONMENT === 'DEV') {
                         console.log('debug => Connected to', address);
                     }
@@ -73,7 +78,7 @@ export class ApiConnector {
                     if (process.env.ENVIRONMENT === 'DEV') {
                         console.log('debug => Fail to connect to', address);
                     }
-                    api.close();
+                    this._api.close();
                 }
             }
             reject(this.handleError(ApiConnectorError.ws_connection_failed));
@@ -108,12 +113,18 @@ export class ApiConnector {
         return Promise.all(promises);
     }
 
-    private getConnectionPromise(forAddress: string, api: any): Promise<any> {
-        return api.instance(forAddress, true).init_promise;
+    private getConnectionPromise(forAddress: string): Promise<any> {
+        return this._api.instance(forAddress, true).init_promise;
     }
 
     public connect(): Promise<void> {
         return this._connectionPromise;
+    }
+
+    public refreshConnection() {
+        if (!this._api.instance().refreshConnection()) {
+            this.initConnetion(this._testConnection, this._connectionStatusCallback);
+        }
     }
 
     private handleConnectionState(state: string, callback: (status: ConnectionState) => void): void {
