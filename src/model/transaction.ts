@@ -464,6 +464,7 @@ export interface PriceFeed {
 }
 
 export interface ContentObject {
+    id: string;
     author: string;
     co_authors: [string, number];
     expiration: number;
@@ -482,5 +483,4 @@ export interface ContentObject {
     num_of_ratings: number;
     times_bought: number;
     publishing_fee_escrow: Asset;
-    cd: any;
 }
