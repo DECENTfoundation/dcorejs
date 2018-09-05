@@ -24,7 +24,7 @@ const dcoreNetworkAddresses = ['wss://stage.decentgo.com:8090'];
 dcore_js.initialize({
     chainId: chainId,
     dcoreNetworkWSPaths: dcoreNetworkAddresses
-}, false, dcorejs_lib);
+}, false);
 
 function transfer(fromAccount, toAccount, amount, assetId, memo, privateKey) {
     output.innerHTML = 'Loading ...';

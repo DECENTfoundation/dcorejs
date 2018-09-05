@@ -33,6 +33,9 @@ export class ApiModule {
     }
 
     protected handleError(message: string, err?: any): Error {
+        if (process.env.ENVIRONMENT === 'DEV') {
+            console.log(`debug => ${message} | ${err}`);
+        }
         const error = new Error(message);
         error.stack = err;
         return error;

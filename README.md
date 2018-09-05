@@ -63,6 +63,8 @@ dcorejs.initialize(config);
 ```
 NOTE: If running server from localhost add `NODE_TLS_REJECT_UNAUTHORIZED=0` before library initialization.
 
+If you want debug logs during development, before running your application set `ENVIRONMENT` variable to `DEV`. For websocket debug logs 
+set `WS_ENV` variable to `DEV`.
 ## Browser
 
 ```html

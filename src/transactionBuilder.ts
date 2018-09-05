@@ -164,7 +164,7 @@ export class TransactionBuilder {
                 return true;
             } catch (exception) {
                 if (process.env.ENVIRONMENT === 'DEV') {
-                    console.log(exception);
+                    console.log(`debug => ${exception}`);
                 }
                 return false;
             }
