@@ -275,7 +275,7 @@ export class MiningModule extends ApiModule {
                                 .then(res => resolve(res))
                                 .catch(err => {
                                     if (process.env.ENVIRONMENT === 'DEV') {
-                                        console.log(err);
+                                        console.log(`debug => ${err}`);
                                     }
                                     let errorMessage = 'transaction_broadcast_failed';
                                     if (err.stack.indexOf('duplicate') >= 0) {

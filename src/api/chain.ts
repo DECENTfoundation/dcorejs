@@ -87,7 +87,7 @@ export class ChainApi extends ApiModule {
                 })
                 .catch(err => {
                     if (process.env.ENVIRONMENT === 'DEV') {
-                        console.log(err);
+                        console.log(`debug => ${err}`);
                     }
                     reject(this.handleError(ChainError.connection_failed, err));
                 });
@@ -106,7 +106,7 @@ export class ChainApi extends ApiModule {
                 })
                 .catch(err => {
                     if (process.env.ENVIRONMENT === 'DEV') {
-                        console.log(err);
+                        console.log(`debug => ${err}`);
                     }
                     reject(this.handleError(ChainError.connection_failed, err));
                 });
@@ -125,7 +125,7 @@ export class ChainApi extends ApiModule {
             })
             .catch(err => {
                 if (process.env.ENVIRONMENT === 'DEV') {
-                    console.log(err);
+                    console.log(`debug => ${err}`);
                 }
                 reject(this.handleError(ChainError.connection_failed, err));
             });
