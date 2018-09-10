@@ -352,7 +352,7 @@ export class AccountModule extends ApiModule {
                                 return;
                             }
                             const [balance] = balances;
-                            resolve(convertAsset ? Utils.formatAmountForAsset(balance.amount, asset) : Number(balance.amount));
+                            resolve(convertAsset ? Utils.formatAmountForAsset(Number(balance.amount), asset) : Number(balance.amount));
                         })
                         .catch(err => {
                             reject(this.handleError(AccountError.database_operation_failed, err));
@@ -704,11 +704,12 @@ export class AccountModule extends ApiModule {
                                 reject(this.handleError(AccountError.database_operation_failed));
                                 return;
                             }
+                            const result = [].concat(...balances).map(bal => Object.assign({}, bal, { amount: Number(bal.amount) }));
                             if (!convertAssets) {
-                                resolve(balances);
+                                resolve(result);
                                 return;
                             }
-                            const result = [].concat(...balances);
+
                             result.forEach(bal => {
                                 const asset = assets.find(a => a.id === bal.asset_id);
                                 bal.amount = Utils.formatAmountForAsset(bal.amount, asset);
