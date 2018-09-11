@@ -77,7 +77,8 @@ export function initialize(config: DcoreConfig,
  * Subscribe for blockchain update notifications. Notifications is fired periodically.
  * For development purposes.
  *
- * @param {(data: any[]) => void} callback
+ * @param {ChainSubscriptionBlockAppliedCallback} callback  Callback to be called on subscribed event.
+ * @returns {Promise<Subscription>}         Promise with subscription object
  */
 export function subscribe(callback: ChainSubscriptionCallback): Promise<Subscription> {
     return _chain.subscribe(callback);
@@ -86,7 +87,8 @@ export function subscribe(callback: ChainSubscriptionCallback): Promise<Subscrip
 /**
  * Subscribe for blockchain block processed notifications. Notifications is fired when block is processed.
  *
- * @param callback  Callback method to handle subscription data.
+ * @param {ChainSubscriptionBlockAppliedCallback} callback  Callback method to handle subscription data.
+ * @returns {Promise<Subscription>}                         Promise with subscription object
 */
 export function subscribeBlockApplied(callback: ChainSubscriptionBlockAppliedCallback): Promise<Subscription> {
     return _chain.subscribeBlockApplied(callback);
@@ -95,12 +97,19 @@ export function subscribeBlockApplied(callback: ChainSubscriptionBlockAppliedCal
 /**
  * Subscribe for events fired everytime new transaction is broadcasted to network
  *
- * @param callback  Callback method to handle subscription data.
+ * @param {ChainSubscriptionCallback callback  Callback method to handle subscription data.
+ * @returns {Promise<Subscription>}            Promise with subscription object
 */
 export function subscribePendingTransaction(callback: ChainSubscriptionCallback): Promise<Subscription> {
     return _chain.subscribePendingTransactions(callback);
 }
 
+/**
+ *  Unsubscribe event callback.
+ *
+ * @param {Subscription} subscription   Subscription object used to unsubscribe callback.
+ * @return {boolean}                    If successfully removed, true is returned.
+ */
 export function unsubscribe(subscription: Subscription): boolean {
     return _chain.unsubscribe(subscription);
 }
