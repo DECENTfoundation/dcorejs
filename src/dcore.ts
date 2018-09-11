@@ -3,7 +3,7 @@
  */
 import { getLibRef } from './helpers';
 import { ContentModule } from './modules/content';
-import { ChainApi, SubscriptionType, Subscription } from './api/chain';
+import { ChainApi, Subscription } from './api/chain';
 import { DatabaseApi } from './api/database';
 import { AccountModule } from './modules/account';
 import { HistoryApi } from './api/history';
@@ -79,7 +79,7 @@ export function initialize(config: DcoreConfig,
  *
  * @param {(data: any[]) => void} callback
  */
-export function subscribe(type: SubscriptionType, callback: ChainSubscriptionCallback) {
+export function subscribe(callback: ChainSubscriptionCallback): Promise<Subscription> {
     return _chain.subscribe(callback);
 }
 
@@ -88,7 +88,7 @@ export function subscribe(type: SubscriptionType, callback: ChainSubscriptionCal
  *
  * @param callback  Callback method to handle subscription data.
 */
-export function subscribeBlockApplied(callback: ChainSubscriptionBlockAppliedCallback) {
+export function subscribeBlockApplied(callback: ChainSubscriptionBlockAppliedCallback): Promise<Subscription> {
     return _chain.subscribeBlockApplied(callback);
 }
 
@@ -97,7 +97,7 @@ export function subscribeBlockApplied(callback: ChainSubscriptionBlockAppliedCal
  *
  * @param callback  Callback method to handle subscription data.
 */
-export function subscribePendingTransaction(callback: ChainSubscriptionCallback) {
+export function subscribePendingTransaction(callback: ChainSubscriptionCallback): Promise<Subscription> {
     return _chain.subscribePendingTransactions(callback);
 }
 
