@@ -65,6 +65,7 @@ export enum OperationName {
     automatic_renewal_of_subscription = 'automatic_renewal_of_subscription',
     custom_operation = 'custom',
     update_monitored_asset_operation = 'update_monitored_asset_operation',
+    update_user_issued_asset_precision_operation = 'update_user_issued_asset_precision_operation'
 }
 
 
@@ -450,6 +451,21 @@ export namespace Operations {
         constructor(params: UpdateMonitoredAssetParameters) {
             const type: prototype.UpdateMonitoredAssetType = Object.assign({}, params);
             super(OperationName.update_monitored_asset_operation, type);
+        }
+    }
+
+    export class UpdateUserIssuedAssetPrecisionOperation extends Operation {
+        constructor(issuer: string, assetId: string, newPrecision: number) {
+            super(
+                OperationName.update_user_issued_asset_precision_operation,
+                {
+                    issuer,
+                    asset_to_update: assetId,
+                    new_precision: newPrecision,
+                    set_fixed_max_supply: false,
+                    extensions: []
+                }
+            );
         }
     }
 }
