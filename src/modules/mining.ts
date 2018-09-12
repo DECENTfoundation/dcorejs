@@ -137,7 +137,7 @@ export class MiningModule extends ApiModule {
                         .then(res => resolve(res))
                         .catch(err => reject(err));
                 })
-                .catch(err => reject(this.handleError(MiningError.connection_failed, err)));
+                .catch(err => reject(this.handleError(MiningError.api_connection_failed, err)));
         }));
     }
 

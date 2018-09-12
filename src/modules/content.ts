@@ -39,7 +39,7 @@ export enum ContentError {
     content_not_exist = 'content_not_exist',
     account_fetch_failed = 'account_fetch_failed',
     parameters_error = 'parameters_error',
-    connection_failed = 'connection_failed',
+    api_connection_failed = 'api_connection_failed',
     syntactic_error = 'syntactic_error',
     content_not_bought = 'content_not_bought',
     invalid_arguments = 'invalid_arguments',
@@ -774,7 +774,7 @@ export class ContentModule extends ApiModule {
                 try {
                     accounts = await this.dbApi.execute<Account[]>(getAccountOp);
                 } catch (err) {
-                    reject(this.handleError(ContentError.connection_failed, err));
+                    reject(this.handleError(ContentError.api_connection_failed, err));
                 }
             }
             if (accounts.length !== 0 && !accounts[0]) {
@@ -857,7 +857,7 @@ export class ContentModule extends ApiModule {
                             }
                         });
                 })
-                .catch(err => reject(this.handleError(ContentError.connection_failed, err)));
+                .catch(err => reject(this.handleError(ContentError.api_connection_failed, err)));
         });
     }
 }

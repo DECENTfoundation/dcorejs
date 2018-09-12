@@ -52,7 +52,7 @@ export enum ChainOperationType {
 
 export enum ChainError {
     command_execution_failed = 'command_execution_failed',
-    connection_failed = 'connection_failed'
+    api_connection_failed = 'api_connection_failed'
 }
 
 export enum ChainMethodName {

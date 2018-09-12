@@ -17,6 +17,11 @@ export interface ModuleApis {
     messagingApi?: MessagingApi;
 }
 
+enum ApiError {
+    transaction_broadcast_failed = 'transaction_broadcast_failed',
+    api_connection_failed = 'api_connection_failed'
+}
+
 export class ApiModule {
     protected dbApi: DatabaseApi | null;
     protected chainApi: ChainApi | null;
@@ -49,14 +54,14 @@ export class ApiModule {
                         transaction.broadcast(privateKey)
                             .then(res => resolve(transaction.operations[0]))
                             .catch(err => {
-                                reject(this.handleError('transaction_broadcast_failed', err));
+                                reject(this.handleError(ApiError.transaction_broadcast_failed, err));
                             });
                         } else {
                             resolve(transaction.operations[0]);
                         }
                     })
                     .catch(err => {
-                        reject(this.handleError('connection_failed', err));
+                        reject(this.handleError(ApiError.api_connection_failed, err));
                     });
         });
     }
