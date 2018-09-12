@@ -20,7 +20,8 @@ import {
     Options,
     TransactionRecord,
     UpdateAccountParameters,
-    WalletExport
+    WalletExport,
+    HistoryBalanceObject
 } from '../model/account';
 import { DCoreAssetObject } from '../model/asset';
 import { Memo, Operation, Operations } from '../model/transaction';
@@ -839,5 +840,25 @@ export class AccountModule extends ApiModule {
                     reject(this.handleError(AccountError.account_update_failed, error));
                 });
         }));
+    }
+
+    public searchAccountBalanceHistory(
+        accountId: string,
+        assetList: string[] = [],
+        partnerId: string = null,
+        fromBlockNumber: number = null,
+        toBlockNumber: number = null,
+        startFrom: number = 0,
+        limit: number = 100): Promise<HistoryBalanceObject[]> {
+        return new Promise<HistoryBalanceObject[]>((resolve, reject) => {
+            const operation = new HistoryOperations.SearchAccountBalanceHistory(
+                accountId, assetList, partnerId, fromBlockNumber, toBlockNumber, startFrom, limit
+            );
+            this.historyApi.execute(operation)
+                .then(res => {
+                    resolve(res);
+                })
+                .catch(err => this.handleError(AccountError.database_operation_failed, err));
+        });
     }
 }

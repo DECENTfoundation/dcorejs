@@ -14,8 +14,8 @@ export interface IHistoryOptions {
 }
 
 export class HistoryOptions implements IHistoryOptions {
-    fromId? = null;
-    resultLimit? = null;
+    fromId?= null;
+    resultLimit?= null;
 }
 
 export interface TransactionRaw {
@@ -209,6 +209,15 @@ export interface HistoryRecord {
     trx_in_block: number
     op_in_trx: number
     virtual_op: number
+}
+
+export class HistoryBalanceObject {
+    hist_object: HistoryRecord;
+    balance: {
+        asset0: Asset;
+        asset1: Asset
+    };
+    fee: Asset;
 }
 
 export interface MinerInfo {
