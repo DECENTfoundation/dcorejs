@@ -310,9 +310,26 @@ export class AccountModule extends ApiModule {
                     transaction.addOperation(transferOperation);
                     this.finalizeAndBroadcast(transaction, privateKey, broadcast)
                         .then(res => resolve(transaction.operations[0]))
-                        .catch(err => reject(err));
+                        .catch(err => {
+                            if (err.stack.stack.message.indexOf('insufficient_balance') >= 0) {
+                                reject(this.handleError(AccountError.insufficient_balance, err));
+                            } else {
+                                reject(this.handleError(AccountError.api_connection_failed, err));
+                            }
+                        });
                 })
-                .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
+                .catch(err => {
+                    switch (err.message) {
+                        case 'command_execution_failed': {
+                            reject(this.handleError(AccountError.account_fetch_failed, err));
+                            break;
+                        }
+                        default: {
+                            reject(this.handleError(AccountError.api_connection_failed, err));
+                            break;
+                        }
+                    }
+                });
         });
     }
 
