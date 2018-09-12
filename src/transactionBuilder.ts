@@ -1,13 +1,13 @@
 /**
  * @module TransactionBuilder
  */
-import {dcorejs_lib} from './helpers';
-import {Utils} from './utils';
-import {Operation} from './model/transaction';
-import {ProposalCreateParameters} from './model/proposal';
-import {Validator} from './modules/validator';
-import {Type} from './model/types';
-import {KeyPrivate} from './model/utils';
+import { dcorejs_lib } from './helpers';
+import { Utils } from './utils';
+import { Operation } from './model/transaction';
+import { ProposalCreateParameters } from './model/proposal';
+import { Validator } from './modules/validator';
+import { Type } from './model/types';
+import { KeyPrivate } from './model/utils';
 
 export enum TransactionBuilderError {
     invalid_parameters = 'invalid_parameters',
@@ -53,7 +53,7 @@ export class TransactionBuilder {
      */
     public addOperation(operation: Operation): void {
         if (operation === undefined || operation.name === undefined || operation.operation === undefined
-        || typeof operation.name !== 'string') {
+            || typeof operation.name !== 'string') {
             throw new TypeError(TransactionBuilderError.invalid_parameters);
         }
         try {
@@ -90,21 +90,17 @@ export class TransactionBuilder {
         }
         const secret = Utils.privateKeyFromWif(privateKey);
         return new Promise((resolve, reject) => {
-            this.setTransactionFees()
+            if (sign) {
+                this.signTransaction(secret);
+            }
+            this._transaction.broadcast()
                 .then(() => {
-                    if (sign) {
-                        this.signTransaction(secret);
-                    }
-                    this._transaction.broadcast()
-                        .then(() => {
-                            resolve();
-                        })
-                        .catch((err: any) => {
-                            reject(err);
-                        });
+                    resolve();
                 })
                 .catch((err: any) => {
-                    reject(err);
+                    const e = new Error('error_broadcasting');
+                    e.stack = err;
+                    reject(e);
                 });
         });
     }
@@ -134,7 +130,7 @@ export class TransactionBuilder {
      */
     public signTransaction(privateKey: KeyPrivate): void {
         if (privateKey === undefined || privateKey.stringKey === undefined || typeof privateKey.stringKey !== 'string'
-        || privateKey.key === undefined) {
+            || privateKey.key === undefined) {
             throw new TypeError(TransactionBuilderError.invalid_parameters);
         }
         try {
