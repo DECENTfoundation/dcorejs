@@ -423,7 +423,7 @@ export class ExplorerModule extends ApiModule {
      * @param {number} id                   Block number.
      * @returns {Promise<Block.Block>}      Block object.
      */
-    @Validate(BasicType.string)
+    @Validate(BasicType.number)
     getBlock(id: number): Promise<Block.Block> {
         const operation = new DatabaseOperations.GetBlock(id);
         return this.dbApi.execute(operation);
