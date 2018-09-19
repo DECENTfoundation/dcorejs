@@ -427,7 +427,9 @@ export class AssetModule extends ApiModule {
         dctAmount: number,
         privateKey: string,
         broadcast: boolean = true): Promise<Operation> {
-        if (!Validator.validateArguments(arguments, [Type.string, Type.number, Type.string, Type.number, Type.string])) {
+        if (!Validator.validateArguments(
+            [issuer, uiaAmount, uiaSymbol, dctAmount, privateKey, broadcast],
+            [Type.string, Type.number, Type.string, Type.number, Type.string, Type.boolean])) {
             throw new TypeError(AssetError.invalid_parameters);
         }
         return new Promise<Operation>((resolve, reject) => {
@@ -567,7 +569,10 @@ export class AssetModule extends ApiModule {
         exchangeQuoteAmount: number,
         privateKey: string,
         broadcast: boolean = true): Promise<Operation> {
-        if (!Validator.validateArguments(arguments, [Type.string, Type.string, Type.number, Type.number, Type.string])) {
+        if (!Validator.validateArguments(
+            [publishingAccount, symbol, exchangeBaseAmount, exchangeQuoteAmount, privateKey, broadcast],
+            [Type.string, Type.string, Type.number, Type.number, Type.string, Type.boolean])
+        ) {
             throw new TypeError(AssetError.invalid_parameters);
         }
         return new Promise<Operation>((resolve, reject) => {
