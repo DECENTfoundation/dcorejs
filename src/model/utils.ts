@@ -78,6 +78,10 @@ export class KeyPrivate {
 export class KeyPublic {
     private _publicKey: PublicKey = new PublicKey();
 
+    static get empty(): string {
+        return 'DCT1111111111111111111111111111111114T1Anm';
+    }
+
     /**
      * Create KeyPublic object from public key string.
      * @param {string} publicString     Public key string.

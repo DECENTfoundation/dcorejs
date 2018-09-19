@@ -474,7 +474,7 @@ export class ProposalModule extends ApiModule {
                         .catch(err => reject(err));
                 })
                 .catch(error => {
-                    reject(this.handleError(ProposalError.connection_failed, error));
+                    reject(this.handleError(ProposalError.api_connection_failed, error));
                 });
         }));
     }

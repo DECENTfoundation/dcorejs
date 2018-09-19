@@ -14,7 +14,7 @@ import { CustomOperationSubtype, DCoreMessagePayload, IDCoreMessagePayload, Mess
 import { MessagingOperations } from '../api/model/messaging';
 import { Type } from '../model/types';
 import { Validator } from './validator';
-import { KeyPrivate } from '../model/utils';
+import { KeyPrivate, KeyPublic } from '../model/utils';
 
 export class MessagingModule extends ApiModule {
     constructor(dbApi: DatabaseApi, messageApi: MessagingApi) {
@@ -38,7 +38,7 @@ export class MessagingModule extends ApiModule {
             throw new TypeError(MessagingError.invalid_parameters);
         }
         return new Promise<IDCoreMessagePayload[]>(((resolve, reject) => {
-            this.getMessageObjects(sender, null, decryptPrivateKey, count)
+            this.getMessageObjects(sender, '', decryptPrivateKey, count)
                 .then((messages: any[]) => {
                     resolve(messages);
                 })
@@ -78,8 +78,8 @@ export class MessagingModule extends ApiModule {
      * @param {number} count                        Limit result count. Default 100(Max)
      * @returns {Promise<IDCoreMessagePayload[]>}    List of DCoreMessagePayload message objects.
      */
-    public getMessageObjects(sender?: string,
-        receiver?: string,
+    public getMessageObjects(sender: string = '',
+        receiver: string = '',
         decryptPrivateKey: string = '',
         count: number = 100): Promise<IDCoreMessagePayload[]> {
         if (!Validator.validateArguments([sender, receiver, decryptPrivateKey, count],
@@ -87,7 +87,7 @@ export class MessagingModule extends ApiModule {
             throw new TypeError(MessagingError.invalid_parameters);
         }
         return new Promise<IDCoreMessagePayload[]>(((resolve, reject) => {
-            const op = new MessagingOperations.GetMessageObjects(sender, receiver, count);
+            const op = new MessagingOperations.GetMessageObjects(sender || null, receiver || null, count);
             this.messagingApi.execute(op)
                 .then((messages: any[]) => {
                     resolve(this.decryptMessages(messages, decryptPrivateKey));
@@ -104,15 +104,19 @@ export class MessagingModule extends ApiModule {
         const result = [].concat(messages);
         result.map((msg: IDCoreMessagePayload) => {
             if (msg.receivers_data.length !== 0) {
-                try {
-                    msg.text = CryptoUtils.decryptWithChecksum(
-                        msg.receivers_data[0].data,
-                        decryptPrivateKey,
-                        msg.receivers_data[0].receiver_pubkey,
-                        msg.receivers_data[0].nonce
-                    );
-                } catch (e) {
-                    msg.text = '';
+                if (msg.receivers_data[0].receiver_pubkey === KeyPublic.empty) {
+                    msg.text = new Buffer(msg.receivers_data[0].data, 'hex').toString();
+                } else {
+                    try {
+                        msg.text = CryptoUtils.decryptWithChecksum(
+                            msg.receivers_data[0].data,
+                            decryptPrivateKey,
+                            msg.receivers_data[0].receiver_pubkey,
+                            msg.receivers_data[0].nonce
+                        );
+                    } catch (e) {
+                        msg.text = '';
+                    }
                 }
             } else {
                 msg.text = '';
@@ -172,6 +176,66 @@ export class MessagingModule extends ApiModule {
                         messagePayload.receivers_data[0].nonce.toString()
                     );
                     messagePayload.receivers_data[0].data = encryptedMsg;
+                    const buffer = new Buffer(JSON.stringify(messagePayload)).toString('hex');
+
+                    const customOp = new Operations.CustomOperation(sender, [sender], CustomOperationSubtype.messaging, buffer);
+                    const transaction = new TransactionBuilder();
+                    transaction.addOperation(customOp);
+                    this.finalizeAndBroadcast(transaction, privateKey, broadcast)
+                        .then(res => resolve(res))
+                        .catch(err => reject(err));
+                })
+                .catch(err => {
+                    reject(this.handleError(MessagingError.api_connection_failed, err));
+                });
+        });
+    }
+
+    /**
+     * Send unencrypted message
+     * https://docs.decent.ch/developer/classgraphene_1_1wallet_1_1detail_1_1wallet__api__impl.html#ab7e7eed9c157ff1c352c2179501b36c6
+     *
+     * @param {string} sender           Account id of sender, in format '1.2.X'. Example '1.2.345'.
+     * @param {string} receiverId       Account id of receiver, in format '1.2.X'. Example '1.2.345'.
+     * @param {string} message          Content of message.
+     * @param {string} privateKey       Private key to encrypt message and sign transaction.
+     * @param {boolean} broadcast       Transaction is broadcasted if set to 'true'. Default value is 'true'.
+     * @returns {Promise<Operation>}      Value confirming successful transaction broadcasting.
+     */
+    public sendUnencryptedMessage(
+        sender: string,
+        receiverId: string,
+        message: string,
+        privateKey: string,
+        broadcast: boolean = true): Promise<Operation> {
+        if (!Validator.validateArguments(
+            [sender, receiverId, message, privateKey, broadcast],
+            [Type.string, Type.string, Type.string, Type.string, Type.boolean])
+        ) {
+            throw new TypeError(MessagingError.invalid_parameters);
+        }
+        return new Promise<Operation>((resolve, reject) => {
+            const getAccOp = new DatabaseOperations.GetAccounts([receiverId]);
+            this.dbApi.execute(getAccOp)
+                .then((accounts: Account[]) => {
+                    if (!accounts || !accounts[0]) {
+                        reject(this.handleError(MessagingError.account_does_not_exist));
+                        return;
+                    }
+
+                    const messagePayload: MessagePayload = {
+                        from: sender,
+                        pub_from: KeyPrivate.fromWif(privateKey).getPublicKey().stringKey,
+                        receivers_data: [
+                            {
+                                to: receiverId,
+                                pub_to: KeyPublic.empty,
+                                nonce: 0,
+                                data: new Buffer(message).toString('hex')
+                            }
+                        ]
+                    };
+
                     const buffer = new Buffer(JSON.stringify(messagePayload)).toString('hex');
 
                     const customOp = new Operations.CustomOperation(sender, [sender], CustomOperationSubtype.messaging, buffer);

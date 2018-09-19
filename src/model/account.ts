@@ -284,4 +284,5 @@ export enum AccountError {
     account_update_failed = 'account_update_failed',
     syntactic_error = 'syntactic_error',
     invalid_parameters = 'invalid_parameters',
+    insufficient_balance = 'insufficient_balance',
 }

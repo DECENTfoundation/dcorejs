@@ -144,7 +144,7 @@ export class AssetModule extends ApiModule {
                         .catch(err => reject(err));
                 })
                 .catch(err => {
-                    reject(this.handleError(AssetError.connection_failed, err));
+                    reject(this.handleError(AssetError.api_connection_failed, err));
                     return;
                 });
 

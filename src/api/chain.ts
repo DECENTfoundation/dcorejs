@@ -67,13 +67,11 @@ export class ChainApi extends ApiModule {
                     Promise.all(commands)
                         .then(result => resolve(result))
                         .catch(err => {
-                            const e = new Error(ChainError.command_execution_failed);
-                            e.stack = err;
-                            reject(e);
+                            reject(this.handleError(ChainError.command_execution_failed, err));
                         });
                 })
                 .catch(err => {
-                    reject(err);
+                    reject(this.handleError(ChainError.api_connection_failed, err));
                 });
         });
     }
@@ -89,7 +87,7 @@ export class ChainApi extends ApiModule {
                     if (process.env.ENVIRONMENT === 'DEV') {
                         console.log(`debug => ${err}`);
                     }
-                    reject(this.handleError(ChainError.connection_failed, err));
+                    reject(this.handleError(ChainError.api_connection_failed, err));
                 });
         });
     }
@@ -108,7 +106,7 @@ export class ChainApi extends ApiModule {
                     if (process.env.ENVIRONMENT === 'DEV') {
                         console.log(`debug => ${err}`);
                     }
-                    reject(this.handleError(ChainError.connection_failed, err));
+                    reject(this.handleError(ChainError.api_connection_failed, err));
                 });
         });
     }
@@ -127,7 +125,7 @@ export class ChainApi extends ApiModule {
                 if (process.env.ENVIRONMENT === 'DEV') {
                     console.log(`debug => ${err}`);
                 }
-                reject(this.handleError(ChainError.connection_failed, err));
+                reject(this.handleError(ChainError.api_connection_failed, err));
             });
         });
     }

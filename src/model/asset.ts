@@ -82,7 +82,7 @@ export interface RealSupply {
 
 export enum AssetError {
     unable_to_list_assets = 'unable_to_list_assets',
-    connection_failed = 'connection_failed',
+    api_connection_failed = 'api_connection_failed',
     transaction_broadcast_failed = 'transaction_broadcast_failed',
     asset_issue_failure = 'asset_issue_failure',
     failed_to_fetch_account = 'failed_to_fetch_account',
