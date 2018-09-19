@@ -311,9 +311,26 @@ export class AccountModule extends ApiModule {
                     transaction.addOperation(transferOperation);
                     this.finalizeAndBroadcast(transaction, privateKey, broadcast)
                         .then(res => resolve(transaction.operations[0]))
-                        .catch(err => reject(err));
+                        .catch(err => {
+                            if (err.stack.stack.message.indexOf('insufficient_balance') >= 0) {
+                                reject(this.handleError(AccountError.insufficient_balance, err));
+                            } else {
+                                reject(this.handleError(AccountError.api_connection_failed, err));
+                            }
+                        });
                 })
-                .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
+                .catch(err => {
+                    switch (err.message) {
+                        case 'command_execution_failed': {
+                            reject(this.handleError(AccountError.account_fetch_failed, err));
+                            break;
+                        }
+                        default: {
+                            reject(this.handleError(AccountError.api_connection_failed, err));
+                            break;
+                        }
+                    }
+                });
         });
     }
 
@@ -872,6 +889,24 @@ export class AccountModule extends ApiModule {
                     resolve(res);
                 })
                 .catch(err => this.handleError(AccountError.database_operation_failed, err));
+        });
+    }
+
+    public getAccountBalanceForTransaction(accountId: string, historyId: string): Promise<HistoryBalanceObject> {
+        return new Promise<HistoryBalanceObject>((resolve, reject) => {
+            const operation = new HistoryOperations.GetAccountBalanceForTransaction(accountId, historyId);
+            this.historyApi.execute(operation)
+                .then(res => resolve(res))
+                .catch(err => this.handleError(AccountError.database_operation_failed, err));
+        });
+    }
+
+    public getTransactionById(transactionId: string): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            const operation = new DatabaseOperations.GetTransactionById(transactionId);
+            this.dbApi.execute(operation)
+                .then(res => resolve(res))
+                .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
         });
     }
 }
