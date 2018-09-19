@@ -733,9 +733,10 @@ decryptHexString(message: string, password: string): string
 ### Transaction builder
 
 ```typescript
-addOperation(operation: Operation): string
+addOperation(operation: Operation): void
 propose(proposalParameters: ProposalCreateParameters): void
 broadcast(privateKey: string, sign: boolean = true): Promise<void>
+setTransactionFees(): Promise<void>
 signTransaction(privateKey: KeyPrivate): void
 replaceOperation(operationIndex: number, newOperation: Operation): boolean
 previewTransaction(): any
