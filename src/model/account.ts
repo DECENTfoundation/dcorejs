@@ -14,8 +14,8 @@ export interface IHistoryOptions {
 }
 
 export class HistoryOptions implements IHistoryOptions {
-    fromId? = null;
-    resultLimit? = null;
+    fromId?= null;
+    resultLimit?= null;
 }
 
 export interface TransactionRaw {
