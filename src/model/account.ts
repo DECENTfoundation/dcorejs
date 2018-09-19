@@ -211,6 +211,15 @@ export interface HistoryRecord {
     virtual_op: number
 }
 
+export class HistoryBalanceObject {
+    hist_object: HistoryRecord;
+    balance: {
+        asset0: Asset;
+        asset1: Asset
+    };
+    fee: Asset;
+}
+
 export interface MinerInfo {
     id: string;
     name: string;

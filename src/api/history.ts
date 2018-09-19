@@ -9,7 +9,8 @@ enum HistoryError {
 }
 
 enum HistoryOperationName {
-    getAccountHistory = 'get_account_history'
+    getAccountHistory = 'get_account_history',
+    getAccountBalanceForTransaction = 'get_account_balance_for_transaction'
 }
 
 export class HistoryOperation {
@@ -34,6 +35,12 @@ export namespace HistoryOperations {
     export class GetAccountHistory extends HistoryOperation {
         constructor(accountId: string, startObjectId: string = '1.7.0', endObjectId: string = '1.7.0', resultNumber: number = 100) {
             super(HistoryOperationName.getAccountHistory, accountId, startObjectId, resultNumber, endObjectId);
+        }
+    }
+
+    export class GetAccountBalanceForTransaction extends HistoryOperation {
+        constructor(accountId: string, historyObjectId: string) {
+            super(HistoryOperationName.getAccountBalanceForTransaction, accountId, historyObjectId);
         }
     }
 }
