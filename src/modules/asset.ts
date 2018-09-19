@@ -54,7 +54,10 @@ export class AssetModule extends ApiModule {
         limit: number = 100,
         UIAOnly: boolean = false,
         formatAssets: boolean = false): Promise<AssetObject[]> {
-        if (!Validator.validateArguments([lowerBoundSymbol, limit, formatAssets], [Type.string, Type.number, Type.boolean])) {
+        if (!Validator.validateArguments(
+            [lowerBoundSymbol, limit, UIAOnly, formatAssets],
+            [Type.string, Type.number, Type.boolean, Type.boolean])
+        ) {
             throw new TypeError(AssetError.invalid_parameters);
         }
         return new Promise<any>((resolve, reject) => {
@@ -424,7 +427,9 @@ export class AssetModule extends ApiModule {
         dctAmount: number,
         privateKey: string,
         broadcast: boolean = true): Promise<Operation> {
-        if (!Validator.validateArguments(arguments, [Type.string, Type.number, Type.string, Type.number, Type.string])) {
+        if (!Validator.validateArguments(
+            [issuer, uiaAmount, uiaSymbol, dctAmount, privateKey, broadcast],
+            [Type.string, Type.number, Type.string, Type.number, Type.string, Type.boolean])) {
             throw new TypeError(AssetError.invalid_parameters);
         }
         return new Promise<Operation>((resolve, reject) => {
@@ -499,7 +504,7 @@ export class AssetModule extends ApiModule {
      * @returns {Promise<DCoreAssetObject>}     DCoreAssetObject of desired asset.
      */
     public getAssets(assetIds: string[], formatAssets: boolean = false): Promise<DCoreAssetObject[]> {
-        if (!Validator.validateArguments(arguments, [[Array, Type.string], Type.boolean])) {
+        if (!Validator.validateArguments([assetIds, formatAssets], [[Array, Type.string], Type.boolean])) {
             throw new TypeError(AssetError.invalid_parameters);
         }
         const operation = new DatabaseOperations.GetAssets(assetIds);
@@ -564,7 +569,10 @@ export class AssetModule extends ApiModule {
         exchangeQuoteAmount: number,
         privateKey: string,
         broadcast: boolean = true): Promise<Operation> {
-        if (!Validator.validateArguments(arguments, [Type.string, Type.string, Type.number, Type.number, Type.string])) {
+        if (!Validator.validateArguments(
+            [publishingAccount, symbol, exchangeBaseAmount, exchangeQuoteAmount, privateKey, broadcast],
+            [Type.string, Type.string, Type.number, Type.number, Type.string, Type.boolean])
+        ) {
             throw new TypeError(AssetError.invalid_parameters);
         }
         return new Promise<Operation>((resolve, reject) => {

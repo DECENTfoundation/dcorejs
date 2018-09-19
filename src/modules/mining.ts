@@ -151,7 +151,10 @@ export class MiningModule extends ApiModule {
      * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
      */
     public unvoteMiner(miner: string, account: string, privateKeyWif: string, broadcast: boolean = true): Promise<Operation> {
-        if (!Validator.validateArguments(arguments, [Type.string, Type.string, Type.string])) {
+        if (!Validator.validateArguments(
+            [miner, account, privateKeyWif, broadcast],
+            [Type.string, Type.string, Type.string, Type.boolean])
+        ) {
             throw new TypeError(MiningError.invalid_arguments);
         }
         return this.unvoteMiners([miner], account, privateKeyWif, broadcast);
