@@ -13,13 +13,13 @@ export enum MessagingError {
 
 export interface MessagePayload {
     from: string;
-    pub_from: string;
+    pub_from?: string;
     receivers_data: ReceiversData[]
 }
 
 export interface ReceiversData {
     to: string;
-    pub_to: string;
+    pub_to?: string;
     nonce: number;
     data: string;
 }
