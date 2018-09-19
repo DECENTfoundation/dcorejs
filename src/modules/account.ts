@@ -857,4 +857,13 @@ export class AccountModule extends ApiModule {
                 });
         }));
     }
+
+    public getTransactionById(transactionId: string): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            const operation = new DatabaseOperations.GetTransactionById(transactionId);
+            this.dbApi.execute(operation)
+                .then(res => resolve(res))
+                .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
+        });
+    }
 }
