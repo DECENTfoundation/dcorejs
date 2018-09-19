@@ -54,7 +54,10 @@ export class AssetModule extends ApiModule {
         limit: number = 100,
         UIAOnly: boolean = false,
         formatAssets: boolean = false): Promise<AssetObject[]> {
-        if (!Validator.validateArguments([lowerBoundSymbol, limit, formatAssets], [Type.string, Type.number, Type.boolean])) {
+        if (!Validator.validateArguments(
+            [lowerBoundSymbol, limit, UIAOnly, formatAssets],
+            [Type.string, Type.number, Type.boolean, Type.boolean])
+        ) {
             throw new TypeError(AssetError.invalid_parameters);
         }
         return new Promise<any>((resolve, reject) => {
