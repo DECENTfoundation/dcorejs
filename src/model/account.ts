@@ -14,8 +14,8 @@ export interface IHistoryOptions {
 }
 
 export class HistoryOptions implements IHistoryOptions {
-    fromId? = null;
-    resultLimit? = null;
+    fromId?= null;
+    resultLimit?= null;
 }
 
 export interface TransactionRaw {
@@ -211,6 +211,15 @@ export interface HistoryRecord {
     virtual_op: number
 }
 
+export class HistoryBalanceObject {
+    hist_object: HistoryRecord;
+    balance: {
+        asset0: Asset;
+        asset1: Asset
+    };
+    fee: Asset;
+}
+
 export interface MinerInfo {
     id: string;
     name: string;
@@ -275,4 +284,5 @@ export enum AccountError {
     account_update_failed = 'account_update_failed',
     syntactic_error = 'syntactic_error',
     invalid_parameters = 'invalid_parameters',
+    insufficient_balance = 'insufficient_balance',
 }

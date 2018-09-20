@@ -55,6 +55,7 @@ export enum DatabaseOperationName {
     getFeedsByMiner = 'get_feeds_by_miner',
     getRealSupply = 'get_real_supply',
     getProposedTransactions = 'get_proposed_transactions',
+    getTransactionById = 'get_transaction_by_id',
 }
 
 export class DatabaseOperation {
@@ -435,6 +436,12 @@ export namespace DatabaseOperations {
     export class GetProposedTransactions extends DatabaseOperation {
         constructor(accountId: string) {
             super(DatabaseOperationName.getProposedTransactions, accountId);
+        }
+    }
+
+    export class GetTransactionById extends DatabaseOperation {
+        constructor(transactionId: string) {
+            super(DatabaseOperationName.getTransactionById, transactionId);
         }
     }
 }

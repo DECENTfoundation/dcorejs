@@ -20,7 +20,8 @@ import {
     Options,
     TransactionRecord,
     UpdateAccountParameters,
-    WalletExport
+    WalletExport,
+    HistoryBalanceObject
 } from '../model/account';
 import { DCoreAssetObject } from '../model/asset';
 import { Memo, Operation, Operations } from '../model/transaction';
@@ -310,9 +311,26 @@ export class AccountModule extends ApiModule {
                     transaction.addOperation(transferOperation);
                     this.finalizeAndBroadcast(transaction, privateKey, broadcast)
                         .then(res => resolve(transaction.operations[0]))
-                        .catch(err => reject(err));
+                        .catch(err => {
+                            if (err.stack.stack.message.indexOf('insufficient_balance') >= 0) {
+                                reject(this.handleError(AccountError.insufficient_balance, err));
+                            } else {
+                                reject(this.handleError(AccountError.api_connection_failed, err));
+                            }
+                        });
                 })
-                .catch(err => reject(this.handleError(AccountError.account_fetch_failed, err)));
+                .catch(err => {
+                    switch (err.message) {
+                        case 'command_execution_failed': {
+                            reject(this.handleError(AccountError.account_fetch_failed, err));
+                            break;
+                        }
+                        default: {
+                            reject(this.handleError(AccountError.api_connection_failed, err));
+                            break;
+                        }
+                    }
+                });
         });
     }
 
@@ -352,7 +370,7 @@ export class AccountModule extends ApiModule {
                                 return;
                             }
                             const [balance] = balances;
-                            resolve(convertAsset ? Utils.formatAmountForAsset(balance.amount, asset) : Number(balance.amount));
+                            resolve(convertAsset ? Utils.formatAmountForAsset(Number(balance.amount), asset) : Number(balance.amount));
                         })
                         .catch(err => {
                             reject(this.handleError(AccountError.database_operation_failed, err));
@@ -704,11 +722,12 @@ export class AccountModule extends ApiModule {
                                 reject(this.handleError(AccountError.database_operation_failed));
                                 return;
                             }
+                            const result = [].concat(...balances).map(bal => Object.assign({}, bal, { amount: Number(bal.amount) }));
                             if (!convertAssets) {
-                                resolve(balances);
+                                resolve(result);
                                 return;
                             }
-                            const result = [].concat(...balances);
+
                             result.forEach(bal => {
                                 const asset = assets.find(a => a.id === bal.asset_id);
                                 bal.amount = Utils.formatAmountForAsset(bal.amount, asset);
@@ -838,5 +857,56 @@ export class AccountModule extends ApiModule {
                     reject(this.handleError(AccountError.account_update_failed, error));
                 });
         }));
+    }
+
+    /**
+     * Return list of account's transaction history with additional information about balance change and multiple options for filtering.
+     *
+     * @param accountId         Account id to list history for in format '1.2.X'. Example: '1.2.345'/
+     * @param assetList         List of asset ids to filter transaction with these assets. Format ['1.3.X'],
+     *                          example: ['1.3.0', '1.3.34']. Default is [] - no asset filtering.
+     * @param partnerId         Account id of partner to/from whom transaction was done.
+     *                          In format '1.2.X, example: '1.2.345'. Default is 'null'.
+     * @param fromBlockNumber   Block number to start from. Default is 'null' - filter from start.
+     * @param toBlockNumber     Block number to end at. Default is 'null' - filter to end.
+     * @param offset            Offstet in transaction list for paging purpose. Default is 0 - start at begining.
+     * @param limit             Number of records to be listed. Default is 100.
+     */
+    public searchAccountBalanceHistory(
+        accountId: string,
+        assetList: string[] = [],
+        partnerId: string = null,
+        fromBlockNumber: number = null,
+        toBlockNumber: number = null,
+        offset: number = 0,
+        limit: number = 100): Promise<HistoryBalanceObject[]> {
+        return new Promise<HistoryBalanceObject[]>((resolve, reject) => {
+            const operation = new HistoryOperations.SearchAccountBalanceHistory(
+                accountId, assetList, partnerId, fromBlockNumber, toBlockNumber, offset, limit
+            );
+            this.historyApi.execute(operation)
+                .then(res => {
+                    resolve(res);
+                })
+                .catch(err => this.handleError(AccountError.database_operation_failed, err));
+        });
+    }
+
+    public getAccountBalanceForTransaction(accountId: string, historyId: string): Promise<HistoryBalanceObject> {
+        return new Promise<HistoryBalanceObject>((resolve, reject) => {
+            const operation = new HistoryOperations.GetAccountBalanceForTransaction(accountId, historyId);
+            this.historyApi.execute(operation)
+                .then(res => resolve(res))
+                .catch(err => this.handleError(AccountError.database_operation_failed, err));
+        });
+    }
+
+    public getTransactionById(transactionId: string): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            const operation = new DatabaseOperations.GetTransactionById(transactionId);
+            this.dbApi.execute(operation)
+                .then(res => resolve(res))
+                .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
+        });
     }
 }

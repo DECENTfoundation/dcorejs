@@ -10,3 +10,4 @@ lib/
 .vscode/
 
 \.vscode/
+test.js

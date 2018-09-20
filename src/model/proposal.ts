@@ -15,7 +15,7 @@ export enum ProposalError {
     transfer_receiver_account_does_not_exist = 'transfer_receiver_account_does_not_exist',
     asset_not_found = 'asset_not_found',
     propose_object_not_found = 'propose_object_not_found',
-    connection_failed = 'connection_failed',
+    api_connection_failed = 'api_connection_failed',
     syntactic_error = 'syntactic_error',
     invalid_parameters = 'invalid_parameters',
 }

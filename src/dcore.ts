@@ -3,7 +3,7 @@
  */
 import { getLibRef } from './helpers';
 import { ContentModule } from './modules/content';
-import { ChainApi, SubscriptionType, Subscription } from './api/chain';
+import { ChainApi, Subscription } from './api/chain';
 import { DatabaseApi } from './api/database';
 import { AccountModule } from './modules/account';
 import { HistoryApi } from './api/history';
@@ -47,15 +47,12 @@ export interface DcoreConfig {
  *
  * @param {DcoreConfig} config                                                  Configuration of dcore network yout about to connect to
  * @param {(state: ConnectionState) => void} [connectionStatusCallback=null]    Status callback to handle connection
- * @param {string} environment                                                   Determines environment, possibilities: DEV, PROD
  */
 export function initialize(config: DcoreConfig,
     testConnection: boolean = true,
-    environment: string = 'PROD',
     connectionStatusCallback: (state: ConnectionState) => void = null): void {
     const dcore = getLibRef();
     ChainApi.setupChain(config.chainId, dcore.ChainConfig);
-    process.env.ENVIRONMENT = environment;
     _connector = new ApiConnector(config.dcoreNetworkWSPaths, dcore.Apis, testConnection, connectionStatusCallback);
     const database = new DatabaseApi(dcore.Apis, _connector);
     const historyApi = new HistoryApi(dcore.Apis, _connector);
@@ -77,30 +74,39 @@ export function initialize(config: DcoreConfig,
  * Subscribe for blockchain update notifications. Notifications is fired periodically.
  * For development purposes.
  *
- * @param {(data: any[]) => void} callback
+ * @param {ChainSubscriptionBlockAppliedCallback} callback  Callback to be called on subscribed event.
+ * @returns {Promise<Subscription>}         Promise with subscription object
  */
-export function subscribe(type: SubscriptionType, callback: ChainSubscriptionCallback) {
+export function subscribe(callback: ChainSubscriptionCallback): Promise<Subscription> {
     return _chain.subscribe(callback);
 }
 
 /**
  * Subscribe for blockchain block processed notifications. Notifications is fired when block is processed.
  *
- * @param callback  Callback method to handle subscription data.
+ * @param {ChainSubscriptionBlockAppliedCallback} callback  Callback method to handle subscription data.
+ * @returns {Promise<Subscription>}                         Promise with subscription object
 */
-export function subscribeBlockApplied(callback: ChainSubscriptionBlockAppliedCallback) {
+export function subscribeBlockApplied(callback: ChainSubscriptionBlockAppliedCallback): Promise<Subscription> {
     return _chain.subscribeBlockApplied(callback);
 }
 
 /**
  * Subscribe for events fired everytime new transaction is broadcasted to network
  *
- * @param callback  Callback method to handle subscription data.
+ * @param {ChainSubscriptionCallback callback  Callback method to handle subscription data.
+ * @returns {Promise<Subscription>}            Promise with subscription object
 */
-export function subscribePendingTransaction(callback: ChainSubscriptionCallback) {
+export function subscribePendingTransaction(callback: ChainSubscriptionCallback): Promise<Subscription> {
     return _chain.subscribePendingTransactions(callback);
 }
 
+/**
+ *  Unsubscribe event callback.
+ *
+ * @param {Subscription} subscription   Subscription object used to unsubscribe callback.
+ * @return {boolean}                    If successfully removed, true is returned.
+ */
 export function unsubscribe(subscription: Subscription): boolean {
     return _chain.unsubscribe(subscription);
 }

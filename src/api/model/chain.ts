@@ -1,3 +1,5 @@
+import { Block } from '../../model/explorer';
+
 /**
  * @module Model/Chain
  */
@@ -52,7 +54,7 @@ export enum ChainOperationType {
 
 export enum ChainError {
     command_execution_failed = 'command_execution_failed',
-    connection_failed = 'connection_failed'
+    api_connection_failed = 'api_connection_failed'
 }
 
 export enum ChainMethodName {
@@ -92,5 +94,5 @@ export namespace ChainMethods {
         }
     }
 }
-export type ChainSubscriptionCallback = (msg: any) => void;
-export type ChainSubscriptionBlockAppliedCallback = (msg: string) => void;
+export type ChainSubscriptionCallback = (msg: Block.Transaction) => void;
+export type ChainSubscriptionBlockAppliedCallback = (msg: number) => void;

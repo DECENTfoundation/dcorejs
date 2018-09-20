@@ -19,12 +19,12 @@ const dcore_js = window['dcorejs'];
 
 // Lib initialization
 const chainId = '17401602b201b3c45a3ad98afc6fb458f91f519bd30d1058adf6f2bed66376bc';
-const dcoreNetworkAddresses = ['wss://stage.decentgo.com:8090'];
+const dcoreNetworkAddresses = ['wss://stagesocket.decentgo.com:8090'];
 
 dcore_js.initialize({
     chainId: chainId,
     dcoreNetworkWSPaths: dcoreNetworkAddresses
-}, false, dcorejs_lib);
+}, false);
 
 function transfer(fromAccount, toAccount, amount, assetId, memo, privateKey) {
     output.innerHTML = 'Loading ...';

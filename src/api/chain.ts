@@ -3,7 +3,7 @@
  */
 import { dcorejs_lib } from '../helpers';
 import { ApiConnector } from './apiConnector';
-import { ChainError, ChainSubscriptionCallback, Method } from './model/chain';
+import { ChainError, ChainSubscriptionCallback, Method, ChainSubscriptionBlockAppliedCallback } from './model/chain';
 import { ApiModule } from '../modules/ApiModule';
 
 export enum SubscriptionType {
@@ -13,8 +13,8 @@ export enum SubscriptionType {
 }
 export class Subscription {
     public readonly type: SubscriptionType;
-    public readonly callback: ChainSubscriptionCallback;
-    constructor(type: SubscriptionType, callback: ChainSubscriptionCallback) {
+    public readonly callback: (data: any) => void;
+    constructor(type: SubscriptionType, callback: (data: any) => void) {
         this.type = type;
         this.callback = callback;
     }
@@ -67,13 +67,11 @@ export class ChainApi extends ApiModule {
                     Promise.all(commands)
                         .then(result => resolve(result))
                         .catch(err => {
-                            const e = new Error(ChainError.command_execution_failed);
-                            e.stack = err;
-                            reject(e);
+                            reject(this.handleError(ChainError.command_execution_failed, err));
                         });
                 })
                 .catch(err => {
-                    reject(err);
+                    reject(this.handleError(ChainError.api_connection_failed, err));
                 });
         });
     }
@@ -87,9 +85,9 @@ export class ChainApi extends ApiModule {
                 })
                 .catch(err => {
                     if (process.env.ENVIRONMENT === 'DEV') {
-                        console.log(err);
+                        console.log(`debug => ${err}`);
                     }
-                    reject(this.handleError(ChainError.connection_failed, err));
+                    reject(this.handleError(ChainError.api_connection_failed, err));
                 });
         });
     }
@@ -106,9 +104,9 @@ export class ChainApi extends ApiModule {
                 })
                 .catch(err => {
                     if (process.env.ENVIRONMENT === 'DEV') {
-                        console.log(err);
+                        console.log(`debug => ${err}`);
                     }
-                    reject(this.handleError(ChainError.connection_failed, err));
+                    reject(this.handleError(ChainError.api_connection_failed, err));
                 });
         });
     }
@@ -116,7 +114,7 @@ export class ChainApi extends ApiModule {
     /**
      * @param callback  Callback method to handle subscription data.
      */
-    public subscribeBlockApplied(callback: ChainSubscriptionCallback): Promise<Subscription> {
+    public subscribeBlockApplied(callback: ChainSubscriptionBlockAppliedCallback): Promise<Subscription> {
         return new Promise<Subscription>((resolve, reject) => {
             this.connect()
             .then(res => {
@@ -125,9 +123,9 @@ export class ChainApi extends ApiModule {
             })
             .catch(err => {
                 if (process.env.ENVIRONMENT === 'DEV') {
-                    console.log(err);
+                    console.log(`debug => ${err}`);
                 }
-                reject(this.handleError(ChainError.connection_failed, err));
+                reject(this.handleError(ChainError.api_connection_failed, err));
             });
         });
     }

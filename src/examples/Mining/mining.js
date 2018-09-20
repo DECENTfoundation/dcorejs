@@ -7,7 +7,7 @@ const dcore_js = window['dcorejs'];
 dcore_js.initialize({
     chainId: chainId,
     dcoreNetworkWSPaths: dcoreNetworkAddresses
-}, false, dcorejs_lib);
+}, false);
 
 const el = id => document.getElementById(id);
 

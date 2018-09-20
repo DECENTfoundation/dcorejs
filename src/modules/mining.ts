@@ -137,7 +137,7 @@ export class MiningModule extends ApiModule {
                         .then(res => resolve(res))
                         .catch(err => reject(err));
                 })
-                .catch(err => reject(this.handleError(MiningError.connection_failed, err)));
+                .catch(err => reject(this.handleError(MiningError.api_connection_failed, err)));
         }));
     }
 
@@ -151,7 +151,10 @@ export class MiningModule extends ApiModule {
      * @returns {Promise<boolean>}      Value confirming successful transaction broadcasting.
      */
     public unvoteMiner(miner: string, account: string, privateKeyWif: string, broadcast: boolean = true): Promise<Operation> {
-        if (!Validator.validateArguments(arguments, [Type.string, Type.string, Type.string])) {
+        if (!Validator.validateArguments(
+            [miner, account, privateKeyWif, broadcast],
+            [Type.string, Type.string, Type.string, Type.boolean])
+        ) {
             throw new TypeError(MiningError.invalid_arguments);
         }
         return this.unvoteMiners([miner], account, privateKeyWif, broadcast);
@@ -275,7 +278,7 @@ export class MiningModule extends ApiModule {
                                 .then(res => resolve(res))
                                 .catch(err => {
                                     if (process.env.ENVIRONMENT === 'DEV') {
-                                        console.log(err);
+                                        console.log(`debug => ${err}`);
                                     }
                                     let errorMessage = 'transaction_broadcast_failed';
                                     if (err.stack.indexOf('duplicate') >= 0) {

@@ -181,7 +181,7 @@ export class ApiConnector {
         this._api.close();
         this._connectionPromise = null;
         if (process.env.ENVIRONMENT === 'DEV') {
-            console.log('Closed connection to', this.connectedAddress);
+            console.log('debug => Closed connection to', this.connectedAddress);
         }
         this.connectedAddress = null;
     }

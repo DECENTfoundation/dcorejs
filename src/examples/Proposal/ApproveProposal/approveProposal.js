@@ -25,7 +25,7 @@ const dcoreNetworkAddresses = ['wss://stagesocket.decentgo.com:8090'];
 dcore_js.initialize({
     chainId: chainId,
     dcoreNetworkWSPaths: dcoreNetworkAddresses
-}, false, dcorejs_lib);
+}, false);
 
 function approveProposal(payingId, proposalId, removeActive, addActive, removeOwner, addOwner, privateKey) {
     output.innerHTML = 'Loading ...';
