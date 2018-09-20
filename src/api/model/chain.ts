@@ -1,3 +1,5 @@
+import { Block } from '../../model/explorer';
+
 /**
  * @module Model/Chain
  */
@@ -92,5 +94,5 @@ export namespace ChainMethods {
         }
     }
 }
-export type ChainSubscriptionCallback = (msg: any) => void;
-export type ChainSubscriptionBlockAppliedCallback = (msg: string) => void;
+export type ChainSubscriptionCallback = (msg: Block.Transaction) => void;
+export type ChainSubscriptionBlockAppliedCallback = (msg: number) => void;
