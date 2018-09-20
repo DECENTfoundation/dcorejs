@@ -298,13 +298,13 @@ dcorejs.subscribe((data: any) => {
     // subscription object
 });
 
-dcorejs.subscribePendingTransaction((data: any) => {
+dcorejs.subscribePendingTransaction((data: dcorejs.Block.Transaction) => {
     // handle pending transaction event
 }).then(subscription => {
     // subscription object
 });
 
-dcorejs.subscribeBlockApplied((data: any) => {
+dcorejs.subscribeBlockApplied((data: number) => {
     // handle block applied event
 }).then(subscription => {
     // subscription object
