@@ -129,14 +129,15 @@ const brainKey = dcorejs.account().suggestBrainKey();
 const ownerKey: KeyPrivate = Utils.generateKeys(brainKey)[0];
 const activeKey: KeyPrivate = Utils.derivePrivateKey(brainKey, sequenceNumber + 1);
 const memoKey: KeyPrivate = Utils.derivePrivateKey(brainKey, sequenceNumber + 2);
+const privateKey = '5KcA6ky4Hs9VoDUSdTF4o3a2QDgiiG5gkpLLysRWR8dy6EAgTni';
 
 dcorejs.account().registerAccount(
     'myNewAccountName',
-    'ownerKey',
-    'activeKey',
-    'memoKey',
-    'accountId',
-    'privateKeyOfRegistrar')
+    ownerKey,
+    activeKey,
+    memoKey,
+    accountId,
+    privateKey)
     .then(res => {
         // account_create transaction was successfully broadcasted
     })
@@ -152,39 +153,37 @@ NOTE: Make sure, that `sequenceNumber` you generating keys with, was not used fo
 import * as dcorejs from 'dcorejs';
 
 const privateKey = '5KcA6ky4Hs9VoDUSdTF4o3a2QDgiiG5gkpLLysRWR8dy6EAgTni';
-
-dcorejs.content().getSeeders(2)
-    .then((seeders: dcorejs.Seeder[]) => {
-        const seederIds = seeders.map(s => s.seeder);
-        dcorejs.content().generateContentKeys(seederIds)
-            .then((contentKeys: dcorejs.ContentKeys) => {
-                const submitObject: SubmitObject = {
-                    authorId: "1.2.345",
-                    coAuthors: [["1.2.456", 1000]],
-                    seeders: [],
-                    fileName: "wallet-export.json",
-                    date: "2018-09-30T22:00:00.000Z",
-                    price: 134,
-                    size: 2386,
-                    URI: "http://test.uri.com",
-                    hash: "014abb5fcbb2db96baf317f2f039e736c95a5269",
-                    keyParts: [],
-                    synopsis: {
-                        title: "Foo book",
-                        description: "This book is about Fooing",
-                        content_type_id: "1.3.6.0"
-                    },
-                    assetId: "1.3.0",
-                    publishingFeeAsset: "1.3.0"
-                };
-                dcorejs.content().addContent(submitObject, privateKey)
-                    .then(res => {
-                        // content successfully submitted
-                    })
-                    .catch(err => {
-                        // error occured during content submition
-                    })
+dcorejs.content().generateContentKeys(seederIds)
+    .then((contentKeys: dcorejs.ContentKeys) => {
+        const submitObject: SubmitObject = {
+            authorId: "1.2.345",
+            coAuthors: [["1.2.456", 1000]],
+            seeders: [],
+            fileName: "wallet-export.json",
+            date: "2018-09-30T22:00:00.000Z",
+            price: 134,
+            size: 2386,
+            URI: "http://test.uri.com",
+            hash: "014abb5fcbb2db96baf317f2f039e736c95a5269",
+            keyParts: [],
+            synopsis: {
+                title: "Foo book",
+                description: "This book is about Fooing",
+                content_type_id: "1.3.6.0"
+            },
+            assetId: "1.3.0",
+            publishingFeeAsset: "1.3.0"
+        };
+        dcorejs.content().addContent(submitObject, privateKey)
+            .then(res => {
+                // content successfully submitted
             })
+            .catch(err => {
+                // error occured during content submition
+            })
+    })
+    .catch(err => {
+        // error occured during content uploading
     })
 ```
 Example shown above is for case when content is already uploaded to seeders using DCore `IPFS` node.
@@ -276,9 +275,10 @@ const elGamalPrivate = '32983749287349872934792739472387492387492834';
 const elGamalPublic = '704978309485720398475187405981709436818374592763459872645';
 const elGamalKeyPair = new dcorejs.KeyPair(elGamalPrivate, elGamalPublic);
 const contentId = '2.13.312';
+const accountId = '1.2.345';
 
 // Content key restoration
-dcorejs.content().restoreContentKeys(contentId, elGamalKeyPair)
+dcorejs.content().restoreContentKeys(contentId, accountId, elGamalKeyPair)
     .then(key => {
         // ... now you are able to decrypt your content
     })
@@ -294,10 +294,20 @@ dcorejs.content().restoreContentKeys(contentId, elGamalKeyPair)
 ```typescript
 dcorejs.subscribe((data: any) => {
     // handle fired event
+}).then(subscription => {
+    // subscription object
 });
 
 dcorejs.subscribePendingTransaction((data: any) => {
     // handle pending transaction event
+}).then(subscription => {
+    // subscription object
+});
+
+dcorejs.subscribeBlockApplied((data: any) => {
+    // handle block applied event
+}).then(subscription => {
+    // subscription object
 });
 ```
 
