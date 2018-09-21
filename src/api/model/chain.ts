@@ -44,12 +44,13 @@ export enum ChainOperationType {
     update_monitored_asset,
     ready_to_publish2,
     transfer2,
-    disallow_automatic_renewal_of_subscription = 40,
+    update_user_issued_asset_precision_operation = 40,
+    disallow_automatic_renewal_of_subscription,
     return_escrow_submission,
     return_escrow_buying,
     pay_seeder,
-    finish_buying,
-    renewal_of_subscription = 45,
+    finish_buying = 45,
+    renewal_of_subscription,
 }
 
 export enum ChainError {
