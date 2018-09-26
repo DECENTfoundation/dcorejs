@@ -23,7 +23,7 @@ import {
     WalletExport,
     HistoryBalanceObject
 } from '../model/account';
-import { DCoreAssetObject } from '../model/asset';
+import { DCoreAssetObject, AssetObject } from '../model/asset';
 import { Memo, Operation, Operations } from '../model/transaction';
 import { TransactionBuilder } from '../transactionBuilder';
 import { Utils } from '../utils';
@@ -233,8 +233,8 @@ export class AccountModule extends ApiModule {
      *
      * @param {number} amount           Amount of asset to be send to receiver.
      * @param {string} assetId          Id of asset that amount will be sent in. If empty, default 1.3.0 - DCT is selected
-     * @param {string} fromAccount      Name or id of sender account
-     * @param {string} toAccount        Name or id of receiver account
+     * @param {string} fromAccount    Id of sender account
+     * @param {string} toAccount      Id of receiver account
      * @param {string} memo             Message for recipient
      * @param {string} privateKey       Private key used to encrypt memo and sign transaction
      * @param {boolean} broadcast       Transaction is broadcasted if set to true
@@ -252,21 +252,36 @@ export class AccountModule extends ApiModule {
             [Type.number, Type.string, Type.string, Type.string, Type.string, Type.string, Type.boolean])) {
             throw new TypeError(AccountError.invalid_parameters);
         }
-        return new Promise((resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             if (memo && !privateKey) {
                 reject(AccountError.transfer_missing_pkey);
             }
+
+            const promises = [];
+            const fromParts = fromAccount.split('.');
+            const toParts = toAccount.split('.');
+            if (fromParts.length === 1) {
+                promises.push(this.getAccountByName(fromAccount));
+            } else {
+                promises.push(this.getAccountById(fromAccount));
+            }
+
+            if (toParts.length === 1) {
+                promises.push(this.getAccountByName(toAccount));
+            } else {
+                promises.push(this.getAccountById(toAccount));
+            }
+
             const methods = [].concat(
-                new ChainMethods.GetAccount(fromAccount),
-                new ChainMethods.GetAccount(toAccount),
                 new ChainMethods.GetAsset(assetId || '1.3.0')
             );
+            promises.push(this.chainApi.fetch(...methods));
 
-            this.chainApi.fetch(...methods)
-                .then(result => {
-                    const senderAccount: Account = JSON.parse(JSON.stringify(result[0]));
-                    const receiverAccount: Account = JSON.parse(JSON.stringify(result[1]));
-                    const asset: Asset = JSON.parse(JSON.stringify(result[2]));
+            Promise.all(promises)
+                .then(res => {
+                    const senderAccount: Account = res[0];
+                    const receiverAccount: Account = res[1];
+                    const asset: AssetObject = JSON.parse(JSON.stringify(res[2]))[0];
 
                     if (!senderAccount) {
                         reject(
@@ -300,12 +315,12 @@ export class AccountModule extends ApiModule {
                             nonce
                         )
                     };
-                    const assetObject = JSON.parse(JSON.stringify(asset));
+
                     const transaction = new TransactionBuilder();
                     const transferOperation = new Operations.TransferOperation(
                         senderAccount.id,
                         receiverAccount.id,
-                        Asset.create(amount, assetObject),
+                        Asset.create(amount, asset),
                         memo_object
                     );
                     transaction.addOperation(transferOperation);
