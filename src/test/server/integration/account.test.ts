@@ -46,12 +46,14 @@ before(() => {
 beforeEach(() => {
     this.fetch = sinon.stub(chainApi, 'fetch');
     this.getAccountById = sinon.stub(accountModule, 'getAccountById');
+    this.getAccountByName = sinon.stub(accountModule, 'getAccountByName');
     this.finalizeAndBroadcast = sinon.stub(accountModule, 'finalizeAndBroadcast');
 });
 
 afterEach(() => {
     this.fetch.restore();
     this.getAccountById.restore();
+    this.getAccountByName.restore();
     this.finalizeAndBroadcast.restore();
 });
 
@@ -71,8 +73,10 @@ describe('(server/integration) Account fetch', () => {
             },
             fee: { amount: 0, asset_id: 0 }
         };
-        this.fetch.resolves([accountFrom, accountTo, assets.dct_asset]);
-        accountModule.transfer(0.0000001, '1.3.0', accountFrom.id, accountTo.id, '', privateKey, false)
+        this.getAccountByName.resolves(accountTo);
+        this.getAccountById.resolves(accountFrom);
+        this.fetch.resolves([assets.dct_asset]);
+        accountModule.transfer(0.0000001, '1.3.0', accountFrom.id, accountTo.name, '', privateKey, false)
             .then(res => {
                 const operation = res.operation as TransferType;
                 expect(operation.from).to.equals(operationMock.from);
