@@ -17,12 +17,14 @@ describe('(client/integration) Account module', () => {
             },
             fee: { amount: 0, asset_id: 0 }
         };
-        fetchStub.resolves([accountFrom, accountTo, assets.dct_asset]);
+        getAccountByIdStub.resolves(accountFrom);
+        getAccountByNameStub.resolves(accountTo);
+        fetchStub.resolves([assets.dct_asset]);
         accountModule.transfer(
             0.0000001, 
             '1.3.0', 
-            '1.2.27', 
-            '1.2.24', 
+            accountFrom.id, 
+            accountTo.name, 
             '', 
             '5KcA6ky4Hs9VoDUSdTF4o3a7QDgiiG5gkpLLysRWR8dy6EAgTnZ', 
             false)

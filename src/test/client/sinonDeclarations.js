@@ -9,6 +9,7 @@ apiConnectorStub.restore();
 
 let fetchStub = sinon.stub(chainApi, 'fetch');
 let getAccountByIdStub = sinon.stub(accountModule, 'getAccountById');
+let getAccountByNameStub = sinon.stub(accountModule, 'getAccountByName');
 let executeStub = sinon.stub(databaseApi, 'execute');
 let getContentStub = sinon.stub(contentModule, 'getContent');
 let finalizeAndBroadcast_account = sinon.stub(accountModule, 'finalizeAndBroadcast');
