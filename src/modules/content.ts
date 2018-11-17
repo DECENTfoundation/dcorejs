@@ -125,8 +125,8 @@ export class ContentModule extends ApiModule {
                                 return;
                             }
                             const [content] = contents;
-                            const stringidied = JSON.stringify(content);
-                            let objectified = JSON.parse(stringidied);
+                            const stringified = JSON.stringify(content);
+                            let objectified = JSON.parse(stringified);
                             objectified.synopsis = JSON.parse(objectified.synopsis);
                             if (isUndefined(objectified.price['amount']) && convertAsset) {
                                 objectified = this.formatPrices([objectified], assets)[0];
@@ -167,8 +167,8 @@ export class ContentModule extends ApiModule {
                                 resolve(null);
                                 return;
                             }
-                            const stringidied = JSON.stringify(content);
-                            let objectified = JSON.parse(stringidied);
+                            const stringified = JSON.stringify(content);
+                            let objectified = JSON.parse(stringified);
                             objectified.synopsis = JSON.parse(objectified.synopsis);
                             if (isUndefined(objectified.price['amount']) && convertAsset) {
                                 objectified = this.formatPrices([objectified], assets);
