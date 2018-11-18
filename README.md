@@ -121,23 +121,29 @@ Also can use `Account.createAccountWithBrainkey`, but keys generated from braink
 
 ```typescript
 import * as dcorejs from 'dcorejs';
-import { KeyPrivate, Utils } from 'dcorejs';
+import { KeyPrivate, KeyPublic, Utils } from 'dcorejs';
 
 let sequenceNumber = 0;
 const brainKey = dcorejs.account().suggestBrainKey();
 // owner key is generated with sequenceNumber = 0
-const ownerKey: KeyPrivate = Utils.generateKeys(brainKey)[0];
-const activeKey: KeyPrivate = Utils.derivePrivateKey(brainKey, sequenceNumber + 1);
-const memoKey: KeyPrivate = Utils.derivePrivateKey(brainKey, sequenceNumber + 2);
-const privateKey = '5KcA6ky4Hs9VoDUSdTF4o3a2QDgiiG5gkpLLysRWR8dy6EAgTni';
+const privateOwnerKey: KeyPrivate = Utils.generateKeys(brainKey)[0];
+const privateActiveKey: KeyPrivate = Utils.derivePrivateKey(brainKey, sequenceNumber + 1);
+const privateMemoKey: KeyPrivate = Utils.derivePrivateKey(brainKey, sequenceNumber + 2);
+const registrarPrivateKey = '5KcA6ky4Hs9VoDUSdTF4o3a2QDgiiG5gkpLLysRWR8dy6EAgTni';
+
+const publicOwnerKey: KeyPublic = KeyPublic.fromPrivateKey(privateOwnerKey)
+const publicActiveKey: KeyPublic = KeyPublic.fromPrivateKey(privateActiveKey)
+const publicMemoKey: KeyPublic = KeyPublic.fromPrivateKey(privateMemoKey)
+
+const accountId = '1.1.1'
 
 dcorejs.account().registerAccount(
     'myNewAccountName',
-    ownerKey,
-    activeKey,
-    memoKey,
+    publicOwnerKey,
+    publicActiveKey,
+    publicMemoKey,
     accountId,
-    privateKey)
+    registrarPrivateKey)
     .then(res => {
         // account_create transaction was successfully broadcasted
     })
