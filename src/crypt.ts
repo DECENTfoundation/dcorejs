@@ -1,11 +1,12 @@
 /**
  * @module CryptoUtils
  */
-import {KeyPrivate, KeyPublic} from './model/utils';
-import {dcorejs_lib} from './helpers';
 import * as cryptoJs from 'crypto-js';
-import {Validator} from './modules/validator';
-import {Type} from './model/types';
+
+import { dcorejs_lib } from './helpers';
+import { Type } from './model/types';
+import { KeyPrivate, KeyPublic } from './model/utils';
+import { Validator } from './modules/validator';
 
 const RIPEMD160 = require('ripemd160');
 
@@ -144,10 +145,10 @@ export class CryptoUtils {
      * @param message       Input message.
      * @returns {string}    Hashed input.
      */
-    public static sha256(message: string): string {
-        if (!Validator.validateArguments(arguments, [Type.string])) {
-            throw new TypeError(CryptoUtilsError.invalid_parameters);
-        }
+    public static sha256(message: any): string {
+        // if (!Validator.validateArguments(arguments, [Type.string])) {
+        //     throw new TypeError(CryptoUtilsError.invalid_parameters);
+        // }
         return cryptoJs.SHA256(message).toString(cryptoJs.enc.Hex);
     }
 

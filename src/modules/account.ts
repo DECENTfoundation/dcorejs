@@ -1,36 +1,42 @@
 /**
  * @module AccountModule
  */
-import { ApiConnector } from '../api/apiConnector';
-import { ChainApi } from '../api/chain';
-import { DatabaseApi } from '../api/database';
-import { HistoryApi, HistoryOperations } from '../api/history';
-import { ChainMethods } from '../api/model/chain';
-import { DatabaseError, DatabaseOperations, MinerOrder, SearchAccountHistoryOrder } from '../api/model/database';
-import { CryptoUtils } from '../crypt';
+import {ApiConnector} from '../api/apiConnector';
+import {ChainApi} from '../api/chain';
+import {DatabaseApi} from '../api/database';
+import {HistoryApi, HistoryOperations} from '../api/history';
+import {ChainMethods} from '../api/model/chain';
+import {DatabaseError, DatabaseOperations, MinerOrder, SearchAccountHistoryOrder} from '../api/model/database';
+import {CryptoUtils} from '../crypt';
 import {
     Account,
     AccountError,
     AccountNameIdPair,
     Asset,
     Authority,
+    HistoryBalanceObject,
     HistoryOptions,
     HistoryRecord,
     MinerInfo,
     Options,
     TransactionRecord,
     UpdateAccountParameters,
-    WalletExport,
-    HistoryBalanceObject
+    WalletExport
 } from '../model/account';
-import { DCoreAssetObject, AssetObject } from '../model/asset';
-import { Memo, Operation, Operations } from '../model/transaction';
-import { TransactionBuilder } from '../transactionBuilder';
-import { Utils } from '../utils';
-import { ApiModule } from './ApiModule';
-import { Validator } from './validator';
-import { Type } from '../model/types';
-import { KeyPrivate, KeyPublic } from '../model/utils';
+import {AssetObject, DCoreAssetObject} from '../model/asset';
+import {Block} from '../model/explorer';
+import {Memo, Operation, Operations} from '../model/transaction';
+import {Type} from '../model/types';
+import {KeyPrivate, KeyPublic} from '../model/utils';
+import {TransactionBuilder} from '../transactionBuilder';
+import {Utils} from '../utils';
+
+import {ApiModule} from './ApiModule';
+import {Validator} from './validator';
+import {dcorejs_lib} from '../helpers';
+
+import * as sha256 from 'sha256';
+import {Serializer} from 'typedoc/dist/lib/serialization';
 
 export enum AccountOrder {
     nameAsc = '+name',
@@ -356,7 +362,7 @@ export class AccountModule extends ApiModule {
      * @param {string} accountId        Account id in format '1.2.X'. Example: '1.2.345'
      * @param {string} assetId          Id of asset in which balance will be listed
      * @param {boolean} convertAsset    Optional parameter to convert balance amount from blockchain asset
-                                        amount format to right precision format of asset. Example: 100000000 => 1 DCT.
+     amount format to right precision format of asset. Example: 100000000 => 1 DCT.
      *                                  Default: false.
      * @return {Promise<number>}        Account's balance
      */
@@ -602,9 +608,9 @@ export class AccountModule extends ApiModule {
      * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
      */
     public createAccountWithBrainkey(brainkey: string,
-        accountName: string,
-        registrar: string,
-        registrarPrivateKey: string): Promise<Operation> {
+                                     accountName: string,
+                                     registrar: string,
+                                     registrarPrivateKey: string): Promise<Operation> {
         if (!Validator.validateArguments(arguments, [Type.string, Type.string, Type.string, Type.string])) {
             throw new TypeError(AccountError.invalid_parameters);
         }
@@ -651,15 +657,15 @@ export class AccountModule extends ApiModule {
                         const elGPriv = Utils.elGamalPrivate(pk);
                         const elGPub = Utils.elGamalPublic(elGPriv);
                         return {
-                            private: { s: elGPriv },
-                            public: { s: elGPub }
+                            private: {s: elGPriv},
+                            public: {s: elGPub}
                         };
                     });
                     elGamalKeys.push(...additionalElGamalPrivateKeys.map(elGPriv => {
                         const elGPub = Utils.elGamalPublic(elGPriv);
                         return {
-                            private: { s: elGPriv },
-                            public: { s: elGPub }
+                            private: {s: elGPriv},
+                            public: {s: elGPub}
                         };
                     }));
                     const walletExport: WalletExport = {
@@ -737,7 +743,7 @@ export class AccountModule extends ApiModule {
                                 reject(this.handleError(AccountError.database_operation_failed));
                                 return;
                             }
-                            const result = [].concat(...balances).map(bal => Object.assign({}, bal, { amount: Number(bal.amount) }));
+                            const result = [].concat(...balances).map(bal => Object.assign({}, bal, {amount: Number(bal.amount)}));
                             if (!convertAssets) {
                                 resolve(result);
                                 return;
@@ -768,11 +774,11 @@ export class AccountModule extends ApiModule {
      * @returns {Promise<MinerInfo[]>}      List of filtered MinerInfo objects.
      */
     public searchMinerVoting(accountName: string,
-        keyword: string,
-        myVotes: boolean = true,
-        sort: MinerOrder = MinerOrder.none,
-        fromMinerId: string = '',
-        limit: number = 1000): Promise<MinerInfo[]> {
+                             keyword: string,
+                             myVotes: boolean = true,
+                             sort: MinerOrder = MinerOrder.none,
+                             fromMinerId: string = '',
+                             limit: number = 1000): Promise<MinerInfo[]> {
         if (!Validator.validateArguments([keyword, myVotes, sort, fromMinerId, limit],
             [Type.string, Type.boolean, Type.string, Type.string, Type.number])) {
             throw new TypeError(AccountError.invalid_parameters);
@@ -820,9 +826,9 @@ export class AccountModule extends ApiModule {
                         reject(this.handleError(AccountError.account_does_not_exist));
                         return;
                     }
-                    let newOptions: Options = undefined;
-                    let ownerAuthority: Authority = undefined;
-                    let activeAuthority: Authority = undefined;
+                    let newOptions: Options;
+                    let ownerAuthority: Authority;
+                    let activeAuthority: Authority;
 
                     if (params.newOwnerKey) {
                         ownerAuthority = Object.assign({}, account.owner);
@@ -922,6 +928,100 @@ export class AccountModule extends ApiModule {
             this.dbApi.execute(operation)
                 .then(res => resolve(res))
                 .catch(err => reject(this.handleError(AccountError.database_operation_failed, err)));
+        });
+    }
+
+    /**
+     *
+     * @param transactionId 2.17.X
+     */
+    public getTransactionHash(blockNum: number, txInBlock: number): Promise<string> {
+        return new Promise((resolve, reject) => {
+            const dbOp = new DatabaseOperations.GetTransaction(blockNum, txInBlock);
+            this.dbApi.execute(dbOp)
+                .then((block: Block.Transaction) => {
+                    delete (block.signatures);
+                    delete (block.operation_results);
+
+                    const hard = {
+                        'ref_block_num': 2917,
+                        'ref_block_prefix': 155809572,
+                        'expiration': '2018-12-03T13:32:45',
+                        'operations': [
+                            [
+                                39,
+                                {
+                                    'fee': {
+                                        'amount': 500000,
+                                        'asset_id': '1.3.0'
+                                    },
+                                    'from': '1.2.27',
+                                    'to': '1.2.11',
+                                    'amount': {
+                                        'amount': 100000000,
+                                        'asset_id': '1.3.0'
+                                    },
+                                    'extensions': []
+                                }
+                            ]
+                        ],
+                        'extensions': [],
+                        'signatures': [
+                            '2045782a701b9e84380111e18e2c4e2764670037b6f5ca7519258efbb51b1201271a2c37452c4c378e278b5099bf5e4bcec42941192d034818083bfad2a84117e4'
+                        ],
+                        'operation_results': [
+                            [
+                                0,
+                                {}
+                            ]
+                        ]
+                    };
+                    delete (hard.signatures);
+
+                    const serTx = '3324e84dedb1ba2f155b012720a10700000000000022230000000000020160e3160000000000000102c03f8e840c1699fd7808c2bb858e249c688c5be8acf0a0c1c484ab0cfb27f0a802e0ced80260630f641f61f6d6959f32b5c43b1a38be55666b98abfe8bafcc556b002ea2558d64350a204bc2a1ee670302ceddb897c2d351fa0496ff089c934e35e030f8ae4f3f9397a70000';
+                    const trx2 = dcorejs_lib.ops.transaction.fromHex(serTx);
+                    const obj = new dcorejs_lib.Serializer().toObject(trx2);
+                    console.log(JSON.stringify(trx2));
+
+                    const getHexop = new DatabaseOperations.GetTransactionHex(trx2);
+                    this.dbApi.execute(getHexop)
+                        .then(res => {
+                            console.log('hex tx', res, '-------');
+
+                            // const serialized = '3324e84dedb1bc2f155b012720a10700000000000022230000000000020160e3160000000000000102c03f8e
+                            // 840c1699fd7808c2bb858e249c688c5be8acf0a0c1c484ab0cfb27f0a802e0ced80260630f641f61f6d6959f32b5c43b1a38be55666b
+                            // 98abfe8bafcc556be02da2558d64350a204bc2a1ee670302ceddb897c2d351fa0496ff089c934e35e030f8ae4f3f9397a70000';
+                            // delete(block.operation_results);
+                            // const opText = JSON.stringify(block);
+                            // const buff = new Buffer(opText);
+                            // const byteArr = this.stringToBytes(opText);
+                            const buffer = new Buffer(res, 'hex');
+                            console.log('buffer hash', sha256(buffer).slice(0, 40));
+                            const hash = CryptoUtils.sha256(res);
+                            console.log('hex string', hash.slice(0, 40));
+                            // dcorejs_lib.Apis.instance().db_api().exec('get_transaction', [blockNum, txInBlock])
+                            //     .then(tx => {
+                            //         dcorejs_lib.Apis.instance().db_api().exec('get_transaction_hex', [tx])
+                            //             .then(txHex => {
+                            //                 const trx2 = dcorejs_lib.ops.transaction.fromHex(txHex);
+                            //                 // console.log(trx2.toBuffer(trx2));
+                            //                 const buf2 = dcorejs_lib.ops.transaction.toBuffer(trx2);
+                            //                 // console.log(new dcorejs_lib.Serializer().toByteBuffer(trx2));
+                            //                 // const buffer = new Buffer(txHex, 'hex');
+                            //
+                            //                 const id = dcorejs_lib.hash.sha256(buf2).toString('hex').substring(0, 40);
+                            //                 console.log('Transaction ID :', id);
+                            //             })
+                            //             .catch(err => console.log(err));
+                            //
+                            //         console.log(res);
+                            //     })
+                            //     .catch(err => console.log(err));
+
+                        })
+                        .catch(err => console.log(err));
+                })
+                .catch(err => console.log(err));
         });
     }
 }

@@ -56,6 +56,7 @@ export enum DatabaseOperationName {
     getRealSupply = 'get_real_supply',
     getProposedTransactions = 'get_proposed_transactions',
     getTransactionById = 'get_transaction_by_id',
+    getTransactionHex = 'get_transaction_hex',
 }
 
 export class DatabaseOperation {
@@ -442,6 +443,12 @@ export namespace DatabaseOperations {
     export class GetTransactionById extends DatabaseOperation {
         constructor(transactionId: string) {
             super(DatabaseOperationName.getTransactionById, transactionId);
+        }
+    }
+
+    export class GetTransactionHex extends DatabaseOperation {
+        constructor(transaction: any) {
+            super(DatabaseOperationName.getTransactionHex, transaction);
         }
     }
 }
