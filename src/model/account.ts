@@ -194,7 +194,7 @@ export class TransactionMemo {
             try {
                 decrypted = CryptoUtils.decryptWithChecksum(this.message, pk, this.to, this.nonce).toString();
             } catch (err) {
-                throw new Error(AccountError.account_keys_incorrect);
+                this.valid = false;
             }
         });
         return decrypted;
@@ -239,6 +239,7 @@ export interface WalletExport {
     ws_server: string;
     ws_user: string;
     ws_password: string;
+    update_time: string;
 }
 
 export interface SubscriptionParameters {

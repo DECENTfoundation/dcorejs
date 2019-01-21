@@ -206,7 +206,7 @@ export class CryptoUtils {
         const iv = cryptoJs.enc.Hex.parse(ivHex);
         const key = cryptoJs.enc.Hex.parse(keyHex);
 
-        const msg: Buffer = typeof message === 'string' ? new Buffer(message, 'binary') : message;
+        const msg: Buffer = typeof message === 'string' ? Buffer.from(message, 'binary') : message;
         const plainArr = cryptoJs.enc.Hex.parse(msg.toString('hex'));
         const res = cryptoJs.AES.encrypt(plainArr, key, {iv: iv});
         return cryptoJs.enc.Hex.stringify(res.ciphertext);
@@ -233,7 +233,7 @@ export class CryptoUtils {
         const cipher_array = cryptoJs.enc.Hex.parse(message);
         const plainwords = cryptoJs.AES.decrypt({ciphertext: cipher_array, salt: null, iv: iv}, key, {iv: iv});
         const plainHex = cryptoJs.enc.Hex.stringify(plainwords);
-        const buff = new Buffer(plainHex, 'hex');
+        const buff = Buffer.from(plainHex, 'hex');
         return buff.toString();
     }
 }

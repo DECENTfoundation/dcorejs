@@ -121,7 +121,7 @@ Also can use `Account.createAccountWithBrainkey`, but keys generated from braink
 
 ```typescript
 import * as dcorejs from 'dcorejs';
-import { KeyPrivate, Utils } from 'dcorejs';
+import { KeyPrivate, KeyPublic, Utils } from 'dcorejs';
 
 let sequenceNumber = 0;
 const brainKey = dcorejs.account().suggestBrainKey();
@@ -142,7 +142,7 @@ dcorejs.account().registerAccount(
     publicActiveKey.stringKey,
     publicMemoKey.stringKey,
     accountId,
-    privateKey)
+    registrarPrivateKey)
     .then(res => {
         // account_create transaction was successfully broadcasted
     })
