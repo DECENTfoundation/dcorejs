@@ -673,6 +673,7 @@ export class AccountModule extends ApiModule {
                         ws_server: this.apiConnector.apiAddresses[0],
                         ws_user: '',
                         ws_password: '',
+                        update_time: new Date().toISOString()
                     };
                     const keys = {
                         ec_keys: privateKeys.map(pk => {
