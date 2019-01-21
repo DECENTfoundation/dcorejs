@@ -105,7 +105,7 @@ export class MessagingModule extends ApiModule {
         result.map((msg: IDCoreMessagePayload) => {
             if (msg.receivers_data.length !== 0) {
                 if (msg.receivers_data[0].receiver_pubkey === KeyPublic.empty) {
-                    msg.text = new Buffer(msg.receivers_data[0].data, 'hex').toString();
+                    msg.text = Buffer.from(msg.receivers_data[0].data, 'hex').toString();
                 } else {
                     try {
                         msg.text = CryptoUtils.decryptWithChecksum(
@@ -176,7 +176,7 @@ export class MessagingModule extends ApiModule {
                         messagePayload.receivers_data[0].nonce.toString()
                     );
                     messagePayload.receivers_data[0].data = encryptedMsg;
-                    const buffer = new Buffer(JSON.stringify(messagePayload)).toString('hex');
+                    const buffer = Buffer.from(JSON.stringify(messagePayload)).toString('hex');
 
                     const customOp = new Operations.CustomOperation(sender, [sender], CustomOperationSubtype.messaging, buffer);
                     const transaction = new TransactionBuilder();
@@ -231,12 +231,12 @@ export class MessagingModule extends ApiModule {
                                 to: receiverId,
                                 pub_to: KeyPublic.empty,
                                 nonce: 0,
-                                data: new Buffer(message).toString('hex')
+                                data: Buffer.from(message).toString('hex')
                             }
                         ]
                     };
 
-                    const buffer = new Buffer(JSON.stringify(messagePayload)).toString('hex');
+                    const buffer = Buffer.from(JSON.stringify(messagePayload)).toString('hex');
 
                     const customOp = new Operations.CustomOperation(sender, [sender], CustomOperationSubtype.messaging, buffer);
                     const transaction = new TransactionBuilder();

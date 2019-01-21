@@ -86,7 +86,7 @@ describe('(server/endToEnd) Account fetch', () => {
     });
 
     it('do transfer', (done) => {
-        dcore_js.account().transfer(0.0000001, '1.3.0', '1.2.27', '1.2.24', '', privateKey)
+        dcore_js.account().transfer(0.001, '1.3.0', '1.2.27', '1.2.24', '', privateKey)
             .then(() => {
                 done();
             })
