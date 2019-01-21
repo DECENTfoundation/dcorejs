@@ -1,6 +1,6 @@
 {
     "name": "dcorejs",
-    "version": "5.0.3",
+    "version": "5.1.0",
     "description": "Javascript library to work with Dcore blockchain network.",
     "keywords": [
         "blockchain",
