@@ -239,6 +239,7 @@ export interface WalletExport {
     ws_server: string;
     ws_user: string;
     ws_password: string;
+    update_time: string;
 }
 
 export interface SubscriptionParameters {
