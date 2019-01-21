@@ -126,16 +126,21 @@ import { KeyPrivate, Utils } from 'dcorejs';
 let sequenceNumber = 0;
 const brainKey = dcorejs.account().suggestBrainKey();
 // owner key is generated with sequenceNumber = 0
-const ownerKey: KeyPrivate = Utils.generateKeys(brainKey)[0];
-const activeKey: KeyPrivate = Utils.derivePrivateKey(brainKey, sequenceNumber + 1);
-const memoKey: KeyPrivate = Utils.derivePrivateKey(brainKey, sequenceNumber + 2);
-const privateKey = '5KcA6ky4Hs9VoDUSdTF4o3a2QDgiiG5gkpLLysRWR8dy6EAgTni';
+const [, publicOwnerKey]: [KeyPrivate, KeyPublic] = Utils.generateKeys(brainKey);
+const privateActiveKey: KeyPrivate = Utils.derivePrivateKey(brainKey, sequenceNumber + 1);
+const privateMemoKey: KeyPrivate = Utils.derivePrivateKey(brainKey, sequenceNumber + 2);
+const registrarPrivateKey = '5KcA6ky4Hs9VoDUSdTF4o3a2QDgiiG5gkpLLysRWR8dy6EAgTni';
+
+const publicActiveKey: KeyPublic = KeyPublic.fromPrivateKey(privateActiveKey)
+const publicMemoKey: KeyPublic = KeyPublic.fromPrivateKey(privateMemoKey)
+
+const accountId = '1.1.1'
 
 dcorejs.account().registerAccount(
     'myNewAccountName',
-    ownerKey,
-    activeKey,
-    memoKey,
+    publicOwnerKey.stringKey,
+    publicActiveKey.stringKey,
+    publicMemoKey.stringKey,
     accountId,
     privateKey)
     .then(res => {
