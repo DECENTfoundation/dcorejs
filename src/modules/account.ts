@@ -1,36 +1,36 @@
 /**
  * @module AccountModule
  */
-import { ApiConnector } from '../api/apiConnector';
-import { ChainApi } from '../api/chain';
-import { DatabaseApi } from '../api/database';
-import { HistoryApi, HistoryOperations } from '../api/history';
-import { ChainMethods } from '../api/model/chain';
-import { DatabaseError, DatabaseOperations, MinerOrder, SearchAccountHistoryOrder } from '../api/model/database';
-import { CryptoUtils } from '../crypt';
+import {ApiConnector} from '../api/apiConnector';
+import {ChainApi} from '../api/chain';
+import {DatabaseApi} from '../api/database';
+import {HistoryApi, HistoryOperations} from '../api/history';
+import {ChainMethods} from '../api/model/chain';
+import {DatabaseError, DatabaseOperations, MinerOrder, SearchAccountHistoryOrder} from '../api/model/database';
+import {CryptoUtils} from '../crypt';
 import {
     Account,
     AccountError,
     AccountNameIdPair,
     Asset,
     Authority,
+    HistoryBalanceObject,
     HistoryOptions,
     HistoryRecord,
     MinerInfo,
     Options,
     TransactionRecord,
     UpdateAccountParameters,
-    WalletExport,
-    HistoryBalanceObject
+    WalletExport
 } from '../model/account';
-import { DCoreAssetObject, AssetObject } from '../model/asset';
-import { Memo, Operation, Operations } from '../model/transaction';
-import { TransactionBuilder } from '../transactionBuilder';
-import { Utils } from '../utils';
-import { ApiModule } from './ApiModule';
-import { Validator } from './validator';
-import { Type } from '../model/types';
-import { KeyPrivate, KeyPublic } from '../model/utils';
+import {AssetObject, DCoreAssetObject} from '../model/asset';
+import {Memo, Operation, Operations} from '../model/transaction';
+import {TransactionBuilder} from '../transactionBuilder';
+import {Utils} from '../utils';
+import {ApiModule} from './ApiModule';
+import {Validator} from './validator';
+import {Type} from '../model/types';
+import {KeyPrivate, KeyPublic} from '../model/utils';
 
 export enum AccountOrder {
     nameAsc = '+name',
@@ -38,6 +38,13 @@ export enum AccountOrder {
     nameDesc = '-name',
     idDesc = '-id',
     none = ''
+}
+
+export interface TransactionData {
+    sender: string;
+    receiver: string;
+    asset: Asset;
+    memo: Memo
 }
 
 /**
@@ -240,16 +247,15 @@ export class AccountModule extends ApiModule {
      * @param {boolean} broadcast       Transaction is broadcasted if set to true
      * @return {Promise<Operation>}     Value confirming successful transaction broadcasting.
      */
-    public transfer(
+    private prepareTransfer(
         amount: number,
         assetId: string,
         fromAccount: string,
         toAccount: string,
         memo: string,
-        privateKey: string,
-        broadcast: boolean = true): Promise<Operation> {
-        if (!Validator.validateArguments([amount, assetId, fromAccount, toAccount, memo, privateKey, broadcast],
-            [Type.number, Type.string, Type.string, Type.string, Type.string, Type.string, Type.boolean])) {
+        privateKey: string): Promise<TransactionData> {
+        if (!Validator.validateArguments([amount, assetId, fromAccount, toAccount, memo, privateKey],
+            [Type.number, Type.string, Type.string, Type.string, Type.string, Type.string])) {
             throw new TypeError(AccountError.invalid_parameters);
         }
         return new Promise(async (resolve, reject) => {
@@ -316,23 +322,12 @@ export class AccountModule extends ApiModule {
                         )
                     };
 
-                    const transaction = new TransactionBuilder();
-                    const transferOperation = new Operations.TransferOperation(
-                        senderAccount.id,
-                        receiverAccount.id,
-                        Asset.create(amount, asset),
-                        memo_object
-                    );
-                    transaction.addOperation(transferOperation);
-                    this.finalizeAndBroadcast(transaction, privateKey, broadcast)
-                        .then(res => resolve(transaction.operations[0]))
-                        .catch(err => {
-                            if (err.stack.stack.message.indexOf('insufficient_balance') >= 0) {
-                                reject(this.handleError(AccountError.insufficient_balance, err));
-                            } else {
-                                reject(this.handleError(AccountError.api_connection_failed, err));
-                            }
-                        });
+                    resolve({
+                        sender: senderAccount.id,
+                        receiver: receiverAccount.id,
+                        asset: Asset.create(amount, asset),
+                        memo: memo_object
+                    });
                 })
                 .catch(err => {
                     switch (err.message) {
@@ -349,6 +344,70 @@ export class AccountModule extends ApiModule {
         });
     }
 
+    public async transfer(
+        amount: number,
+        assetId: string,
+        fromAccount: string,
+        toAccount: string,
+        memo: string,
+        privateKey: string,
+        broadcast: boolean = true): Promise<Operation> {
+        if (!Validator.validateArguments([amount, assetId, fromAccount, toAccount, memo, privateKey, broadcast],
+            [Type.number, Type.string, Type.string, Type.string, Type.string, Type.string, Type.boolean])) {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
+        const txData: TransactionData = await this.prepareTransfer(amount, assetId, fromAccount, toAccount, memo, privateKey);
+        const transaction = new TransactionBuilder();
+        const transferOperation = new Operations.TransferOperation(
+            txData.sender,
+            txData.receiver,
+            txData.asset,
+            txData.memo
+        );
+        transaction.addOperation(transferOperation);
+        try {
+            return await this.finalizeAndBroadcast(transaction, privateKey, broadcast);
+        } catch (err) {
+            if (err.stack.stack.message.indexOf('insufficient_balance') >= 0) {
+                throw this.handleError(AccountError.insufficient_balance, err);
+            } else {
+                throw this.handleError(AccountError.api_connection_failed, err);
+            }
+        }
+    }
+
+    public async transfer2(
+        amount: number,
+        assetId: string,
+        fromAccount: string,
+        toAccount: string,
+        memo: string,
+        privateKey: string,
+        broadcast: boolean = true): Promise<Operation> {
+        if (!Validator.validateArguments([amount, assetId, fromAccount, toAccount, memo, privateKey, broadcast],
+            [Type.number, Type.string, Type.string, Type.string, Type.string, Type.string, Type.boolean])) {
+            throw new TypeError(AccountError.invalid_parameters);
+        }
+        const txData: TransactionData = await this.prepareTransfer(amount, assetId, fromAccount, toAccount, memo, privateKey);
+        const transaction = new TransactionBuilder();
+        const transferOperation = new Operations.Transfer2Operation(
+            txData.sender,
+            txData.receiver,
+            txData.asset,
+            txData.memo
+        );
+        transaction.addOperation(transferOperation);
+        try {
+            return await this.finalizeAndBroadcast(transaction, privateKey, broadcast);
+        } catch (err) {
+            if (err.stack.stack.message && err.stack.stack.message.indexOf('insufficient_balance') >= 0) {
+                throw this.handleError(AccountError.insufficient_balance, err);
+            } else {
+                throw this.handleError(AccountError.api_connection_failed, err);
+            }
+        }
+    }
+
     /**
      * Current account balance of asset on given account
      * https://docs.decent.ch/developer/classgraphene_1_1app_1_1database__api__impl.html#a52515490f739d3523c9d842e2e2362ef
@@ -356,7 +415,7 @@ export class AccountModule extends ApiModule {
      * @param {string} accountId        Account id in format '1.2.X'. Example: '1.2.345'
      * @param {string} assetId          Id of asset in which balance will be listed
      * @param {boolean} convertAsset    Optional parameter to convert balance amount from blockchain asset
-                                        amount format to right precision format of asset. Example: 100000000 => 1 DCT.
+     amount format to right precision format of asset. Example: 100000000 => 1 DCT.
      *                                  Default: false.
      * @return {Promise<number>}        Account's balance
      */
@@ -602,9 +661,9 @@ export class AccountModule extends ApiModule {
      * @returns {Promise<boolean>}          Value confirming successful transaction broadcasting.
      */
     public createAccountWithBrainkey(brainkey: string,
-        accountName: string,
-        registrar: string,
-        registrarPrivateKey: string): Promise<Operation> {
+                                     accountName: string,
+                                     registrar: string,
+                                     registrarPrivateKey: string): Promise<Operation> {
         if (!Validator.validateArguments(arguments, [Type.string, Type.string, Type.string, Type.string])) {
             throw new TypeError(AccountError.invalid_parameters);
         }
@@ -651,15 +710,15 @@ export class AccountModule extends ApiModule {
                         const elGPriv = Utils.elGamalPrivate(pk);
                         const elGPub = Utils.elGamalPublic(elGPriv);
                         return {
-                            private: { s: elGPriv },
-                            public: { s: elGPub }
+                            private: {s: elGPriv},
+                            public: {s: elGPub}
                         };
                     });
                     elGamalKeys.push(...additionalElGamalPrivateKeys.map(elGPriv => {
                         const elGPub = Utils.elGamalPublic(elGPriv);
                         return {
-                            private: { s: elGPriv },
-                            public: { s: elGPub }
+                            private: {s: elGPriv},
+                            public: {s: elGPub}
                         };
                     }));
                     const walletExport: WalletExport = {
@@ -738,7 +797,7 @@ export class AccountModule extends ApiModule {
                                 reject(this.handleError(AccountError.database_operation_failed));
                                 return;
                             }
-                            const result = [].concat(...balances).map(bal => Object.assign({}, bal, { amount: Number(bal.amount) }));
+                            const result = [].concat(...balances).map(bal => Object.assign({}, bal, {amount: Number(bal.amount)}));
                             if (!convertAssets) {
                                 resolve(result);
                                 return;
@@ -769,11 +828,11 @@ export class AccountModule extends ApiModule {
      * @returns {Promise<MinerInfo[]>}      List of filtered MinerInfo objects.
      */
     public searchMinerVoting(accountName: string,
-        keyword: string,
-        myVotes: boolean = true,
-        sort: MinerOrder = MinerOrder.none,
-        fromMinerId: string = '',
-        limit: number = 1000): Promise<MinerInfo[]> {
+                             keyword: string,
+                             myVotes: boolean = true,
+                             sort: MinerOrder = MinerOrder.none,
+                             fromMinerId: string = '',
+                             limit: number = 1000): Promise<MinerInfo[]> {
         if (!Validator.validateArguments([keyword, myVotes, sort, fromMinerId, limit],
             [Type.string, Type.boolean, Type.string, Type.string, Type.number])) {
             throw new TypeError(AccountError.invalid_parameters);
