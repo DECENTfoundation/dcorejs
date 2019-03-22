@@ -65,7 +65,8 @@ export enum OperationName {
     automatic_renewal_of_subscription = 'automatic_renewal_of_subscription',
     custom_operation = 'custom',
     update_monitored_asset_operation = 'update_monitored_asset_operation',
-    update_user_issued_asset_precision_operation = 'update_user_issued_asset_precision_operation'
+    update_user_issued_asset_precision_operation = 'update_user_issued_asset_precision_operation',
+    transfer2 = 'transfer2'
 }
 
 
@@ -92,6 +93,18 @@ export namespace Operations {
         constructor(from: string, to: string, amount: Asset, memo: Memo) {
             const type: prototype.TransferType = { from: from, to: to, amount: amount, memo: memo };
             super(OperationName.transfer, type);
+        }
+    }
+
+    export class Transfer2Operation extends Operation {
+
+        static getPrototype(): prototype.TransferType {
+            return prototype.TransferPrototype.getPrototype();
+        }
+
+        constructor(from: string, to: string, amount: Asset, memo: Memo) {
+            const type: prototype.TransferType = { from: from, to: to, amount: amount, memo: memo, extensions: []};
+            super(OperationName.transfer2, type);
         }
     }
 

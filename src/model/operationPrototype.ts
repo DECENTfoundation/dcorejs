@@ -16,6 +16,7 @@ export interface TransferType extends OperationType {
     to: string;
     amount: Asset;
     memo: Memo;
+    extensions?: any;
 }
 
 export class TransferPrototype {
