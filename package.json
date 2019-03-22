@@ -1,6 +1,6 @@
 {
     "name": "dcorejs",
-    "version": "5.1.1",
+    "version": "5.2.0",
     "description": "Javascript library to work with Dcore blockchain network.",
     "keywords": [
         "blockchain",
@@ -80,7 +80,7 @@
         "big-integer": "^1.6.40",
         "bluebird": "3.5.1",
         "crypto-js": "3.1.9-1",
-        "dcorejs-lib": "^1.6.1",
+        "dcorejs-lib": "^1.6.2",
         "ipfs-api": "15.0.1",
         "js-sha512": "^0.7.1",
         "jsdoc": "^3.5.5",
